@@ -1,0 +1,20 @@
+# permissions for end users to view dataconnectors.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: dataconnector-viewer-role
+rules:
+- apiGroups:
+  - k8s.natun.ai
+  resources:
+  - dataconnectors
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - k8s.natun.ai
+  resources:
+  - dataconnectors/status
+  verbs:
+  - get

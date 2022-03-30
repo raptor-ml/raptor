@@ -1,0 +1,102 @@
+package api
+
+import (
+	"context"
+	"time"
+)
+
+// Value is storing a feature value.
+type Value struct {
+	// Value can be cast to LowLevelValue using the ToLowLevelValue() method
+	Value     any       `json:"value"`
+	Timestamp time.Time `json:"timestamp"`
+	Fresh     bool      `json:"fresh"`
+}
+
+// WindowResultMap is a map of WindowFn and their aggregated results
+type WindowResultMap map[WindowFn]float64
+
+// RawBuckets is a map of Bucket's and their raw values(as WindowResultMap)
+type RawBuckets map[string]WindowResultMap
+
+// LowLevelValue is a low level value that can be cast to any type
+type LowLevelValue interface {
+	~int | ~string | ~float64 | time.Time | ~[]int | ~[]string | ~[]float64 | ~[]time.Time | WindowResultMap
+}
+
+// ToLowLevelValue returns the low level value of the feature
+func ToLowLevelValue[T LowLevelValue](v any) T {
+	return v.(T)
+}
+
+// State is a feature state management layer
+type State interface {
+	// Get returns the SimpleValue of the feature.
+	// If the feature is not available, it returns nil.
+	// If the feature is windowed, the returned SimpleValue is a map from window function to SimpleValue.
+	Get(ctx context.Context, md Metadata, entityID string) (*Value, error)
+
+	// Set sets the SimpleValue of the feature.
+	// If the feature's primitive is a List, it replaces the entire list.
+	// If the feature is windowed, it is aliased to WindowAdd instead of Set.
+	Set(ctx context.Context, md Metadata, entityID string, val any, timestamp time.Time) error
+
+	// Append appends the SimpleValue to the feature.
+	// If the feature's primitive is NOT a List it will throw an error.
+	Append(ctx context.Context, md Metadata, entityID string, val any, ts time.Time) error
+
+	// Incr increments the SimpleValue of the feature.
+	// If the feature's primitive is NOT a Scalar it will throw an error.
+	// It returns the updated value in the state, and an error if occurred.
+	Incr(ctx context.Context, md Metadata, entityID string, by any, timestamp time.Time) error
+	// Update is the common function to update a feature SimpleValue.
+	// Under the hood, it utilizes lower-level functions depending on the type of the feature.
+	//  - Set for Scalars
+	//	- Append for Lists
+	//  - WindowAdd for Windows
+	Update(ctx context.Context, md Metadata, entityID string, val any, timestamp time.Time) error
+
+	// WindowAdd adds a Bucket to the window that contains aggregated data internally
+	// Later the bucket's aggregations should be aggregated for the whole Window via Get
+	//
+	// Buckets should last *at least* as long as the feature's staleness time + DeadGracePeriod
+	WindowAdd(ctx context.Context, md Metadata, entityID string, val any, timestamp time.Time) error
+
+	// WindowBuckets returns the list of RawBuckets for the feature.
+	WindowBuckets(ctx context.Context, md Metadata, entityID string, buckets []string) (RawBuckets, error)
+
+	// Ping is a simple keepalive check for the state.
+	// It should return an error in case an error occurred, or nil if everything is alright.
+	Ping(ctx context.Context) error
+}
+
+// StateMethod is a method that can be used with a State.
+type StateMethod int
+
+const (
+	StateMethodGet StateMethod = iota
+	StateMethodSet
+	StateMethodAppend
+	StateMethodIncr
+	StateMethodUpdate
+	StateMethodWindowAdd
+)
+
+func (s StateMethod) String() string {
+	switch s {
+	case StateMethodGet:
+		return "Get"
+	case StateMethodSet:
+		return "Set"
+	case StateMethodAppend:
+		return "Append"
+	case StateMethodIncr:
+		return "Incr"
+	case StateMethodUpdate:
+		return "Update"
+	case StateMethodWindowAdd:
+		return "WindowAdd"
+	default:
+		panic("unreachable")
+	}
+}

@@ -1,0 +1,24 @@
+# permissions for end users to edit features.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: feature-editor-role
+rules:
+- apiGroups:
+  - k8s.natun.ai
+  resources:
+  - features
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - k8s.natun.ai
+  resources:
+  - features/status
+  verbs:
+  - get

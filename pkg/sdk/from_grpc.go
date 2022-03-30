@@ -1,0 +1,107 @@
+package sdk
+
+import (
+	"github.com/google/uuid"
+	"github.com/natun-ai/natun/pkg/api"
+	coreApi "github.com/natun-ai/natun/proto/gen/go/natun/core/v1alpha1"
+)
+
+func FromAPIPrimitive(p coreApi.Primitive) api.PrimitiveType {
+	switch p {
+	default:
+		return api.PrimitiveTypeUnknown
+	case coreApi.Primitive_PRIMITIVE_STRING:
+		return api.PrimitiveTypeString
+	case coreApi.Primitive_PRIMITIVE_INTEGER:
+		return api.PrimitiveTypeInteger
+	case coreApi.Primitive_PRIMITIVE_FLOAT:
+		return api.PrimitiveTypeFloat
+	case coreApi.Primitive_PRIMITIVE_TIMESTAMP:
+		return api.PrimitiveTypeTimestamp
+	case coreApi.Primitive_PRIMITIVE_STRING_LIST:
+		return api.PrimitiveTypeStringList
+	case coreApi.Primitive_PRIMITIVE_INTEGER_LIST:
+		return api.PrimitiveTypeIntegerList
+	case coreApi.Primitive_PRIMITIVE_FLOAT_LIST:
+		return api.PrimitiveTypeFloatList
+	case coreApi.Primitive_PRIMITIVE_TIMESTAMP_LIST:
+		return api.PrimitiveTypeTimestampList
+	}
+}
+func FromAPIAggrFunc(f coreApi.AggrFn) api.WindowFn {
+	switch f {
+	default:
+		return api.WindowFnUnknown
+	case coreApi.AggrFn_AGGR_FN_SUM:
+		return api.WindowFnSum
+	case coreApi.AggrFn_AGGR_FN_AVG:
+		return api.WindowFnAvg
+	case coreApi.AggrFn_AGGR_FN_MIN:
+		return api.WindowFnMin
+	case coreApi.AggrFn_AGGR_FN_MAX:
+		return api.WindowFnMax
+	case coreApi.AggrFn_AGGR_FN_COUNT:
+		return api.WindowFnCount
+	}
+}
+func FromAPIAggrFuncs(fs []coreApi.AggrFn) []api.WindowFn {
+	var wfs []api.WindowFn
+	for _, f := range fs {
+		wfs = append(wfs, FromAPIAggrFunc(f))
+	}
+	return wfs
+}
+func FromAPIMetadata(m *coreApi.Metadata) api.Metadata {
+	return api.Metadata{
+		FQN:       m.Fqn,
+		Primitive: FromAPIPrimitive(m.Primitive),
+		Aggr:      FromAPIAggrFuncs(m.Aggr),
+		Freshness: m.Freshness.AsDuration(),
+		Staleness: m.Staleness.AsDuration(),
+		Timeout:   m.Timeout.AsDuration(),
+		Builder:   m.Builder,
+	}
+}
+
+func newUUID() string {
+	return uuid.New().String()
+}
+
+func fromScalar(scalar *coreApi.Scalar) any {
+	if scalar == nil {
+		return nil
+	}
+
+	switch scalar.Value.(type) {
+	case *coreApi.Scalar_StringValue:
+		return scalar.GetStringValue()
+	case *coreApi.Scalar_FloatValue:
+		return scalar.GetFloatValue()
+	case *coreApi.Scalar_IntValue:
+		return scalar.GetIntValue()
+	case *coreApi.Scalar_TimestampValue:
+		return scalar.GetTimestampValue().AsTime()
+	}
+
+	panic("unknown scalar type")
+}
+
+func FromValue(val *coreApi.Value) any {
+	if val == nil {
+		return nil
+	}
+
+	switch v := val.Value.(type) {
+	case *coreApi.Value_ScalarValue:
+		return fromScalar(v.ScalarValue)
+	case *coreApi.Value_ListValue:
+		list := v.ListValue
+		ret := make([]any, len(list.Values))
+		for i, v := range list.Values {
+			ret[i] = fromScalar(v)
+		}
+		return ret
+	}
+
+	panic("unknown value type")
+}

@@ -1,0 +1,6 @@
+apiVersion: k8s.natun.ai/v1alpha1
+kind: Connector
+metadata:
+  name: connector-sample
+spec:
+  # TODO(user): Add fields here

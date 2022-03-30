@@ -1,0 +1,59 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - k8s.natun.ai
+  resources:
+  - dataconnectors
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - k8s.natun.ai
+  resources:
+  - dataconnectors/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - k8s.natun.ai
+  resources:
+  - dataconnectors/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - k8s.natun.ai
+  resources:
+  - features
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - k8s.natun.ai
+  resources:
+  - features/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - k8s.natun.ai
+  resources:
+  - features/status
+  verbs:
+  - get
+  - patch
+  - update

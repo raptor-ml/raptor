@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package natun.core.v1alpha1;
+
+import "validate/validate.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/natun-ai/natun/core/v1alpha1;coreV1alpha1";
+
+message Scalar {
+    oneof value {
+        int64 int_value = 1;
+        double float_value = 2;
+        string string_value = 3;
+        google.protobuf.Timestamp timestamp_value = 4;
+    }
+}
+
+message List {
+    repeated Scalar values = 1;
+}
+message Value {
+    oneof value {
+        Scalar scalar_value = 1;
+        List list_value = 2;
+    }
+}
+enum Primitive {
+    PRIMITIVE_UNSPECIFIED = 0;
+    PRIMITIVE_INTEGER = 1;
+    PRIMITIVE_FLOAT = 2;
+    PRIMITIVE_STRING = 3;
+    PRIMITIVE_TIMESTAMP = 4;
+    // 5-10 Reserved for future use.
+    PRIMITIVE_INTEGER_LIST = 10;
+    PRIMITIVE_FLOAT_LIST = 11;
+    PRIMITIVE_STRING_LIST = 12;
+    PRIMITIVE_TIMESTAMP_LIST = 13;
+}
+
+enum AggrFn {
+    AGGR_FN_UNSPECIFIED = 0;
+    AGGR_FN_SUM = 1;
+    AGGR_FN_AVG = 2;
+    AGGR_FN_MAX = 3;
+    AGGR_FN_MIN = 4;
+    AGGR_FN_COUNT = 5;
+}
+
+message Metadata {
+    string fqn = 1 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    Primitive primitive = 2 [(validate.rules).enum.defined_only = true];
+    repeated AggrFn aggr = 3 [
+        (validate.rules).repeated.items.enum.defined_only = true,
+        (validate.rules).repeated.unique = true
+    ];
+    google.protobuf.Duration freshness = 4;
+    google.protobuf.Duration staleness = 5;
+    google.protobuf.Duration timeout = 6;
+    string builder = 7;
+}
+message FeatureValue {
+    string fqn = 1 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    string entity_id = 2;
+    Value value = 3;
+    google.protobuf.Timestamp timestamp = 4;
+    bool fresh = 5;
+}

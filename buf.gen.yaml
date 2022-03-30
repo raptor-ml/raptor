@@ -1,0 +1,22 @@
+version: v1
+managed:
+  enabled: true
+plugins:
+  - name: go
+    out: proto/gen/go
+    opt: paths=source_relative
+  - name: go-grpc
+    out: proto/gen/go
+    opt:
+      - paths=source_relative
+      - require_unimplemented_servers=false
+  - name: grpc-gateway
+    out: proto/gen/go
+    opt:
+      - paths=source_relative
+      - generate_unbound_methods=true
+  - name: validate
+    out: proto/gen/go
+    opt:
+      - paths=source_relative
+      - lang=go

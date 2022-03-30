@@ -1,0 +1,119 @@
+package engine
+
+import (
+	"context"
+	goerrors "errors"
+	"fmt"
+	"github.com/go-logr/logr"
+	"github.com/natun-ai/natun/internal/historian"
+	"github.com/natun-ai/natun/pkg/api"
+	"github.com/natun-ai/natun/pkg/errors"
+	"sync"
+	"time"
+)
+
+type engine struct {
+	features  sync.Map
+	state     api.State
+	historian historian.Historian
+	logger    logr.Logger
+}
+
+// New creates a new engine manager
+func New(state api.State, h historian.Historian, logger logr.Logger) api.Manager {
+	if state == nil {
+		panic("state is nil")
+	}
+	e := &engine{
+		state:     state,
+		historian: h,
+		logger:    logger,
+	}
+	h.SetMetadataGetter(e.Metadata)
+	return e
+}
+
+func (e *engine) Append(ctx context.Context, FQN string, entityID string, val any, ts time.Time) error {
+	return e.write(ctx, FQN, entityID, val, ts, api.StateMethodAppend)
+}
+func (e *engine) Incr(ctx context.Context, FQN string, entityID string, by any, ts time.Time) error {
+	return e.write(ctx, FQN, entityID, by, ts, api.StateMethodIncr)
+}
+func (e *engine) Set(ctx context.Context, FQN string, entityID string, val any, ts time.Time) error {
+	return e.write(ctx, FQN, entityID, val, ts, api.StateMethodSet)
+}
+func (e *engine) Update(ctx context.Context, FQN string, entityID string, val any, ts time.Time) error {
+	return e.write(ctx, FQN, entityID, val, ts, api.StateMethodUpdate)
+}
+func (e *engine) write(ctx context.Context, FQN string, entityID string, val any, ts time.Time, method api.StateMethod) error {
+	f, ctx, cancel, err := e.featureForRequest(ctx, FQN)
+	if err != nil {
+		return err
+	}
+	defer cancel()
+
+	v := api.Value{Value: val, Timestamp: ts}
+	if _, err = e.writePipeline(f, method).Apply(ctx, entityID, v); err != nil {
+		return fmt.Errorf("failed to %s value for feature %s with entity %s: %w", method, FQN, entityID, err)
+	}
+	return nil
+}
+
+func (e *engine) Get(ctx context.Context, FQN string, entityID string) (api.Value, api.Metadata, error) {
+	ret := api.Value{Timestamp: time.Now()}
+	f, ctx, cancel, err := e.featureForRequest(ctx, FQN)
+	if err != nil {
+		return ret, api.Metadata{}, err
+	}
+	defer cancel()
+
+	ret, err = e.readPipeline(f).Apply(ctx, entityID, ret)
+	if err != nil && !(goerrors.Is(err, context.DeadlineExceeded) && ret.Value != nil && !ret.Fresh) {
+		return ret, f.Metadata, fmt.Errorf("failed to GET value for feature %s with entity %s: %w", FQN, entityID, err)
+	}
+	return ret, f.Metadata, nil
+}
+
+func (e *engine) Metadata(ctx context.Context, FQN string) (api.Metadata, error) {
+	f, ctx, cancel, err := e.featureForRequest(ctx, FQN)
+	if err != nil {
+		return api.Metadata{}, err
+	}
+	defer cancel()
+
+	return f.Metadata, nil
+}
+func (e *engine) featureForRequest(ctx context.Context, FQN string) (*Feature, context.Context, context.CancelFunc, error) {
+	FQN, fn := api.FQNToRealFQN(FQN)
+	if f, ok := e.features.Load(FQN); ok {
+		if f, ok := f.(Feature); ok {
+			ctx, cancel := f.Context(ctx, e.Logger())
+			ctx = f.ContextWithWindowFn(ctx, fn)
+			return &f, ctx, cancel, nil
+		}
+	}
+	return nil, ctx, nil, fmt.Errorf("%w: %s", errors.ErrFeatureNotFound, FQN)
+}
+
+func (e *engine) UnbindFeature(FQN string) error {
+	e.features.Delete(FQN)
+	e.logger.Info("feature unbound", "feature", FQN)
+	return nil
+}
+
+func (e *engine) bindFeature(f Feature) error {
+	if e.HasFeature(f.FQN) {
+		return fmt.Errorf("%w: %s", errors.ErrFeatureAlreadyExists, f.FQN)
+	}
+	e.features.Store(f.FQN, f)
+	e.logger.Info("feature bound", "FQN", f.FQN)
+	return nil
+}
+
+func (e *engine) HasFeature(FQN string) bool {
+	_, ok := e.features.Load(FQN)
+	return ok
+}
+func (e *engine) Logger() logr.Logger {
+	return e.logger
+}
