@@ -13,10 +13,6 @@ import (
 	"time"
 )
 
-func key(FQN string, entityID string) string {
-	return fmt.Sprintf("%s:%s", FQN, entityID)
-}
-
 type state struct {
 	client redis.UniversalClient
 }
@@ -95,12 +91,12 @@ func setTimestampExpireAt(ctx context.Context, tx redis.Cmdable, key string, ts 
 func getTimestamp(ctx context.Context, tx redis.Cmdable, key string) (*time.Time, error) {
 	s, err := tx.Get(ctx, fmt.Sprintf("%s:ts", key)).Result()
 	if err != nil {
-		return nil, fmt.Errorf("unable to fetch timestamp for key %s: %w", key, err)
+		return nil, fmt.Errorf("unable to fetch timestamp for primitiveKey %s: %w", key, err)
 	}
 
 	nts, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse timestamp for key %s: %w", key, err)
+		return nil, fmt.Errorf("unable to parse timestamp for primitiveKey %s: %w", key, err)
 	}
 	ts := time.UnixMicro(nts)
 	return &ts, nil

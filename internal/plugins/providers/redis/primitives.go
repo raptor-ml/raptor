@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+func primitiveKey(FQN string, entityID string) string {
+	return fmt.Sprintf("%s:%s", FQN, entityID)
+}
+
 func (s *state) Get(ctx context.Context, md api.Metadata, entityID string) (*api.Value, error) {
 	if md.ValidWindow() {
 		return s.getWindow(ctx, md, entityID)
@@ -16,7 +20,7 @@ func (s *state) Get(ctx context.Context, md api.Metadata, entityID string) (*api
 }
 
 func (s *state) getPrimitive(ctx context.Context, md api.Metadata, entityID string) (*api.Value, error) {
-	key := key(md.FQN, entityID)
+	key := primitiveKey(md.FQN, entityID)
 
 	ts, err := getTimestamp(ctx, s.client, key)
 	if err != nil {
@@ -71,7 +75,7 @@ func (s *state) Set(ctx context.Context, md api.Metadata, entityID string, value
 	if time.Now().Sub(ts) > md.Staleness {
 		return fmt.Errorf("timestamp %s is too old", ts)
 	}
-	key := key(md.FQN, entityID)
+	key := primitiveKey(md.FQN, entityID)
 
 	tx := s.client.TxPipeline()
 
@@ -104,7 +108,7 @@ func (s *state) Append(ctx context.Context, md api.Metadata, entityID string, va
 		return fmt.Errorf("`Append` only supports slices and arrays")
 	}
 
-	key := key(md.FQN, entityID)
+	key := primitiveKey(md.FQN, entityID)
 
 	tx := s.client.TxPipeline()
 	tx.RPush(ctx, key, value)
@@ -127,7 +131,7 @@ func (s *state) Incr(ctx context.Context, md api.Metadata, entityID string, valu
 	if !md.Primitive.Scalar() {
 		return fmt.Errorf("`Ince` only supports sclars")
 	}
-	key := key(md.FQN, entityID)
+	key := primitiveKey(md.FQN, entityID)
 
 	tx := s.client.TxPipeline()
 	switch v := value.(type) {

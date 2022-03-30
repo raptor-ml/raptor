@@ -16,18 +16,22 @@ type bucketData struct {
 	response *redis.StringStringMapCmd
 }
 
+func windowKey(FQN string, entityID string, bucketName string) string {
+	return fmt.Sprintf("%s/%s:%s", FQN, bucketName, entityID)
+}
+
 func (s *state) WindowBuckets(ctx context.Context, md api.Metadata, entityID string, buckets []string) (api.RawBuckets, error) {
 	c := make(chan bucketData)
 	wg := &sync.WaitGroup{}
 	wg.Add(len(buckets))
-	for _, k := range buckets {
-		go func(c chan bucketData, wg *sync.WaitGroup, k string) {
+	for _, b := range buckets {
+		go func(c chan bucketData, wg *sync.WaitGroup, b string) {
 			defer wg.Done()
 			c <- bucketData{
-				bucket:   k,
-				response: s.client.HGetAll(ctx, fmt.Sprintf("%s:%s", key(md.FQN, entityID), k)),
+				bucket:   b,
+				response: s.client.HGetAll(ctx, windowKey(md.FQN, entityID, b)),
 			}
-		}(c, wg, k)
+		}(c, wg, b)
 	}
 	go func(group *sync.WaitGroup) {
 		wg.Wait()
@@ -102,7 +106,7 @@ func (s *state) getWindow(ctx context.Context, md api.Metadata, entityID string)
 
 func (s *state) WindowAdd(ctx context.Context, md api.Metadata, entityID string, value any, ts time.Time) error {
 	bucket := api.BucketName(ts, md.Freshness)
-	key := fmt.Sprintf("%s:%s", key(md.FQN, entityID), bucket)
+	key := windowKey(md.FQN, entityID, bucket)
 
 	var val float64
 	switch v := value.(type) {
