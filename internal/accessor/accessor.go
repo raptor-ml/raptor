@@ -32,10 +32,10 @@ type accessor struct {
 	logger    logr.Logger
 }
 
-func New(e api.Manager) Accessor {
+func New(e api.Manager, logger logr.Logger) Accessor {
 	svc := &accessor{
-		sdkServer: sdk.NewServiceServer(e),
-		logger:    e.Logger().WithName("accessor"),
+		sdkServer: sdk.NewServiceServer(e.(api.Engine)),
+		logger:    logger,
 	}
 
 	zapLogger := svc.logger.GetSink().(zapr.Underlier).GetUnderlying()

@@ -15,12 +15,12 @@ import (
 type engine struct {
 	features  sync.Map
 	state     api.State
-	historian historian.Historian
+	historian historian.Client
 	logger    logr.Logger
 }
 
 // New creates a new engine manager
-func New(state api.State, h historian.Historian, logger logr.Logger) api.Manager {
+func New(state api.State, h historian.Client, logger logr.Logger) api.ManagerEngine {
 	if state == nil {
 		panic("state is nil")
 	}
@@ -29,7 +29,6 @@ func New(state api.State, h historian.Historian, logger logr.Logger) api.Manager
 		historian: h,
 		logger:    logger,
 	}
-	h.SetMetadataGetter(e.Metadata)
 	return e
 }
 
@@ -88,32 +87,13 @@ func (e *engine) featureForRequest(ctx context.Context, FQN string) (*Feature, c
 	if f, ok := e.features.Load(FQN); ok {
 		if f, ok := f.(Feature); ok {
 			ctx, cancel := f.Context(ctx, e.Logger())
-			ctx = f.ContextWithWindowFn(ctx, fn)
+			ctx = api.ContextWithWindowFn(ctx, fn)
 			return &f, ctx, cancel, nil
 		}
 	}
 	return nil, ctx, nil, fmt.Errorf("%w: %s", errors.ErrFeatureNotFound, FQN)
 }
 
-func (e *engine) UnbindFeature(FQN string) error {
-	e.features.Delete(FQN)
-	e.logger.Info("feature unbound", "feature", FQN)
-	return nil
-}
-
-func (e *engine) bindFeature(f Feature) error {
-	if e.HasFeature(f.FQN) {
-		return fmt.Errorf("%w: %s", errors.ErrFeatureAlreadyExists, f.FQN)
-	}
-	e.features.Store(f.FQN, f)
-	e.logger.Info("feature bound", "FQN", f.FQN)
-	return nil
-}
-
-func (e *engine) HasFeature(FQN string) bool {
-	_, ok := e.features.Load(FQN)
-	return ok
-}
 func (e *engine) Logger() logr.Logger {
 	return e.logger
 }

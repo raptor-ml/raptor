@@ -5,35 +5,46 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	"github.com/natun-ai/natun/internal/plugin"
 	"github.com/natun-ai/natun/pkg/api"
+	"github.com/spf13/viper"
 )
 
-type notifier struct {
+func init() {
+	plugin.CollectNotifierFactories.Register(pluginName, NotifierFactory[api.CollectNotification])
+	plugin.WriteNotifierFactories.Register(pluginName, NotifierFactory[api.WriteNotification])
+}
+func NotifierFactory[T api.Notification](viper *viper.Viper) (api.Notifier[T], error) {
+	rc, err := redisClient(viper)
+	if err != nil {
+		return nil, err
+	}
+	return &notifier[T]{
+		client: rc,
+	}, nil
+}
+
+type notifier[T api.Notification] struct {
 	client redis.UniversalClient
 }
 
-func (n *notifier) NotificationChannel(typ api.NotificationType) string {
-	return fmt.Sprintf("_natun:notification:%s", typ)
-}
-func (n *notifier) Notify(ctx context.Context, notification api.Notification, typ api.NotificationType) error {
-	switch typ {
-	case api.NotificationTypeNone:
-		return fmt.Errorf("notification type is not supported")
-	case api.NotificationTypeCollect:
-		if notification.Value != "" {
-			return fmt.Errorf("value is not supported for collect notification")
-		}
-	case api.NotificationTypeWrite:
-		if notification.Value == "" {
-			return fmt.Errorf("value is required for write notification")
-		}
+func (n *notifier[T]) NotificationChannel() string {
+	var t T
+	switch any(t).(type) {
+	case api.WriteNotification:
+		return "_natun:notification:write"
+	case api.CollectNotification:
+		return "_natun:notification:collect"
 	}
+	panic("not implemented")
+}
+func (n *notifier[T]) Notify(ctx context.Context, notification T) error {
 
 	msg, err := json.Marshal(notification)
 	if err != nil {
 		return fmt.Errorf("cannot marshal notification: %w", err)
 	}
-	ret, err := n.client.Publish(ctx, n.NotificationChannel(typ), msg).Result()
+	ret, err := n.client.Publish(ctx, n.NotificationChannel(), msg).Result()
 	if err != nil {
 		return fmt.Errorf("cannot publish notification: %w", err)
 	}
@@ -42,16 +53,16 @@ func (n *notifier) Notify(ctx context.Context, notification api.Notification, ty
 	}
 	return nil
 }
-func (n *notifier) Subscribe(ctx context.Context, typ api.NotificationType) (<-chan api.Notification, error) {
-	pubsub := n.client.Subscribe(ctx, n.NotificationChannel(typ))
-	c := make(chan api.Notification)
+func (n *notifier[T]) Subscribe(ctx context.Context) (<-chan T, error) {
+	pubsub := n.client.Subscribe(ctx, n.NotificationChannel())
+	c := make(chan T)
 	go func() {
 		<-ctx.Done()
-		pubsub.Close()
+		_ = pubsub.Close()
 	}()
 	go func() {
 		for msg := range pubsub.Channel() {
-			var notification = api.Notification{}
+			var notification T
 			err := json.Unmarshal([]byte(msg.Payload), &notification)
 			if err != nil {
 				panic(fmt.Errorf("couldn't unmarshal notification: %w", err))

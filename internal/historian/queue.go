@@ -8,28 +8,33 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"
 	"sync"
+	"time"
 )
 
-func newBaseQueue(logger logr.Logger, fn notifyFn) baseQueuer {
-	return baseQueuer{
+func newBaseQueue[T api.Notification](logger logr.Logger, fn NotifyFn[T]) baseQueuer[T] {
+	return baseQueuer[T]{
 		queue:  workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
 		logger: logger,
 		fn:     fn,
 	}
 }
 
-type notifyFn func(ctx context.Context, notification api.Notification) error
-
-type baseQueuer struct {
+type NotifyFn[T api.Notification] func(ctx context.Context, notification T) error
+type baseQueuer[T api.Notification] struct {
 	queue  workqueue.RateLimitingInterface
 	logger logr.Logger
-	fn     notifyFn
+	fn     NotifyFn[T]
 }
 
-func (b *baseQueuer) Notify(item api.Notification) {
-	b.queue.Add(item)
+func (b *baseQueuer[T]) Add(item T) {
+	b.AddAfter(item, 0)
 }
-func (b *baseQueuer) Runnable(workers int) func(ctx context.Context) error {
+
+func (b *baseQueuer[T]) AddAfter(item T, duration time.Duration) {
+	b.queue.AddAfter(item, duration)
+}
+
+func (b *baseQueuer[T]) Runnable(workers int) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		defer b.queue.ShutDownWithDrain()
 
@@ -51,7 +56,7 @@ func (b *baseQueuer) Runnable(workers int) func(ctx context.Context) error {
 		return nil
 	}
 }
-func (b *baseQueuer) processNextItem(ctx context.Context) bool {
+func (b *baseQueuer[T]) processNextItem(ctx context.Context) bool {
 	// The queue was drained, wait until the next cycle
 	if b.queue.Len() == 0 {
 		return false
@@ -64,7 +69,7 @@ func (b *baseQueuer) processNextItem(ctx context.Context) bool {
 	}
 	defer b.queue.Done(item)
 
-	notification, ok := item.(api.Notification)
+	notification, ok := item.(T)
 	if !ok {
 		b.logger.Error(fmt.Errorf("casting failure"), "failed to cast item to notification", "item", item)
 		b.queue.Forget(item)
@@ -73,7 +78,7 @@ func (b *baseQueuer) processNextItem(ctx context.Context) bool {
 
 	err := b.fn(ctx, notification)
 	if err != nil {
-		b.logger.WithValues("fqn", notification.Fqn, "entity_id", notification.EntityId).Error(err, "Failed to fn. Requeing item...")
+		b.logger.WithValues("notification", notification).Error(err, "Failed to process. Requeing item...")
 		b.queue.AddRateLimited(item)
 	}
 

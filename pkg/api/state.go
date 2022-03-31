@@ -16,8 +16,14 @@ type Value struct {
 // WindowResultMap is a map of WindowFn and their aggregated results
 type WindowResultMap map[WindowFn]float64
 
-// RawBuckets is a map of Bucket's and their raw values(as WindowResultMap)
-type RawBuckets map[string]WindowResultMap
+// RawBucket is a the data that is stored in the raw bucket.
+type RawBucket struct {
+	FQN      string          `json:"FQN"`
+	Bucket   string          `json:"bucket"`
+	EntityID string          `json:"entityID"`
+	Data     WindowResultMap `json:"raw"`
+}
+type RawBuckets []RawBucket
 
 // LowLevelValue is a low level value that can be cast to any type
 type LowLevelValue interface {
@@ -62,8 +68,11 @@ type State interface {
 	// Buckets should last *at least* as long as the feature's staleness time + DeadGracePeriod
 	WindowAdd(ctx context.Context, md Metadata, entityID string, val any, timestamp time.Time) error
 
-	// WindowBuckets returns the list of RawBuckets for the feature.
+	// WindowBuckets returns the list of RawBuckets for the feature and specific entityID.
 	WindowBuckets(ctx context.Context, md Metadata, entityID string, buckets []string) (RawBuckets, error)
+
+	// DeadWindowBuckets returns the list of all the dead feature's RawBuckets of all the entities.
+	DeadWindowBuckets(ctx context.Context, md Metadata, ignore RawBuckets) (RawBuckets, error)
 
 	// Ping is a simple keepalive check for the state.
 	// It should return an error in case an error occurred, or nil if everything is alright.

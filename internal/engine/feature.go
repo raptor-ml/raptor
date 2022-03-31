@@ -1,8 +1,11 @@
 package engine
 
 import (
+	"context"
+	"github.com/go-logr/logr"
 	"github.com/natun-ai/natun/pkg/api"
 	"sort"
+	"time"
 )
 
 // Feature is a Core's feature abstraction.
@@ -45,6 +48,17 @@ func (f *Feature) AddPostSetMiddleware(priority int, fn api.Middleware) {
 		return
 	}
 	f.postSet = append(f.postSet, mw{fn: fn, priority: priority})
+}
+
+// Context returns a new context with the feature attached.
+func (f *Feature) Context(ctx context.Context, logger logr.Logger) (context.Context, context.CancelFunc) {
+	ctx = context.WithValue(ctx, api.ContextKeyLogger, logger)
+
+	cancel := func() {}
+	if f.Metadata.Timeout > 0 {
+		ctx, cancel = context.WithTimeout(ctx, time.Duration(float64(f.Metadata.Timeout)*0.98))
+	}
+	return ctx, cancel
 }
 
 type mws []mw

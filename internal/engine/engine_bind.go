@@ -9,39 +9,15 @@ import (
 	"github.com/natun-ai/natun/pkg/errors"
 )
 
-func aggrsToStrings(a []manifests.AggrType) []string {
-	var res []string
-	for _, v := range a {
-		res = append(res, string(v))
-	}
-	return res
-}
-
 // BindFeature converts the k8s Feature CRD to the internal implementation, and adds it to the engine.
 func (e *engine) BindFeature(in manifests.Feature) error {
-	primitive := api.StringToPrimitiveType(in.Spec.Primitive)
-	if primitive == api.PrimitiveTypeUnknown {
-		return fmt.Errorf("%w: %s", errors.ErrUnsupportedPrimitiveError, in.Spec.Primitive)
-	}
-	aggr, err := api.StringsToWindowFns(aggrsToStrings(in.Spec.Aggr))
+	md, err := api.MetadataFromManifest(in)
 	if err != nil {
-		return fmt.Errorf("failed to parse aggregation functions: %w", err)
+		return fmt.Errorf("failed to parse metadata from CR: %w", err)
 	}
 
 	ft := Feature{
-		Metadata: api.Metadata{
-			FQN:       in.FQN(),
-			Primitive: primitive,
-			Aggr:      aggr,
-			Freshness: in.Spec.Freshness.Duration,
-			Staleness: in.Spec.Staleness.Duration,
-			Timeout:   in.Spec.Timeout.Duration,
-			Builder:   in.Spec.Builder.Type,
-		},
-	}
-
-	if len(aggr) > 0 && !ft.ValidWindow() {
-		return fmt.Errorf("invalid feature specification for windowed feature")
+		Metadata: *md,
 	}
 
 	if ft.Builder == "" {
@@ -61,4 +37,24 @@ func (e *engine) BindFeature(in manifests.Feature) error {
 	}
 
 	return e.bindFeature(ft)
+}
+
+func (e *engine) UnbindFeature(FQN string) error {
+	e.features.Delete(FQN)
+	e.logger.Info("feature unbound", "feature", FQN)
+	return nil
+}
+
+func (e *engine) bindFeature(f Feature) error {
+	if e.HasFeature(f.FQN) {
+		return fmt.Errorf("%w: %s", errors.ErrFeatureAlreadyExists, f.FQN)
+	}
+	e.features.Store(f.FQN, f)
+	e.logger.Info("feature bound", "FQN", f.FQN)
+	return nil
+}
+
+func (e *engine) HasFeature(FQN string) bool {
+	_, ok := e.features.Load(FQN)
+	return ok
 }

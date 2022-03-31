@@ -36,13 +36,10 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/natun-ai/natun/internal/accessor"
-	"github.com/natun-ai/natun/internal/engine"
 	"github.com/natun-ai/natun/internal/plugin"
 	_ "github.com/natun-ai/natun/internal/plugins"
 
 	corectrl "github.com/natun-ai/natun/internal/engine/controllers"
-	opctrl "github.com/natun-ai/natun/internal/operator"
 	natunApi "github.com/natun-ai/natun/pkg/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
@@ -64,9 +61,6 @@ func main() {
 		"Enabling this will ensure there is only one active controller manager.")
 	pflag.String("metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	pflag.String("health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	pflag.String("accessor-grpc-address", ":9090", "The address the grpc accessor binds to.")
-	pflag.String("accessor-http-address", ":9091", "The address the http accessor binds to.")
-	pflag.String("accessor-http-prefix", "/api", "The the http accessor path prefix.")
 	pflag.Bool("production", true, "Set as production")
 
 	pflag.String("state-provider", "redis", "The state provider.")
@@ -112,51 +106,25 @@ func main() {
 	orFail(err, "failed to create collect notifier")
 
 	// Create an Historian Client
-	hsc := historian.NewClient(historian.Config{
-		CollectNotifier:            collectNotifier,
-		WriteNotifier:              writeNotifier,
-		State:                      state,
-		Logger:                     logger.WithName("historian"),
-		CollectNotificationWorkers: 5,
-		WriteNotificationWorkers:   5,
+	hss := historian.NewServer(historian.Config{
+		CollectNotifier: collectNotifier,
+		WriteNotifier:   writeNotifier,
+		State:           state,
+		Logger:          logger.WithName("historian"),
+		CollectWorkers:  5,
 	})
-	orFail(hsc.WithManager(mgr), "failed to create historian client")
-
-	// Create a new Core engine
-	eng := engine.New(state, hsc, logger.WithName("engine"))
-
-	// Create a new Accessor
-	acc := accessor.New(eng, logger.WithName("accessor"))
-	orFail(mgr.Add(acc.Grpc(viper.GetString("accessor-grpc-address"))), "unable to start gRPC accessor")
-	orFail(mgr.Add(acc.Http(viper.GetString("accessor-http-address"), viper.GetString("accessor-http-prefix"))), "unable to start HTTP accessor")
-
-	// Setup Operator Controllers
-	if err = (&opctrl.FeatureReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Feature")
-		os.Exit(1)
-	}
-	if err = (&opctrl.DataConnectorReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "DataConnector")
-		os.Exit(1)
-	}
+	orFail(hss.WithManager(mgr), "failed to create historian client")
 
 	// Setup Core Controllers
 	if err = (&corectrl.FeatureReconciler{
 		Reader:         mgr.GetClient(),
 		Scheme:         mgr.GetScheme(),
 		UpdatesAllowed: !viper.GetBool("production"),
-		EngineManager:  eng,
+		EngineManager:  hss,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "DataConnector")
 		os.Exit(1)
 	}
-	// +kubebuilder:scaffold:builder
 
 	health := func(r *http.Request) error {
 		return state.Ping(r.Context())

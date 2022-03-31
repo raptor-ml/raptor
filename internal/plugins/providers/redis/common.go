@@ -13,6 +13,13 @@ import (
 	"time"
 )
 
+const pluginName = "redis"
+
+func init() {
+	plugin.Configurers.Register(pluginName, BindConfig)
+	plugin.StateFactories.Register(pluginName, StateFactory)
+}
+
 type state struct {
 	client redis.UniversalClient
 }
@@ -21,23 +28,7 @@ func (s *state) Ping(ctx context.Context) error {
 	return s.client.Ping(ctx).Err()
 }
 
-// New returns a new redis state implementation.
-func New(client redis.UniversalClient) (api.State, error) {
-	// Load Lua scripts in advance. This is useful in case we have permissions issue, so we'll detect it in advance.
-	err := scripts.Load(client)
-	if err != nil {
-		return nil, err
-	}
-	return &state{client}, nil
-}
-
-func init() {
-	const name = "redis"
-	plugin.Configurers.Register(name, BindConfig)
-	plugin.StateFactories.Register(name, StateFactory)
-}
-
-func StateFactory(viper *viper.Viper) (api.State, error) {
+func redisClient(viper *viper.Viper) (redis.UniversalClient, error) {
 	// Initialize redis client
 	var redisTLS *tls.Config = nil
 	if viper.GetBool("redis-tls") {
@@ -51,7 +42,7 @@ func StateFactory(viper *viper.Viper) (api.State, error) {
 		return nil, fmt.Errorf("redis: no redis addresses provided")
 	}
 
-	redisClient := redis.NewUniversalClient(&redis.UniversalOptions{
+	return redis.NewUniversalClient(&redis.UniversalOptions{
 		Addrs:            addrs,
 		DB:               viper.GetInt("redis-db"),
 		Password:         viper.GetString("redis-pass"),
@@ -60,20 +51,31 @@ func StateFactory(viper *viper.Viper) (api.State, error) {
 		SentinelPassword: viper.GetString("redis-sentinel-pass"),
 		MasterName:       viper.GetString("redis-master"),
 		TLSConfig:        redisTLS,
-	})
+	}), nil
+}
 
-	// Create a redis state management layer from the client
-	return New(redisClient)
+func StateFactory(viper *viper.Viper) (api.State, error) {
+	rc, err := redisClient(viper)
+	if err != nil {
+		return nil, err
+	}
+	// Load Lua scripts in advance. This is useful in case we have permissions issue, so we'll detect it in advance.
+	err = scripts.Load(rc)
+	if err != nil {
+		return nil, err
+	}
+
+	return &state{rc}, nil
 }
 func BindConfig(set *pflag.FlagSet) error {
-	pflag.StringArrayP("redis", "r", []string{}, "Redis URI")
-	pflag.String("redis-user", "", "Redis username")
-	pflag.String("redis-pass", "", "Redis password")
-	pflag.String("redis-sentinel-user", "", "Redis Sentinel username")
-	pflag.String("redis-sentinel-pass", "", "Redis Sentinel password")
-	pflag.String("redis-master", "", "Redis Sentinel master name")
-	pflag.Bool("redis-tls", false, "Enable TLS for Redis")
-	pflag.Int("redis-db", 0, "Redis DB")
+	set.StringArrayP("redis", "r", []string{}, "Redis URI")
+	set.String("redis-user", "", "Redis username")
+	set.String("redis-pass", "", "Redis password")
+	set.String("redis-sentinel-user", "", "Redis Sentinel username")
+	set.String("redis-sentinel-pass", "", "Redis Sentinel password")
+	set.String("redis-master", "", "Redis Sentinel master name")
+	set.Bool("redis-tls", false, "Enable TLS for Redis")
+	set.Int("redis-db", 0, "Redis DB")
 	return nil
 }
 

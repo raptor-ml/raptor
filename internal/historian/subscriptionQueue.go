@@ -7,23 +7,21 @@ import (
 	"sync"
 )
 
-type subscriptionQueue struct {
-	queue    baseQueuer
-	notifier api.Notifier
+type subscriptionQueue[T api.Notification] struct {
+	queue    baseQueuer[T]
+	notifier api.Notifier[T]
 	logger   logr.Logger
-	typ      api.NotificationType
 }
 
-func newSubscriptionQueue(typ api.NotificationType, notifier api.Notifier, logger logr.Logger, fn notifyFn) subscriptionQueue {
-	return subscriptionQueue{
+func newSubscriptionQueue[T api.Notification](notifier api.Notifier[T], logger logr.Logger, fn NotifyFn[T]) subscriptionQueue[T] {
+	return subscriptionQueue[T]{
 		queue:    newBaseQueue(logger.WithName("queue"), fn),
 		notifier: notifier,
 		logger:   logger,
-		typ:      typ,
 	}
 }
 
-func (c *subscriptionQueue) Runnable(workers int) func(ctx context.Context) error {
+func (c *subscriptionQueue[T]) Runnable(workers int) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		wg := sync.WaitGroup{}
 		wg.Add(2)
@@ -48,12 +46,12 @@ func (c *subscriptionQueue) Runnable(workers int) func(ctx context.Context) erro
 				case <-ctx.Done():
 					return
 				default:
-					subscription, err := c.notifier.Subscribe(ctx, c.typ)
+					subscription, err := c.notifier.Subscribe(ctx)
 					if err != nil {
 						c.logger.Error(err, "failed to subscribe to notifications")
 					}
 					for notification := range subscription {
-						c.queue.Notify(notification)
+						c.queue.Add(notification)
 					}
 				}
 			}

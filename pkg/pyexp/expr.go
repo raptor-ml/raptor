@@ -2,10 +2,10 @@ package pyexp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/natun-ai/natun/pkg/api"
-	"github.com/natun-ai/natun/pkg/errors"
 	"github.com/qri-io/starlib/bsoup"
 	"github.com/qri-io/starlib/encoding/base64"
 	"github.com/qri-io/starlib/geo"
@@ -45,18 +45,8 @@ func init() {
 	starlark.Universe["base64"] = base64r["base64"]
 }
 
-type ExecRequest struct {
-	Context   context.Context
-	Headers   map[string][]string
-	Payload   any
-	EntityID  string
-	Fqn       string
-	Timestamp time.Time
-}
-
 // Runtime is the starlark runtime for the PyExp.
 type Runtime interface {
-	api.Logger
 	Exec(ExecRequest) (value any, timestamp time.Time, entityID string, err error)
 	Engine() api.Engine
 }
@@ -66,23 +56,10 @@ type runtime struct {
 	program  *starlark.Program
 	builtins starlark.StringDict
 	engine   api.Engine
-	logger   logr.Logger
 }
 
 func (r *runtime) Engine() api.Engine {
 	return r.engine
-}
-
-func (r *runtime) Logger() logr.Logger {
-	return r.logger
-}
-
-func getLogger(e api.Engine) logr.Logger {
-	if l, ok := e.(api.Logger); ok {
-		return l.Logger()
-	}
-
-	panic("engine does not implement Logger")
 }
 
 // New returns a new PyExp runtime
@@ -90,7 +67,6 @@ func New(FQN, program string, e api.Engine) (Runtime, error) {
 	d := &runtime{
 		fqn:      FQN,
 		engine:   e,
-		logger:   getLogger(e).WithName(fmt.Sprintf("%s.pyexp", FQN)),
 		builtins: starlark.StringDict{},
 	}
 
@@ -121,124 +97,14 @@ func New(FQN, program string, e api.Engine) (Runtime, error) {
 	return d, nil
 }
 
-func (r *runtime) SetFeature(t *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
-	var fqn, entityID string
-	var val any
-	var ts = sTime.Time(time.Now())
-	if err := starlark.UnpackArgs(b.Name(), args, kwargs, "fqn", &fqn, "entity_id", &entityID, "val", &val, "timestamp?", &ts); err != nil {
-		return starlark.None, err
-	}
-
-	val, err := starToGo(val)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx, ok := t.Local(localKeyContext).(context.Context)
-	if !ok {
-		return nil, errors.ErrInvalidPipelineContext
-	}
-
-	return starlark.None, r.engine.Set(ctx, fqn, entityID, val, time.Time(ts))
-}
-func (r *runtime) Update(t *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
-	var fqn, entityID string
-	var val any
-	var ts = sTime.Time(time.Now())
-	if err := starlark.UnpackArgs(b.Name(), args, kwargs, "fqn", &fqn, "entity_id", &entityID, "val", &val, "timestamp?", &ts); err != nil {
-		return starlark.None, err
-	}
-
-	val, err := starToGo(val)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx, ok := t.Local(localKeyContext).(context.Context)
-	if !ok {
-		return nil, errors.ErrInvalidPipelineContext
-	}
-	return starlark.None, r.engine.Update(ctx, fqn, entityID, val, time.Time(ts))
-}
-func (r *runtime) Incr(t *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
-	var fqn, entityID string
-	var by any
-	var ts = sTime.Time(time.Now())
-	if err := starlark.UnpackArgs(b.Name(), args, kwargs, "fqn", &fqn, "entity_id", &entityID, "by", &by, "timestamp?", &ts); err != nil {
-		return starlark.None, err
-	}
-
-	by, err := starToGo(by)
-	if err != nil {
-		return nil, err
-	}
-	ctx, ok := t.Local(localKeyContext).(context.Context)
-	if !ok {
-		return nil, errors.ErrInvalidPipelineContext
-	}
-	return starlark.None, r.engine.Incr(ctx, fqn, entityID, by, time.Time(ts))
-}
-
-func (r *runtime) AppendFeature(t *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
-	var fqn, entityID string
-	var val any
-	var tm = sTime.Time(time.Now())
-	if err := starlark.UnpackArgs(b.Name(), args, kwargs, "fqn", &fqn, "entity_id", &entityID, "val", &val, "timestamp?", &tm); err != nil {
-		return starlark.None, err
-	}
-
-	if _, ok := val.(starlark.List); ok {
-		return nil, errors.ErrUnsupportedPrimitiveError
-	}
-
-	val, err := starToGo(val)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx, ok := t.Local(localKeyContext).(context.Context)
-	if !ok {
-		return nil, errors.ErrInvalidPipelineContext
-	}
-	return starlark.None, r.engine.Append(ctx, fqn, entityID, val, time.Time(tm))
-}
-
-func (r *runtime) GetFeature(t *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
-	var fqn string
-	var entityID string
-	if err := starlark.UnpackArgs(b.Name(), args, kwargs, "fqn", &fqn, "entity_id", &entityID); err != nil {
-		return nil, err
-	}
-
-	// TODO protect cyclic fetch
-	if r.fqn == fqn {
-		return nil, fmt.Errorf("cyclic Get: you tried to fetch the feature your'e in")
-	}
-
-	ctx, ok := t.Local(localKeyContext).(context.Context)
-	if !ok {
-		return nil, errors.ErrInvalidPipelineContext
-	}
-
-	val, _, err := r.engine.Get(ctx, fqn, entityID)
-	if err != nil {
-		return nil, err
-	}
-	if val.Value == nil {
-		return nil, fmt.Errorf("feature value not found for this fqn and entity id")
-	}
-
-	// Return the value and the timestamp
-	starlarkVal, err := convert.ToValue(val.Value)
-	if err != nil {
-		return nil, err
-	}
-
-	return starlark.Tuple{
-		starlarkVal,
-		sTime.Time(val.Timestamp),
-	}, nil
-
+type ExecRequest struct {
+	Context   context.Context
+	Headers   map[string][]string
+	Payload   any
+	EntityID  string
+	Fqn       string
+	Timestamp time.Time
+	Logger    logr.Logger
 }
 
 func (r *runtime) Exec(req ExecRequest) (any, time.Time, string, error) {
@@ -251,7 +117,7 @@ func (r *runtime) Exec(req ExecRequest) (any, time.Time, string, error) {
 	// Create a Thread and redefine the behavior of the built-in 'print' function.
 	thread := &starlark.Thread{
 		Name:  r.fqn,
-		Print: func(_ *starlark.Thread, msg string) { r.logger.WithName("expr").Info(msg) },
+		Print: func(_ *starlark.Thread, msg string) { req.Logger.WithName("program").Info(msg) },
 	}
 	thread.SetLocal(localKeyContext, req.Context)
 
@@ -260,10 +126,11 @@ func (r *runtime) Exec(req ExecRequest) (any, time.Time, string, error) {
 	outGlobals.Freeze()
 
 	if err != nil {
-		if evalErr, ok := err.(*starlark.EvalError); ok {
-			r.logger.WithValues("backtrace", evalErr.Backtrace()).Error(evalErr, "execution failed")
+		var evalErr *starlark.EvalError
+		if ok := errors.Is(err, evalErr); ok {
+			req.Logger.WithValues("backtrace", evalErr.Backtrace()).Error(evalErr, "execution failed")
 		} else {
-			r.logger.Error(err, "execution failed")
+			req.Logger.Error(err, "execution failed")
 		}
 		return nil, time.Now(), "", err
 	}

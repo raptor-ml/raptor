@@ -59,6 +59,7 @@ func (p *expr) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
 			EntityID:  entityID,
 			Fqn:       md.FQN,
 			Timestamp: val.Timestamp,
+			Logger:    api.LoggerFromContext(ctx),
 		})
 		if err != nil {
 			return val, err

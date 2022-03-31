@@ -9,7 +9,7 @@ import (
 func (e *engine) getValueMiddleware() api.Middleware {
 	return func(next api.MiddlewareHandler) api.MiddlewareHandler {
 		return func(ctx context.Context, md api.Metadata, entityID string, val api.Value) (api.Value, error) {
-			wf, err := WindowFnFromContext(ctx)
+			wf, err := api.WindowFnFromContext(ctx)
 			if err != nil {
 				return val, err
 			}
@@ -66,11 +66,11 @@ func (e *engine) cachePostGetMiddleware(f *Feature) api.Middleware {
 				return next(ctx, md, entityID, val)
 			}
 
-			ctx2 := context.WithValue(context.Background(), api.ContextKeyLogger, LoggerFromContext(ctx))
+			ctx2 := context.WithValue(context.Background(), api.ContextKeyLogger, api.LoggerFromContext(ctx))
 			go func(ctx context.Context, entityID string, val api.Value) {
 				_, err := e.writePipeline(f, api.StateMethodSet).Apply(ctx, entityID, val)
 				if err != nil {
-					logger := LoggerFromContext(ctx)
+					logger := api.LoggerFromContext(ctx)
 					logger.Error(err, "failed to update the value to cache")
 				}
 			}(ctx2, entityID, val)
@@ -121,7 +121,7 @@ func (e *engine) setMiddleware(method api.StateMethod) api.Middleware {
 			if !md.ValidWindow() {
 				bucket = api.BucketName(val.Timestamp, md.Freshness)
 			}
-			e.historian.NotifyCollect(md.FQN, entityID, bucket)
+			e.historian.AddCollectNotification(md.FQN, entityID, bucket)
 
 			return next(ctx, md, entityID, val)
 		}

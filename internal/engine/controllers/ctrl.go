@@ -30,7 +30,7 @@ func newCoreController(rcl reconcile.Reconciler, obj client.Object, updatesAllow
 	}
 	c := &coreController{basec}
 
-	//Predicates
+	// Predicates
 	prct := []predicate.Predicate{predicate.Funcs{GenericFunc: func(genericEvent event.GenericEvent) bool {
 		return false
 	}}}

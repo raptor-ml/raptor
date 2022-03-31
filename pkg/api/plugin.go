@@ -8,7 +8,7 @@ import (
 )
 
 type Plugins interface {
-	BindConfig | FeatureApply | Reconcile | StateFactory | NotifierFactory
+	BindConfig | FeatureApply | Reconcile | StateFactory | NotifierFactory[CollectNotification] | NotifierFactory[WriteNotification]
 }
 
 // BindConfig adds config flags for the plugin.
@@ -25,4 +25,7 @@ type Reconcile func(ctx context.Context, client client.Client, metadata Metadata
 type StateFactory func(viper *viper.Viper) (State, error)
 
 // NotifierFactory is the interface to be implemented by plugins that implements storage providers.
-type NotifierFactory func(viper *viper.Viper) (Notifier, error)
+type NotifierFactory[T Notification] func(viper *viper.Viper) (Notifier[T], error)
+
+type CollectNotifierFactory NotifierFactory[CollectNotification]
+type WriteNotifierFactory NotifierFactory[WriteNotification]

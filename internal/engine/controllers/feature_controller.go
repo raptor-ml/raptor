@@ -31,7 +31,7 @@ import (
 
 // FeatureReconciler reconciles a Feature object
 // This reconciler is used in every instance of the app, and not only the leader.
-// It is used to ensure the Engine's state is synchronized with the CustomResources.
+// It is used to ensure the EngineManager's state is synchronized with the CustomResources.
 //
 // For the creation and modification external resources, the operator's controller is used.
 // For the operator's controller see the `internal/operator/feature_controller.go` file
@@ -39,7 +39,7 @@ type FeatureReconciler struct {
 	client.Reader
 	Scheme         *runtime.Scheme
 	UpdatesAllowed bool
-	Engine         api.Manager
+	EngineManager  api.Manager
 }
 
 //+kubebuilder:rbac:groups=k8s.natun.ai,resources=features,verbs=get;list;watch;create;update;patch;delete
@@ -71,24 +71,24 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		// The object is being deleted
 		// Since this controller is used for the internal Core, we don't need to use finalizers
 
-		if err := r.Engine.UnbindFeature(feature.FQN()); err != nil {
+		if err := r.EngineManager.UnbindFeature(feature.FQN()); err != nil {
 			// if fail to delete, return with error, so that it can be retried
 			return ctrl.Result{}, err
 		}
 	}
 
-	if r.Engine.HasFeature(feature.FQN()) {
+	if r.EngineManager.HasFeature(feature.FQN()) {
 		if !r.UpdatesAllowed {
 			logger.Info("Feature already exists. Ignoring since updates are not allowed")
 			return ctrl.Result{}, nil
 		}
-		if err := r.Engine.UnbindFeature(feature.FQN()); err != nil {
+		if err := r.EngineManager.UnbindFeature(feature.FQN()); err != nil {
 			// if fail to delete, return with error, so that it can be retried
 			return ctrl.Result{}, err
 		}
 	}
 
-	if err := r.Engine.BindFeature(feature); err != nil {
+	if err := r.EngineManager.BindFeature(feature); err != nil {
 		return ctrl.Result{RequeueAfter: 10 * time.Second}, err
 	}
 

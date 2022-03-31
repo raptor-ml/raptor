@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-type registey[p api.Plugins] map[string]p
+type registey[P api.Plugins] map[string]P
 
 // Register registers a plugin
 func (r registey[P]) Register(name string, p P) {
@@ -26,9 +26,10 @@ var FeatureAppliers = make(registey[api.FeatureApply])
 var FeatureReconciler = make(registey[api.FeatureApply])
 var Configurers = make(registey[api.BindConfig])
 var StateFactories = make(registey[api.StateFactory])
-var NotifierFactories = make(registey[api.NotifierFactory])
+var CollectNotifierFactories = make(registey[api.NotifierFactory[api.CollectNotification]])
+var WriteNotifierFactories = make(registey[api.NotifierFactory[api.WriteNotification]])
 
-// NewState creates a new State for a provider.
+// NewState creates a new State for a state provider.
 func NewState(sp string, viper *viper.Viper) (api.State, error) {
 	if p := StateFactories.Get(sp); p != nil {
 		return p(viper)
@@ -36,12 +37,22 @@ func NewState(sp string, viper *viper.Viper) (api.State, error) {
 	return nil, fmt.Errorf("state provider `%s` is not registered", sp)
 }
 
-// NewNotifier creates a new State for a provider.
-func NewNotifier(notifier string, viper *viper.Viper) (api.Notifier, error) {
-	if p := NotifierFactories.Get(notifier); p != nil {
+// NewCollectNotifier creates a new api.Notifier[api.CollectNotification] for a notifier provider.
+func NewCollectNotifier(notifier string, viper *viper.Viper) (api.Notifier[api.CollectNotification], error) {
+	if p := CollectNotifierFactories.Get(notifier); p != nil {
 		return p(viper)
 	}
-	return nil, fmt.Errorf("notifier provider `%s` is not registered", notifier)
+	var n api.Notifier[api.CollectNotification]
+	return n, fmt.Errorf("notifier provider `%s` is not registered", notifier)
+}
+
+// NewWriteNotifier creates a new api.Notifier[api.WriteNotification] for a notifier provider.
+func NewWriteNotifier(notifier string, viper *viper.Viper) (api.Notifier[api.WriteNotification], error) {
+	if p := WriteNotifierFactories.Get(notifier); p != nil {
+		return p(viper)
+	}
+	var n api.Notifier[api.WriteNotification]
+	return n, fmt.Errorf("notifier provider `%s` is not registered", notifier)
 }
 
 // BindConfig adds config flags for the plugin.
