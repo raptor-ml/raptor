@@ -18,7 +18,7 @@ const DeadRequestMarker = "*dead*"
 // Although this is done at compile time, we want to make sure nobody messed with the numbers inappropriately
 //goland:noinspection GoBoolExpressions
 func init() {
-	if api.DeadGracePeriod < SyncPeriod {
+	if api.DeadGracePeriod < (SyncPeriod - (30 * time.Second)) {
 		panic(fmt.Sprintf("DeadGracePeriod (%v) must be greater than SyncPeriod (%v)", api.DeadGracePeriod, SyncPeriod))
 	}
 }
