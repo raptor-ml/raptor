@@ -16,7 +16,7 @@ type baseParquet struct {
 	writers        map[string]*parquetWriter
 }
 
-func New(np int64, newParquetFile SourceFactory) *baseParquet {
+func BaseParquet(np int64, newParquetFile SourceFactory) *baseParquet {
 	return &baseParquet{
 		newParquetFile: newParquetFile,
 		np:             np,

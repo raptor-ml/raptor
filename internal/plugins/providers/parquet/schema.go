@@ -8,11 +8,11 @@ import (
 )
 
 type HistoricalRecord struct {
-	FQN       string  `parquet:"name=utf8, type=BYTE_ARRAY, convertedtype=UTF8, encoding=RLE_DICTIONARY"`
+	FQN       string  `parquet:"name=fqn, type=BYTE_ARRAY, convertedtype=UTF8, encoding=RLE_DICTIONARY"`
 	EntityID  string  `parquet:"name=entity_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN"`
 	Timestamp int64   `parquet:"name=timestamp, type=INT64, logicaltype=TIMESTAMP, logicaltype.isadjustedtoutc=false, logicaltype.unit=MICROS"`
-	Value     *Value  `parquet:"name=Value"`
-	Bucket    *Bucket `parquet:"name=Bucket"`
+	Value     *Value  `parquet:"name=value"`
+	Bucket    *Bucket `parquet:"name=bucket"`
 }
 type Value struct {
 	String    *string  `parquet:"name=string, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN"`
@@ -26,8 +26,8 @@ type Value struct {
 	TimestampList *[]int64   `parquet:"name=timestamp_list, type=MAP, convertedtype=LIST, valuetype=INT64, valuelogicaltype=TIMESTAMP, valuelogicaltype.isadjustedtoutc=false, valuelogicaltype.unit=MICROS"`
 }
 type Bucket struct {
-	Name  string `parquet:"name=name, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN"`
-	Alive *bool  `parquet:"name=alive, type=BOOLEAN"`
+	BucketName string `parquet:"name=bucket_name, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN"`
+	Alive      *bool  `parquet:"name=alive, type=BOOLEAN"`
 
 	Count *int64   `parquet:"name=count, type=INT64"`
 	Sum   *float64 `parquet:"name=sum, type=DOUBLE"`
@@ -50,12 +50,12 @@ func NewHistoricalRecord(wn api.WriteNotification) HistoricalRecord {
 		min := wrm[api.WindowFnMin]
 		max := wrm[api.WindowFnMax]
 		hr.Bucket = &Bucket{
-			Name:  strings.TrimPrefix(wn.Bucket, api.AliveMarker),
-			Alive: &alive,
-			Count: &count,
-			Sum:   &sum,
-			Min:   &min,
-			Max:   &max,
+			BucketName: strings.TrimPrefix(wn.Bucket, api.AliveMarker),
+			Alive:      &alive,
+			Count:      &count,
+			Sum:        &sum,
+			Min:        &min,
+			Max:        &max,
 		}
 		return hr
 	}

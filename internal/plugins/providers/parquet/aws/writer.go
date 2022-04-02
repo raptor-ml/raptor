@@ -14,7 +14,6 @@ import (
 	"github.com/spf13/viper"
 	"github.com/xitongsys/parquet-go-source/s3v2"
 	"github.com/xitongsys/parquet-go/source"
-	"strings"
 	"time"
 )
 
@@ -30,6 +29,7 @@ func BindConfig(set *pflag.FlagSet) error {
 	set.String("aws-secret-key", "", "AWS Secret Key - for historical data")
 	set.String("aws-region", "", "AWS Region - for historical data")
 	set.String("s3-bucket", "", "S3 Bucket - for historical data")
+	set.String("s3-basedir", "natun/features/", "S3 Base directory for storing features - for historical data")
 	return nil
 }
 
@@ -55,15 +55,14 @@ func HistoricalWriterFactory(viper *viper.Viper) (api.HistoricalWriter, error) {
 	if bucket == "" {
 		return nil, fmt.Errorf("s3-bucket is required")
 	}
-	factory := sourceFactory(client, bucket)
+	factory := sourceFactory(client, bucket, viper.GetString("s3-basedir"))
 
-	return parquet.New(4, factory), nil
+	return parquet.BaseParquet(4, factory), nil
 }
-func sourceFactory(client s3v2.S3API, bucket string) parquet.SourceFactory {
+func sourceFactory(client s3v2.S3API, bucket string, basedir string) parquet.SourceFactory {
 	return func(ctx context.Context, fqn string) (source.ParquetFile, error) {
-		fqnParts := strings.Split(fqn, ".")
 		d := time.Now().Format("2006-01-02")
-		filename := fmt.Sprintf("features/%s/%s/%s.parquet", fqnParts[1], fqnParts[0], d)
+		filename := fmt.Sprintf("%s/fqn=%s/timestamp=%s/data.snappy.parquet", basedir, fqn, d)
 		return s3v2.NewS3FileWriterWithClient(ctx, client, bucket, filename, nil)
 	}
 }
