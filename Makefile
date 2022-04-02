@@ -191,8 +191,6 @@ $(LOCALBIN): ## Ensure that the directory exists
 ## Tool Binaries
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
-BUF ?= $(LOCALBIN)/buf
-STATICCHECK ?= $(LOCALBIN)/staticcheck
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 
 ## Tool Versions
@@ -209,16 +207,6 @@ $(KUSTOMIZE):
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
 $(CONTROLLER_GEN):
 	GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
-
-.PHONY: buf
-buf: $(BUF) ## Download controller-gen locally if necessary.
-$(BUF):
-	GOBIN=$(LOCALBIN) go install github.com/bufbuild/buf/cmd/buf@latest
-
-.PHONY: staticcheck
-staticcheck: $(STATICCHECK) ## Download controller-gen locally if necessary.
-$(STATICCHECK):
-	GOBIN=$(LOCALBIN) go install honnef.co/go/tools/cmd/staticcheck@latest
 
 .PHONY: envtest
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
@@ -281,3 +269,43 @@ catalog-build: opm ## Build a catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+
+
+##@ Development
+
+.PHONY: check-license
+check-license:  ## Run the license check
+	./hack/check-license.sh
+
+BUF ?= $(LOCALBIN)/buf
+.PHONY: buf
+buf: $(BUF) ## Download controller-gen locally if necessary.
+$(BUF):
+	GOBIN=$(LOCALBIN) go install github.com/bufbuild/buf/cmd/buf@latest
+
+.PHONY: lint
+lint: golangci-lint ## Run golangci-lint linter
+	$(GOLANGCI_LINT) run
+
+.PHONY: lint-fix
+lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
+	$(GOLANGCI_LINT) run --fix
+
+GOLANGCI_LINT = $(shell pwd)/bin/golangci-lint
+.PHONY: golangci-lint
+golangci-lint:
+	@[ -f $(GOLANGCI_LINT) ] || { \
+		set -e ;\
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell dirname $(GOLANGCI_LINT)) v1.45.2 ;\
+	}
+
+.PHONY: apidiff
+apidiff: go-apidiff ## Run the go-apidiff to verify any API differences compared with origin/master
+	$(GO_APIDIFF) master --compare-imports --print-compatible --repo-path=.
+
+GO_APIDIFF = $(shell pwd)/bin/go-apidiff
+.PHONY: go-apidiff
+go-apidiff:
+	@[ -f $(GO_APIDIFF) ] || { \
+		cd tools && go build -tags=tools -o $(GO_APIDIFF) github.com/joelanford/go-apidiff ;\
+	}
