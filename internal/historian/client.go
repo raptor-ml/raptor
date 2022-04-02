@@ -3,6 +3,7 @@ package historian
 import (
 	"context"
 	"fmt"
+	"github.com/go-logr/logr"
 	"github.com/natun-ai/natun/pkg/api"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
@@ -23,13 +24,20 @@ type Client interface {
 	// WithManager adds all the Runnables (CollectNotifier, WriteNotifier) to the manager
 	WithManager(mgr manager.Manager) error
 }
+type ClientConfig struct {
+	CollectNotifier            api.Notifier[api.CollectNotification]
+	WriteNotifier              api.Notifier[api.WriteNotification]
+	CollectNotificationWorkers int
+	WriteNotificationWorkers   int
+	Logger                     logr.Logger
+}
 type client struct {
-	Config
+	ClientConfig
 	pendingWrite    baseQueuer[api.WriteNotification]
 	pendingCollects baseQueuer[api.CollectNotification]
 }
 
-func NewClient(config Config) Client {
+func NewClient(config ClientConfig) Client {
 	if config.WriteNotificationWorkers == 0 {
 		config.WriteNotificationWorkers = 5
 	}
@@ -37,7 +45,7 @@ func NewClient(config Config) Client {
 		config.WriteNotificationWorkers = 5
 	}
 	c := &client{
-		Config: config,
+		ClientConfig: config,
 	}
 	c.pendingWrite = newBaseQueue[api.WriteNotification](c.Logger.WithName("pendingWrite"), c.queueWrite)
 	c.pendingCollects = newBaseQueue[api.CollectNotification](c.Logger.WithName("pendingCollect"), c.queueCollect)
@@ -83,10 +91,10 @@ func (c *client) WithManager(manager manager.Manager) error {
 
 // send write notifications to the external queue
 func (c *client) queueWrite(ctx context.Context, notification api.WriteNotification) error {
-	return c.Config.WriteNotifier.Notify(ctx, notification)
+	return c.ClientConfig.WriteNotifier.Notify(ctx, notification)
 }
 
 // send collect notifications to the external queue
 func (c *client) queueCollect(ctx context.Context, notification api.CollectNotification) error {
-	return c.Config.CollectNotifier.Notify(ctx, notification)
+	return c.ClientConfig.CollectNotifier.Notify(ctx, notification)
 }

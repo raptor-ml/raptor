@@ -52,19 +52,19 @@ func (h *historian) dispatchCollectWithWindow(ctx context.Context, notification 
 	switch notification.Bucket {
 	case "":
 		panic(fmt.Errorf("no bucket specified for %s", notification.FQN)) // irrecoverable
-	case "dead":
+	case DeadRequestMarker:
 		return h.dispatchCollectDead(ctx, md)
 	}
 
 	deadBuckets := api.DeadWindowBuckets(md.Staleness, md.Freshness)
 
-	buckets, err := h.State.WindowBuckets(ctx, md, notification.EntityID, []string{strings.TrimSuffix(notification.Bucket, AliveMarker)})
+	buckets, err := h.State.WindowBuckets(ctx, md, notification.EntityID, []string{notification.Bucket})
 	if err != nil {
 		return fmt.Errorf("failed to get buckets for %s: %w", notification.FQN, err)
 	}
 	for _, b := range buckets {
 		if !contains(deadBuckets, b.Bucket) {
-			b.Bucket = fmt.Sprintf("%s(alive)", b.Bucket)
+			b.Bucket = fmt.Sprintf("%s%s", b.Bucket, AliveMarker)
 		} else {
 			h.handledBuckets.Set(deadBucketKey(b.FQN, b.Bucket, b.EntityID), struct{}{}, api.DeadGracePeriod+time.Minute)
 		}
@@ -110,7 +110,11 @@ func (h *historian) dispatchCollectDead(ctx context.Context, md api.Metadata) er
 		})
 	}
 
-	//todo calculate next collection
+	// Add the next dead collection to the queue
+	h.collectTasks.queue.AddAfter(api.CollectNotification{
+		FQN:    md.FQN,
+		Bucket: DeadRequestMarker,
+	}, timeTillNextBucket(md.Freshness))
 
 	return nil
 }

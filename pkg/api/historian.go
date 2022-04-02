@@ -23,3 +23,11 @@ type Notifier[T Notification] interface {
 	Notify(context.Context, T) error
 	Subscribe(context.Context) (<-chan T, error)
 }
+
+type HistoricalWriter interface {
+	Commit(context.Context, WriteNotification) error
+	Flush(ctx context.Context, fqn string) error
+	FlushAll(context.Context) error
+}
+
+const AliveMarker = "(alive)"

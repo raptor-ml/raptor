@@ -12,7 +12,16 @@ import (
 )
 
 const SyncPeriod = 5 * time.Minute
-const AliveMarker = "(alive)"
+const AliveMarker = api.AliveMarker
+const DeadRequestMarker = "*dead*"
+
+// Although this is done at compile time, we want to make sure nobody messed with the numbers inappropriately
+//goland:noinspection GoBoolExpressions
+func init() {
+	if api.DeadGracePeriod < SyncPeriod {
+		panic(fmt.Sprintf("DeadGracePeriod (%v) must be greater than SyncPeriod (%v)", api.DeadGracePeriod, SyncPeriod))
+	}
+}
 
 type Server interface {
 	api.Manager
@@ -27,33 +36,33 @@ type Server interface {
 	WithManager(manager manager.Manager) error
 }
 type historian struct {
-	Config
+	ServerConfig
 	collectTasks   subscriptionQueue[api.CollectNotification]
 	writeTasks     subscriptionQueue[api.WriteNotification]
 	metadata       sync.Map
 	handledBuckets *ttlcache.Cache[string, struct{}]
 }
 
-type Config struct {
+type ServerConfig struct {
 	CollectNotifier api.Notifier[api.CollectNotification]
 	WriteNotifier   api.Notifier[api.WriteNotification]
-	State           api.State
 	Logger          logr.Logger
 
-	CollectNotificationWorkers int
-	CollectWorkers             int
-	WriteNotificationWorkers   int
+	CollectWorkers   int
+	State            api.State
+	HistoricalWriter api.HistoricalWriter
 }
 
-func NewServer(config Config) Server {
+func NewServer(config ServerConfig) Server {
 	if config.CollectWorkers == 0 {
 		config.CollectWorkers = 5
 	}
 	h := &historian{
-		Config: config,
+		ServerConfig: config,
 	}
 	h.collectTasks = newSubscriptionQueue[api.CollectNotification](h.CollectNotifier, h.Logger.WithName("collectTasks"), h.dispatchCollect)
 	h.writeTasks = newSubscriptionQueue[api.WriteNotification](h.WriteNotifier, h.Logger.WithName("dispatchWrite"), h.dispatchWrite)
+	h.writeTasks.queue.finalizer = h.finalizeWrite
 	return h
 }
 
@@ -78,8 +87,10 @@ func (h *historian) BindFeature(in manifests.Feature) error {
 	}
 
 	if md.ValidWindow() {
-		//TODO add collect tasks
-		//h.collectTasks.queue.
+		h.collectTasks.queue.AddAfter(api.CollectNotification{
+			FQN:    md.FQN,
+			Bucket: DeadRequestMarker,
+		}, timeTillNextBucket(md.Freshness))
 	}
 
 	h.metadata.Store(in.FQN(), md)
@@ -95,4 +106,9 @@ func (h *historian) UnbindFeature(FQN string) error {
 func (h *historian) HasFeature(FQN string) bool {
 	_, ok := h.metadata.Load(FQN)
 	return ok
+}
+
+func timeTillNextBucket(bucketSize time.Duration) time.Duration {
+	now := time.Now()
+	return time.Duration(float64(api.BucketTime(api.BucketName(now, bucketSize), bucketSize).Add(bucketSize).Sub(now)) * 0.9)
 }

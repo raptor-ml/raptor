@@ -28,31 +28,32 @@ var Configurers = make(registey[api.BindConfig])
 var StateFactories = make(registey[api.StateFactory])
 var CollectNotifierFactories = make(registey[api.NotifierFactory[api.CollectNotification]])
 var WriteNotifierFactories = make(registey[api.NotifierFactory[api.WriteNotification]])
+var HistoricalWriterFactories = make(registey[api.HistoricalWriterFactory])
 
 // NewState creates a new State for a state provider.
-func NewState(sp string, viper *viper.Viper) (api.State, error) {
-	if p := StateFactories.Get(sp); p != nil {
+func NewState(provider string, viper *viper.Viper) (api.State, error) {
+	if p := StateFactories.Get(provider); p != nil {
 		return p(viper)
 	}
-	return nil, fmt.Errorf("state provider `%s` is not registered", sp)
+	return nil, fmt.Errorf("state provider `%s` is not registered", provider)
 }
 
 // NewCollectNotifier creates a new api.Notifier[api.CollectNotification] for a notifier provider.
-func NewCollectNotifier(notifier string, viper *viper.Viper) (api.Notifier[api.CollectNotification], error) {
-	if p := CollectNotifierFactories.Get(notifier); p != nil {
+func NewCollectNotifier(provider string, viper *viper.Viper) (api.Notifier[api.CollectNotification], error) {
+	if p := CollectNotifierFactories.Get(provider); p != nil {
 		return p(viper)
 	}
 	var n api.Notifier[api.CollectNotification]
-	return n, fmt.Errorf("notifier provider `%s` is not registered", notifier)
+	return n, fmt.Errorf("notifier provider `%s` is not registered", provider)
 }
 
 // NewWriteNotifier creates a new api.Notifier[api.WriteNotification] for a notifier provider.
-func NewWriteNotifier(notifier string, viper *viper.Viper) (api.Notifier[api.WriteNotification], error) {
-	if p := WriteNotifierFactories.Get(notifier); p != nil {
+func NewWriteNotifier(provider string, viper *viper.Viper) (api.Notifier[api.WriteNotification], error) {
+	if p := WriteNotifierFactories.Get(provider); p != nil {
 		return p(viper)
 	}
 	var n api.Notifier[api.WriteNotification]
-	return n, fmt.Errorf("notifier provider `%s` is not registered", notifier)
+	return n, fmt.Errorf("notifier provider `%s` is not registered", provider)
 }
 
 // BindConfig adds config flags for the plugin.
@@ -63,4 +64,12 @@ func BindConfig(set *pflag.FlagSet) error {
 		}
 	}
 	return nil
+}
+
+// NewHistoricalWriter creates a new HistoricalWriter for an historical writer provider.
+func NewHistoricalWriter(provider string, viper *viper.Viper) (api.HistoricalWriter, error) {
+	if p := HistoricalWriterFactories.Get(provider); p != nil {
+		return p(viper)
+	}
+	return nil, fmt.Errorf("historical writer provider `%s` is not registered", provider)
 }

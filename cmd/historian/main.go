@@ -65,6 +65,7 @@ func main() {
 
 	pflag.String("state-provider", "redis", "The state provider.")
 	pflag.String("notifier-provider", "redis", "The notifier provider.")
+	pflag.String("historical-writer-provider", "parquet-aws", "The historical writer provider.")
 
 	zapOpts := zap.Options{}
 	zapOpts.BindFlags(flag.CommandLine)
@@ -105,13 +106,18 @@ func main() {
 	writeNotifier, err := plugin.NewWriteNotifier(viper.GetString("notifier-provider"), viper.GetViper())
 	orFail(err, "failed to create collect notifier")
 
+	// Historical Writer
+	historicalWriter, err := plugin.NewHistoricalWriter(viper.GetString("historical-writer-provider"), viper.GetViper())
+	orFail(err, "failed to create historical writer")
+
 	// Create an Historian Client
-	hss := historian.NewServer(historian.Config{
-		CollectNotifier: collectNotifier,
-		WriteNotifier:   writeNotifier,
-		State:           state,
-		Logger:          logger.WithName("historian"),
-		CollectWorkers:  5,
+	hss := historian.NewServer(historian.ServerConfig{
+		CollectNotifier:  collectNotifier,
+		WriteNotifier:    writeNotifier,
+		State:            state,
+		Logger:           logger.WithName("historian"),
+		HistoricalWriter: historicalWriter,
+		CollectWorkers:   5,
 	})
 	orFail(hss.WithManager(mgr), "failed to create historian client")
 

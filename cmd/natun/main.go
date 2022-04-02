@@ -112,10 +112,9 @@ func main() {
 	orFail(err, "failed to create collect notifier")
 
 	// Create an Historian Client
-	hsc := historian.NewClient(historian.Config{
+	hsc := historian.NewClient(historian.ClientConfig{
 		CollectNotifier:            collectNotifier,
 		WriteNotifier:              writeNotifier,
-		State:                      state,
 		Logger:                     logger.WithName("historian"),
 		CollectNotificationWorkers: 5,
 		WriteNotificationWorkers:   5,

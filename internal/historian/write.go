@@ -6,6 +6,12 @@ import (
 )
 
 func (h *historian) dispatchWrite(ctx context.Context, notification api.WriteNotification) error {
-	//TODO write to s3
-	return nil
+	return h.HistoricalWriter.Commit(ctx, notification)
+}
+
+func (h *historian) finalizeWrite(ctx context.Context) {
+	err := h.HistoricalWriter.FlushAll(ctx)
+	if err != nil {
+		h.Logger.Error(err, "failed to flush historical logs to storage")
+	}
 }

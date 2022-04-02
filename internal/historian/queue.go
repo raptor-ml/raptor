@@ -21,9 +21,10 @@ func newBaseQueue[T api.Notification](logger logr.Logger, fn NotifyFn[T]) baseQu
 
 type NotifyFn[T api.Notification] func(ctx context.Context, notification T) error
 type baseQueuer[T api.Notification] struct {
-	queue  workqueue.RateLimitingInterface
-	logger logr.Logger
-	fn     NotifyFn[T]
+	queue     workqueue.RateLimitingInterface
+	logger    logr.Logger
+	fn        NotifyFn[T]
+	finalizer func(ctx context.Context)
 }
 
 func (b *baseQueuer[T]) Add(item T) {
@@ -45,6 +46,9 @@ func (b *baseQueuer[T]) Runnable(workers int) func(ctx context.Context) error {
 				defer wg.Done()
 
 				for b.processNextItem(ctx) {
+				}
+				if b.finalizer != nil {
+					b.finalizer(ctx)
 				}
 			}, SyncPeriod, ctx.Done())
 		}
