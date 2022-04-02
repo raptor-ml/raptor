@@ -74,7 +74,7 @@ func (e *engine) Get(ctx context.Context, FQN string, entityID string) (api.Valu
 }
 
 func (e *engine) Metadata(ctx context.Context, FQN string) (api.Metadata, error) {
-	f, ctx, cancel, err := e.featureForRequest(ctx, FQN)
+	f, _, cancel, err := e.featureForRequest(ctx, FQN)
 	if err != nil {
 		return api.Metadata{}, err
 	}
