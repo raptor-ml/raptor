@@ -38,8 +38,8 @@ func (n *notifier[T]) NotificationChannel() string {
 	}
 	panic("not implemented")
 }
-func (n *notifier[T]) Notify(ctx context.Context, notification T) error {
 
+func (n *notifier[T]) Notify(ctx context.Context, notification T) error {
 	msg, err := json.Marshal(notification)
 	if err != nil {
 		return fmt.Errorf("cannot marshal notification: %w", err)
@@ -53,6 +53,7 @@ func (n *notifier[T]) Notify(ctx context.Context, notification T) error {
 	}
 	return nil
 }
+
 func (n *notifier[T]) Subscribe(ctx context.Context) (<-chan T, error) {
 	pubsub := n.client.Subscribe(ctx, n.NotificationChannel())
 	c := make(chan T)
