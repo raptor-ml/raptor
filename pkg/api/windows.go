@@ -12,7 +12,7 @@ import (
 
 // DeadGracePeriod is the *extra* time that the bucket should be kept alive on top of the feature's Staleness.
 // Bucket TTL = staleness + DeadGracePeriod
-const DeadGracePeriod = time.Minute * 6
+const DeadGracePeriod = time.Minute * 8
 
 //goland:noinspection RegExpRedundantEscape
 var windowNameRegexp = regexp.MustCompile(`(i?)^([a0-z9\-\.]*)\[(sum|avg|min|max|count)\]$`)
