@@ -291,7 +291,7 @@ lint: golangci-lint ## Run golangci-lint linter
 lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 	$(GOLANGCI_LINT) run --fix
 
-GOLANGCI_LINT = $(shell pwd)/bin/golangci-lint
+GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
 .PHONY: golangci-lint
 golangci-lint:
 	@[ -f $(GOLANGCI_LINT) ] || { \
@@ -303,9 +303,7 @@ golangci-lint:
 apidiff: go-apidiff ## Run the go-apidiff to verify any API differences compared with origin/master
 	$(GO_APIDIFF) master --compare-imports --print-compatible --repo-path=.
 
-GO_APIDIFF = $(shell pwd)/bin/go-apidiff
+GO_APIDIFF = $(LOCALBIN)/go-apidiff
 .PHONY: go-apidiff
 go-apidiff:
-	@[ -f $(GO_APIDIFF) ] || { \
-		cd tools && go build -tags=tools -o $(GO_APIDIFF) github.com/joelanford/go-apidiff ;\
-	}
+	GOBIN=$(LOCALBIN) go install github.com/joelanford/go-apidiff@latest
