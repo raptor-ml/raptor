@@ -84,12 +84,14 @@ func main() {
 
 	// Set up a Manager
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     viper.GetString("metrics-bind-address"),
-		Port:                   9443,
-		HealthProbeBindAddress: viper.GetString("health-probe-bind-address"),
-		LeaderElection:         viper.GetBool("leader-elect"),
-		LeaderElectionID:       "c2eb2c1b.natun.ai",
+		Scheme:                        scheme,
+		MetricsBindAddress:            viper.GetString("metrics-bind-address"),
+		Port:                          9443,
+		HealthProbeBindAddress:        viper.GetString("health-probe-bind-address"),
+		LeaderElection:                viper.GetBool("leader-elect"),
+		LeaderElectionResourceLock:    "leases",
+		LeaderElectionID:              "historian.natun.ai",
+		LeaderElectionReleaseOnCancel: true,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
