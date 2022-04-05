@@ -39,7 +39,7 @@ func (r registey[P]) Get(name string) P {
 }
 
 var FeatureAppliers = make(registey[api.FeatureApply])
-var FeatureReconciler = make(registey[api.FeatureApply])
+var FeatureReconciler = make(registey[api.Reconcile])
 var Configurers = make(registey[api.BindConfig])
 var StateFactories = make(registey[api.StateFactory])
 var CollectNotifierFactories = make(registey[api.CollectNotifierFactory])
