@@ -23,10 +23,22 @@ import (
 	"github.com/spf13/viper"
 )
 
-type registey[P api.Plugins] map[string]P
+// # Available plugins
+
+var FeatureAppliers = make(registry[api.FeatureApply])
+var FeatureReconciler = make(registry[api.Reconcile])
+var Configurers = make(registry[api.BindConfig])
+var StateFactories = make(registry[api.StateFactory])
+var CollectNotifierFactories = make(registry[api.CollectNotifierFactory])
+var WriteNotifierFactories = make(registry[api.WriteNotifierFactory])
+var HistoricalWriterFactories = make(registry[api.HistoricalWriterFactory])
+
+// # Plugin Registry
+
+type registry[P api.Plugins] map[string]P
 
 // Register registers a plugin
-func (r registey[P]) Register(name string, p P) {
+func (r registry[P]) Register(name string, p P) {
 	if _, ok := r[name]; ok {
 		panic(fmt.Errorf("plugin `%s` is already registered", name))
 	}
@@ -34,17 +46,9 @@ func (r registey[P]) Register(name string, p P) {
 }
 
 // Get retrieve a plugin
-func (r registey[P]) Get(name string) P {
+func (r registry[P]) Get(name string) P {
 	return r[name]
 }
-
-var FeatureAppliers = make(registey[api.FeatureApply])
-var FeatureReconciler = make(registey[api.Reconcile])
-var Configurers = make(registey[api.BindConfig])
-var StateFactories = make(registey[api.StateFactory])
-var CollectNotifierFactories = make(registey[api.CollectNotifierFactory])
-var WriteNotifierFactories = make(registey[api.WriteNotifierFactory])
-var HistoricalWriterFactories = make(registey[api.HistoricalWriterFactory])
 
 // NewState creates a new State for a state provider.
 func NewState(provider string, viper *viper.Viper) (api.State, error) {

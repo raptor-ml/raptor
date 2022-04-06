@@ -51,9 +51,6 @@ type DataConnectorStatus struct {
 }
 
 // +k8s:openapi-gen=true
-// +genclient
-// +genclient:noStatus
-// +k8s:openapi-gen=true
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas

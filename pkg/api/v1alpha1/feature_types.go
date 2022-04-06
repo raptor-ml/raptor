@@ -101,9 +101,6 @@ type FeatureStatus struct {
 }
 
 // +k8s:openapi-gen=true
-// +genclient
-// +genclient:noStatus
-// +k8s:openapi-gen=true
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:categories=datascience,shortName=ft
