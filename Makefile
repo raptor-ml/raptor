@@ -273,9 +273,9 @@ catalog-push: ## Push a catalog image.
 
 ##@ Development
 
-.PHONY: check-license
-check-license:  ## Run the license check
-	./hack/check-license.sh
+.PHONY: check-license-headers
+check-license:  ## Check the headers for the license.
+	./hack/check-headers-for-license.sh
 
 BUF ?= $(LOCALBIN)/buf
 .PHONY: buf

@@ -1,0 +1,20 @@
+name: License Header
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+jobs:
+  license-header:
+    runs-on: ubuntu-latest
+    name: License Header
+    steps:
+      - name: Clone the code
+        uses: actions/checkout@v3
+      - name: Check for license header
+        run: ./hack/check-headers-for-license.sh
+        shell: bash
