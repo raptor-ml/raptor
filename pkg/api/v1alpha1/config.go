@@ -37,35 +37,36 @@ func (in *DataConnector) ParseConfig(ctx context.Context, rdr client.Reader) (Pa
 	cfg["_fqn"] = fmt.Sprintf("%s.%s", in.GetName(), in.GetNamespace())
 
 	g, ctx := errgroup.WithContext(ctx)
+	for _, cv := range in.Spec.Config {
+		if cv.Name == "" {
+			continue
+		}
+		if cv.Value != "" {
+			cfg[cv.Name] = cv.Value
+			continue
+		}
+		if cv.SecretKeyRef == nil {
+			continue
+		}
+		g.Go(func(cv ConfigVar) func() error {
+			return func() error {
+				secret := &corev1.Secret{}
+				err := rdr.Get(ctx, client.ObjectKey{
+					Namespace: in.GetNamespace(),
+					Name:      cv.SecretKeyRef.Name,
+				}, secret)
+				if err != nil {
+					return fmt.Errorf("failed to get secret %s: %w", cv.SecretKeyRef.Name, err)
+				}
 
-	for _, i := range in.Spec.Config {
-		if i.Name == "" {
-			continue
-		}
-		if i.Value != "" {
-			cfg[i.Name] = i.Value
-			continue
-		}
-		if i.SecretKeyRef == nil {
-			continue
-		}
-		g.Go(func() error {
-			secret := &corev1.Secret{}
-			err := rdr.Get(context.TODO(), client.ObjectKey{
-				Namespace: in.GetNamespace(),
-				Name:      i.SecretKeyRef.Name,
-			}, secret)
-			if err != nil {
-				return fmt.Errorf("failed to get secret %s: %w", i.SecretKeyRef.Name, err)
+				val, ok := secret.Data[cv.SecretKeyRef.Key]
+				if !ok {
+					return fmt.Errorf("secret %s does not have key %s", cv.SecretKeyRef.Name, cv.SecretKeyRef.Key)
+				}
+				cfg[cv.Name] = base64.StdEncoding.EncodeToString(val)
+				return nil
 			}
-
-			val, ok := secret.Data[i.SecretKeyRef.Key]
-			if !ok {
-				return fmt.Errorf("secret %s does not have key %s", i.SecretKeyRef.Name, i.SecretKeyRef.Key)
-			}
-			cfg[i.Name] = base64.StdEncoding.EncodeToString(val)
-			return nil
-		})
+		}(cv))
 	}
 
 	if err := g.Wait(); err != nil {
