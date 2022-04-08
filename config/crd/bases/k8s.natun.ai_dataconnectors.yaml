@@ -41,7 +41,38 @@ spec:
             properties:
               config:
                 description: Config of the DataConnector
-                x-kubernetes-preserve-unknown-fields: true
+                items:
+                  description: ConfigVar is a name/value pair for the config.
+                  properties:
+                    name:
+                      type: string
+                    secretKeyRef:
+                      description: SecretKeySelector selects a key of a Secret.
+                      properties:
+                        key:
+                          description: The key of the secret to select from.  Must
+                            be a valid secret key.
+                          type: string
+                        name:
+                          description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                            TODO: Add other useful fields. apiVersion, kind, uid?'
+                          type: string
+                        optional:
+                          description: Specify whether the Secret or its key must
+                            be defined
+                          type: boolean
+                      required:
+                      - key
+                      type: object
+                    value:
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
+              kind:
+                description: Kind of the DataConnector
+                type: string
               resources:
                 description: "Resources defines the required resources for a single
                   container(underlying implementation) of this DataConnector. Notice
@@ -71,15 +102,32 @@ spec:
                       to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                     type: object
                 type: object
-              type:
-                description: Type of the DataConnector
-                type: string
             required:
             - config
-            - type
+            - kind
             type: object
           status:
             description: DataConnectorStatus defines the observed state of DataConnector
+            properties:
+              connector:
+                description: Features includes a list of references for the Feature
+                  that uses this DataConnector
+                items:
+                  description: ResourceReference represents a resource reference.
+                    It has enough information to retrieve resource in any namespace.
+                  properties:
+                    name:
+                      description: Name is unique within a namespace to reference
+                        a resource.
+                      type: string
+                    namespace:
+                      description: Namespace defines the space within which the resource
+                        name must be unique.
+                      type: string
+                  type: object
+                type: array
+            required:
+            - connector
             type: object
         type: object
     served: true

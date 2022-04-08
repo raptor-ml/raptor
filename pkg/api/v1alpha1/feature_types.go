@@ -19,6 +19,7 @@ package v1alpha1
 // Important: Run "make" to regenerate code after modifying this file
 
 import (
+	"fmt"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -113,6 +114,11 @@ type Feature struct {
 
 	Spec   FeatureSpec   `json:"spec,omitempty"`
 	Status FeatureStatus `json:"status,omitempty"`
+}
+
+// FQN returns the fully qualified name of the feature.
+func (in *Feature) FQN() string {
+	return fmt.Sprintf("%s.%s", in.GetName(), in.GetNamespace())
 }
 
 //+kubebuilder:object:root=true

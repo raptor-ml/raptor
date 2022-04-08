@@ -61,12 +61,12 @@ spec:
                 description: Builder defines a building-block to use to build the
                   feature-value
                 properties:
-                  type:
-                    description: Type defines the type of Builder to use to build
+                  kind:
+                    description: Kind defines the type of Builder to use to build
                       the feature-value.
                     type: string
                 required:
-                - type
+                - kind
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               freshness:
@@ -111,14 +111,14 @@ spec:
             properties:
               connector:
                 description: Connector is a reference for the DataConnector that this
-                  feature is associated with
+                  Feature is associated with
                 properties:
                   name:
                     description: Name is unique within a namespace to reference a
-                      DataConnector resource.
+                      resource.
                     type: string
                   namespace:
-                    description: Namespace defines the space within which the secret
+                    description: Namespace defines the space within which the resource
                       name must be unique.
                     type: string
                 type: object

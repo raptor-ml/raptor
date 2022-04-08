@@ -19,6 +19,7 @@ package v1alpha1
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // Important: Run "make" to regenerate code after modifying this file
@@ -46,7 +47,7 @@ type ConfigVar struct {
 	// +optional
 	Value string `json:"value,omitempty"`
 	// +optional
-	SecretKeyRef corev1.SecretKeySelector `json:"secretKeyRef,omitempty"`
+	SecretKeyRef *corev1.SecretKeySelector `json:"secretKeyRef,omitempty"`
 }
 
 // ResourceReference represents a resource reference. It has enough information to retrieve resource in any namespace.
@@ -59,6 +60,14 @@ type ResourceReference struct {
 	// Namespace defines the space within which the resource name must be unique.
 	// +optional
 	Namespace string `json:"namespace,omitempty" protobuf:"bytes,2,opt,name=namespace"`
+}
+
+// ObjectKey is a helper function to get a client.ObjectKey from an ObjectReference
+func (in *ResourceReference) ObjectKey() client.ObjectKey {
+	return client.ObjectKey{
+		Name:      in.Name,
+		Namespace: in.Namespace,
+	}
 }
 
 // DataConnectorStatus defines the observed state of DataConnector
