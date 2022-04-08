@@ -21,7 +21,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/die-net/lrucache"
 	"github.com/gregjones/httpcache"
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/natun-ai/natun/internal/plugin"
 	"github.com/natun-ai/natun/pkg/api"
 	"github.com/natun-ai/natun/pkg/pyexp"
@@ -51,7 +53,7 @@ type Spec struct {
 	Expression string `json:"expression"`
 }
 
-var httpMemoryCache = httpcache.NewMemoryCache()
+var httpMemoryCache = lrucache.New(500<<(10*2), 60*15) //500MB; 15min
 
 func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAPI, engine api.Engine) error {
 	spec := &Spec{}
@@ -69,6 +71,9 @@ func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAP
 	if timeout == 0 {
 		timeout = 5 * time.Second
 	}
+
+	tr := httpcache.NewTransport(httpMemoryCache)
+	tr.Transport = &retryablehttp.RoundTripper{}
 
 	r := rest{
 		runtime: runtime,
@@ -141,8 +146,7 @@ func (rp *rest) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler 
 			payload = unmarshalledPayload
 		}
 
-		v, ts, _, err := rp.runtime.Exec(pyexp.ExecRequest{
-			Context:   ctx,
+		v, ts, _, err := rp.runtime.Exec(ctx, pyexp.ExecRequest{
 			Headers:   resp.Header,
 			Payload:   payload,
 			EntityID:  entityID,

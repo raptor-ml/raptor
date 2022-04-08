@@ -68,8 +68,7 @@ func (p *expr) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
 			return next(ctx, md, entityID, val)
 		}
 
-		v, ts, _, err := p.runtime.Exec(pyexp.ExecRequest{
-			Context:   ctx,
+		v, ts, _, err := p.runtime.Exec(ctx, pyexp.ExecRequest{
 			Headers:   nil,
 			Payload:   val.Value,
 			EntityID:  entityID,

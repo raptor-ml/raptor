@@ -16,6 +16,8 @@ limitations under the License.
 
 package v1alpha1
 
+// Important: Run "make" to regenerate code after modifying this file
+
 import (
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -77,13 +79,9 @@ type FeatureSpec struct {
 
 // FeatureBuilderType select the building-block to use to build the feature-value
 type FeatureBuilderType struct {
-	// Type defines the type of Builder to use to build the feature-value.
+	// Kind defines the type of Builder to use to build the feature-value.
 	// +kubebuilder:validation:Required
-	Type string `json:"type"`
-}
-
-type FeatureDataConnector struct {
-	Connector DataConnectorReference `json:"connector"`
+	Kind string `json:"kind"`
 }
 
 // FeatureBuilder defines a building-block to use to build the feature-value
@@ -96,8 +94,11 @@ type FeatureBuilder struct {
 
 // FeatureStatus defines the observed state of Feature
 type FeatureStatus struct {
-	// FQDN is the Fully Qualified Domain FQN for the feature
-	FQDN string `json:"fqdn"`
+	// FQN is the Fully Qualified Name for the feature
+	FQN string `json:"fqn"`
+
+	// Connector is a reference for the DataConnector that this Feature is associated with
+	Connector ResourceReference `json:"connector"`
 }
 
 // +k8s:openapi-gen=true

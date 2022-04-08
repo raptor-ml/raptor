@@ -63,8 +63,7 @@ func init() {
 
 // Runtime is the starlark runtime for the PyExp.
 type Runtime interface {
-	Exec(ExecRequest) (value any, timestamp time.Time, entityID string, err error)
-	Engine() api.Engine
+	Exec(context.Context, ExecRequest) (value any, timestamp time.Time, entityID string, err error)
 }
 
 type runtime struct {
@@ -72,10 +71,6 @@ type runtime struct {
 	program  *starlark.Program
 	builtins starlark.StringDict
 	engine   api.Engine
-}
-
-func (r *runtime) Engine() api.Engine {
-	return r.engine
 }
 
 // New returns a new PyExp runtime
@@ -114,7 +109,6 @@ func New(FQN, program string, e api.Engine) (Runtime, error) {
 }
 
 type ExecRequest struct {
-	Context   context.Context
 	Headers   map[string][]string
 	Payload   any
 	EntityID  string
@@ -123,7 +117,7 @@ type ExecRequest struct {
 	Logger    logr.Logger
 }
 
-func (r *runtime) Exec(req ExecRequest) (any, time.Time, string, error) {
+func (r *runtime) Exec(ctx context.Context, req ExecRequest) (any, time.Time, string, error) {
 	// Prepare globals
 	predeclared, err := requestToPredeclared(req, r.builtins)
 	if err != nil {
@@ -135,7 +129,7 @@ func (r *runtime) Exec(req ExecRequest) (any, time.Time, string, error) {
 		Name:  r.fqn,
 		Print: func(_ *starlark.Thread, msg string) { req.Logger.WithName("program").Info(msg) },
 	}
-	thread.SetLocal(localKeyContext, req.Context)
+	thread.SetLocal(localKeyContext, ctx)
 
 	// Execute the program
 	outGlobals, err := r.program.Init(thread, predeclared)

@@ -20,6 +20,7 @@ import (
 	"fmt"
 	manifests "github.com/natun-ai/natun/pkg/api/v1alpha1"
 	"github.com/natun-ai/natun/pkg/errors"
+	"strings"
 	"time"
 )
 
@@ -75,7 +76,7 @@ func MetadataFromManifest(in manifests.Feature) (*Metadata, error) {
 		Freshness: in.Spec.Freshness.Duration,
 		Staleness: in.Spec.Staleness.Duration,
 		Timeout:   in.Spec.Timeout.Duration,
-		Builder:   in.Spec.Builder.Type,
+		Builder:   strings.ToLower(in.Spec.Builder.Kind),
 	}
 	if len(md.Aggr) > 0 && !md.ValidWindow() {
 		return nil, fmt.Errorf("invalid feature specification for windowed feature")

@@ -18,9 +18,17 @@ package v1alpha1
 
 import (
 	"fmt"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // FQN returns the fully qualified name of the feature.
 func (in *Feature) FQN() string {
 	return fmt.Sprintf("%s.%s", in.GetName(), in.GetNamespace())
+}
+
+func (in *ResourceReference) ObjectKey() client.ObjectKey {
+	return client.ObjectKey{
+		Name:      in.Name,
+		Namespace: in.Namespace,
+	}
 }

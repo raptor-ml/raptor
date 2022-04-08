@@ -109,11 +109,25 @@ spec:
           status:
             description: FeatureStatus defines the observed state of Feature
             properties:
-              fqdn:
-                description: FQDN is the Fully Qualified Domain FQN for the feature
+              connector:
+                description: Connector is a reference for the DataConnector that this
+                  feature is associated with
+                properties:
+                  name:
+                    description: Name is unique within a namespace to reference a
+                      DataConnector resource.
+                    type: string
+                  namespace:
+                    description: Namespace defines the space within which the secret
+                      name must be unique.
+                    type: string
+                type: object
+              fqn:
+                description: FQN is the Fully Qualified Name for the feature
                 type: string
             required:
-            - fqdn
+            - connector
+            - fqn
             type: object
         type: object
     served: true

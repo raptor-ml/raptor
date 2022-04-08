@@ -21,21 +21,17 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// DataConnectorReference represents a Secret Reference. It has enough information to retrieve secret
-// in any namespace
-// +structType=atomic
-type DataConnectorReference struct {
-	// Name is unique within a namespace to reference a DataConnector resource.
-	// +optional
-	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
-
-	// Namespace defines the space within which the secret name must be unique.
-	// +optional
-	Namespace string `json:"namespace,omitempty" protobuf:"bytes,2,opt,name=namespace"`
-}
+// Important: Run "make" to regenerate code after modifying this file
 
 // DataConnectorSpec defines the desired state of DataConnector
 type DataConnectorSpec struct {
+	// Kind of the DataConnector
+	// +kubebuilder:validation:Required
+	Kind string `json:"kind"`
+
+	// Config of the DataConnector
+	Config []ConfigVar `json:"config"`
+
 	// Resources defines the required resources for a single container(underlying implementation) of this DataConnector.
 	// Notice that this is not applicable for every DataConnector, but only for those who implement an External Runner.
 	//
@@ -44,10 +40,31 @@ type DataConnectorSpec struct {
 	Resources corev1.ResourceRequirements `json:"resources,omitempty" protobuf:"bytes,2,opt,name=resources"`
 }
 
+// ConfigVar is a name/value pair for the config.
+type ConfigVar struct {
+	Name string `json:"name"`
+	// +optional
+	Value string `json:"value,omitempty"`
+	// +optional
+	SecretKeyRef corev1.SecretKeySelector `json:"secretKeyRef,omitempty"`
+}
+
+// ResourceReference represents a resource reference. It has enough information to retrieve resource in any namespace.
+// +structType=atomic
+type ResourceReference struct {
+	// Name is unique within a namespace to reference a resource.
+	// +optional
+	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
+
+	// Namespace defines the space within which the resource name must be unique.
+	// +optional
+	Namespace string `json:"namespace,omitempty" protobuf:"bytes,2,opt,name=namespace"`
+}
+
 // DataConnectorStatus defines the observed state of DataConnector
 type DataConnectorStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Features includes a list of references for the Feature that uses this DataConnector
+	Features []ResourceReference `json:"connector"`
 }
 
 // +k8s:openapi-gen=true

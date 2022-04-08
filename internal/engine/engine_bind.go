@@ -23,6 +23,7 @@ import (
 	"github.com/natun-ai/natun/pkg/api"
 	manifests "github.com/natun-ai/natun/pkg/api/v1alpha1"
 	"github.com/natun-ai/natun/pkg/errors"
+	"strings"
 )
 
 // BindFeature converts the k8s Feature CRD to the internal implementation, and adds it to the engine.
@@ -39,10 +40,10 @@ func (e *engine) BindFeature(in manifests.Feature) error {
 	if ft.Builder == "" {
 		builderType := &manifests.FeatureBuilderType{}
 		err := json.Unmarshal(in.Spec.Builder.Raw, builderType)
-		if err != nil || builderType.Type == "" {
+		if err != nil || builderType.Kind == "" {
 			return fmt.Errorf("failed to unmarshal builder type: %w", err)
 		}
-		ft.Builder = builderType.Type
+		ft.Builder = strings.ToLower(builderType.Kind)
 	}
 
 	if p := plugin.FeatureAppliers.Get(ft.Builder); p != nil {

@@ -39,6 +39,9 @@ spec:
           spec:
             description: DataConnectorSpec defines the desired state of DataConnector
             properties:
+              config:
+                description: Config of the DataConnector
+                x-kubernetes-preserve-unknown-fields: true
               resources:
                 description: "Resources defines the required resources for a single
                   container(underlying implementation) of this DataConnector. Notice
@@ -68,6 +71,12 @@ spec:
                       to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                     type: object
                 type: object
+              type:
+                description: Type of the DataConnector
+                type: string
+            required:
+            - config
+            - type
             type: object
           status:
             description: DataConnectorStatus defines the observed state of DataConnector
