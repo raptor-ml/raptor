@@ -23,12 +23,19 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/sync/errgroup"
 	corev1 "k8s.io/api/core/v1"
+	"net/url"
+	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 )
 
+// +kubebuilder:object:generate=false
+
+// ParsedConfig is a parsed configuration
 type ParsedConfig map[string]string
 
+// Unmarshal is unmarshalling the config into a Struct. Make sure that the tags
+// on the fields of the structure are properly set using the `mapstructure` tag.
 func (cfg *ParsedConfig) Unmarshal(output any) error {
 	c := &mapstructure.DecoderConfig{
 		Metadata:         nil,
@@ -38,6 +45,7 @@ func (cfg *ParsedConfig) Unmarshal(output any) error {
 			mapstructure.StringToTimeDurationHookFunc(),
 			mapstructure.StringToTimeHookFunc(time.RFC3339),
 			mapstructure.StringToSliceHookFunc(","),
+			stringToURLHookFunc,
 		),
 	}
 	decoder, err := mapstructure.NewDecoder(c)
@@ -48,6 +56,19 @@ func (cfg *ParsedConfig) Unmarshal(output any) error {
 	return decoder.Decode(cfg)
 }
 
+func stringToURLHookFunc(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
+	if f.Kind() != reflect.String {
+		return data, nil
+	}
+	if t != reflect.TypeOf(&url.URL{}) {
+		return data, nil
+	}
+
+	dataVal := reflect.ValueOf(data)
+	return url.Parse(dataVal.String())
+}
+
+// ParseConfig parses the config, and extracts the secrets, into a map of key-value pairs
 func (in *DataConnector) ParseConfig(ctx context.Context, rdr client.Reader) (ParsedConfig, error) {
 	cfg := make(ParsedConfig)
 	cfg["_fqn"] = fmt.Sprintf("%s.%s", in.GetName(), in.GetNamespace())
