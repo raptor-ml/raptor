@@ -26,7 +26,8 @@ jobs:
           key: ${{ runner.os }}-bin-${{ hashFiles('bin/**') }}
           restore-keys: |
             ${{ runner.os }}-bin-
-      - uses: actions/cache@v3
+      - name: Cache go dependencies
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
