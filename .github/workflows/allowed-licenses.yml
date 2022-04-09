@@ -25,3 +25,12 @@ jobs:
       - name: Check for licenses
         run: ./hack/licenses-check-allowed.sh
         shell: bash
+      - name: Report failure
+        if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: 'create-issue'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: 🛑 Disallowed licence for ${{ github.sha }}
+          body: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          labels: bug
