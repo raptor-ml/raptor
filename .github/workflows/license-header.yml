@@ -1,17 +1,15 @@
 name: License Header
 
 on:
-  pull_request:
-    branches:
-      - master
-  push:
-    branches:
-      - master
+  push: ~
+  pull_request: ~
 
 jobs:
   license-header:
+    name: Check if the Licence Header is present in all the go files
     runs-on: ubuntu-latest
-    name: License Header
+    # Pull requests from the same repository won't trigger this checks as they were already triggered by the push
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - name: Clone the code
         uses: actions/checkout@v3

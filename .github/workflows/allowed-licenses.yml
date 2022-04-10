@@ -1,17 +1,15 @@
 name: OSS Licenses Check
 
 on:
-  pull_request:
-    branches:
-      - master
-  push:
-    branches:
-      - master
+  push: ~
+  pull_request: ~
 
 jobs:
   allowed-licenses:
-    runs-on: ubuntu-latest
     name: Check for allowed licenses
+    runs-on: ubuntu-latest
+    # Pull requests from the same repository won't trigger this checks as they were already triggered by the push
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - name: Setup Go environment
         uses: actions/setup-go@v3
