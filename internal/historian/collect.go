@@ -30,6 +30,10 @@ func (h *historian) Collector() LeaderRunnableFunc {
 		if h.handledBuckets == nil {
 			h.handledBuckets = ttlcache.New[string, struct{}](ttlcache.WithDisableTouchOnHit[string, struct{}]())
 			go h.handledBuckets.Start()
+			go func(ctx context.Context) {
+				<-ctx.Done()
+				h.handledBuckets.Stop()
+			}(ctx)
 		}
 
 		return h.collectTasks.Runnable(h.CollectWorkers)(ctx)
