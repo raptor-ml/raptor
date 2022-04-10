@@ -1,0 +1,26 @@
+version: v1
+managed:
+  enabled: true
+plugins:
+  - remote: buf.build/library/plugins/go
+    out: gen/go
+    opt: paths=source_relative
+  - remote: buf.build/library/plugins/go-grpc
+    out: gen/go
+    opt:
+      - paths=source_relative
+      - require_unimplemented_servers=false
+  - remote: buf.build/grpc-ecosystem/plugins/grpc-gateway
+    out: gen/go
+    opt:
+      - paths=source_relative
+      - generate_unbound_methods=true
+  - remote: buf.build/grpc-ecosystem/plugins/openapiv2
+    out: gen/go
+    opt:
+      - generate_unbound_methods=true
+  - remote: buf.build/jirkad/plugins/protoc-gen-validate
+    out: gen/go
+    opt:
+      - paths=source_relative
+      - lang=go

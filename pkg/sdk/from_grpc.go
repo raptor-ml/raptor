@@ -19,7 +19,7 @@ package sdk
 import (
 	"github.com/google/uuid"
 	"github.com/natun-ai/natun/pkg/api"
-	coreApi "github.com/natun-ai/natun/proto/gen/go/natun/core/v1alpha1"
+	coreApi "go.buf.build/natun/api-go/natun/core/natun/core/v1alpha1"
 )
 
 func FromAPIPrimitive(p coreApi.Primitive) api.PrimitiveType {

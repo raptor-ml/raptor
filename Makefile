@@ -113,14 +113,14 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 .PHONY: generate
-generate: controller-gen buf-build ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 .PHONY: buf-build
 buf-build: buf ## Build protobufs with buf
-	$(BUF) build
-	$(BUF) breaking --against .
-	$(BUF) generate
+	$(BUF) build proto
+	$(BUF) breaking proto --against .
+	cd proto && $(BUF) generate
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.
@@ -285,13 +285,6 @@ BUF ?= $(LOCALBIN)/buf
 buf: $(BUF) ## Download buf locally if necessary.
 $(BUF):
 	GOBIN=$(LOCALBIN) go install github.com/bufbuild/buf/cmd/buf@latest
-	GOBIN=$(LOCALBIN) go install github.com/envoyproxy/protoc-gen-validate@latest
-	GOBIN=$(LOCALBIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
-	GOBIN=$(LOCALBIN) go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
-	GOBIN=$(LOCALBIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-	GOBIN=$(LOCALBIN) go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-	GOBIN=$(LOCALBIN) go install github.com/bufbuild/buf/cmd/protoc-gen-buf-breaking@latest
-	GOBIN=$(LOCALBIN) go install github.com/bufbuild/buf/cmd/protoc-gen-buf-lint@latest
 
 .PHONY: lint
 lint: golangci-lint ## Run golangci-lint linter

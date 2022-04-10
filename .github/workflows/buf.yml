@@ -1,0 +1,33 @@
+name: Buf
+on:
+  pull_request:
+    paths:
+      - proto/
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: bufbuild/buf-setup-action
+      - uses: bufbuild/buf-lint-action
+        with:
+          input: proto
+      - uses: bufbuild/buf-breaking-action
+        with:
+          input: proto
+      - name: Report failure
+        if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: 'create-issue'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: 🐛 License header missing for ${{ github.sha }}
+          body: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          labels: bug
+      - name: Pushing to BSR
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: bufbuild/buf-push-action
+        with:
+          buf_token: ${{ secrets.BUF_BSR_TOKEN }}
+          input: proto

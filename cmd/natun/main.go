@@ -128,8 +128,8 @@ func main() {
 
 	// Create a new Accessor
 	acc := accessor.New(eng, logger.WithName("accessor"))
-	orFail(mgr.Add(acc.Grpc(viper.GetString("accessor-grpc-address"))), "unable to start gRPC accessor")
-	orFail(mgr.Add(acc.Http(viper.GetString("accessor-http-address"), viper.GetString("accessor-http-prefix"))), "unable to start HTTP accessor")
+	orFail(mgr.Add(acc.GRPC(viper.GetString("accessor-grpc-address"))), "unable to start gRPC accessor")
+	orFail(mgr.Add(acc.HTTP(viper.GetString("accessor-http-address"), viper.GetString("accessor-http-prefix"))), "unable to start HTTP accessor")
 
 	// Setup Operator Controllers
 	if err = (&opctrl.FeatureReconciler{

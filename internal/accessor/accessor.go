@@ -29,7 +29,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/natun-ai/natun/pkg/api"
 	"github.com/natun-ai/natun/pkg/sdk"
-	coreApi "github.com/natun-ai/natun/proto/gen/go/natun/core/v1alpha1"
+	coreApi "go.buf.build/natun/api-go/natun/core/natun/core/v1alpha1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"net"
@@ -38,8 +38,8 @@ import (
 )
 
 type Accessor interface {
-	Grpc(addr string) NoLeaderRunnableFunc
-	Http(addr string, prefix string) NoLeaderRunnableFunc
+	GRPC(addr string) NoLeaderRunnableFunc
+	HTTP(addr string, prefix string) NoLeaderRunnableFunc
 }
 
 type accessor struct {
@@ -80,7 +80,7 @@ func New(e api.Manager, logger logr.Logger) Accessor {
 	return svc
 }
 
-func (a *accessor) Grpc(addr string) NoLeaderRunnableFunc {
+func (a *accessor) GRPC(addr string) NoLeaderRunnableFunc {
 	return func(ctx context.Context) error {
 		l, err := net.Listen("tcp", addr)
 		if err != nil {
@@ -96,7 +96,7 @@ func (a *accessor) Grpc(addr string) NoLeaderRunnableFunc {
 	}
 }
 
-func (a *accessor) Http(addr string, prefix string) NoLeaderRunnableFunc {
+func (a *accessor) HTTP(addr string, prefix string) NoLeaderRunnableFunc {
 	return func(ctx context.Context) error {
 		gwMux := runtime.NewServeMux()
 		err := coreApi.RegisterEngineServiceHandlerServer(ctx, gwMux, a.sdkServer)
