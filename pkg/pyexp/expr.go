@@ -67,16 +67,14 @@ type Runtime interface {
 }
 
 type runtime struct {
-	fqn      string
 	program  *starlark.Program
 	builtins starlark.StringDict
 	engine   api.Engine
 }
 
 // New returns a new PyExp runtime
-func New(FQN, program string, e api.Engine) (Runtime, error) {
+func New(program string, e api.Engine) (Runtime, error) {
 	d := &runtime{
-		fqn:      FQN,
 		engine:   e,
 		builtins: starlark.StringDict{},
 	}
@@ -95,7 +93,7 @@ func New(FQN, program string, e api.Engine) (Runtime, error) {
 	d.builtins["timestamp"] = starlark.None
 
 	// Parse, resolve, and compile a Starlark source file.
-	f, p, err := starlark.SourceProgram(fmt.Sprintf("%s.star", d.fqn), program, d.builtins.Has)
+	f, p, err := starlark.SourceProgram("<pyexp>", program, d.builtins.Has)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +124,7 @@ func (r *runtime) Exec(ctx context.Context, req ExecRequest) (any, time.Time, st
 
 	// Create a Thread and redefine the behavior of the built-in 'print' function.
 	thread := &starlark.Thread{
-		Name:  r.fqn,
+		Name:  req.Fqn,
 		Print: func(_ *starlark.Thread, msg string) { req.Logger.WithName("program").Info(msg) },
 	}
 	thread.SetLocal(localKeyContext, ctx)

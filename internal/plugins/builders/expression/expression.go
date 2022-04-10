@@ -43,7 +43,7 @@ func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAP
 		return fmt.Errorf("failed to unmarshal expression spec: %w", err)
 	}
 
-	runtime, err := pyexp.New(md.FQN, expSpec.Expression, engine)
+	runtime, err := pyexp.New(expSpec.Expression, engine)
 	if err != nil {
 		return fmt.Errorf("failed to create expression runtime: %w", err)
 	}
