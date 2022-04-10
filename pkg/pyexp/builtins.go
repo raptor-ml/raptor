@@ -127,7 +127,7 @@ func (r *runtime) GetFeature(t *starlark.Thread, b *starlark.Builtin, args starl
 	}
 
 	// TODO protect cyclic fetch
-	if r.fqn == fqn {
+	if t.Name == fqn {
 		return nil, fmt.Errorf("cyclic Get: you tried to fetch the feature your'e in")
 	}
 
