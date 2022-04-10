@@ -10,6 +10,9 @@ spec:
     spec:
       containers:
       - name: kube-rbac-proxy
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         image: gcr.io/kubebuilder/kube-rbac-proxy:v11.0.0
         args:
         - "--secure-listen-address=0.0.0.0:8443"

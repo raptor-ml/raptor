@@ -27,14 +27,13 @@ spec:
       securityContext:
         runAsNonRoot: true
       containers:
-      - command:
+      - name: manager
+        command:
         - /manager
-        args:
-        - --leader-elect
         image: controller:latest
-        name: manager
         securityContext:
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
         livenessProbe:
           httpGet:
             path: /healthz
@@ -51,10 +50,10 @@ spec:
         # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
         resources:
           limits:
-            cpu: 500m
-            memory: 128Mi
+            cpu: 1000m
+            memory: 1024Mi
           requests:
-            cpu: 10m
-            memory: 64Mi
+            cpu: 50m
+            memory: 1028Mi
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10
