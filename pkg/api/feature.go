@@ -19,7 +19,6 @@ package api
 import (
 	"fmt"
 	manifests "github.com/natun-ai/natun/pkg/api/v1alpha1"
-	"github.com/natun-ai/natun/pkg/errors"
 	"strings"
 	"time"
 )
@@ -59,10 +58,10 @@ func aggrsToStrings(a []manifests.AggrType) []string {
 	return res
 }
 
-func MetadataFromManifest(in manifests.Feature) (*Metadata, error) {
+func MetadataFromManifest(in *manifests.Feature) (*Metadata, error) {
 	primitive := StringToPrimitiveType(in.Spec.Primitive)
 	if primitive == PrimitiveTypeUnknown {
-		return nil, fmt.Errorf("%w: %s", errors.ErrUnsupportedPrimitiveError, in.Spec.Primitive)
+		return nil, fmt.Errorf("%w: %s", ErrUnsupportedPrimitiveError, in.Spec.Primitive)
 	}
 	aggr, err := StringsToWindowFns(aggrsToStrings(in.Spec.Aggr))
 	if err != nil {

@@ -18,7 +18,7 @@ package pyexp
 
 import (
 	"fmt"
-	"github.com/natun-ai/natun/pkg/errors"
+	"github.com/natun-ai/natun/pkg/api"
 	sTime "go.starlark.net/lib/time"
 	"go.starlark.net/starlark"
 	"time"
@@ -57,7 +57,7 @@ func starToGo(val any) (any, error) {
 		if v, ok := v.(fmt.Stringer); ok {
 			return v.String(), nil
 		}
-		return nil, errors.ErrUnsupportedPrimitiveError
+		return nil, api.ErrUnsupportedPrimitiveError
 	}
 }
 

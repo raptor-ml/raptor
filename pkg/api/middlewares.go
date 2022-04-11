@@ -19,7 +19,6 @@ package api
 import (
 	"context"
 	"github.com/go-logr/logr"
-	"github.com/natun-ai/natun/pkg/errors"
 )
 
 type Middleware func(next MiddlewareHandler) MiddlewareHandler
@@ -64,14 +63,14 @@ func LoggerFromContext(ctx context.Context) logr.Logger {
 }
 func WindowFnFromContext(ctx context.Context) (WindowFn, error) {
 	if ctx == nil {
-		return WindowFnUnknown, errors.ErrInvalidPipelineContext
+		return WindowFnUnknown, ErrInvalidPipelineContext
 	}
 
 	if f, ok := ctx.Value(ContextKeyWindowFn).(WindowFn); ok {
 		return f, nil
 	}
 
-	return WindowFnUnknown, errors.ErrInvalidPipelineContext
+	return WindowFnUnknown, ErrInvalidPipelineContext
 }
 func ContextWithWindowFn(ctx context.Context, fn WindowFn) context.Context {
 	ctx = context.WithValue(ctx, ContextKeyWindowFn, fn)

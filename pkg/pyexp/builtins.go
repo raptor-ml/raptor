@@ -19,7 +19,7 @@ package pyexp
 import (
 	"context"
 	"fmt"
-	"github.com/natun-ai/natun/pkg/errors"
+	"github.com/natun-ai/natun/pkg/api"
 	"github.com/sourcegraph/starlight/convert"
 	sTime "go.starlark.net/lib/time"
 	"go.starlark.net/starlark"
@@ -58,7 +58,7 @@ func (r *runtime) basicOp(op BasicOp) (res BasicOpResponse) {
 
 	var ok bool
 	if res.ctx, ok = op.thread.Local(localKeyContext).(context.Context); !ok {
-		res.err = errors.ErrInvalidPipelineContext
+		res.err = api.ErrInvalidPipelineContext
 		return
 	}
 
@@ -133,7 +133,7 @@ func (r *runtime) GetFeature(t *starlark.Thread, b *starlark.Builtin, args starl
 
 	ctx, ok := t.Local(localKeyContext).(context.Context)
 	if !ok {
-		return nil, errors.ErrInvalidPipelineContext
+		return nil, api.ErrInvalidPipelineContext
 	}
 
 	val, _, err := r.engine.Get(ctx, fqn, entityID)

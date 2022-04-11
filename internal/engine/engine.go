@@ -23,7 +23,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/natun-ai/natun/internal/historian"
 	"github.com/natun-ai/natun/pkg/api"
-	"github.com/natun-ai/natun/pkg/errors"
 	"sync"
 	"time"
 )
@@ -107,7 +106,7 @@ func (e *engine) featureForRequest(ctx context.Context, FQN string) (*Feature, c
 			return &f, ctx, cancel, nil
 		}
 	}
-	return nil, ctx, nil, fmt.Errorf("%w: %s", errors.ErrFeatureNotFound, FQN)
+	return nil, ctx, nil, fmt.Errorf("%w: %s", api.ErrFeatureNotFound, FQN)
 }
 
 func (e *engine) Logger() logr.Logger {

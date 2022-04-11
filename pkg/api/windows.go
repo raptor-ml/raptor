@@ -18,7 +18,6 @@ package api
 
 import (
 	"fmt"
-	"github.com/natun-ai/natun/pkg/errors"
 	"math"
 	"regexp"
 	"strconv"
@@ -75,7 +74,7 @@ func StringsToWindowFns(fns []string) ([]WindowFn, error) {
 	for _, fn := range fns {
 		f := StringToWindowFn(fn)
 		if f == WindowFnUnknown {
-			return nil, fmt.Errorf("%w: %s", errors.ErrUnsupportedAggrError, fn)
+			return nil, fmt.Errorf("%w: %s", ErrUnsupportedAggrError, fn)
 		}
 		windowFnsMap[f] = true
 	}
