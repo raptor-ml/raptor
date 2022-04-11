@@ -130,8 +130,8 @@ func (r *runtime) Exec(ctx context.Context, req ExecRequest) (any, time.Time, st
 	thread.SetLocal(localKeyContext, ctx)
 
 	// Execute the program
-	outGlobals, err := r.program.Init(thread, predeclared)
-	outGlobals.Freeze()
+	globals, err := r.program.Init(thread, predeclared)
+	globals.Freeze()
 
 	if err != nil {
 		var evalErr *starlark.EvalError
@@ -144,25 +144,25 @@ func (r *runtime) Exec(ctx context.Context, req ExecRequest) (any, time.Time, st
 	}
 
 	// Call the handler
-	v, err := starlark.Call(thread, outGlobals[HandlerFuncName], nil, nil)
+	v, err := starlark.Call(thread, globals[HandlerFuncName], nil, nil)
 	if err != nil {
 		return nil, time.Now(), "", err
 	}
 
 	// Convert and validate the returned value
-	returnedValue, outTs, outEntityID, err := parseHandlerResults(v)
+	ret, ts, eid, err := parseHandlerResults(v)
 	if err != nil {
 		return nil, time.Now(), "", err
 	}
-	if req.EntityID != "" && outEntityID != "" && outEntityID != req.EntityID {
-		err := fmt.Errorf("execution returned entity id %s, but the request was for entity id %s", outEntityID, req.EntityID)
-		return nil, outTs, req.EntityID, err
+	if req.EntityID != "" && eid != "" && eid != req.EntityID {
+		err := fmt.Errorf("execution returned entity id %s, but the request was for entity id %s", eid, req.EntityID)
+		return nil, ts, req.EntityID, err
 	}
-	if req.EntityID == "" && outEntityID == "" {
+	if req.EntityID == "" && eid == "" {
 		return nil, time.Now(), "", fmt.Errorf("this program must return an entity_id along with the value")
 	}
 
-	return returnedValue, outTs, outEntityID, nil
+	return ret, ts, eid, nil
 }
 
 func requestToPredeclared(req ExecRequest, builtins starlark.StringDict) (starlark.StringDict, error) {
