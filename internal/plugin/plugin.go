@@ -26,7 +26,7 @@ import (
 // # Available plugins
 
 var FeatureAppliers = make(registry[api.FeatureApply])
-var FeatureReconciler = make(registry[api.Reconcile])
+var DataConnectorReconciler = make(registry[api.Reconcile])
 var Configurers = make(registry[api.BindConfig])
 var StateFactories = make(registry[api.StateFactory])
 var CollectNotifierFactories = make(registry[api.CollectNotifierFactory])

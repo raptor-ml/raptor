@@ -54,7 +54,7 @@ type ConfigVar struct {
 // +structType=atomic
 type ResourceReference struct {
 	// Name is unique within a namespace to reference a resource.
-	// +optional
+	// +kubebuilder:validation:Required
 	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
 
 	// Namespace defines the space within which the resource name must be unique.

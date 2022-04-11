@@ -18,6 +18,7 @@ package api
 
 import (
 	"context"
+	manifests "github.com/natun-ai/natun/pkg/api/v1alpha1"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -37,7 +38,7 @@ type FeatureApply func(metadata Metadata, builderSpec []byte, api FeatureAbstrac
 
 // Reconcile is the interface to be implemented by plugins that want to be reconciled in the operator.
 // This is useful for plugins that need to spawn external Feature Ingestion.
-type Reconcile func(ctx context.Context, client client.Client, metadata Metadata, builderSpec []byte) error
+type Reconcile func(ctx context.Context, client client.Client, conn *manifests.DataConnector) error
 
 // StateFactory is the interface to be implemented by plugins that implements storage providers.
 type StateFactory func(viper *viper.Viper) (State, error)

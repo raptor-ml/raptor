@@ -73,13 +73,18 @@ type FeatureSpec struct {
 	// +nullable
 	Aggr []AggrType `json:"aggr"`
 
+	// DataConnector is a reference for the DataConnector that this Feature is associated with
+	// +optional
+	// +nullable
+	DataConnector *ResourceReference `json:"connector,omitempty"`
+
 	// Builder defines a building-block to use to build the feature-value
 	// +kubebuilder:validation:Required
 	Builder FeatureBuilder `json:"builder"`
 }
 
-// FeatureBuilderType select the building-block to use to build the feature-value
-type FeatureBuilderType struct {
+// FeatureBuilderKind select the building-block to use to build the feature-value
+type FeatureBuilderKind struct {
 	// Kind defines the type of Builder to use to build the feature-value.
 	// +kubebuilder:validation:Required
 	Kind string `json:"kind"`
@@ -87,7 +92,7 @@ type FeatureBuilderType struct {
 
 // FeatureBuilder defines a building-block to use to build the feature-value
 type FeatureBuilder struct {
-	FeatureBuilderType `json:",inline"`
+	FeatureBuilderKind `json:",inline"`
 
 	// Embedded custom configuration of the Builder to use to build the feature-value.
 	apiextensions.JSON `json:",inline"`
@@ -97,9 +102,6 @@ type FeatureBuilder struct {
 type FeatureStatus struct {
 	// FQN is the Fully Qualified Name for the feature
 	FQN string `json:"fqn"`
-
-	// Connector is a reference for the DataConnector that this Feature is associated with
-	Connector ResourceReference `json:"connector"`
 }
 
 // +k8s:openapi-gen=true

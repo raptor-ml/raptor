@@ -18,13 +18,16 @@ package operator
 
 import (
 	"context"
+	"fmt"
+	"github.com/natun-ai/natun/internal/plugin"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	k8snatunaiv1alpha1 "github.com/natun-ai/natun/pkg/api/v1alpha1"
+	natunApi "github.com/natun-ai/natun/pkg/api/v1alpha1"
 )
 
 // DataConnectorReconciler reconciles a DataConnector object
@@ -39,17 +42,58 @@ type DataConnectorReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the DataConnector object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	// Fetch the Feature definition from the Kubernetes API.
+	var conn *natunApi.DataConnector
+	err := r.Get(ctx, req.NamespacedName, conn)
+	if err != nil {
+		logger.Error(err, "Failed to get DataConnector")
+		// we'll ignore not-found errors, since they can't be fixed by an immediate
+		// requeue (we'll need to wait for a new notification), and we can get them
+		// on deleted requests.
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	if conn.ObjectMeta.DeletionTimestamp.IsZero() {
+		// The object is not being deleted, so if it does not have our finalizer,
+		// then lets add the finalizer and update the object. This is equivalent
+		// registering our finalizer.
+		if !controllerutil.ContainsFinalizer(conn, finalizerName) {
+			controllerutil.AddFinalizer(conn, finalizerName)
+			if err := r.Update(ctx, conn); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+	} else {
+		// The object is being deleted
+		if controllerutil.ContainsFinalizer(conn, finalizerName) {
+			// our finalizer is present, so lets handle any external dependency
+			if len(conn.Status.Features) > 0 {
+				// return with error so that it can be retried
+				return ctrl.Result{}, fmt.Errorf("cannot delete DataConnector with associated Features")
+			}
+
+			// remove our finalizer from the list and update it.
+			controllerutil.RemoveFinalizer(conn, finalizerName)
+			if err := r.Update(ctx, conn); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+
+		// Stop reconciliation as the item is being deleted
+		return ctrl.Result{}, nil
+	}
+
+	if p := plugin.DataConnectorReconciler.Get(conn.Kind); p != nil {
+		if err := p(ctx, r.Client, conn); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -57,6 +101,6 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 // SetupWithManager sets up the controller with the Manager.
 func (r *DataConnectorReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&k8snatunaiv1alpha1.DataConnector{}).
+		For(&natunApi.DataConnector{}).
 		Complete(r)
 }
