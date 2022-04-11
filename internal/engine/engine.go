@@ -47,20 +47,20 @@ func New(state api.State, h historian.Client, logger logr.Logger) api.ManagerEng
 	return e
 }
 
-func (e *engine) Append(ctx context.Context, FQN string, entityID string, val any, ts time.Time) error {
-	return e.write(ctx, FQN, entityID, val, ts, api.StateMethodAppend)
+func (e *engine) Append(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
+	return e.write(ctx, fqn, entityID, val, ts, api.StateMethodAppend)
 }
-func (e *engine) Incr(ctx context.Context, FQN string, entityID string, by any, ts time.Time) error {
-	return e.write(ctx, FQN, entityID, by, ts, api.StateMethodIncr)
+func (e *engine) Incr(ctx context.Context, fqn string, entityID string, by any, ts time.Time) error {
+	return e.write(ctx, fqn, entityID, by, ts, api.StateMethodIncr)
 }
-func (e *engine) Set(ctx context.Context, FQN string, entityID string, val any, ts time.Time) error {
-	return e.write(ctx, FQN, entityID, val, ts, api.StateMethodSet)
+func (e *engine) Set(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
+	return e.write(ctx, fqn, entityID, val, ts, api.StateMethodSet)
 }
-func (e *engine) Update(ctx context.Context, FQN string, entityID string, val any, ts time.Time) error {
-	return e.write(ctx, FQN, entityID, val, ts, api.StateMethodUpdate)
+func (e *engine) Update(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
+	return e.write(ctx, fqn, entityID, val, ts, api.StateMethodUpdate)
 }
-func (e *engine) write(ctx context.Context, FQN string, entityID string, val any, ts time.Time, method api.StateMethod) error {
-	f, ctx, cancel, err := e.featureForRequest(ctx, FQN)
+func (e *engine) write(ctx context.Context, fqn string, entityID string, val any, ts time.Time, method api.StateMethod) error {
+	f, ctx, cancel, err := e.featureForRequest(ctx, fqn)
 	if err != nil {
 		return err
 	}
@@ -68,14 +68,14 @@ func (e *engine) write(ctx context.Context, FQN string, entityID string, val any
 
 	v := api.Value{Value: val, Timestamp: ts}
 	if _, err = e.writePipeline(f, method).Apply(ctx, entityID, v); err != nil {
-		return fmt.Errorf("failed to %s value for feature %s with entity %s: %w", method, FQN, entityID, err)
+		return fmt.Errorf("failed to %s value for feature %s with entity %s: %w", method, fqn, entityID, err)
 	}
 	return nil
 }
 
-func (e *engine) Get(ctx context.Context, FQN string, entityID string) (api.Value, api.Metadata, error) {
+func (e *engine) Get(ctx context.Context, fqn string, entityID string) (api.Value, api.Metadata, error) {
 	ret := api.Value{Timestamp: time.Now()}
-	f, ctx, cancel, err := e.featureForRequest(ctx, FQN)
+	f, ctx, cancel, err := e.featureForRequest(ctx, fqn)
 	if err != nil {
 		return ret, api.Metadata{}, err
 	}
@@ -83,13 +83,13 @@ func (e *engine) Get(ctx context.Context, FQN string, entityID string) (api.Valu
 
 	ret, err = e.readPipeline(f).Apply(ctx, entityID, ret)
 	if err != nil && !(goerrors.Is(err, context.DeadlineExceeded) && ret.Value != nil && !ret.Fresh) {
-		return ret, f.Metadata, fmt.Errorf("failed to GET value for feature %s with entity %s: %w", FQN, entityID, err)
+		return ret, f.Metadata, fmt.Errorf("failed to GET value for feature %s with entity %s: %w", fqn, entityID, err)
 	}
 	return ret, f.Metadata, nil
 }
 
-func (e *engine) Metadata(ctx context.Context, FQN string) (api.Metadata, error) {
-	f, _, cancel, err := e.featureForRequest(ctx, FQN)
+func (e *engine) Metadata(ctx context.Context, fqn string) (api.Metadata, error) {
+	f, _, cancel, err := e.featureForRequest(ctx, fqn)
 	if err != nil {
 		return api.Metadata{}, err
 	}
@@ -97,16 +97,16 @@ func (e *engine) Metadata(ctx context.Context, FQN string) (api.Metadata, error)
 
 	return f.Metadata, nil
 }
-func (e *engine) featureForRequest(ctx context.Context, FQN string) (*Feature, context.Context, context.CancelFunc, error) {
-	FQN, fn := api.FQNToRealFQN(FQN)
-	if f, ok := e.features.Load(FQN); ok {
+func (e *engine) featureForRequest(ctx context.Context, fqn string) (*Feature, context.Context, context.CancelFunc, error) {
+	fqn, fn := api.FQNToRealFQN(fqn)
+	if f, ok := e.features.Load(fqn); ok {
 		if f, ok := f.(Feature); ok {
 			ctx, cancel := f.Context(ctx, e.Logger())
 			ctx = api.ContextWithWindowFn(ctx, fn)
 			return &f, ctx, cancel, nil
 		}
 	}
-	return nil, ctx, nil, fmt.Errorf("%w: %s", api.ErrFeatureNotFound, FQN)
+	return nil, ctx, nil, fmt.Errorf("%w: %s", api.ErrFeatureNotFound, fqn)
 }
 
 func (e *engine) Logger() logr.Logger {
