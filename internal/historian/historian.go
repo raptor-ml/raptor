@@ -96,7 +96,7 @@ func (h *historian) Writer() LeaderRunnableFunc {
 	return h.writeTasks.Runnable(1) // must have only one writer
 }
 
-func (h *historian) BindFeature(in manifests.Feature) error {
+func (h *historian) BindFeature(in *manifests.Feature) error {
 	md, err := api.MetadataFromManifest(in)
 	if err != nil {
 		return fmt.Errorf("failed to parse metadata from CR: %w", err)
