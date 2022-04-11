@@ -22,6 +22,7 @@ import (
 	"github.com/natun-ai/natun/internal/plugin"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -33,12 +34,14 @@ import (
 // DataConnectorReconciler reconciles a DataConnector object
 type DataConnectorReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme   *runtime.Scheme
+	CoreAddr string
 }
 
 //+kubebuilder:rbac:groups=k8s.natun.ai,resources=dataconnectors,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=k8s.natun.ai,resources=dataconnectors/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=k8s.natun.ai,resources=dataconnectors/finalizers,verbs=update
+//+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -90,7 +93,7 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	if p := plugin.DataConnectorReconciler.Get(conn.Kind); p != nil {
-		if err := p(ctx, r.Client, conn); err != nil {
+		if err := p(ctx, r.Client, r.Scheme, r.CoreAddr, conn); err != nil {
 			return ctrl.Result{}, err
 		}
 	}
@@ -102,5 +105,6 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 func (r *DataConnectorReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&natunApi.DataConnector{}).
+		Owns(&appsv1.Deployment{}).
 		Complete(r)
 }

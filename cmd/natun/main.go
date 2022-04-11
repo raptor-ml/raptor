@@ -64,9 +64,10 @@ func main() {
 		"Enabling this will ensure there is only one active controller manager.")
 	pflag.String("metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	pflag.String("health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	pflag.String("accessor-grpc-address", ":9090", "The address the grpc accessor binds to.")
-	pflag.String("accessor-http-address", ":9091", "The address the http accessor binds to.")
+	pflag.String("accessor-grpc-address", ":70000", "The address the grpc accessor binds to.")
+	pflag.String("accessor-http-address", ":70001", "The address the http accessor binds to.")
 	pflag.String("accessor-http-prefix", "/api", "The the http accessor path prefix.")
+	pflag.String("accessor-service", "", "The the accessor service URL (that points the this application).")
 	pflag.Bool("production", true, "Set as production")
 
 	pflag.String("state-provider", "redis", "The state provider.")
@@ -139,9 +140,17 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Feature")
 		os.Exit(1)
 	}
+
+	coreaddr := viper.GetString("accessor-service")
+	if coreaddr == "" {
+		coreaddr, err = detectAccessor(mgr.GetClient())
+		orFail(err, "failed to detect accessor")
+	}
+
 	if err = (&opctrl.DataConnectorReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		CoreAddr: coreaddr,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "DataConnector")
 		os.Exit(1)
