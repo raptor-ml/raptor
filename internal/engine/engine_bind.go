@@ -22,12 +22,11 @@ import (
 	"github.com/natun-ai/natun/internal/plugin"
 	"github.com/natun-ai/natun/pkg/api"
 	manifests "github.com/natun-ai/natun/pkg/api/v1alpha1"
-	"github.com/natun-ai/natun/pkg/errors"
 	"strings"
 )
 
 // BindFeature converts the k8s Feature CRD to the internal implementation, and adds it to the engine.
-func (e *engine) BindFeature(in manifests.Feature) error {
+func (e *engine) BindFeature(in *manifests.Feature) error {
 	md, err := api.MetadataFromManifest(in)
 	if err != nil {
 		return fmt.Errorf("failed to parse metadata from CR: %w", err)
@@ -38,7 +37,7 @@ func (e *engine) BindFeature(in manifests.Feature) error {
 	}
 
 	if ft.Builder == "" {
-		builderType := &manifests.FeatureBuilderType{}
+		builderType := &manifests.FeatureBuilderKind{}
 		err := json.Unmarshal(in.Spec.Builder.Raw, builderType)
 		if err != nil || builderType.Kind == "" {
 			return fmt.Errorf("failed to unmarshal builder type: %w", err)
@@ -64,7 +63,7 @@ func (e *engine) UnbindFeature(FQN string) error {
 
 func (e *engine) bindFeature(f Feature) error {
 	if e.HasFeature(f.FQN) {
-		return fmt.Errorf("%w: %s", errors.ErrFeatureAlreadyExists, f.FQN)
+		return fmt.Errorf("%w: %s", api.ErrFeatureAlreadyExists, f.FQN)
 	}
 	e.features.Store(f.FQN, f)
 	e.logger.Info("feature bound", "FQN", f.FQN)

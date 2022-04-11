@@ -19,7 +19,6 @@ package controllers
 import (
 	"context"
 	"github.com/natun-ai/natun/pkg/api"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -42,28 +41,21 @@ type FeatureReconciler struct {
 	EngineManager  api.Manager
 }
 
-//+kubebuilder:rbac:groups=k8s.natun.ai,resources=features,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=k8s.natun.ai,resources=features/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=k8s.natun.ai,resources=features/finalizers,verbs=update
+//+kubebuilder:rbac:groups=k8s.natun.ai,resources=features,verbs=get;list;watch
 
 // Reconcile is the main function of the reconciler.
 func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
-	// Fetch the Feature instance
-	feature := natunApi.Feature{}
-	err := r.Get(ctx, req.NamespacedName, &feature)
+	// Fetch the Feature definition from the Kubernetes API.
+	var feature *natunApi.Feature
+	err := r.Get(ctx, req.NamespacedName, feature)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile request.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
-			logger.Info("Feature resource not found. Ignoring since object must be deleted")
-			return ctrl.Result{}, nil
-		}
-		// Error reading the object - requeue the request.
 		logger.Error(err, "Failed to get Feature")
-		return ctrl.Result{}, err
+		// we'll ignore not-found errors, since they can't be fixed by an immediate
+		// requeue (we'll need to wait for a new notification), and we can get them
+		// on deleted requests.
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	// examine DeletionTimestamp to determine if object is under deletion

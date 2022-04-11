@@ -43,7 +43,7 @@ type Logger interface {
 // Manager is the main manager of the Core
 // It is responsible for managing features as well as operating on them
 type Manager interface {
-	BindFeature(in manifests.Feature) error
+	BindFeature(in *manifests.Feature) error
 	UnbindFeature(FQN string) error
 	HasFeature(FQN string) bool
 }
