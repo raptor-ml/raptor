@@ -18,15 +18,17 @@ package sdk
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"github.com/natun-ai/natun/pkg/api"
 	coreApi "go.buf.build/natun/api-go/natun/core/natun/core/v1alpha1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type serviceServer struct {
-	engine api.Engine
 	coreApi.UnimplementedEngineServiceServer
+	engine api.Engine
 }
 
 // NewServiceServer creates a new coreApi.EngineServiceServer from api.Engine
@@ -39,7 +41,10 @@ func NewServiceServer(engine api.Engine) coreApi.EngineServiceServer {
 func (s *serviceServer) Metadata(ctx context.Context, req *coreApi.MetadataRequest) (*coreApi.MetadataResponse, error) {
 	md, err := s.engine.Metadata(ctx, req.GetFqn())
 	if err != nil {
-		return nil, fmt.Errorf("failed to get metadata: %w", err)
+		if errors.Is(err, api.ErrFeatureNotFound) {
+			return nil, status.Errorf(codes.NotFound, "feature not found")
+		}
+		return nil, status.Errorf(codes.Internal, "failed to get metadata: %s", err)
 	}
 	return &coreApi.MetadataResponse{
 		Uuid:     req.GetUuid(),
@@ -49,14 +54,17 @@ func (s *serviceServer) Metadata(ctx context.Context, req *coreApi.MetadataReque
 func (s *serviceServer) Get(ctx context.Context, req *coreApi.GetRequest) (*coreApi.GetResponse, error) {
 	resp, md, err := s.engine.Get(ctx, req.GetFqn(), req.GetEntityId())
 	if err != nil {
-		return nil, err
+		if errors.Is(err, api.ErrFeatureNotFound) {
+			return nil, status.Errorf(codes.NotFound, "feature not found")
+		}
+		return nil, status.Errorf(codes.Internal, "failed to get entity: %s", err)
 	}
 
 	val := resp.Value
 	if r, ok := resp.Value.(api.WindowResultMap); ok {
 		if len(md.Aggr) > 1 {
-			return nil, fmt.Errorf("the feature is windowed, but requested window function not found."+
-				"pleasue use s request with FullyQualifiedName with an aggregator i.e. `%s[%s]`", req.GetFqn(), md.Aggr[0])
+			return nil, status.Errorf(codes.InvalidArgument, "the feature is windowed, but requested window function not found."+
+				"please use s request with FullyQualifiedName with an aggregator i.e. `%s[%s]`", req.GetFqn(), md.Aggr[0])
 		}
 		val = r[md.Aggr[0]]
 	}
@@ -82,7 +90,10 @@ func (s *serviceServer) HistoricalGet(ctx context.Context, req *coreApi.Historic
 func (s *serviceServer) Set(ctx context.Context, req *coreApi.SetRequest) (*coreApi.SetResponse, error) {
 	err := s.engine.Set(ctx, req.GetFqn(), req.GetEntityId(), FromValue(req.Value), req.Timestamp.AsTime())
 	if err != nil {
-		return nil, err
+		if errors.Is(err, api.ErrFeatureNotFound) {
+			return nil, status.Errorf(codes.NotFound, "feature not found")
+		}
+		return nil, status.Errorf(codes.Internal, "failed to set entity: %s", err)
 	}
 	return &coreApi.SetResponse{
 		Uuid:      req.GetUuid(),
@@ -92,7 +103,10 @@ func (s *serviceServer) Set(ctx context.Context, req *coreApi.SetRequest) (*core
 func (s *serviceServer) Append(ctx context.Context, req *coreApi.AppendRequest) (*coreApi.AppendResponse, error) {
 	err := s.engine.Append(ctx, req.GetFqn(), req.GetEntityId(), fromScalar(req.Value), req.Timestamp.AsTime())
 	if err != nil {
-		return nil, err
+		if errors.Is(err, api.ErrFeatureNotFound) {
+			return nil, status.Errorf(codes.NotFound, "feature not found")
+		}
+		return nil, status.Errorf(codes.Internal, "failed to append entity: %s", err)
 	}
 	return &coreApi.AppendResponse{
 		Uuid:      req.GetUuid(),
@@ -102,7 +116,10 @@ func (s *serviceServer) Append(ctx context.Context, req *coreApi.AppendRequest) 
 func (s *serviceServer) Incr(ctx context.Context, req *coreApi.IncrRequest) (*coreApi.IncrResponse, error) {
 	err := s.engine.Incr(ctx, req.GetFqn(), req.GetEntityId(), fromScalar(req.Value), req.Timestamp.AsTime())
 	if err != nil {
-		return nil, err
+		if errors.Is(err, api.ErrFeatureNotFound) {
+			return nil, status.Errorf(codes.NotFound, "feature not found")
+		}
+		return nil, status.Errorf(codes.Internal, "failed to incr entity: %s", err)
 	}
 	return &coreApi.IncrResponse{
 		Uuid:      req.GetUuid(),
@@ -112,7 +129,10 @@ func (s *serviceServer) Incr(ctx context.Context, req *coreApi.IncrRequest) (*co
 func (s *serviceServer) Update(ctx context.Context, req *coreApi.UpdateRequest) (*coreApi.UpdateResponse, error) {
 	err := s.engine.Update(ctx, req.GetFqn(), req.GetEntityId(), FromValue(req.Value), req.Timestamp.AsTime())
 	if err != nil {
-		return nil, err
+		if errors.Is(err, api.ErrFeatureNotFound) {
+			return nil, status.Errorf(codes.NotFound, "feature not found")
+		}
+		return nil, status.Errorf(codes.Internal, "failed to update entity: %s", err)
 	}
 	return &coreApi.UpdateResponse{
 		Uuid:      req.GetUuid(),
