@@ -1,0 +1,75 @@
+name: Release and ship new version
+
+on:
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 100
+      - name: Calculate semver
+        uses: paulhatch/semantic-version@v4
+        id: semver
+        with:
+          # The prefix to use to identify tags
+          tag_prefix: "v"
+          major_pattern: "/^(:warning:|⚠/).*/"
+          # Same as above except indicating a minor change, supports regular expressions wrapped with '/'
+          minor_pattern: "/^(:sparkles:|✨).*/"
+      - name: "format version"
+        id: version
+        shell: bash
+        run: |
+          echo "::set-output name=version_tag::${{ steps.semver.outputs.version_tag }}"
+          echo "::set-output name=version::${{ steps.semver.outputs.major }}.${{ steps.semver.outputs.minor }}.${{ steps.semver.outputs.patch }}"
+      - name: Setup Go environment
+        uses: actions/setup-go@v3
+        with:
+          go-version: '^1.18'
+      - name: Build project
+        run: make generate bundle VERSION=${{ steps.version.outputs.version }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata (tags, labels) for Manager
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}},value${{ steps.version.outputs.version_tag }}
+      - name: Extract metadata (tags, labels) for Bundle
+        id: metabundle
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-bundle
+          tags: |
+            type=semver,pattern={{version}},value${{ steps.version.outputs.version_tag }}
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      - name: Build and push bundle
+        uses: docker/build-push-action@v2
+        with:
+          context: bundle.Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.metabundle.outputs.tags }}
+          labels: ${{ steps.metabundle.outputs.labels }}
