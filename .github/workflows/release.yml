@@ -51,14 +51,14 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=semver,pattern={{version}},value${{ steps.version.outputs.version_tag }}
+            type=semver,pattern={{version}},value=${{ steps.version.outputs.version_tag }}
       - name: Extract metadata (tags, labels) for Bundle
         id: metabundle
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-bundle
           tags: |
-            type=semver,pattern={{version}},value${{ steps.version.outputs.version_tag }}
+            type=semver,pattern={{version}},value=${{ steps.version.outputs.version_tag }}
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
