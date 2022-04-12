@@ -13,7 +13,7 @@
 - color: 7057ff
   description: Good for newcomers
   name: good first issue
-- color: "008672"
+- color: 008672
   description: Extra attention is needed
   name: help wanted
 - color: e4e669
@@ -25,4 +25,6 @@
 - color: ffffff
   description: This will not be worked on
   name: wontfix
-
+- color: 6e5494
+  description: Releated to the Runtime-sidecar
+  name: component/runtime-sidecar
