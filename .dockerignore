@@ -3,5 +3,3 @@
 bin/
 testbin/
 proto/
-bundle/
-bundle.Dockerfile
