@@ -1,4 +1,4 @@
-name: Release and ship new version
+name: Release
 
 on:
   workflow_dispatch:
@@ -38,38 +38,57 @@ jobs:
         with:
           go-version: '^1.18'
       - name: Build project
-        run: make generate bundle VERSION=${{ steps.version.outputs.version }}
+        run: |
+          make generate bundle VERSION=${{ steps.version.outputs.version }}
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -a -o manager cmd/natun/*
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -a -o historian cmd/historian/*
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Extract metadata (tags, labels) for Manager
-        id: meta
+      - name: Extract metadata - Manager
+        id: meta_manager
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=semver,pattern={{version}},value=${{ steps.version.outputs.version_tag }}
-      - name: Extract metadata (tags, labels) for Bundle
-        id: metabundle
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-manager
+          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version_tag }}
+      - name: Extract metadata - Historian
+        id: meta_historian
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-historian
+          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version_tag }}
+      - name: Extract metadata - Bundle
+        id: meta_bundle
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-bundle
-          tags: |
-            type=semver,pattern={{version}},value=${{ steps.version.outputs.version_tag }}
-      - name: Build and push
+          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version_tag }}
+      - name: Build & Push - Historian
         uses: docker/build-push-action@v2
         with:
           context: .
+          file: hack/release.Dockerfile
+          target: historian
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-      - name: Build and push bundle
+          tags: ${{ steps.meta_historian.outputs.tags }}
+          labels: ${{ steps.meta_historian.outputs.labels }}
+      - name: Build & Push - Manager
         uses: docker/build-push-action@v2
         with:
-          context: bundle.Dockerfile
+          context: .
+          file: hack/release.Dockerfile
+          target: manager
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.metabundle.outputs.tags }}
-          labels: ${{ steps.metabundle.outputs.labels }}
+          tags: ${{ steps.meta_manager.outputs.tags }}
+          labels: ${{ steps.meta_manager.outputs.labels }}
+      - name: Build & Push - Bundle
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: bundle.Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_bundle.outputs.tags }}
+          labels: ${{ steps.meta_bundle.outputs.labels }}
