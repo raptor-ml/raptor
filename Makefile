@@ -28,8 +28,8 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # This variable is used to construct full image tags for bundle and catalog images.
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
-# natun.ai/natun-bundle:$VERSION and natun.ai/natun-catalog:$VERSION.
-IMAGE_TAG_BASE ?= natun.ai/natun
+# ghcr.io/natun-ai/natun-bundle:$VERSION and ghcr.io/natun-ai/natun-catalog:$VERSION.
+IMAGE_TAG_BASE ?= ghcr.io/natun-ai/natun
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
@@ -218,10 +218,10 @@ $(ENVTEST):
 
 .PHONY: bundle
 bundle: manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
-	operator-sdk generate kustomize manifests -q
+	operator-sdk generate kustomize manifests --apis-dir pkg/api/v1alpha1 -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle $(BUNDLE_GEN_FLAGS)
-	operator-sdk bundle validate ./bundle
+	#operator-sdk bundle validate ./bundle
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMAGE_TAG_BASE}:latest
 
 .PHONY: bundle-build

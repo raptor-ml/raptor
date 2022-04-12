@@ -89,6 +89,11 @@ spec:
                     description: 'Limits describes the maximum amount of compute resources
                       allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                     type: object
+                  replicas:
+                    description: Number of desired pods. This is a pointer to distinguish
+                      between explicit zero and not specified. Defaults to 1.
+                    format: int32
+                    type: integer
                   requests:
                     additionalProperties:
                       anyOf:
@@ -126,8 +131,26 @@ spec:
                       type: string
                   type: object
                 type: array
+              deployments:
+                description: Deployments includes a list of deployments that was deployed
+                  for this DataConnector
+                items:
+                  description: ResourceReference represents a resource reference.
+                    It has enough information to retrieve resource in any namespace.
+                  properties:
+                    name:
+                      description: Name is unique within a namespace to reference
+                        a resource.
+                      type: string
+                    namespace:
+                      description: Namespace defines the space within which the resource
+                        name must be unique.
+                      type: string
+                  type: object
+                type: array
             required:
             - connector
+            - deployments
             type: object
         type: object
     served: true

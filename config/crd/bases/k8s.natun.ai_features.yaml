@@ -69,6 +69,20 @@ spec:
                 - kind
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
+              connector:
+                description: DataConnector is a reference for the DataConnector that
+                  this Feature is associated with
+                nullable: true
+                properties:
+                  name:
+                    description: Name is unique within a namespace to reference a
+                      resource.
+                    type: string
+                  namespace:
+                    description: Namespace defines the space within which the resource
+                      name must be unique.
+                    type: string
+                type: object
               freshness:
                 description: Freshness defines the age of a feature-value(time since
                   the value has set) to consider as *fresh*. Fresh values doesn't
@@ -109,24 +123,10 @@ spec:
           status:
             description: FeatureStatus defines the observed state of Feature
             properties:
-              connector:
-                description: Connector is a reference for the DataConnector that this
-                  Feature is associated with
-                properties:
-                  name:
-                    description: Name is unique within a namespace to reference a
-                      resource.
-                    type: string
-                  namespace:
-                    description: Namespace defines the space within which the resource
-                      name must be unique.
-                    type: string
-                type: object
               fqn:
                 description: FQN is the Fully Qualified Name for the feature
                 type: string
             required:
-            - connector
             - fqn
             type: object
         type: object

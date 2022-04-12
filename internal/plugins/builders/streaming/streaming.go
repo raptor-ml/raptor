@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/natun-ai/natun/internal/plugin"
-	"github.com/natun-ai/natun/pkg/api/v1alpha1"
+	natunApi "github.com/natun-ai/natun/pkg/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -24,7 +24,7 @@ func init() {
 	plugin.DataConnectorReconciler.Register("streaming", Reconcile)
 }
 
-func Reconcile(ctx context.Context, client client.Client, scheme *runtime.Scheme, coreAddr string, conn *v1alpha1.DataConnector) error {
+func Reconcile(ctx context.Context, client client.Client, scheme *runtime.Scheme, coreAddr string, conn *natunApi.DataConnector) error {
 	logger := log.FromContext(ctx)
 
 	objectKey := types.NamespacedName{
@@ -50,6 +50,15 @@ func Reconcile(ctx context.Context, client client.Client, scheme *runtime.Scheme
 			return err
 		}
 
+		conn.Status.Deployments = append(conn.Status.Deployments, natunApi.ResourceReference{
+			Name:      dep.Name,
+			Namespace: dep.Namespace,
+		})
+		if err != nil {
+			logger.Error(err, "Failed to update the deployment to the DataConnector status", "objectKey", objectKey)
+			return err
+		}
+
 		// Deployment created successfully - return and requeue
 		return nil
 	}
@@ -58,9 +67,19 @@ func Reconcile(ctx context.Context, client client.Client, scheme *runtime.Scheme
 	return err
 }
 
-func deploymentForConn(conn *v1alpha1.DataConnector, coreAddr string) *appsv1.Deployment {
-	var replicas int32 = 3
+func deploymentForConn(conn *natunApi.DataConnector, coreAddr string) *appsv1.Deployment {
 	labels := map[string]string{"app": "streaming", "dataconnector": conn.GetName()}
+
+	resources := corev1.ResourceRequirements{
+		Limits:   conn.Spec.Resources.Limits,
+		Requests: conn.Spec.Resources.Requests,
+	}
+	var replicas int32
+	if conn.Spec.Resources.Replicas != nil {
+		replicas = *conn.Spec.Resources.Replicas
+	} else {
+		replicas = 1
+	}
 
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -82,13 +101,13 @@ func deploymentForConn(conn *v1alpha1.DataConnector, coreAddr string) *appsv1.De
 							Image:     streamingImage,
 							Name:      "streaming",
 							Command:   []string{"streaming"},
-							Resources: conn.Spec.Resources,
+							Resources: resources,
 						},
 						{
 							Image:     runtimeSidecarImage,
 							Name:      "runtime",
 							Command:   []string{"runtime", "--core-grpc-url", coreAddr},
-							Resources: conn.Spec.Resources,
+							Resources: resources,
 						},
 					},
 				},
@@ -98,6 +117,6 @@ func deploymentForConn(conn *v1alpha1.DataConnector, coreAddr string) *appsv1.De
 	return dep
 }
 
-func deploymentName(conn *v1alpha1.DataConnector) string {
+func deploymentName(conn *natunApi.DataConnector) string {
 	return fmt.Sprintf("natun-conn-%s", conn.Name)
 }

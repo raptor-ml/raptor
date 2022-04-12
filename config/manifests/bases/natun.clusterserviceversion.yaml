@@ -1,0 +1,59 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+  name: natun.v0.0.0
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: DataConnector is the Schema for the dataconnectors API
+      displayName: Data Connector
+      kind: DataConnector
+      name: dataconnectors.k8s.natun.ai
+      version: v1alpha1
+    - description: Feature is the Schema for the features API
+      displayName: Feature
+      kind: Feature
+      name: features.k8s.natun.ai
+      version: v1alpha1
+  description: Serverless Feature Engineering for Production
+  displayName: Natun
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - natun
+  - feature engineering
+  - feature store
+  - kubeflow
+  - serverless
+  - platform
+  - machine learning
+  - ML
+  - DS
+  - data science
+  links:
+  - name: Natun
+    url: https://natun.ai
+  maturity: alpha
+  provider:
+    name: Natun
+    url: https://natun.ai
+  version: 0.0.0
