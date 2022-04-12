@@ -35,10 +35,16 @@ licRes=""
 for file in $allfiles; do
   if ! head -n4 "${file}" | grep -Eq "(Copyright|generated|GENERATED|Licensed)" ; then
     licRes="${licRes}\n  - ${file}"
+    if [ ! -z ${GITHUB+x} ]; then
+      echo "::error file=${file/$(pwd)\//},line=1,col=5::Missing license header"
+    fi
   fi
 done
-if [ -n "${licRes}" ]; then
+if [ -n "${licRes}" ] && [ -z ${GITHUB+x} ]; then
   echo -e "\033[0;31mLicense header checking failed:\033[0m"
   echo -e "${licRes}"
-  exit 255
+fi
+
+if [ -n "${licRes}" ]; then
+  exit 1
 fi
