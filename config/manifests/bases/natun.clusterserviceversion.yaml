@@ -14,6 +14,31 @@ spec:
       displayName: Data Connector
       kind: DataConnector
       name: dataconnectors.k8s.natun.ai
+      specDescriptors:
+      - displayName: Secret Key Ref
+        path: config[0].secretKeyRef
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes:Secret
+      - description: 'Limits describes the maximum amount of compute resources allowed.
+          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+        displayName: Limits
+        path: resources.limits
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
+      - description: Number of desired pods. This is a pointer to distinguish between
+          explicit zero and not specified. Defaults to 1.
+        displayName: Replicas
+        path: resources.replicas
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:podCount
+      - description: 'Requests describes the minimum amount of compute resources required.
+          If Requests is omitted for a container, it defaults to Limits if that is
+          explicitly specified, otherwise to an implementation-defined value. More
+          info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+        displayName: Requests
+        path: resources.requests
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
       version: v1alpha1
     - description: Feature is the Schema for the features API
       displayName: Feature
