@@ -216,12 +216,20 @@ envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST):
 	GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
+OSDK ?= $(LOCALBIN)/operator-sdk
+OPERATOR_SDK_VERSION=v1.19.0
+
+.PHONY: operator-sdk
+operator-sdk: $(OSDK) ## Download controller-gen locally if necessary.
+$(OSDK):
+	curl -sSLo $(OSDK) https://github.com/operator-framework/operator-sdk/releases/download/${OPERATOR_SDK_VERSION}/operator-sdk_$(shell go env GOOS)_$(shell go env GOARCH) && chmod +x ${OSDK}
+
 .PHONY: bundle
-bundle: manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
-	operator-sdk generate kustomize manifests --apis-dir pkg/api/v1alpha1 -q
+bundle: operator-sdk manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
+	$(OSDK) generate kustomize manifests --apis-dir pkg/api/v1alpha1 -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle $(BUNDLE_GEN_FLAGS)
-	#operator-sdk bundle validate ./bundle
+	$(KUSTOMIZE) build config/manifests | $(OSDK) generate bundle $(BUNDLE_GEN_FLAGS)
+	$(OSDK) bundle validate ./bundle
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMAGE_TAG_BASE}:latest
 
 .PHONY: bundle-build
@@ -272,7 +280,6 @@ catalog-build: opm ## Build a catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
-
 
 ##@ Development
 
