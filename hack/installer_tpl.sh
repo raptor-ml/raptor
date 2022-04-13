@@ -31,7 +31,7 @@ fi
 echo ""
 echo "Installing manifests..."
 
-echo ${MANIFESTS} | base64 -d | sed "s/%installer_args%/${CONFIG_ARGS}/g" | kubectl apply -f -
+echo ${MANIFESTS} | base64 -d | sed "s/\$installer_args\\$/${CONFIG_ARGS}/g" | kubectl apply -f -
 
 exit 0
 __MANIFESTS__

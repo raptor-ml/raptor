@@ -193,7 +193,7 @@ installer: manifests kustomize ## Create a kustomization file for the installer.
 	cp hack/installer_tpl.sh installer.sh
 	chmod +x installer.sh
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/installer | base64 >> installer
+	$(KUSTOMIZE) build config/installer | base64 >> installer.sh
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMAGE_TAG_BASE}:latest
 ##@ Build Dependencies
 
