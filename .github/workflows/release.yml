@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_type:
-        default: beta
+        default: alpha
         description: What type of release is this?
         required: true
         type: choice
@@ -41,7 +41,7 @@ jobs:
           fi
         shell: bash
       - name: Calculate Semver
-        uses: paulhatch/semantic-version@v5
+        uses: paulhatch/semantic-version@v5.0.0-alpha
         id: version
         with:
           # The prefix to use to identify tags
