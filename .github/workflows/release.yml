@@ -28,7 +28,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 100
+          fetch-depth: 0
       - name: Prerelease prep
         id: prerelease
         run: |
@@ -50,7 +50,7 @@ jobs:
           # Same as above except indicating a minor change, supports regular expressions wrapped with '/'
           minor_pattern: "/^(:sparkles:|✨).*/"
           # A string to determine the format of the version output
-          format: "${{ steps.prerelease.outputs.version_format }}"
+          version_format: "${{ steps.prerelease.outputs.version_format }}"
       - name: Setup Go environment
         uses: actions/setup-go@v3
         with:
