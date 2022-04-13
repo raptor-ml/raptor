@@ -123,6 +123,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: v${{ steps.version.outputs.version }}
           files: |
             installer.sh
           prerelease: ${{ github.event.inputs.prerelease }}
