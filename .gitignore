@@ -26,3 +26,6 @@ zz_generated.*
 *.swp
 *.swo
 *~
+
+bundle/
+bundle.Dockerfile

@@ -4,6 +4,10 @@
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 VERSION ?= $(shell git rev-parse --short HEAD)
+override VERSION := $(shell echo ${VERSION} | sed s/^v//)
+BUNDLE_VERSION ?= $(VERSION)
+override BUNDLE_VERSION := $(shell echo ${BUNDLE_VERSION} | sed s/^v//)
+
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
@@ -36,7 +40,7 @@ IMAGE_TAG_BASE ?= ghcr.io/natun-ai/natun
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
 # BUNDLE_GEN_FLAGS are the flags passed to the operator-sdk generate bundle command
-BUNDLE_GEN_FLAGS ?= -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+BUNDLE_GEN_FLAGS ?= -q --overwrite --version $(BUNDLE_VERSION) $(BUNDLE_METADATA_OPTS)
 
 # USE_IMAGE_DIGESTS defines if images are resolved via tags or digests
 # You can enable this value if you would like to use SHA Based Digests
@@ -182,8 +186,15 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 
 .PHONY: undeploy
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/default | kubectl --context=$(CONTEXT) delete --ignore-not-found=$(ignore-not-found) -f -
+	$(KUSTOMIZE) build config/default
 
+.PHONY: installer
+installer: manifests kustomize ## Create a kustomization file for the installer.
+	cp hack/installer_tpl.sh installer.sh
+	chmod +x installer.sh
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build config/installer | base64 >> installer
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMAGE_TAG_BASE}:latest
 ##@ Build Dependencies
 
 ## Location to install dependencies to

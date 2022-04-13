@@ -2,6 +2,17 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      release_type:
+        default: beta
+        description: What type of release is this?
+        required: true
+        type: choice
+        options:
+          - alpha
+          - beta
+          - rc
+          - stable
 
 env:
   REGISTRY: ghcr.io
@@ -11,35 +22,42 @@ jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 100
-      - name: Calculate semver
-        uses: paulhatch/semantic-version@v4
-        id: semver
+      - name: Prerelease prep
+        id: prerelease
+        run: |
+          if [ ${{ github.event.inputs.release_type }} == "stable" ]; then
+            echo "::set-output name=version_format::${major}.${minor}.${patch}"
+            echo "::set-output name=prerelease::false"
+          else
+            echo "::set-output name=prerelease::true"
+            echo "::set-output name=version_format::${major}.${minor}.${patch}-${{ github.event.inputs.release_type }}${increment}"
+          fi
+        shell: bash
+      - name: Calculate Semver
+        uses: paulhatch/semantic-version@v5
+        id: version
         with:
           # The prefix to use to identify tags
           tag_prefix: "v"
           major_pattern: "/^(:warning:|⚠/).*/"
           # Same as above except indicating a minor change, supports regular expressions wrapped with '/'
           minor_pattern: "/^(:sparkles:|✨).*/"
-      - name: "format version"
-        id: version
-        shell: bash
-        run: |
-          echo "::set-output name=version_tag::${{ steps.semver.outputs.version_tag }}"
-          echo "::set-output name=version::${{ steps.semver.outputs.major }}.${{ steps.semver.outputs.minor }}.${{ steps.semver.outputs.patch }}"
+          # A string to determine the format of the version output
+          format: "${{ steps.prerelease.outputs.version_format }}"
       - name: Setup Go environment
         uses: actions/setup-go@v3
         with:
           go-version: '^1.18'
       - name: Build project
         run: |
-          make generate bundle VERSION=${{ steps.version.outputs.version }}
+          make generate bundle installer VERSION=${{ steps.version.outputs.version }} BUNDLE_VERSION=${{ steps.version.outputs.version_tag }} CHANNELS=${{ github.event.inputs.release_type }}
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -a -o manager cmd/natun/*
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -a -o historian cmd/historian/*
       - name: Login to GitHub Container Registry
@@ -53,19 +71,19 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-manager
-          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version_tag }}
+          tags: type=semver,pattern={{version}},value=v${{ steps.version.outputs.version }}
       - name: Extract metadata - Historian
         id: meta_historian
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-historian
-          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version_tag }}
+          tags: type=semver,pattern={{version}},value=v${{ steps.version.outputs.version }}
       - name: Extract metadata - Bundle
         id: meta_bundle
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-bundle
-          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version_tag }}
+          tags: type=semver,pattern={{version}},value=v${{ steps.version.outputs.version }}
       - name: Build & Push - Historian
         uses: docker/build-push-action@v2
         with:
@@ -92,3 +110,20 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta_bundle.outputs.tags }}
           labels: ${{ steps.meta_bundle.outputs.labels }}
+      - name: Tag
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/v${{ steps.version.outputs.version }}',
+              sha: context.sha
+            })
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            installer.sh
+          prerelease: ${{ github.event.inputs.prerelease }}
+          name: Version v${{ steps.version.outputs.version }}
