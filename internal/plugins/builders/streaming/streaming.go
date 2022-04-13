@@ -32,8 +32,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-const streamingImage = "natun/streaming:latest"
-const runtimeSidecarImage = "natun/runtime-sidecar:latest"
+const streamingImage = "ghcr.io/natun-ai/streaming:latest"
+const runtimeSidecarImage = "ghcr.io/natun-ai/runtime-sidecar:latest"
 
 func init() {
 	// Register the plugin
