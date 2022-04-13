@@ -33,11 +33,11 @@ jobs:
         id: prerelease
         run: |
           if [ ${{ github.event.inputs.release_type }} == "stable" ]; then
-            echo "::set-output name=version_format::${major}.${minor}.${patch}"
+            echo "::set-output name=version_format::\${major}.\${minor}.\${patch}"
             echo "::set-output name=prerelease::false"
           else
             echo "::set-output name=prerelease::true"
-            echo "::set-output name=version_format::${major}.${minor}.${patch}-${{ github.event.inputs.release_type }}${increment}"
+            echo "::set-output name=version_format::\${major}.\${minor}.\${patch}-${{ github.event.inputs.release_type }}\${increment}"
           fi
         shell: bash
       - name: Calculate Semver
