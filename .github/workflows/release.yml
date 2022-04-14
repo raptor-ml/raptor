@@ -33,11 +33,11 @@ jobs:
         id: prerelease
         run: |
           if [ ${{ github.event.inputs.release_type }} == "stable" ]; then
-            echo "::set-output name=version_format::\${major}.\${minor}.\${patch}"
+            echo "::set-output name=version_format::v\${major}.\${minor}.\${patch}"
             echo "::set-output name=prerelease::false"
           else
             echo "::set-output name=prerelease::true"
-            echo "::set-output name=version_format::\${major}.\${minor}.\${patch}-${{ github.event.inputs.release_type }}\${increment}"
+            echo "::set-output name=version_format::v\${major}.\${minor}.\${patch}-${{ github.event.inputs.release_type }}\${increment}"
           fi
         shell: bash
       - name: Calculate Semver
@@ -71,19 +71,19 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-core
-          tags: type=semver,pattern={{version}},value=v${{ steps.version.outputs.version }}
+          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
       - name: Extract metadata - Historian
         id: meta_historian
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-historian
-          tags: type=semver,pattern={{version}},value=v${{ steps.version.outputs.version }}
+          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
       - name: Extract metadata - Bundle
         id: meta_bundle
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-bundle
-          tags: type=semver,pattern={{version}},value=v${{ steps.version.outputs.version }}
+          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
       - name: Build & Push - Historian
         uses: docker/build-push-action@v2
         with:
@@ -117,14 +117,14 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/v${{ steps.version.outputs.version }}',
+              ref: 'refs/tags/${{ steps.version.outputs.version }}',
               sha: context.sha
             })
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.version.outputs.version }}
+          tag_name: ${{ steps.version.outputs.version }}
           files: |
             installer.sh
           prerelease: ${{ github.event.inputs.prerelease }}
-          name: Version v${{ steps.version.outputs.version }}
+          name: Version ${{ steps.version.outputs.version }}

@@ -4,10 +4,7 @@
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 VERSION ?= $(shell git rev-parse --short HEAD)
-override VERSION := $(shell echo ${VERSION} | sed s/^v//)
 BUNDLE_VERSION ?= $(VERSION)
-override BUNDLE_VERSION := $(shell echo ${BUNDLE_VERSION} | sed s/^v//)
-
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
@@ -33,14 +30,14 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
 # ghcr.io/natun-ai/natun-bundle:$VERSION and ghcr.io/natun-ai/natun-catalog:$VERSION.
-IMAGE_TAG_BASE ?= ghcr.io/natun-ai/natun
+IMAGE_BASE ?= ghcr.io/natun-ai/natun
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
-BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
+BUNDLE_IMG ?= $(IMAGE_BASE)-bundle:$(VERSION)
 
 # BUNDLE_GEN_FLAGS are the flags passed to the operator-sdk generate bundle command
-BUNDLE_GEN_FLAGS ?= -q --overwrite --version $(BUNDLE_VERSION) $(BUNDLE_METADATA_OPTS)
+BUNDLE_GEN_FLAGS ?= -q --overwrite --version $(shell echo ${BUNDLE_VERSION} | sed s/^v//) $(BUNDLE_METADATA_OPTS)
 
 # USE_IMAGE_DIGESTS defines if images are resolved via tags or digests
 # You can enable this value if you would like to use SHA Based Digests
@@ -51,7 +48,8 @@ ifeq ($(USE_IMAGE_DIGESTS), true)
 endif
 
 # Image URL to use all building/pushing image targets
-IMG ?= $(IMAGE_TAG_BASE):v$(VERSION)
+CORE_IMG_BASE = $(IMAGE_BASE)-core
+HISTORIAN_IMG_BASE = $(IMAGE_BASE)-historian
 
 ## Configuring the environment mode
 ENV ?= dev
@@ -68,8 +66,9 @@ else
 endif
 $(info $(shell tput setaf 3)Context: $(shell tput sgr0)$(CONTEXT))
 $(info $(shell tput setaf 3)Version: $(shell tput sgr0)$(VERSION))
-$(info $(shell tput setaf 3)Image Tag Base: $(shell tput sgr0)$(IMAGE_TAG_BASE))
-$(info $(shell tput setaf 3)Image: $(shell tput sgr0)$(IMG))
+$(info $(shell tput setaf 3)Base Image: $(shell tput sgr0)$(IMAGE_BASE))
+$(info $(shell tput setaf 3)Core Image: $(shell tput sgr0)$(CORE_IMG_BASE))
+$(info $(shell tput setaf 3)Historian Image: $(shell tput sgr0)$(HISTORIAN_IMG_BASE))
 $(info $(shell tput setaf 3)Bundle Image: $(shell tput sgr0)$(BUNDLE_IMG))
 $(info )
 .DEFAULT_GOAL := help
@@ -130,28 +129,25 @@ buf-build: buf ## Build protobufs with buf
 fmt: ## Run go fmt against code.
 	go fmt ./...
 
-.PHONY: vet
-vet: ## Run go vet against code.
-	go vet ./...
-
 .PHONY: test
-test: manifests generate fmt vet envtest ## Run tests.
+test: manifests generate fmt lint envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
 
 ##@ Build
 
 .PHONY: build
-build: generate fmt vet ## Build core binary.
+build: generate fmt lint ## Build core binary.
 	go build -o bin/core ./cmd/natun/*
 
 .PHONY: run
-run: manifests generate fmt vet ## Run a controller from your host.
+run: manifests generate fmt lint ## Run a controller from your host.
 	go run ./cmd/natun/*
 
 .PHONY: docker-build
 docker-build: test ## Build docker image with the core.
-	docker build -t ${IMG} . -f dev.Dockerfile
+	docker build -t ${CORE_IMG_BASE}:${VERSION} . -f dev.Dockerfile
 
+IMG ?= ${CORE_IMG_BASE}:${VERSION}
 .PHONY: docker-push
 docker-push: ## Push docker image with the core.
 ifneq ($(ENV),prod)
@@ -163,7 +159,7 @@ endif
 
 .PHONY: kind-load
 kind-load: ## Load the core into kind.
-	kind load docker-image $(IMG)
+	kind load docker-image ${CORE_IMG}:${VERSION}
 
 ##@ Deployment
 
@@ -179,23 +175,32 @@ install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/crd | kubectl --context=$(CONTEXT) delete --ignore-not-found=$(ignore-not-found) -f -
 
+.PHONY: update_images_pre
+update_images_pre: ## Update images in the manifests.
+	cd config/core && $(KUSTOMIZE) edit set image controller=${CORE_IMG_BASE}:${VERSION}
+	cd config/historian && $(KUSTOMIZE) edit set image historian=${HISTORIAN_IMG_BASE}:${VERSION}
+
+.PHONY: update_images_post
+update_images_post: ## Update images in the manifests.
+	cd config/core && $(KUSTOMIZE) edit set image controller=${CORE_IMG_BASE}:latest
+	cd config/historian && $(KUSTOMIZE) edit set image historian=${HISTORIAN_IMG_BASE}:latest
+
 .PHONY: deploy
-deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/core && $(KUSTOMIZE) edit set image controller=${IMG}
+deploy: manifests kustomize update_images_pre ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/default | kubectl --context=$(CONTEXT) apply -f -
-	cd config/core && $(KUSTOMIZE) edit set image controller=${IMAGE_TAG_BASE}:latest
+	$(MAKE) update_images_post
 
 .PHONY: undeploy
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/default
+	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: installer
-installer: manifests kustomize ## Create a kustomization file for the installer.
+installer: manifests kustomize update_images_pre ## Create a kustomization file for the installer.
 	cp hack/installer_tpl.sh installer.sh
 	chmod +x installer.sh
-	cd config/core && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/installer | base64 >> installer.sh
-	cd config/core && $(KUSTOMIZE) edit set image controller=${IMAGE_TAG_BASE}:latest
+	$(MAKE) update_images_post
+
 ##@ Build Dependencies
 
 ## Location to install dependencies to
@@ -209,14 +214,12 @@ CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 
 ## Tool Versions
-KUSTOMIZE_VERSION ?= v3.8.7
 CONTROLLER_TOOLS_VERSION ?= v0.8.0
 
-KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE):
-	curl -s $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN)
+	GOBIN=$(LOCALBIN) go install sigs.k8s.io/kustomize/kustomize/v4@latest
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
@@ -237,12 +240,11 @@ $(OSDK):
 	curl -sSLo $(OSDK) https://github.com/operator-framework/operator-sdk/releases/download/${OPERATOR_SDK_VERSION}/operator-sdk_$(shell go env GOOS)_$(shell go env GOARCH) && chmod +x ${OSDK}
 
 .PHONY: bundle
-bundle: operator-sdk manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
+bundle: operator-sdk manifests kustomize update_images_pre ## Generate bundle manifests and metadata, then validate generated files.
 	$(OSDK) generate kustomize manifests --apis-dir pkg/api/v1alpha1 -q
-	cd config/core && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/manifests | $(OSDK) generate bundle $(BUNDLE_GEN_FLAGS)
 	$(OSDK) bundle validate ./bundle
-	cd config/core && $(KUSTOMIZE) edit set image controller=${IMAGE_TAG_BASE}:latest
+	$(MAKE) update_images_post
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
@@ -274,7 +276,7 @@ endif
 BUNDLE_IMGS ?= $(BUNDLE_IMG)
 
 # The image tag given to the resulting catalog image (e.g. make catalog-build CATALOG_IMG=example.com/operator-catalog:v0.2.0).
-CATALOG_IMG ?= $(IMAGE_TAG_BASE)-catalog:v$(VERSION)
+CATALOG_IMG ?= $(IMAGE_BASE)-catalog:$(VERSION)
 
 # Set CATALOG_BASE_IMG to an existing catalog image tag to add $BUNDLE_IMGS to that image.
 ifneq ($(origin CATALOG_BASE_IMG), undefined)
@@ -306,8 +308,9 @@ $(BUF):
 	GOBIN=$(LOCALBIN) go install github.com/bufbuild/buf/cmd/buf@latest
 
 .PHONY: lint
-lint: golangci-lint ## Run golangci-lint linter
+lint: golangci-lint buf ## Run golangci-lint linter
 	$(GOLANGCI_LINT) run
+	$(BUF) lint proto
 
 .PHONY: lint-fix
 lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
