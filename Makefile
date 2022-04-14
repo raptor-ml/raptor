@@ -114,7 +114,7 @@ help: ## Display this help.
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) rbac:roleName=core-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
@@ -141,27 +141,28 @@ test: manifests generate fmt vet envtest ## Run tests.
 ##@ Build
 
 .PHONY: build
-build: generate fmt vet ## Build manager binary.
-	go build -o bin/manager ./cmd/natun/main.go
+build: generate fmt vet ## Build core binary.
+	go build -o bin/core ./cmd/natun/*
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./cmd/natun/main.go
+	go run ./cmd/natun/*
 
 .PHONY: docker-build
-docker-build: test ## Build docker image with the manager.
-	docker build -t ${IMG} .
+docker-build: test ## Build docker image with the core.
+	docker build -t ${IMG} . -f dev.Dockerfile
 
 .PHONY: docker-push
-docker-push: ## Push docker image with the manager.
+docker-push: ## Push docker image with the core.
 ifneq ($(ENV),prod)
 	$(error "Docker image can only be pushed in production mode. Perhaps 'make kind-load' instead")
 else
-	docker push ${IMG}
+	warning "Pushing docker image manually should be avioded. You should prefer using the CI"
+	@echo -n "Are you sure? [y/N] " && read ans && if [ $${ans:-'N'} = 'y' ]; then docker push ${IMG}; fi
 endif
 
 .PHONY: kind-load
-kind-load: ## Load the manager into kind.
+kind-load: ## Load the core into kind.
 	kind load docker-image $(IMG)
 
 ##@ Deployment
@@ -180,9 +181,9 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	cd config/core && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | kubectl --context=$(CONTEXT) apply -f -
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMAGE_TAG_BASE}:latest
+	cd config/core && $(KUSTOMIZE) edit set image controller=${IMAGE_TAG_BASE}:latest
 
 .PHONY: undeploy
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
@@ -192,9 +193,9 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 installer: manifests kustomize ## Create a kustomization file for the installer.
 	cp hack/installer_tpl.sh installer.sh
 	chmod +x installer.sh
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	cd config/core && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/installer | base64 >> installer.sh
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMAGE_TAG_BASE}:latest
+	cd config/core && $(KUSTOMIZE) edit set image controller=${IMAGE_TAG_BASE}:latest
 ##@ Build Dependencies
 
 ## Location to install dependencies to
@@ -238,10 +239,10 @@ $(OSDK):
 .PHONY: bundle
 bundle: operator-sdk manifests kustomize ## Generate bundle manifests and metadata, then validate generated files.
 	$(OSDK) generate kustomize manifests --apis-dir pkg/api/v1alpha1 -q
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
+	cd config/core && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/manifests | $(OSDK) generate bundle $(BUNDLE_GEN_FLAGS)
 	$(OSDK) bundle validate ./bundle
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMAGE_TAG_BASE}:latest
+	cd config/core && $(KUSTOMIZE) edit set image controller=${IMAGE_TAG_BASE}:latest
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.

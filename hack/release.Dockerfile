@@ -6,9 +6,9 @@ USER 65532:65532
 
 ENTRYPOINT ["/historian"]
 
-FROM gcr.io/distroless/static:nonroot as manager
+FROM gcr.io/distroless/static:nonroot as core
 WORKDIR /
-COPY manager .
+COPY core .
 USER 65532:65532
 
-ENTRYPOINT ["/manager"]
+ENTRYPOINT ["/core"]

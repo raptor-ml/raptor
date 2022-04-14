@@ -12,4 +12,5 @@ bases:
 - ../default
 
 patchesStrategicMerge:
-- manager_patch.yaml
+- core_patch.yaml
+- historian_patch.yaml

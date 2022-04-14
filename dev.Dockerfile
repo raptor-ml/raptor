@@ -1,4 +1,4 @@
-# Build the manager binary
+# Build the core binary
 FROM golang:1.18 as builder
 
 WORKDIR /workspace
@@ -17,7 +17,7 @@ COPY pkg/ pkg/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -a -o core cmd/natun/*
 
-# Use distroless as minimal base image to package the manager binary
+# Use distroless as minimal base image to package the core binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
