@@ -8,7 +8,7 @@ namespace: natun-system
 # field above.
 namePrefix: natun-
 
-bases:
+resources:
 - ../default
 
 patchesStrategicMerge:

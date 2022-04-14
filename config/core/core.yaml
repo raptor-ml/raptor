@@ -46,8 +46,6 @@ spec:
             port: 8081
           initialDelaySeconds: 5
           periodSeconds: 10
-        # TODO(user): Configure the resources accordingly based on the project requirements.
-        # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
         resources:
           limits:
             cpu: 500m
@@ -55,5 +53,5 @@ spec:
           requests:
             cpu: 50m
             memory: 1028Mi
-      serviceAccountName: core
+      serviceAccountName: controller-core
       terminationGracePeriodSeconds: 10
