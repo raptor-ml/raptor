@@ -2,35 +2,35 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    control-plane: controller-manager
+    control-plane: historian
   name: system
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: controller-manager
+  name: historian
   namespace: system
   labels:
-    control-plane: controller-manager
+    control-plane: historian
 spec:
   selector:
     matchLabels:
-      control-plane: controller-manager
+      control-plane: historian
   replicas: 1
   template:
     metadata:
       annotations:
-        kubectl.kubernetes.io/default-container: manager
+        kubectl.kubernetes.io/default-container: historian
       labels:
-        control-plane: controller-manager
+        control-plane: historian
     spec:
       securityContext:
         runAsNonRoot: true
       containers:
-      - name: manager
+      - name: historian
         command:
-        - /manager
-        image: controller:latest
+        - /historian
+        image: historian:latest
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -55,5 +55,5 @@ spec:
           requests:
             cpu: 50m
             memory: 1028Mi
-      serviceAccountName: controller-manager
+      serviceAccountName: controller-core
       terminationGracePeriodSeconds: 10

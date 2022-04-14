@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: controller-manager
+  name: controller-core
   namespace: system
 spec:
   template:
@@ -30,7 +30,7 @@ spec:
           requests:
             cpu: 5m
             memory: 64Mi
-      - name: manager
+      - name: core
         args:
         - "--health-probe-bind-address=:8081"
         - "--metrics-bind-address=127.0.0.1:8080"
