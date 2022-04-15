@@ -58,6 +58,9 @@ spec:
                 nullable: true
                 type: array
               builder:
+                allOf:
+                - x-kubernetes-preserve-unknown-fields: true
+                - x-kubernetes-preserve-unknown-fields: true
                 description: Builder defines a building-block to use to build the
                   feature-value
                 properties:
@@ -68,7 +71,6 @@ spec:
                 required:
                 - kind
                 type: object
-                x-kubernetes-preserve-unknown-fields: true
               connector:
                 description: DataConnector is a reference for the DataConnector that
                   this Feature is associated with
