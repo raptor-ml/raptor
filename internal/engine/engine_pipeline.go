@@ -38,7 +38,7 @@ func (e *engine) getValueMiddleware() api.Middleware {
 			if v == nil {
 				return next(ctx, md, entityID, val)
 			}
-			if time.Now().Add(-md.Staleness).Before(v.Timestamp) {
+			if time.Now().Add(-md.Staleness).After(v.Timestamp) {
 				// Ignore expired values.
 				return next(ctx, md, entityID, val)
 			}

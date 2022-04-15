@@ -18,7 +18,9 @@ package redis
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"github.com/natun-ai/natun/pkg/api"
 	"math"
 	"strconv"
@@ -113,8 +115,11 @@ func (s *state) windowBuckets(ctx context.Context, buckets []api.RawBucket) (api
 			defer wg.Done()
 
 			res, err := s.client.HGetAll(ctx, windowKey(b.FQN, b.Bucket, b.EntityID)).Result()
-			if err != nil {
+			if err != nil && !errors.Is(err, redis.Nil) {
 				cErr <- err
+				return
+			}
+			if errors.Is(err, redis.Nil) || len(res) == 0 {
 				return
 			}
 

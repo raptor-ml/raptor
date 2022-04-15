@@ -107,7 +107,7 @@ type rest struct {
 func (rp *rest) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
 	return func(ctx context.Context, md api.Metadata, entityID string, val api.Value) (api.Value, error) {
 		cache, cacheOk := ctx.Value(api.ContextKeyFromCache).(bool)
-		if cacheOk && cache && val.Fresh {
+		if cacheOk && cache && val.Fresh && !md.ValidWindow() {
 			return next(ctx, md, entityID, val)
 		}
 
@@ -158,12 +158,17 @@ func (rp *rest) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler 
 			return val, err
 		}
 
-		ret := api.Value{
-			Value:     v,
-			Timestamp: ts,
-			Fresh:     true,
+		if v != nil {
+			if ts.IsZero() && !val.Timestamp.IsZero() {
+				ts = val.Timestamp
+			}
+			val = api.Value{
+				Value:     v,
+				Timestamp: ts,
+				Fresh:     true,
+			}
 		}
 
-		return next(ctx, md, entityID, ret)
+		return next(ctx, md, entityID, val)
 	}
 }

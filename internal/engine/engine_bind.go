@@ -17,12 +17,10 @@ limitations under the License.
 package engine
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/natun-ai/natun/internal/plugin"
 	"github.com/natun-ai/natun/pkg/api"
 	manifests "github.com/natun-ai/natun/pkg/api/v1alpha1"
-	"strings"
 )
 
 // BindFeature converts the k8s Feature CRD to the internal implementation, and adds it to the engine.
@@ -36,15 +34,6 @@ func (e *engine) BindFeature(in *manifests.Feature) error {
 		Metadata: *md,
 	}
 
-	if ft.Builder == "" {
-		builderType := &manifests.FeatureBuilderKind{}
-		err := json.Unmarshal(in.Spec.Builder.Raw, builderType)
-		if err != nil || builderType.Kind == "" {
-			return fmt.Errorf("failed to unmarshal builder type: %w", err)
-		}
-		ft.Builder = strings.ToLower(builderType.Kind)
-	}
-
 	if p := plugin.FeatureAppliers.Get(ft.Builder); p != nil {
 		err := p(ft.Metadata, in.Spec.Builder.JSON.Raw, &ft, e)
 		if err != nil {
@@ -55,9 +44,9 @@ func (e *engine) BindFeature(in *manifests.Feature) error {
 	return e.bindFeature(ft)
 }
 
-func (e *engine) UnbindFeature(FQN string) error {
-	e.features.Delete(FQN)
-	e.logger.Info("feature unbound", "feature", FQN)
+func (e *engine) UnbindFeature(fqn string) error {
+	e.features.Delete(fqn)
+	e.logger.Info("feature unbound", "feature", fqn)
 	return nil
 }
 
@@ -70,7 +59,7 @@ func (e *engine) bindFeature(f Feature) error {
 	return nil
 }
 
-func (e *engine) HasFeature(FQN string) bool {
-	_, ok := e.features.Load(FQN)
+func (e *engine) HasFeature(fqn string) bool {
+	_, ok := e.features.Load(fqn)
 	return ok
 }

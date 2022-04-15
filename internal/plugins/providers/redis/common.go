@@ -104,7 +104,8 @@ func setTimestamp(ctx context.Context, tx redis.Cmdable, key string, ts time.Tim
 	return luaMax.Run(ctx, tx, []string{key}, ts.UnixMicro(), dur)
 }
 func setTimestampExpireAt(ctx context.Context, tx redis.Cmdable, key string, ts time.Time, xat time.Time) *redis.Cmd {
-	return luaMax.Run(ctx, tx, []string{key}, ts.UnixMicro(), xat.UnixMilli())
+	key = fmt.Sprintf("%s:ts", key)
+	return luaMaxExpAt.Run(ctx, tx, []string{key}, ts.UnixMicro(), xat.UnixMilli())
 }
 func getTimestamp(ctx context.Context, tx redis.Cmdable, key string) (*time.Time, error) {
 	s, err := tx.Get(ctx, fmt.Sprintf("%s:ts", key)).Result()
