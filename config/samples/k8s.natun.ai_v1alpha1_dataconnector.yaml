@@ -1,6 +1,0 @@
-apiVersion: k8s.natun.ai/v1alpha1
-kind: DataConnector
-metadata:
-  name: dataconnector-sample
-spec:
-  # TODO(user): Add fields here

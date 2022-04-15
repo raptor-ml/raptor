@@ -1,0 +1,26 @@
+apiVersion: k8s.natun.ai/v1alpha1
+kind: Feature
+metadata:
+  name: simple-aggr
+  namespace: default #production
+  labels:
+    app: massivedynamic
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+    a8r.io/description: "Demonstration of a simple aggr function"
+spec:
+  primitive: int
+  freshness: 10s
+  staleness: 5m
+  aggr:
+    - sum
+    - count
+    - min
+    - max
+    - avg
+  builder:
+    kind: expression
+    expression: |
+      def handler():
+        print("Setting a windowed feature from the pyexp")
+        update_feature(feature_fqn, entity_id, 1)

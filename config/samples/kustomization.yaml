@@ -1,6 +1,5 @@
 ## Append samples you want in your CSV to this file as resources ##
 resources:
-- k8s.natun.ai_v1alpha1_feature.yaml
-- k8s.natun.ai_v1alpha1_connector.yaml
-- k8s.natun.ai_v1alpha1_dataconnector.yaml
+- feature.simple-aggr.yaml
+- feature.simple-city.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples
