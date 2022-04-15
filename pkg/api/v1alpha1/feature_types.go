@@ -91,6 +91,8 @@ type FeatureBuilderKind struct {
 }
 
 // FeatureBuilder defines a building-block to use to build the feature-value
+// +kubebuilder:pruning:PreserveUnknownFields
+// +kubebuilder:validation:Schemaless
 type FeatureBuilder struct {
 	FeatureBuilderKind `json:",inline"`
 

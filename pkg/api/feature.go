@@ -17,6 +17,7 @@ limitations under the License.
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	manifests "github.com/natun-ai/natun/pkg/api/v1alpha1"
 	"strings"
@@ -77,6 +78,16 @@ func MetadataFromManifest(in *manifests.Feature) (*Metadata, error) {
 		Timeout:   in.Spec.Timeout.Duration,
 		Builder:   strings.ToLower(in.Spec.Builder.Kind),
 	}
+
+	if md.Builder == "" {
+		builderType := &manifests.FeatureBuilderKind{}
+		err := json.Unmarshal(in.Spec.Builder.Raw, builderType)
+		if err != nil || builderType.Kind == "" {
+			return nil, fmt.Errorf("failed to unmarshal builder type: %w", err)
+		}
+		md.Builder = strings.ToLower(builderType.Kind)
+	}
+
 	if len(md.Aggr) > 0 && !md.ValidWindow() {
 		return nil, fmt.Errorf("invalid feature specification for windowed feature")
 	}
