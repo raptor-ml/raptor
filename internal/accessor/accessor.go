@@ -115,7 +115,7 @@ func (a *accessor) HTTP(addr string, prefix string) NoLeaderRunnableFunc {
 			return fmt.Errorf("failed to listen: %w", err)
 		}
 
-		a.logger.WithValues("kind", "http", "addr", l.Addr).Info("Starting Accessor server")
+		a.logger.WithValues("kind", "http", "addr", l.Addr()).Info("Starting Accessor server")
 		go func() {
 			<-ctx.Done()
 			_ = l.Close()
