@@ -32,6 +32,7 @@ import (
 	sJson "go.starlark.net/lib/json"
 	sMath "go.starlark.net/lib/math"
 	sTime "go.starlark.net/lib/time"
+	"go.starlark.net/resolve"
 	"go.starlark.net/starlark"
 	"go.starlark.net/starlarkstruct"
 	"time"
@@ -46,6 +47,7 @@ func init() {
 	starlark.Universe["time"] = sTime.Module
 	starlark.Universe["math"] = sMath.Module
 	starlark.Universe["struct"] = starlark.NewBuiltin("struct", starlarkstruct.Make)
+	resolve.AllowRecursion = true
 
 	rer, _ := re.LoadModule()
 	hashr, _ := hash.LoadModule()
@@ -134,18 +136,14 @@ func (r *runtime) Exec(ctx context.Context, req ExecRequest) (any, time.Time, st
 	globals.Freeze()
 
 	if err != nil {
-		var evalErr *starlark.EvalError
-		if ok := errors.Is(err, evalErr); ok {
-			req.Logger.WithValues("backtrace", evalErr.Backtrace()).Error(evalErr, "execution failed")
-		} else {
-			req.Logger.Error(err, "execution failed")
-		}
+		logExexErr(err, req.Logger)
 		return nil, time.Now(), "", err
 	}
 
 	// Call the handler
 	v, err := starlark.Call(thread, globals[HandlerFuncName], nil, nil)
 	if err != nil {
+		logExexErr(err, req.Logger)
 		return nil, time.Now(), "", err
 	}
 
@@ -165,12 +163,31 @@ func (r *runtime) Exec(ctx context.Context, req ExecRequest) (any, time.Time, st
 	return ret, ts, eid, nil
 }
 
+func logExexErr(err error, logger logr.Logger) {
+	if err == nil {
+		return
+	}
+
+	evalErr := &starlark.EvalError{}
+	if ok := errors.As(err, &evalErr); ok {
+		logger.WithValues("backtrace", evalErr.Backtrace()).Error(evalErr, "execution failed")
+	} else {
+		logger.Error(err, "execution failed")
+	}
+}
+
 func requestToPredeclared(req ExecRequest, builtins starlark.StringDict) (starlark.StringDict, error) {
 	var payload starlark.Value
+	var err error
 	if req.Payload == nil {
 		payload = starlark.None
 	} else {
-		var err error
+		if v, ok := req.Payload.(map[string]interface{}); ok {
+			req.Payload, err = convert.MakeStringDict(v)
+			if err != nil {
+				return nil, err
+			}
+		}
 		payload, err = convert.ToValue(req.Payload)
 		if err != nil {
 			return nil, err
