@@ -52,7 +52,7 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	logger := log.FromContext(ctx)
 
 	// Fetch the Feature definition from the Kubernetes API.
-	var conn *natunApi.DataConnector
+	conn := &natunApi.DataConnector{}
 	err := r.Get(ctx, req.NamespacedName, conn)
 	if err != nil {
 		logger.Error(err, "Failed to get DataConnector")

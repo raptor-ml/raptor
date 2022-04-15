@@ -48,7 +48,7 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	logger := log.FromContext(ctx)
 
 	// Fetch the Feature definition from the Kubernetes API.
-	var feature *natunApi.Feature
+	feature := &natunApi.Feature{}
 	err := r.Get(ctx, req.NamespacedName, feature)
 	if err != nil {
 		logger.Error(err, "Failed to get Feature")
