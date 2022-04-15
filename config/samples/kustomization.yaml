@@ -1,5 +1,6 @@
 ## Append samples you want in your CSV to this file as resources ##
 resources:
-- feature.simple-aggr.yaml
-- feature.simple-city.yaml
+- feature.basic.simple-aggr.yaml
+- feature.basic.hello-world.yaml
+- feature.rest.user-city.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

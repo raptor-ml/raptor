@@ -1,0 +1,13 @@
+apiVersion: k8s.natun.ai/v1alpha1
+kind: Feature
+metadata:
+  name: hello-world
+spec:
+  primitive: string
+  freshness: 1h
+  staleness: 2h
+  builder:
+    kind: expression
+    expression: |-
+      def handler():
+         return "Hello world " + entity_id
