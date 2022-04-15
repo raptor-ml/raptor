@@ -18,14 +18,16 @@ package redis
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"github.com/natun-ai/natun/pkg/api"
 	"reflect"
 	"time"
 )
 
-func primitiveKey(FQN string, entityID string) string {
-	return fmt.Sprintf("%s:%s", FQN, entityID)
+func primitiveKey(fqn string, entityID string) string {
+	return fmt.Sprintf("%s:%s", fqn, entityID)
 }
 
 func (s *state) Get(ctx context.Context, md api.Metadata, entityID string) (*api.Value, error) {
@@ -39,6 +41,11 @@ func (s *state) getPrimitive(ctx context.Context, md api.Metadata, entityID stri
 	key := primitiveKey(md.FQN, entityID)
 
 	ts, err := getTimestamp(ctx, s.client, key)
+	if errors.Is(err, redis.Nil) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
 	if err != nil {
 		return nil, err
 	}
