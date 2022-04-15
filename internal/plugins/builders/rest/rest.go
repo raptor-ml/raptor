@@ -40,8 +40,6 @@ func init() {
 
 type Spec struct {
 	//+optional
-	Parameters map[string]string `json:"params"`
-	//+optional
 	URL string `json:"url"`
 	//+optional
 	Method string `json:"method"`
