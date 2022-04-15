@@ -30,7 +30,7 @@ import (
 const DeadGracePeriod = time.Minute * 8
 
 //goland:noinspection RegExpRedundantEscape
-var windowNameRegexp = regexp.MustCompile(`(i?)^([a0-z9\-\.]*)\[(sum|avg|min|max|count)\]$`)
+var windowNameRegexp = regexp.MustCompile(`(?i)^([a0-z9\-\.]*)\[(sum|avg|min|max|count)\]$`)
 
 func FQNToRealFQN(name string) (string, WindowFn) {
 	matches := windowNameRegexp.FindStringSubmatch(name)
