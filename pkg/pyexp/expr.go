@@ -48,6 +48,7 @@ func init() {
 	starlark.Universe["math"] = sMath.Module
 	starlark.Universe["struct"] = starlark.NewBuiltin("struct", starlarkstruct.Make)
 	resolve.AllowRecursion = true
+	resolve.AllowSet = true
 
 	rer, _ := re.LoadModule()
 	hashr, _ := hash.LoadModule()
@@ -98,6 +99,10 @@ func New(program string, e api.Engine) (Runtime, error) {
 	f, p, err := starlark.SourceProgram("<pyexp>", program, d.builtins.Has)
 	if err != nil {
 		return nil, err
+	}
+
+	if p.NumLoads() > 0 {
+		return nil, errors.New("pyexp cannot load files")
 	}
 
 	if !isHandlerImplemented(f) {
