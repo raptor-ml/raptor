@@ -18,6 +18,7 @@ package engine
 
 import (
 	"context"
+	"fmt"
 	"github.com/natun-ai/natun/pkg/api"
 	"time"
 )
@@ -116,6 +117,9 @@ func (e *engine) setMiddleware(method api.StateMethod) api.Middleware {
 				return next(ctx, md, entityID, val)
 			}
 
+			if api.TypeDetect(val.Value) != md.Primitive {
+				return val, fmt.Errorf("value mismatch: got value with a different type than the feature type")
+			}
 			var err error
 			switch method {
 			case api.StateMethodSet:
