@@ -48,10 +48,10 @@ type Spec struct {
 	//+optional
 	Headers http.Header `json:"headers"`
 	// +kubebuilder:validation:Required
-	Expression string `json:"expression"`
+	Expression string `json:"pyexp"`
 }
 
-var httpMemoryCache = lrucache.New(500<<(10*2), 60*15) //500MB; 15min
+var httpMemoryCache = lrucache.New(500<<(10*2), 60*15) // 500MB; 15min
 
 func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAPI, engine api.Engine) error {
 	spec := &Spec{}

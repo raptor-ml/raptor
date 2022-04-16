@@ -8,6 +8,6 @@ spec:
   staleness: 2h
   builder:
     kind: expression
-    expression: |-
+    pyexp: |-
       def handler():
          return "Hello world " + entity_id

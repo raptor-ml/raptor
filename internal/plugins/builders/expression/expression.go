@@ -33,7 +33,7 @@ func init() {
 // ExprSpec is the specification of the expression plugin.
 type ExprSpec struct {
 	// +kubebuilder:validation:Required
-	Expression string `json:"expression"`
+	Expression string `json:"pyexp"`
 }
 
 func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAPI, engine api.Engine) error {

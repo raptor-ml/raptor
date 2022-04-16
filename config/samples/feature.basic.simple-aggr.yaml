@@ -20,7 +20,7 @@ spec:
     - avg
   builder:
     kind: expression
-    expression: |
+    pyexp: |
       def handler():
         print("Setting a windowed feature from the pyexp")
         update_feature(feature_fqn, entity_id, 1)

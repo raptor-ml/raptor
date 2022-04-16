@@ -3,7 +3,7 @@ kind: Feature
 metadata:
   name: user-city
 spec:
-  primitive: int
+  primitive: string
   freshness: 720h #30 days
   staleness: 2160h #90 days
   builder:
@@ -11,6 +11,6 @@ spec:
     url: https://jsonplaceholder.typicode.com/users/{entity_id}/
     method: GET
     body: ~
-    expression: |
+    pyexp: |
       def handler():
         return payload["address"]["city"]
