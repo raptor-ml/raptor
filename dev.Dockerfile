@@ -15,7 +15,7 @@ COPY internal/ internal/
 COPY pkg/ pkg/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -a -o core cmd/natun/*
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -a -o core cmd/core/*
 
 # Use distroless as minimal base image to package the core binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details

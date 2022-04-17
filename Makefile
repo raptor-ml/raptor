@@ -144,7 +144,7 @@ LDFLAGS += -X github.com/natun-ai/natun/internal/plugins/builders/streaming.stra
 
 .PHONY: build
 build: generate fmt lint ## Build core binary.
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o core cmd/natun/*
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o core cmd/core/*
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o historian cmd/historian/*
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o runtime cmd/runtime/*
 
