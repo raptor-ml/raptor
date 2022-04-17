@@ -32,7 +32,7 @@ jobs:
       - name: Prerelease prep
         id: prerelease
         run: |
-          if [ ${{ github.event.inputs.release_type }} == "stable" ]; then
+          if [ "${{ github.event.inputs.release_type }}" == "stable" ]; then
             echo "::set-output name=version_format::v\${major}.\${minor}.\${patch}"
             echo "::set-output name=prerelease::false"
           else
@@ -126,5 +126,5 @@ jobs:
           tag_name: ${{ steps.version.outputs.version }}
           files: |
             installer.sh
-          prerelease: ${{ github.event.inputs.prerelease }}
+          prerelease: ${{ steps.prerelease.outputs.prerelease }}
           name: Version ${{ steps.version.outputs.version }}
