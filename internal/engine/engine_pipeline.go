@@ -138,7 +138,7 @@ func (e *engine) setMiddleware(method api.StateMethod) api.Middleware {
 			}
 
 			bucket := ""
-			if !md.ValidWindow() {
+			if md.ValidWindow() {
 				bucket = api.BucketName(val.Timestamp, md.Freshness)
 			}
 			e.historian.AddCollectNotification(md.FQN, entityID, bucket)

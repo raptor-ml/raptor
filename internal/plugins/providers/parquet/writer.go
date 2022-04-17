@@ -32,7 +32,7 @@ type baseParquet struct {
 	writers        map[string]*parquetWriter
 }
 
-func BaseParquet(np int64, newParquetFile SourceFactory) *baseParquet {
+func BaseParquet(np int64, newParquetFile SourceFactory) api.HistoricalWriter {
 	return &baseParquet{
 		newParquetFile: newParquetFile,
 		np:             np,

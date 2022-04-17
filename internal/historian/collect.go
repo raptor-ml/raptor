@@ -45,10 +45,10 @@ func (h *historian) dispatchCollect(ctx context.Context, notification api.Collec
 	var md api.Metadata
 	if v, ok := h.metadata.Load(notification.FQN); !ok {
 		return fmt.Errorf("failed to get metadata for %s", notification.FQN)
-	} else if m, ok := v.(api.Metadata); !ok {
-		panic(fmt.Sprintf("metadata for %s is not of type api.Metadata", notification.FQN))
+	} else if m, ok := v.(*api.Metadata); !ok {
+		panic(fmt.Sprintf("metadata for %s is not exists in the internal store", notification.FQN))
 	} else {
-		md = m
+		md = *m
 	}
 
 	if md.ValidWindow() {

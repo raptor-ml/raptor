@@ -55,7 +55,7 @@ func HistoricalWriterFactory(viper *viper.Viper) (api.HistoricalWriter, error) {
 		opts = append(opts, config.WithCredentialsProvider(credentials.StaticCredentialsProvider{
 			Value: aws.Credentials{
 				AccessKeyID:     viper.GetString("aws-access-key"),
-				SecretAccessKey: viper.GetString("aes-secret-key"),
+				SecretAccessKey: viper.GetString("aws-secret-key"),
 			},
 		}))
 	}
@@ -77,8 +77,11 @@ func HistoricalWriterFactory(viper *viper.Viper) (api.HistoricalWriter, error) {
 }
 func sourceFactory(client s3v2.S3API, bucket string, basedir string) parquet.SourceFactory {
 	return func(ctx context.Context, fqn string) (source.ParquetFile, error) {
+		if basedir[len(basedir)-1] != '/' {
+			basedir += "/"
+		}
 		d := time.Now().Format("2006-01-02")
-		filename := fmt.Sprintf("%s/fqn=%s/timestamp=%s/data.snappy.parquet", basedir, fqn, d)
+		filename := fmt.Sprintf("%sfqn=%s/timestamp=%s/data.snappy.parquet", basedir, fqn, d)
 		return s3v2.NewS3FileWriterWithClient(ctx, client, bucket, filename, nil)
 	}
 }
