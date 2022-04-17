@@ -135,9 +135,17 @@ test: manifests generate fmt lint envtest ## Run tests.
 
 ##@ Build
 
+RUNTIME_VERSION ?=$(VERSION)
+STREAMING_VERSION ?= latest
+LDFLAGS ?= -s -w
+LDFLAGS += -X github.com/natun-ai/natun/internal/plugins/builders/streaming.runtimeImage=ghcr.io/natun-ai/natun-runtime:$(RUNTIME_VERSION)
+LDFLAGS += -X github.com/natun-ai/natun/internal/plugins/builders/streaming.stramingImage=ghcr.io/natun-ai/streaming:$(STREAMING_VERSION)
+
 .PHONY: build
 build: generate fmt lint ## Build core binary.
-	go build -o bin/core ./cmd/natun/*
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o core cmd/natun/*
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o historian cmd/historian/*
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o runtime cmd/runtime/*
 
 .PHONY: run
 run: manifests generate fmt lint ## Run a controller from your host.

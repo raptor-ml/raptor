@@ -32,8 +32,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-const streamingImage = "ghcr.io/natun-ai/streaming:latest"
-const runtimeSidecarImage = "ghcr.io/natun-ai/runtime-sidecar:latest"
+var (
+	streamingImage = "ghcr.io/natun-ai/streaming:latest"
+	runtimeImage   = "ghcr.io/natun-ai/natun-runtime:latest"
+)
 
 func init() {
 	// Register the plugin
@@ -120,7 +122,7 @@ func deploymentForConn(conn *natunApi.DataConnector, coreAddr string) *appsv1.De
 							Resources: resources,
 						},
 						{
-							Image:     runtimeSidecarImage,
+							Image:     runtimeImage,
 							Name:      "runtime",
 							Command:   []string{"runtime", "--core-grpc-url", coreAddr},
 							Resources: resources,
