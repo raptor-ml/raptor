@@ -1,5 +1,8 @@
 name: Buf
 on:
+  push:
+    paths:
+      - proto/
   pull_request:
     paths:
       - proto/
@@ -28,6 +31,6 @@ jobs:
         with:
           actions: 'create-issue'
           token: ${{ secrets.GITHUB_TOKEN }}
-          title: 🐛 License header missing for ${{ github.sha }}
+          title: 🐛 Protobuf broken in ${{ github.sha }}
           body: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           labels: bug
