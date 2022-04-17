@@ -22,6 +22,7 @@ import (
 	"github.com/natun-ai/natun/internal/historian"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"net/http"
 	"os"
 	"strings"
@@ -89,7 +90,7 @@ func main() {
 		Port:                          9443,
 		HealthProbeBindAddress:        viper.GetString("health-probe-bind-address"),
 		LeaderElection:                viper.GetBool("leader-elect"),
-		LeaderElectionResourceLock:    "leases",
+		LeaderElectionResourceLock:    resourcelock.LeasesResourceLock,
 		LeaderElectionID:              "historian.natun.ai",
 		LeaderElectionReleaseOnCancel: true,
 	})
