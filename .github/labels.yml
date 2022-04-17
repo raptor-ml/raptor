@@ -26,5 +26,8 @@
   description: This will not be worked on
   name: wontfix
 - color: 6e5494
-  description: Releated to the Runtime-sidecar component
+  description: Releated to the Runtime-sidecar
+  name: component/runtime-sidecar
+- color: 6e5494
+  description: Releated to the Runtime-sidecar
   name: component/runtime-sidecar
