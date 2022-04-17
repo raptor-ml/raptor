@@ -20,6 +20,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/natun-ai/natun/internal/historian"
+	"github.com/natun-ai/natun/internal/version"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
@@ -89,6 +90,8 @@ func main() {
 	logger := zap.New(zap.UseFlagOptions(&zapOpts))
 	ctrl.SetLogger(logger)
 
+	setupLog.WithValues("version", version.Version).Info("Initializing Core...")
+
 	// Set up a Manager
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                        scheme,
@@ -100,10 +103,7 @@ func main() {
 		LeaderElectionID:              "core.natun.ai",
 		LeaderElectionReleaseOnCancel: true,
 	})
-	if err != nil {
-		setupLog.Error(err, "unable to start manager")
-		os.Exit(1)
-	}
+	orFail(err, "unable to start manager")
 
 	// Create the state
 	state, err := plugin.NewState(viper.GetString("state-provider"), viper.GetViper())

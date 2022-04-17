@@ -27,6 +27,7 @@ import (
 	grpcValidator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 	"github.com/natun-ai/natun/internal/programregistry"
 	"github.com/natun-ai/natun/internal/runtime"
+	"github.com/natun-ai/natun/internal/version"
 	"github.com/natun-ai/natun/pkg/sdk"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -54,6 +55,8 @@ func main() {
 
 	zl := logger()
 	logger := zapr.NewLogger(zl)
+
+	logger.WithName("setup").WithValues("version", version.Version).Info("Initializing Natun Runtime...")
 
 	// Creating Engine
 	cc, err := grpc.Dial(

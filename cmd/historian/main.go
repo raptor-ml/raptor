@@ -20,6 +20,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/natun-ai/natun/internal/historian"
+	"github.com/natun-ai/natun/internal/version"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
@@ -82,6 +83,8 @@ func main() {
 	zapOpts.Development = !viper.GetBool("production")
 	logger := zap.New(zap.UseFlagOptions(&zapOpts))
 	ctrl.SetLogger(logger)
+
+	setupLog.WithValues("version", version.Version).Info("Initializing Historian...")
 
 	// Set up a Manager
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
