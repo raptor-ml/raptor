@@ -67,10 +67,18 @@ func HistoricalWriterFactory(viper *viper.Viper) (api.HistoricalWriter, error) {
 		return nil, fmt.Errorf("failed to load aws config: %w", err)
 	}
 	client := s3.NewFromConfig(cfg)
+
 	bucket := viper.GetString("s3-bucket")
 	if bucket == "" {
 		return nil, fmt.Errorf("s3-bucket is required")
 	}
+	_, err = client.HeadBucket(context.TODO(), &s3.HeadBucketInput{
+		Bucket: aws.String(bucket),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to check s3 bucket: %w", err)
+	}
+
 	factory := sourceFactory(client, bucket, viper.GetString("s3-basedir"))
 
 	return parquet.BaseParquet(4, factory), nil
