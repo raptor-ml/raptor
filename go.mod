@@ -24,6 +24,7 @@ require (
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.18.1
+	github.com/prometheus/client_golang v1.12.1
 	github.com/qri-io/starlib v0.5.0
 	github.com/sourcegraph/starlight v0.0.0-20200510065702-c68e5b848a14
 	github.com/spf13/pflag v1.0.5
@@ -107,7 +108,6 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.0-beta.8 // indirect
 	github.com/pierrec/lz4/v4 v4.1.14 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/prometheus/client_golang v1.12.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.33.0 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect

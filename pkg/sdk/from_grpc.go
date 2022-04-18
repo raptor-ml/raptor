@@ -17,7 +17,6 @@ limitations under the License.
 package sdk
 
 import (
-	"github.com/google/uuid"
 	"github.com/natun-ai/natun/pkg/api"
 	coreApi "go.buf.build/natun/api-go/natun/core/natun/core/v1alpha1"
 )
@@ -77,10 +76,6 @@ func FromAPIMetadata(m *coreApi.Metadata) api.Metadata {
 		Timeout:   m.Timeout.AsDuration(),
 		Builder:   m.Builder,
 	}
-}
-
-func newUUID() string {
-	return uuid.New().String()
 }
 
 func fromScalar(scalar *coreApi.Scalar) any {

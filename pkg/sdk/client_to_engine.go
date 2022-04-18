@@ -19,6 +19,7 @@ package sdk
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/natun-ai/natun/pkg/api"
 	coreApi "go.buf.build/natun/api-go/natun/core/natun/core/v1alpha1"
 	"google.golang.org/grpc/codes"
@@ -41,7 +42,7 @@ func NewGRPCEngine(client coreApi.EngineServiceClient) api.Engine {
 
 func (e *grpcEngine) Metadata(ctx context.Context, fqn string) (api.Metadata, error) {
 	req := &coreApi.MetadataRequest{
-		Uuid: newUUID(),
+		Uuid: uuid.NewString(),
 		Fqn:  fqn,
 	}
 	resp, err := e.client.Metadata(ctx, req)
@@ -55,7 +56,7 @@ func (e *grpcEngine) Metadata(ctx context.Context, fqn string) (api.Metadata, er
 }
 func (e *grpcEngine) Get(ctx context.Context, fqn string, entityID string) (api.Value, api.Metadata, error) {
 	req := coreApi.GetRequest{
-		Uuid:     newUUID(),
+		Uuid:     uuid.NewString(),
 		Fqn:      fqn,
 		EntityId: entityID,
 	}
@@ -76,7 +77,7 @@ func (e *grpcEngine) Get(ctx context.Context, fqn string, entityID string) (api.
 }
 func (e *grpcEngine) Set(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
 	req := coreApi.SetRequest{
-		Uuid:      newUUID(),
+		Uuid:      uuid.NewString(),
 		Fqn:       fqn,
 		EntityId:  entityID,
 		Value:     ToAPIValue(val),
@@ -90,7 +91,7 @@ func (e *grpcEngine) Set(ctx context.Context, fqn string, entityID string, val a
 }
 func (e *grpcEngine) Append(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
 	req := coreApi.AppendRequest{
-		Uuid:      newUUID(),
+		Uuid:      uuid.NewString(),
 		Fqn:       fqn,
 		EntityId:  entityID,
 		Value:     ToAPIScalar(val),
@@ -104,7 +105,7 @@ func (e *grpcEngine) Append(ctx context.Context, fqn string, entityID string, va
 }
 func (e *grpcEngine) Incr(ctx context.Context, fqn string, entityID string, by any, ts time.Time) error {
 	req := coreApi.IncrRequest{
-		Uuid:      newUUID(),
+		Uuid:      uuid.NewString(),
 		Fqn:       fqn,
 		EntityId:  entityID,
 		Value:     ToAPIScalar(by),
@@ -118,7 +119,7 @@ func (e *grpcEngine) Incr(ctx context.Context, fqn string, entityID string, by a
 }
 func (e *grpcEngine) Update(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
 	req := coreApi.UpdateRequest{
-		Uuid:      newUUID(),
+		Uuid:      uuid.NewString(),
 		Fqn:       fqn,
 		EntityId:  entityID,
 		Value:     ToAPIValue(val),

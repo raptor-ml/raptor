@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/die-net/lrucache"
+	"github.com/google/uuid"
 	"github.com/gregjones/httpcache"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/jhump/protoreflect/desc"
@@ -28,7 +29,6 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"io"
-	"k8s.io/apimachinery/pkg/util/uuid"
 	"net/http"
 	"net/url"
 	"os"
@@ -75,7 +75,7 @@ func getClient() *http.Client {
 // SchemaToFDs takes a Protobuf Schema or a URL of a Protobuf Schema and returns a list of FileDescriptors,
 // the package name of the schama, the package name of the schema and an error if occurred.
 func SchemaToFDs(schema string) ([]*desc.FileDescriptor, string, error) {
-	filename := fmt.Sprintf("%s.proto", uuid.NewUUID())
+	filename := fmt.Sprintf("%s.proto", uuid.NewString())
 
 	var rdr io.ReadCloser
 
