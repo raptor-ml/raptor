@@ -724,6 +724,10 @@ go.buf.build/natun/api-go/envoyproxy/protoc-gen-validate v1.1.6 h1:4OvrX3igqZTiK
 go.buf.build/natun/api-go/envoyproxy/protoc-gen-validate v1.1.6/go.mod h1:GUtZJTsLitpu905MLCdZEA2Vi+Z9gzbDpcRzL2G0rfQ=
 go.buf.build/natun/api-go/natun/core v1.1.2 h1:l+AXuFjuw95ZAUHBcPoE/UN61tAnHa/UbgP5H6+uSnQ=
 go.buf.build/natun/api-go/natun/core v1.1.2/go.mod h1:1Cb6GpQPlzkm013XXG4R7Vtdj8AjTMhNVHlCPv3xoXQ=
+go.buf.build/natun/api-go/natun/core v1.1.5 h1:TA8KfbJ2SrVhhL6M1EtE5LvTOez2MtMmu3Yu1+UKDGg=
+go.buf.build/natun/api-go/natun/core v1.1.5/go.mod h1:1Cb6GpQPlzkm013XXG4R7Vtdj8AjTMhNVHlCPv3xoXQ=
+go.buf.build/natun/api-go/natun/core v1.1.6 h1:DEHzvCprO8bh3yk3+ISOa+ayOvqe17jHhfb/1BcMPbI=
+go.buf.build/natun/api-go/natun/core v1.1.6/go.mod h1:1Cb6GpQPlzkm013XXG4R7Vtdj8AjTMhNVHlCPv3xoXQ=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/bbolt v1.3.6/go.mod h1:qXsaaIqmgQH0T+OPdb99Bf+PKfBBQVAdyD6TY9G8XM4=
 go.etcd.io/etcd/api/v3 v3.5.0/go.mod h1:cbVKeC6lCfl7j/8jBhAK6aIYO9XOjdptoxU/nLQcPvs=

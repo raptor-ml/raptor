@@ -53,13 +53,13 @@ func New(engine api.Engine, programs programregistry.Registry, logger logr.Logge
 }
 
 func (r *runtime) LoadPyExpProgram(_ context.Context, req *pbRuntime.LoadPyExpProgramRequest) (*pbRuntime.LoadPyExpProgramResponse, error) {
-	sha1, err := r.programs.Register(req.GetProgram())
+	hash, err := r.programs.Register(req.GetProgram())
 	if err != nil && !errors.Is(err, programregistry.ErrAlreadyRegistered) {
 		return nil, status.Errorf(codes.Internal, "failed to register program: %v", err)
 	}
 	return &pbRuntime.LoadPyExpProgramResponse{
 		Uuid:        req.GetUuid(),
-		ProgramSha1: sha1,
+		ProgramHash: hash,
 	}, nil
 }
 func (r *runtime) RegisterSchema(_ context.Context, req *pbRuntime.RegisterSchemaRequest) (*pbRuntime.RegisterSchemaResponse, error) {
@@ -72,7 +72,7 @@ func (r *runtime) RegisterSchema(_ context.Context, req *pbRuntime.RegisterSchem
 	}, nil
 }
 func (r *runtime) ExecutePyExp(ctx context.Context, req *pbRuntime.ExecutePyExpRequest) (*pbRuntime.ExecutePyExpResponse, error) {
-	programRuntime, err := r.programs.Get(req.GetProgramSha1())
+	programRuntime, err := r.programs.Get(req.GetProgramHash())
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "program not found: %v", err)
 	}

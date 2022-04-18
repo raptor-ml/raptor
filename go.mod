@@ -30,7 +30,7 @@ require (
 	github.com/spf13/viper v1.11.0
 	github.com/xitongsys/parquet-go v1.6.2
 	github.com/xitongsys/parquet-go-source v0.0.0-20220315005136-aec0fe3e777c
-	go.buf.build/natun/api-go/natun/core v1.1.2
+	go.buf.build/natun/api-go/natun/core v1.1.6
 	go.starlark.net v0.0.0-20220328144851-d1966c6b9fcd
 	go.uber.org/zap v1.21.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
