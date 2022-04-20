@@ -19,6 +19,7 @@ package engine
 import (
 	"fmt"
 	"github.com/natun-ai/natun/internal/plugin"
+	"github.com/natun-ai/natun/internal/stats"
 	"github.com/natun-ai/natun/pkg/api"
 	manifests "github.com/natun-ai/natun/pkg/api/v1alpha1"
 )
@@ -45,12 +46,14 @@ func (e *engine) BindFeature(in *manifests.Feature) error {
 }
 
 func (e *engine) UnbindFeature(fqn string) error {
+	defer stats.DecNumberOfFeatures()
 	e.features.Delete(fqn)
 	e.logger.Info("feature unbound", "feature", fqn)
 	return nil
 }
 
 func (e *engine) bindFeature(f Feature) error {
+	defer stats.IncNumberOfFeatures()
 	if e.HasFeature(f.FQN) {
 		return fmt.Errorf("%w: %s", api.ErrFeatureAlreadyExists, f.FQN)
 	}

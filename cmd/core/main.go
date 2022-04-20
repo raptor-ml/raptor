@@ -20,6 +20,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/natun-ai/natun/internal/historian"
+	"github.com/natun-ai/natun/internal/stats"
 	"github.com/natun-ai/natun/internal/version"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -71,6 +72,8 @@ func main() {
 	pflag.String("accessor-http-prefix", "/api", "The the http accessor path prefix.")
 	pflag.String("accessor-service", "", "The the accessor service URL (that points the this application).")
 	pflag.Bool("production", true, "Set as production")
+	pflag.Bool("usage-reporting", true, "Allow us to anonymously report usage statistics to improve Natun 🪄")
+	pflag.String("usage-reporting-uid", "", "Usage reporting Unique Identifier - You can use this to set a unique identifier for your cluster.")
 
 	pflag.String("state-provider", "redis", "The state provider.")
 	pflag.String("notifier-provider", "redis", "The notifier provider.")
@@ -83,7 +86,7 @@ func main() {
 	pflag.Parse()
 	utilruntime.Must(viper.BindPFlags(pflag.CommandLine))
 
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 	viper.AutomaticEnv()
 
 	zapOpts.Development = !viper.GetBool("production")
@@ -104,6 +107,15 @@ func main() {
 		LeaderElectionReleaseOnCancel: true,
 	})
 	orFail(err, "unable to start manager")
+
+	// Setup usage reports
+	stats.UID = viper.GetString("usage-reporting-uid")
+	orFail(mgr.Add(stats.Run(
+		mgr.GetConfig(),
+		mgr.GetClient(),
+		viper.GetBool("usage-reporting"),
+		logger.WithName("stats"),
+	)), "unable to add stats")
 
 	// Create the state
 	state, err := plugin.NewState(viper.GetString("state-provider"), viper.GetViper())

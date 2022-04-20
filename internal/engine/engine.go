@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/natun-ai/natun/internal/historian"
+	"github.com/natun-ai/natun/internal/stats"
 	"github.com/natun-ai/natun/pkg/api"
 	"sync"
 	"time"
@@ -48,15 +49,19 @@ func New(state api.State, h historian.Client, logger logr.Logger) api.ManagerEng
 }
 
 func (e *engine) Append(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
+	defer stats.IncrFeatureAppends()
 	return e.write(ctx, fqn, entityID, val, ts, api.StateMethodAppend)
 }
 func (e *engine) Incr(ctx context.Context, fqn string, entityID string, by any, ts time.Time) error {
+	defer stats.IncrFeatureIncrements()
 	return e.write(ctx, fqn, entityID, by, ts, api.StateMethodIncr)
 }
 func (e *engine) Set(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
+	defer stats.IncrFeatureSets()
 	return e.write(ctx, fqn, entityID, val, ts, api.StateMethodSet)
 }
 func (e *engine) Update(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
+	defer stats.IncrFeatureUpdates()
 	return e.write(ctx, fqn, entityID, val, ts, api.StateMethodUpdate)
 }
 func (e *engine) write(ctx context.Context, fqn string, entityID string, val any, ts time.Time, method api.StateMethod) error {
@@ -74,6 +79,8 @@ func (e *engine) write(ctx context.Context, fqn string, entityID string, val any
 }
 
 func (e *engine) Get(ctx context.Context, fqn string, entityID string) (api.Value, api.Metadata, error) {
+	defer stats.IncrFeatureGets()
+
 	ret := api.Value{Timestamp: time.Now()}
 	f, ctx, cancel, err := e.featureForRequest(ctx, fqn)
 	if err != nil {
@@ -89,6 +96,7 @@ func (e *engine) Get(ctx context.Context, fqn string, entityID string) (api.Valu
 }
 
 func (e *engine) Metadata(ctx context.Context, fqn string) (api.Metadata, error) {
+	defer stats.IncrMetadataReqs()
 	f, _, cancel, err := e.featureForRequest(ctx, fqn)
 	if err != nil {
 		return api.Metadata{}, err
