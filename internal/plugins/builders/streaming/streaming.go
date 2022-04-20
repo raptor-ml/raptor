@@ -32,8 +32,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+// These variables are being overwritten by the build process
 var (
-	streamingImage = "ghcr.io/natun-ai/streaming:latest"
+	streamingImage = "ghcr.io/natun-ai/streaming-runner:latest"
 	runtimeImage   = "ghcr.io/natun-ai/natun-runtime:latest"
 )
 
@@ -116,15 +117,24 @@ func deploymentForConn(conn *natunApi.DataConnector, coreAddr string) *appsv1.De
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Image:     streamingImage,
-							Name:      "streaming",
-							Command:   []string{"streaming"},
+							Image: streamingImage,
+							Name:  "streaming",
+							Command: []string{
+								"streaming",
+								"--dataconnector-resource", conn.Name,
+								"--dataconnector-namespace", conn.Namespace,
+								"--runtime-grpc-addr", ":60005",
+							},
 							Resources: resources,
 						},
 						{
-							Image:     runtimeImage,
-							Name:      "runtime",
-							Command:   []string{"runtime", "--core-grpc-url", coreAddr},
+							Image: runtimeImage,
+							Name:  "runtime",
+							Command: []string{
+								"runtime",
+								"--core-grpc-url", coreAddr,
+								"--grpc-addr", ":60005",
+							},
 							Resources: resources,
 						},
 					},

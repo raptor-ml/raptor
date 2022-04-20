@@ -140,7 +140,7 @@ STREAMING_VERSION ?= latest
 LDFLAGS ?= -s -w
 LDFLAGS += -X github.com/natun-ai/natun/internal/version.Version=$(VERSION)
 LDFLAGS += -X github.com/natun-ai/natun/internal/plugins/builders/streaming.runtimeImage=ghcr.io/natun-ai/natun-runtime:$(RUNTIME_VERSION)
-LDFLAGS += -X github.com/natun-ai/natun/internal/plugins/builders/streaming.stramingImage=ghcr.io/natun-ai/streaming:$(STREAMING_VERSION)
+LDFLAGS += -X github.com/natun-ai/natun/internal/plugins/builders/streaming.stramingImage=ghcr.io/natun-ai/streaming-runner:$(STREAMING_VERSION)
 
 .PHONY: build
 build: generate fmt lint ## Build core binary.
