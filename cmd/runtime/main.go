@@ -46,7 +46,7 @@ import (
 func main() {
 	pflag.Bool("production", true, "Set as production")
 	pflag.String("core-grpc-url", "core.natun-system:60000", "The gRPC URL of the Natun's Core")
-	pflag.String("grpc-addr", ":70005", "The gRPC address to listen on")
+	pflag.String("grpc-addr", ":60005", "The gRPC address to listen on")
 	pflag.Parse()
 	must(viper.BindPFlags(pflag.CommandLine))
 
