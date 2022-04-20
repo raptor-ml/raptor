@@ -2,7 +2,7 @@
 FROM gcr.io/distroless/static:nonroot as historian
 ARG APP
 WORKDIR /
-COPY historian .
+COPY bin/historian .
 USER 65532:65532
 
 ENTRYPOINT ["/historian"]
@@ -10,7 +10,7 @@ ENTRYPOINT ["/historian"]
 ### Core
 FROM gcr.io/distroless/static:nonroot as core
 WORKDIR /
-COPY core .
+COPY bin/core .
 USER 65532:65532
 
 ENTRYPOINT ["/core"]
@@ -18,7 +18,7 @@ ENTRYPOINT ["/core"]
 ### Runtime sidecar
 FROM gcr.io/distroless/static:nonroot as runtime
 WORKDIR /
-COPY runtime .
+COPY bin/runtime .
 USER 65532:65532
 
 ENTRYPOINT ["/runtime"]

@@ -49,6 +49,7 @@ endif
 
 # Image URL to use all building/pushing image targets
 CORE_IMG_BASE = $(IMAGE_BASE)-core
+RUNTIME_IMG_BASE = $(IMAGE_BASE)-runtime
 HISTORIAN_IMG_BASE = $(IMAGE_BASE)-historian
 
 ## Configuring the environment mode
@@ -135,26 +136,28 @@ test: manifests generate fmt lint envtest ## Run tests.
 
 ##@ Build
 
-RUNTIME_VERSION ?=$(VERSION)
+STREAMING_RUNTIME_VERSION ?=$(VERSION)
 STREAMING_VERSION ?= latest
 LDFLAGS ?= -s -w
 LDFLAGS += -X github.com/natun-ai/natun/internal/version.Version=$(VERSION)
-LDFLAGS += -X github.com/natun-ai/natun/internal/plugins/builders/streaming.runtimeImage=ghcr.io/natun-ai/natun-runtime:$(RUNTIME_VERSION)
+LDFLAGS += -X github.com/natun-ai/natun/internal/plugins/builders/streaming.runtimeImage=$(RUNTIME_IMG_BASE):$(STREAMING_RUNTIME_VERSION)
 LDFLAGS += -X github.com/natun-ai/natun/internal/plugins/builders/streaming.stramingImage=ghcr.io/natun-ai/streaming-runner:$(STREAMING_VERSION)
 
 .PHONY: build
 build: generate fmt lint ## Build core binary.
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o core cmd/core/*
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o historian cmd/historian/*
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o runtime cmd/runtime/*
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o bin/core cmd/core/*
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o bin/historian cmd/historian/*
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o bin/runtime cmd/runtime/*
 
 .PHONY: run
 run: manifests generate fmt lint ## Run a controller from your host.
 	go run ./cmd/natun/*
 
 .PHONY: docker-build
-docker-build: test ## Build docker image with the core.
-	docker build -t ${CORE_IMG_BASE}:${VERSION} . -f dev.Dockerfile
+docker-build: build test ## Build docker images.
+	docker build -t ${CORE_IMG_BASE}:${VERSION} . -f hack/release.Dockerfile --target core
+	docker build -t ${RUNTIME_IMG_BASE}:${VERSION} . -f hack/release.Dockerfile --target runtime
+	docker build -t ${HISTORIAN_IMG_BASE}:${VERSION} . -f hack/release.Dockerfile --target historian
 
 IMG ?= ${CORE_IMG_BASE}:${VERSION}
 .PHONY: docker-push
@@ -167,8 +170,10 @@ else
 endif
 
 .PHONY: kind-load
-kind-load: ## Load the core into kind.
-	kind load docker-image ${CORE_IMG}:${VERSION}
+kind-load: ## Load docker images into kind.
+	kind load docker-image ${CORE_IMG_BASE}:${VERSION}
+	kind load docker-image ${HISTORIAN_IMG_BASE}:${VERSION}
+	kind load docker-image ${RUNTIME_IMG_BASE}:${VERSION}
 
 ##@ Deployment
 
