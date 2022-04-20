@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/natun-ai/natun/internal/plugin"
+	"github.com/natun-ai/natun/pkg/api"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -92,13 +93,21 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, nil
 	}
 
-	if p := plugin.DataConnectorReconciler.Get(conn.Kind); p != nil {
-		if err := p(ctx, r.Client, r.Scheme, r.CoreAddr, conn); err != nil {
+	if p := plugin.DataConnectorReconciler.Get(conn.Spec.Kind); p != nil {
+		if err := p(ctx, r.reconcileMetadata(), conn); err != nil {
 			return ctrl.Result{}, err
 		}
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func (r *DataConnectorReconciler) reconcileMetadata() api.ReconcileMetadata {
+	return api.ReconcileMetadata{
+		Client:      r.Client,
+		Scheme:      r.Scheme,
+		CoreAddress: r.CoreAddr,
+	}
 }
 
 // SetupWithManager sets up the controller with the Manager.

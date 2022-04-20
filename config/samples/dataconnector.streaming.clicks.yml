@@ -1,0 +1,15 @@
+apiVersion: k8s.natun.ai/v1alpha1
+kind: DataConnector
+metadata:
+  name: clicks
+spec:
+  kind: streaming
+  config:
+    - name: kind
+      value: kafka
+    - name: brokers
+      value: kafka:9092
+    - name: topics
+      value: clicks
+    - name: groupId
+      value: clicks
