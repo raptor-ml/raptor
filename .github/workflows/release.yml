@@ -56,10 +56,11 @@ jobs:
         with:
           go-version: '^1.18'
       - name: Build project
-        env:
-          LDFLAGS: -s -w -X github.com/natun-ai/natun/internal/plugins/builders/streaming.runtimeSidecarImage=ghcr.io/natun-ai/natun-runtime:latest
         run: |
-          make generate bundle installer build VERSION=${{ steps.version.outputs.version }} BUNDLE_VERSION=${{ steps.version.outputs.version_tag }} CHANNELS=${{ github.event.inputs.release_type }}
+          make generate bundle installer build \
+            VERSION=${{ steps.version.outputs.version }} \
+            BUNDLE_VERSION=${{ steps.version.outputs.version_tag }} \
+            CHANNELS=${{ github.event.inputs.release_type }}
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
@@ -108,6 +109,15 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta_core.outputs.tags }}
           labels: ${{ steps.meta_core.outputs.labels }}
+      - name: Build & Push - Runtime
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: hack/release.Dockerfile
+          target: runtime
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_runtime.outputs.tags }}
+          labels: ${{ steps.meta_runtime.outputs.labels }}
       - name: Build & Push - Bundle
         uses: docker/build-push-action@v2
         with:
@@ -117,15 +127,6 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta_bundle.outputs.tags }}
           labels: ${{ steps.meta_bundle.outputs.labels }}
-      - name: Build & Push - Runtime
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: bundle.Dockerfile
-          target: runtime
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta_runtime.outputs.tags }}
-          labels: ${{ steps.meta_runtime.outputs.labels }}
       - name: Tag
         uses: actions/github-script@v6
         with:
