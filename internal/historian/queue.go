@@ -57,7 +57,7 @@ func (b *baseQueuer[T]) Runnable(workers int) func(ctx context.Context) error {
 
 		wg := sync.WaitGroup{}
 		for i := 0; i < workers; i++ {
-			go wait.Until(func() {
+			go wait.UntilWithContext(ctx, func(ctx context.Context) {
 				wg.Add(1)
 				defer wg.Done()
 
@@ -66,7 +66,7 @@ func (b *baseQueuer[T]) Runnable(workers int) func(ctx context.Context) error {
 				if b.finalizer != nil {
 					b.finalizer(ctx)
 				}
-			}, SyncPeriod, ctx.Done())
+			}, SyncPeriod)
 		}
 
 		<-ctx.Done()
