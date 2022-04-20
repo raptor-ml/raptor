@@ -19,6 +19,7 @@ package version
 import "runtime"
 
 var (
+	// Version is being overwritten by the build process
 	Version      = "master"
 	Architecture = runtime.GOARCH
 	OS           = runtime.GOOS
