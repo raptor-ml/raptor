@@ -36,7 +36,7 @@ func (e *engine) BindFeature(in *manifests.Feature) error {
 	}
 
 	if p := plugin.FeatureAppliers.Get(ft.Builder); p != nil {
-		err := p(ft.Metadata, in.Spec.Builder.JSON.Raw, &ft, e)
+		err := p(ft.Metadata, in.Spec.Builder.Raw, &ft, e)
 		if err != nil {
 			return err
 		}
