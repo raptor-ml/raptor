@@ -19,10 +19,12 @@ package runner
 import (
 	"context"
 	"fmt"
+	"github.com/google/go-cmp/cmp"
 	"github.com/natun-ai/natun/pkg/api"
 	natunApi "github.com/natun-ai/natun/pkg/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -32,37 +34,38 @@ import (
 
 const runtimeImg = "ghcr.io/natun-ai/natun-runtime"
 
+var distrolessNoRootUser int64 = 65532
+
 type Base interface {
 	Reconcile(ctx context.Context, md api.ReconcileMetadata, conn *natunApi.DataConnector) error
 }
-type runner struct {
-	RunnerImage    string
-	RuntimeVersion string
-	Command        []string
+type BaseRunner struct {
+	Image           string
+	RuntimeVersion  string
+	Command         []string
+	SecurityContext *corev1.SecurityContext
 }
 
-func New(runnerImage string, runtimeVersion string, command []string) (Base, error) {
-	if runnerImage == "" {
+func (r BaseRunner) Reconciler() (api.DataConnectorReconcile, error) {
+	if r.Image == "" {
 		return nil, fmt.Errorf("runner image is required")
 	}
-	if runtimeVersion == "" {
+	if r.RuntimeVersion == "" {
 		return nil, fmt.Errorf("runtime version is required")
 	}
-	if len(command) == 0 {
+	if len(r.Command) == 0 {
 		return nil, fmt.Errorf("command is required")
 	}
-	if runtimeVersion == "master" {
-		runtimeVersion = "latest"
-	}
-	return &runner{
-		RunnerImage:    runnerImage,
-		RuntimeVersion: runtimeVersion,
-		Command:        command,
-	}, nil
-}
 
-func (r runner) Reconcile(ctx context.Context, md api.ReconcileMetadata, conn *natunApi.DataConnector) error {
+	// defaults
+	if r.RuntimeVersion == "master" {
+		r.RuntimeVersion = "latest"
+	}
+	return r.reconcile, nil
+}
+func (r BaseRunner) reconcile(ctx context.Context, md api.ReconcileMetadata, conn *natunApi.DataConnector) error {
 	logger := log.FromContext(ctx)
+	deploy := r.newDeployment(conn, md.CoreAddress)
 
 	objectKey := types.NamespacedName{
 		Name:      deploymentName(conn),
@@ -70,26 +73,25 @@ func (r runner) Reconcile(ctx context.Context, md api.ReconcileMetadata, conn *n
 	}
 
 	// Check if the deployment already exists, if not create a new one
-	dep := &appsv1.Deployment{}
-	err := md.Client.Get(ctx, objectKey, dep)
+	found := &appsv1.Deployment{}
+	err := md.Client.Get(ctx, objectKey, found)
 	if err != nil && errors.IsNotFound(err) {
 		// Define a new deployment
-		dep := r.deploymentForConn(conn, md.CoreAddress)
-		err := ctrl.SetControllerReference(conn, dep, md.Scheme)
+		err := ctrl.SetControllerReference(conn, deploy, md.Scheme)
 		if err != nil {
 			return fmt.Errorf("failed to set controller reference: %w", err)
 		}
 
 		logger.Info("Creating a new Deployment", "objectKey", objectKey)
-		err = md.Client.Create(ctx, dep)
+		err = md.Client.Create(ctx, deploy)
 		if err != nil {
 			logger.Error(err, "Failed to create new Deployment", "objectKey", objectKey)
 			return err
 		}
 
 		conn.Status.Deployments = append(conn.Status.Deployments, natunApi.ResourceReference{
-			Name:      dep.Name,
-			Namespace: dep.Namespace,
+			Name:      deploy.Name,
+			Namespace: deploy.Namespace,
 		})
 		if err != nil {
 			logger.Error(err, "Failed to update the deployment to the DataConnector status", "objectKey", objectKey)
@@ -103,11 +105,39 @@ func (r runner) Reconcile(ctx context.Context, md api.ReconcileMetadata, conn *n
 		return err
 	}
 
+	// Update the found object and write the result back if there are any changes
+	if !equality.Semantic.DeepEqual(deploy.Spec.Template.Spec, found.Spec.Template.Spec) {
+		oFound := found.DeepCopy()
+		found.Spec = deploy.Spec
+		if deploy.Spec.Replicas == nil {
+			found.Spec.Replicas = oFound.Spec.Replicas
+		}
+
+		logger.Info("Updating Deployment", "objectKey", objectKey)
+		err = md.Client.Update(ctx, found)
+		if err != nil {
+			logger.Error(err, "Failed to update Deployment", "objectKey", objectKey)
+			return err
+		}
+
+		// Check if what came back from server is the same or not
+		if !equality.Semantic.DeepEqual(deploy.Spec.Template.Spec, found.Spec.Template.Spec) {
+			// For debugging purposes, show the difference
+			diff, err := safeDiff(found.Spec.Template.Spec, deploy.Spec.Template.Spec)
+			if err != nil {
+				logger.Error(err, "Failed to diff")
+			} else {
+				logger.Info(fmt.Sprintf("Difference in deployments: %v", diff))
+			}
+			return fmt.Errorf("deployment spec is still different")
+		}
+	}
+
 	return nil
 }
 
-func (r runner) deploymentForConn(conn *natunApi.DataConnector, coreAddr string) *appsv1.Deployment {
-	labels := map[string]string{"dataconnector-kind": conn.Kind, "dataconnector": conn.GetName()}
+func (r BaseRunner) newDeployment(conn *natunApi.DataConnector, coreAddr string) *appsv1.Deployment {
+	labels := map[string]string{"dataconnector-kind": conn.Spec.Kind, "dataconnector": conn.GetName()}
 
 	resources := corev1.ResourceRequirements{
 		Limits:   conn.Spec.Resources.Limits,
@@ -119,6 +149,7 @@ func (r runner) deploymentForConn(conn *natunApi.DataConnector, coreAddr string)
 	} else {
 		replicas = 1
 	}
+	t := true
 
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -147,6 +178,10 @@ func (r runner) deploymentForConn(conn *natunApi.DataConnector, coreAddr string)
 								"--dataconnector-namespace", conn.Namespace,
 								"--runtime-grpc-addr", ":60005"}...),
 							Resources: resources,
+							SecurityContext: &corev1.SecurityContext{
+								RunAsUser:    &distrolessNoRootUser,
+								RunAsNonRoot: &t,
+							},
 						},
 						{
 							Image: fmt.Sprintf("%s:%s", runtimeImg, r.RuntimeVersion),
@@ -156,16 +191,34 @@ func (r runner) deploymentForConn(conn *natunApi.DataConnector, coreAddr string)
 								"--core-grpc-url", coreAddr,
 								"--grpc-addr", ":60005",
 							},
-							Resources: resources,
+							Resources:       resources,
+							SecurityContext: r.SecurityContext,
 						},
 					},
 				},
 			},
 		},
 	}
+
+	// Add defaults to prevent DeepEqual from complaining
+	deploymentWithDefaults(dep)
+
 	return dep
 }
 
 func deploymentName(conn *natunApi.DataConnector) string {
 	return fmt.Sprintf("natun-conn-%s", conn.Name)
+}
+
+func safeDiff(x, y interface{}, opts ...cmp.Option) (diff string, err error) {
+	// cmp.Diff will panic if we miss something; return error instead of crashing.
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("recovered in kmp.SafeDiff: %v", r)
+		}
+	}()
+
+	diff = cmp.Diff(x, y, opts...)
+
+	return
 }

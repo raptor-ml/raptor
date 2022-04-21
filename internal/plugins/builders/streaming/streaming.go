@@ -23,16 +23,21 @@ import (
 
 // These variables are being overwritten by the build process
 var (
-	runnerImg  = "ghcr.io/natun-ai/streaming-runner:2f72613"
-	runtimeVer = "8ff359c"
+	Image      = "ghcr.io/natun-ai/streaming-runner:2f72613"
+	runtimeVer = "ea1cc51"
 )
 
 func init() {
-	reconciler, err := runner.New(runnerImg, runtimeVer, []string{"runner"})
+	baseRunner := runner.BaseRunner{
+		Image:          Image,
+		RuntimeVersion: runtimeVer,
+		Command:        []string{"runner"},
+	}
+	reconciler, err := baseRunner.Reconciler()
 	if err != nil {
 		panic(err)
 	}
 
 	// Register the plugin
-	plugin.DataConnectorReconciler.Register("streaming", reconciler.Reconcile)
+	plugin.DataConnectorReconciler.Register("streaming", reconciler)
 }
