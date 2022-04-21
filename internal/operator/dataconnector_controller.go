@@ -19,8 +19,9 @@ package operator
 import (
 	"context"
 	"fmt"
-	"github.com/natun-ai/natun/internal/plugin"
 	"github.com/natun-ai/natun/pkg/api"
+	natunApi "github.com/natun-ai/natun/pkg/api/v1alpha1"
+	"github.com/natun-ai/natun/pkg/plugin"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -28,8 +29,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	natunApi "github.com/natun-ai/natun/pkg/api/v1alpha1"
 )
 
 // DataConnectorReconciler reconciles a DataConnector object

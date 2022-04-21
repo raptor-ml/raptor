@@ -38,8 +38,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/natun-ai/natun/internal/plugin"
 	_ "github.com/natun-ai/natun/internal/plugins"
+	"github.com/natun-ai/natun/pkg/plugin"
 
 	corectrl "github.com/natun-ai/natun/internal/engine/controllers"
 	natunApi "github.com/natun-ai/natun/pkg/api/v1alpha1"

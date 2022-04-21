@@ -17,7 +17,7 @@ limitations under the License.
 package streaming
 
 import (
-	"github.com/natun-ai/natun/internal/plugin"
+	"github.com/natun-ai/natun/pkg/plugin"
 	"github.com/natun-ai/natun/pkg/runner"
 )
 

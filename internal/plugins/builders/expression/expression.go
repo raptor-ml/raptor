@@ -20,8 +20,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/natun-ai/natun/internal/plugin"
 	"github.com/natun-ai/natun/pkg/api"
+	"github.com/natun-ai/natun/pkg/plugin"
 	"github.com/natun-ai/natun/pkg/pyexp"
 )
 

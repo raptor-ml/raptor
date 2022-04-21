@@ -41,8 +41,8 @@ import (
 
 	"github.com/natun-ai/natun/internal/accessor"
 	"github.com/natun-ai/natun/internal/engine"
-	"github.com/natun-ai/natun/internal/plugin"
 	_ "github.com/natun-ai/natun/internal/plugins"
+	"github.com/natun-ai/natun/pkg/plugin"
 
 	corectrl "github.com/natun-ai/natun/internal/engine/controllers"
 	opctrl "github.com/natun-ai/natun/internal/operator"
