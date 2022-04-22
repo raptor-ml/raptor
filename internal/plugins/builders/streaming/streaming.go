@@ -23,15 +23,15 @@ import (
 
 // These variables are being overwritten by the build process
 var (
-	Image      = "ghcr.io/natun-ai/streaming-runner:2f72613"
-	runtimeVer = "ea1cc51"
+	Image      = "ghcr.io/natun-ai/streaming-runner:latest"
+	runtimeVer = "latest"
 )
 
 func init() {
 	baseRunner := runner.BaseRunner{
 		Image:          Image,
 		RuntimeVersion: runtimeVer,
-		Command:        []string{"runner"},
+		Command:        []string{"./runner"},
 	}
 	reconciler, err := baseRunner.Reconciler()
 	if err != nil {

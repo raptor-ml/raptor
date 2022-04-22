@@ -125,13 +125,14 @@ func (r BaseRunner) reconcile(ctx context.Context, md api.ReconcileMetadata, con
 			// For debugging purposes, show the difference
 			diff, err := safeDiff(found.Spec.Template.Spec, deploy.Spec.Template.Spec)
 			if err != nil {
-				logger.Error(err, "Failed to diff")
+				logger.WithValues("objectKey", objectKey).Error(err, "Failed to diff")
 			} else {
-				logger.Info(fmt.Sprintf("Difference in deployments: %v", diff))
+				logger.WithValues("objectKey", objectKey).Info(fmt.Sprintf("Difference in deployments: %v", diff))
 			}
 			return fmt.Errorf("deployment spec is still different")
 		}
 	}
+	logger.Info("Valid deployment already exists", "objectKey", objectKey)
 
 	return nil
 }
@@ -171,7 +172,7 @@ func (r BaseRunner) newDeployment(conn *natunApi.DataConnector, coreAddr string)
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Image: runtimeImg,
+							Image: r.Image,
 							Name:  "runner",
 							Command: append(r.Command, []string{
 								"--dataconnector-resource", conn.Name,
@@ -187,7 +188,7 @@ func (r BaseRunner) newDeployment(conn *natunApi.DataConnector, coreAddr string)
 							Image: fmt.Sprintf("%s:%s", runtimeImg, r.RuntimeVersion),
 							Name:  "runtime",
 							Command: []string{
-								"runtime",
+								"./runtime",
 								"--core-grpc-url", coreAddr,
 								"--grpc-addr", ":60005",
 							},

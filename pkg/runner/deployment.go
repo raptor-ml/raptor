@@ -75,7 +75,7 @@ func deploymentWithDefaults(dep *appsv1.Deployment) {
 			container.TerminationMessagePolicy = corev1.TerminationMessageReadFile
 		}
 		if container.ImagePullPolicy == "" {
-			container.ImagePullPolicy = corev1.PullAlways
+			container.ImagePullPolicy = corev1.PullIfNotPresent
 		}
 		if container.SecurityContext == nil {
 			t := true
