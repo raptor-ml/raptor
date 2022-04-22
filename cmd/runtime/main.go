@@ -35,6 +35,8 @@ import (
 	pbRuntime "go.buf.build/natun/api-go/natun/core/natun/runtime/v1alpha1"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials/local"
 	"google.golang.org/grpc/reflection"
 	"net"
 	"os"
@@ -69,6 +71,7 @@ func main() {
 			grpcZap.UnaryClientInterceptor(zl.Named("core")),
 			grpcRetry.UnaryClientInterceptor(),
 		)),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	must(err)
 	engine := sdk.NewGRPCEngine(pbEngine.NewEngineServiceClient(cc))
@@ -95,6 +98,7 @@ func main() {
 			grpcZap.UnaryServerInterceptor(zl.Named("grpc.runtime")),
 			grpcValidator.UnaryServerInterceptor(),
 		)),
+		grpc.Creds(local.NewCredentials()),
 	)
 	pbEngine.RegisterEngineServiceServer(server, sdk.NewServiceServer(engine))
 	pbRuntime.RegisterRuntimeServiceServer(server, rt)
