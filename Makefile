@@ -155,9 +155,9 @@ run: manifests generate fmt lint ## Run a controller from your host.
 
 .PHONY: docker-build
 docker-build: build test ## Build docker images.
-	docker build -t ${CORE_IMG_BASE}:${VERSION} -f hack/release.Dockerfile --target core .
-	docker build -t ${RUNTIME_IMG_BASE}:${VERSION} -f hack/release.Dockerfile --target runtime .
-	docker build -t ${HISTORIAN_IMG_BASE}:${VERSION} -f hack/release.Dockerfile --target historian .
+	docker build -t ${CORE_IMG_BASE}:${VERSION}  -t ${CORE_IMG_BASE}:latest -f hack/release.Dockerfile --target core .
+	docker build -t ${RUNTIME_IMG_BASE}:${VERSION} -t ${RUNTIME_IMG_BASE}:latest -f hack/release.Dockerfile --target runtime .
+	docker build -t ${HISTORIAN_IMG_BASE}:${VERSION} -t ${HISTORIAN_IMG_BASE}:latest -f hack/release.Dockerfile --target historian .
 
 IMG ?= ${CORE_IMG_BASE}:${VERSION}
 .PHONY: docker-push
