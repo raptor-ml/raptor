@@ -19,16 +19,13 @@ package runner
 import (
 	"context"
 	"fmt"
-	"github.com/google/go-cmp/cmp"
 	"github.com/natun-ai/natun/pkg/api"
 	natunApi "github.com/natun-ai/natun/pkg/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/equality"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -37,7 +34,7 @@ const runtimeImg = "ghcr.io/natun-ai/natun-runtime"
 var distrolessNoRootUser int64 = 65532
 
 type Base interface {
-	Reconcile(ctx context.Context, md api.ReconcileMetadata, conn *natunApi.DataConnector) error
+	Reconcile(ctx context.Context, md api.ReconcileRequest, conn *natunApi.DataConnector) error
 }
 type BaseRunner struct {
 	Image           string
@@ -63,163 +60,110 @@ func (r BaseRunner) Reconciler() (api.DataConnectorReconcile, error) {
 	}
 	return r.reconcile, nil
 }
-func (r BaseRunner) reconcile(ctx context.Context, md api.ReconcileMetadata, conn *natunApi.DataConnector) error {
+func (r BaseRunner) reconcile(ctx context.Context, req api.ReconcileRequest) (bool, error) {
 	logger := log.FromContext(ctx)
-	deploy := r.newDeployment(conn, md.CoreAddress)
 
-	objectKey := types.NamespacedName{
-		Name:      deploymentName(conn),
-		Namespace: conn.Namespace,
+	deploy := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{
+		Name:      deploymentName(req.DataConnector),
+		Namespace: req.DataConnector.GetNamespace(),
+	}}
+
+	op, err := ctrl.CreateOrUpdate(ctx, req.Client, deploy, func() error {
+		r.updateDeployment(deploy, req)
+		return ctrl.SetControllerReference(req.DataConnector, deploy, req.Scheme)
+	})
+	if err != nil {
+		logger.Error(err, "Deployment reconcile failed")
+	} else {
+		logger.V(1).Info("Deployment successfully reconciled", "operation", op)
 	}
 
-	// Check if the deployment already exists, if not create a new one
-	found := &appsv1.Deployment{}
-	err := md.Client.Get(ctx, objectKey, found)
-	if err != nil && errors.IsNotFound(err) {
-		// Define a new deployment
-		err := ctrl.SetControllerReference(conn, deploy, md.Scheme)
-		if err != nil {
-			return fmt.Errorf("failed to set controller reference: %w", err)
-		}
-
-		logger.Info("Creating a new Deployment", "objectKey", objectKey)
-		err = md.Client.Create(ctx, deploy)
-		if err != nil {
-			logger.Error(err, "Failed to create new Deployment", "objectKey", objectKey)
-			return err
-		}
-
-		conn.Status.Deployments = append(conn.Status.Deployments, natunApi.ResourceReference{
-			Name:      deploy.Name,
-			Namespace: deploy.Namespace,
-		})
-		if err != nil {
-			logger.Error(err, "Failed to update the deployment to the DataConnector status", "objectKey", objectKey)
-			return err
-		}
-
-		// Deployment created successfully - return and requeue
-		return nil
-	} else if err != nil {
-		logger.Error(err, "Failed to get Deployment", "objectKey", objectKey)
-		return err
-	}
-
-	// Update the found object and write the result back if there are any changes
-	if !equality.Semantic.DeepEqual(deploy.Spec.Template.Spec, found.Spec.Template.Spec) {
-		oFound := found.DeepCopy()
-		found.Spec = deploy.Spec
-		if deploy.Spec.Replicas == nil {
-			found.Spec.Replicas = oFound.Spec.Replicas
-		}
-
-		logger.Info("Updating Deployment", "objectKey", objectKey)
-		err = md.Client.Update(ctx, found)
-		if err != nil {
-			logger.Error(err, "Failed to update Deployment", "objectKey", objectKey)
-			return err
-		}
-
-		// Check if what came back from server is the same or not
-		if !equality.Semantic.DeepEqual(deploy.Spec.Template.Spec, found.Spec.Template.Spec) {
-			// For debugging purposes, show the difference
-			diff, err := safeDiff(found.Spec.Template.Spec, deploy.Spec.Template.Spec)
-			if err != nil {
-				logger.WithValues("objectKey", objectKey).Error(err, "Failed to diff")
-			} else {
-				logger.WithValues("objectKey", objectKey).Info(fmt.Sprintf("Difference in deployments: %v", diff))
-			}
-			return fmt.Errorf("deployment spec is still different")
-		}
-	}
-	logger.Info("Valid deployment already exists", "objectKey", objectKey)
-
-	return nil
+	return op != controllerutil.OperationResultNone, nil
 }
 
-func (r BaseRunner) newDeployment(conn *natunApi.DataConnector, coreAddr string) *appsv1.Deployment {
-	labels := map[string]string{"dataconnector-kind": conn.Spec.Kind, "dataconnector": conn.GetName()}
+func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.ReconcileRequest) {
+	labels := map[string]string{
+		"dataconnector-kind": req.DataConnector.Spec.Kind,
+		"dataconnector":      req.DataConnector.GetName(),
+	}
+	deploy.ObjectMeta.Labels = labels
+
+	if deploy.Spec.Replicas == nil {
+		var replicas int32
+		if req.DataConnector.Spec.Resources.Replicas != nil {
+			replicas = *req.DataConnector.Spec.Resources.Replicas
+		} else {
+			replicas = 1
+		}
+		deploy.Spec.Replicas = &replicas
+	}
+
+	// Deployment selector is immutable, so we set this value only if
+	// a new object is going to be created
+	if deploy.ObjectMeta.CreationTimestamp.IsZero() {
+		deploy.Spec.Selector = &metav1.LabelSelector{
+			MatchLabels: labels,
+		}
+	}
+
+	deploy.Spec.Template.ObjectMeta.Labels = labels
+	deploy.Spec.Template.ObjectMeta.Annotations = map[string]string{
+		"kubectl.kubernetes.io/default-container": "runner",
+	}
 
 	resources := corev1.ResourceRequirements{
-		Limits:   conn.Spec.Resources.Limits,
-		Requests: conn.Spec.Resources.Requests,
-	}
-	var replicas int32
-	if conn.Spec.Resources.Replicas != nil {
-		replicas = *conn.Spec.Resources.Replicas
-	} else {
-		replicas = 1
+		Limits:   req.DataConnector.Spec.Resources.Limits,
+		Requests: req.DataConnector.Spec.Resources.Requests,
 	}
 	t := true
 
-	dep := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      deploymentName(conn),
-			Namespace: conn.Namespace,
-		},
-		Spec: appsv1.DeploymentSpec{
-			Replicas: &replicas,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: labels,
+	deploy.Spec.Template.Spec.Containers = []corev1.Container{
+		containerWithDefaults(corev1.Container{
+			Image: r.Image,
+			Name:  "runner",
+			Command: append(r.Command, []string{
+				"--dataconnector-resource", req.DataConnector.Name,
+				"--dataconnector-namespace", req.DataConnector.Namespace,
+				"--runtime-grpc-addr", ":60005"}...),
+			Resources: resources,
+			SecurityContext: &corev1.SecurityContext{
+				RunAsUser:    &distrolessNoRootUser,
+				RunAsNonRoot: &t,
 			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: labels,
-					Annotations: map[string]string{
-						"kubectl.kubernetes.io/default-container": "runner",
-					},
-				},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Image: r.Image,
-							Name:  "runner",
-							Command: append(r.Command, []string{
-								"--dataconnector-resource", conn.Name,
-								"--dataconnector-namespace", conn.Namespace,
-								"--runtime-grpc-addr", ":60005"}...),
-							Resources: resources,
-							SecurityContext: &corev1.SecurityContext{
-								RunAsUser:    &distrolessNoRootUser,
-								RunAsNonRoot: &t,
-							},
-						},
-						{
-							Image: fmt.Sprintf("%s:%s", runtimeImg, r.RuntimeVersion),
-							Name:  "runtime",
-							Command: []string{
-								"./runtime",
-								"--core-grpc-url", coreAddr,
-								"--grpc-addr", ":60005",
-							},
-							Resources:       resources,
-							SecurityContext: r.SecurityContext,
-						},
-					},
-				},
+		}),
+		containerWithDefaults(corev1.Container{
+			Image: fmt.Sprintf("%s:%s", runtimeImg, r.RuntimeVersion),
+			Name:  "runtime",
+			Command: []string{
+				"./runtime",
+				"--core-grpc-url", req.CoreAddress,
+				"--grpc-addr", ":60005",
 			},
-		},
+			Resources:       resources,
+			SecurityContext: r.SecurityContext,
+		}),
 	}
+}
 
-	// Add defaults to prevent DeepEqual from complaining
-	deploymentWithDefaults(dep)
-
-	return dep
+func containerWithDefaults(container corev1.Container) corev1.Container {
+	if container.TerminationMessagePath == "" {
+		container.TerminationMessagePath = corev1.TerminationMessagePathDefault
+	}
+	if container.TerminationMessagePolicy == "" {
+		container.TerminationMessagePolicy = corev1.TerminationMessageReadFile
+	}
+	if container.ImagePullPolicy == "" {
+		container.ImagePullPolicy = corev1.PullIfNotPresent
+	}
+	if container.SecurityContext == nil {
+		t := true
+		container.SecurityContext = &corev1.SecurityContext{
+			RunAsNonRoot: &t,
+		}
+	}
+	return container
 }
 
 func deploymentName(conn *natunApi.DataConnector) string {
 	return fmt.Sprintf("natun-conn-%s", conn.Name)
-}
-
-func safeDiff(x, y interface{}, opts ...cmp.Option) (diff string, err error) {
-	// cmp.Diff will panic if we miss something; return error instead of crashing.
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("recovered in kmp.SafeDiff: %v", r)
-		}
-	}()
-
-	diff = cmp.Diff(x, y, opts...)
-
-	return
 }

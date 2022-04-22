@@ -37,16 +37,19 @@ type BindConfig func(set *pflag.FlagSet) error
 // FeatureApply applies changes on the feature abstraction.
 type FeatureApply func(metadata Metadata, builderSpec []byte, api FeatureAbstractAPI, engine Engine) error
 
-// ReconcileMetadata contains metadata for the reconcile.
-type ReconcileMetadata struct {
-	Client      client.Client
-	Scheme      *runtime.Scheme
-	CoreAddress string
+// ReconcileRequest contains metadata for the reconcile.
+type ReconcileRequest struct {
+	DataConnector *manifests.DataConnector
+	Client        client.Client
+	Scheme        *runtime.Scheme
+	CoreAddress   string
 }
 
 // DataConnectorReconcile is the interface to be implemented by plugins that want to be reconciled in the operator.
 // This is useful for plugins that need to spawn external Feature Ingestion.
-type DataConnectorReconcile func(ctx context.Context, md ReconcileMetadata, conn *manifests.DataConnector) error
+//
+// It returns ture if the reconciliation has changed the object (and therefore the operator should re-queue).
+type DataConnectorReconcile func(ctx context.Context, md ReconcileRequest) (changed bool, err error)
 
 // StateFactory is the interface to be implemented by plugins that implements storage providers.
 type StateFactory func(viper *viper.Viper) (State, error)

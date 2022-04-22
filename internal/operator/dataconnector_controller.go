@@ -23,6 +23,7 @@ import (
 	natunApi "github.com/natun-ai/natun/pkg/api/v1alpha1"
 	"github.com/natun-ai/natun/pkg/plugin"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -93,19 +94,27 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	if p := plugin.DataConnectorReconciler.Get(conn.Spec.Kind); p != nil {
-		if err := p(ctx, r.reconcileMetadata(), conn); err != nil {
+		if changed, err := p(ctx, r.reconcileRequest(conn)); err != nil {
 			return ctrl.Result{}, err
+		} else if changed {
+			// Ask to requeue after 1 minute in order to give enough time for the
+			// pods be created on the cluster side and the operand be able
+			// to do the next update step accurately.
+			return ctrl.Result{RequeueAfter: time.Minute}, nil
 		}
 	}
+
+	// Todo change status to ready
 
 	return ctrl.Result{}, nil
 }
 
-func (r *DataConnectorReconciler) reconcileMetadata() api.ReconcileMetadata {
-	return api.ReconcileMetadata{
-		Client:      r.Client,
-		Scheme:      r.Scheme,
-		CoreAddress: r.CoreAddr,
+func (r *DataConnectorReconciler) reconcileRequest(conn *natunApi.DataConnector) api.ReconcileRequest {
+	return api.ReconcileRequest{
+		DataConnector: conn,
+		Client:        r.Client,
+		Scheme:        r.Scheme,
+		CoreAddress:   r.CoreAddr,
 	}
 }
 
