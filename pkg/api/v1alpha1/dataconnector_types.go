@@ -38,29 +38,13 @@ type DataConnectorSpec struct {
 	//
 	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 	// +optional
-	Resources ResourceRequirements `json:"resources,omitempty" protobuf:"bytes,2,opt,name=resources"`
-}
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 
-// ResourceRequirements describes the compute resource requirements.
-type ResourceRequirements struct {
 	// Number of desired pods. This is a pointer to distinguish between explicit
 	// zero and not specified. Defaults to 1.
 	// +optional
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors={"urn:alm:descriptor:com.tectonic.ui:podCount"}
-	Replicas *int32 `json:"replicas,omitempty" protobuf:"varint,1,opt,name=replicas"`
-
-	// Limits describes the maximum amount of compute resources allowed.
-	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-	// +optional
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors={"urn:alm:descriptor:com.tectonic.ui:resourceRequirements"}
-	Limits corev1.ResourceList `json:"limits,omitempty" protobuf:"bytes,1,rep,name=limits,casttype=ResourceList,castkey=ResourceName"`
-	// Requests describes the minimum amount of compute resources required.
-	// If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
-	// otherwise to an implementation-defined value.
-	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-	// +optional
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors={"urn:alm:descriptor:com.tectonic.ui:resourceRequirements"}
-	Requests corev1.ResourceList `json:"requests,omitempty" protobuf:"bytes,2,rep,name=requests,casttype=ResourceList,castkey=ResourceName"`
+	Replicas *int32 `json:"replicas,omitempty"`
 }
 
 // ConfigVar is a name/value pair for the config.
@@ -97,15 +81,18 @@ func (in *ResourceReference) ObjectKey() client.ObjectKey {
 type DataConnectorStatus struct {
 	// Features includes a list of references for the Feature that uses this DataConnector
 	Features []ResourceReference `json:"connector"`
+
 	// Deployments includes a list of deployments that was deployed for this DataConnector
 	Deployments []ResourceReference `json:"deployments"`
+
+	Replicas int32 `json:"replicas,omitempty"`
 }
 
 // +k8s:openapi-gen=true
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas
-// +kubebuilder:resource:categories=datasciense,shortName=dconn
+// +kubebuilder:resource:categories=datascience,shortName=conn
 
 // DataConnector is the Schema for the dataconnectors API
 type DataConnector struct {

@@ -10,12 +10,12 @@ spec:
   group: k8s.natun.ai
   names:
     categories:
-    - datasciense
+    - datascience
     kind: DataConnector
     listKind: DataConnectorList
     plural: dataconnectors
     shortNames:
-    - dconn
+    - conn
     singular: dataconnector
   scope: Namespaced
   versions:
@@ -73,6 +73,11 @@ spec:
               kind:
                 description: Kind of the DataConnector
                 type: string
+              replicas:
+                description: Number of desired pods. This is a pointer to distinguish
+                  between explicit zero and not specified. Defaults to 1.
+                format: int32
+                type: integer
               resources:
                 description: "Resources defines the required resources for a single
                   container(underlying implementation) of this DataConnector. Notice
@@ -89,11 +94,6 @@ spec:
                     description: 'Limits describes the maximum amount of compute resources
                       allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                     type: object
-                  replicas:
-                    description: Number of desired pods. This is a pointer to distinguish
-                      between explicit zero and not specified. Defaults to 1.
-                    format: int32
-                    type: integer
                   requests:
                     additionalProperties:
                       anyOf:
@@ -148,6 +148,9 @@ spec:
                       type: string
                   type: object
                 type: array
+              replicas:
+                format: int32
+                type: integer
             required:
             - connector
             - deployments

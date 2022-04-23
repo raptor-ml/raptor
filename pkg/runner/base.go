@@ -90,8 +90,8 @@ func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.Reconcil
 
 	if deploy.Spec.Replicas == nil {
 		var replicas int32
-		if req.DataConnector.Spec.Resources.Replicas != nil {
-			replicas = *req.DataConnector.Spec.Resources.Replicas
+		if req.DataConnector.Spec.Replicas != nil {
+			replicas = *req.DataConnector.Spec.Replicas
 		} else {
 			replicas = 1
 		}
@@ -111,10 +111,6 @@ func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.Reconcil
 		"kubectl.kubernetes.io/default-container": "runner",
 	}
 
-	resources := corev1.ResourceRequirements{
-		Limits:   req.DataConnector.Spec.Resources.Limits,
-		Requests: req.DataConnector.Spec.Resources.Requests,
-	}
 	t := true
 
 	deploy.Spec.Template.Spec.Containers = []corev1.Container{
@@ -125,7 +121,9 @@ func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.Reconcil
 				"--dataconnector-resource", req.DataConnector.Name,
 				"--dataconnector-namespace", req.DataConnector.Namespace,
 				"--runtime-grpc-addr", ":60005"}...),
-			Resources: resources,
+			Resources: corev1.ResourceRequirements{
+				Limits: req.DataConnector.Spec.Resources.Limits,
+			},
 			SecurityContext: &corev1.SecurityContext{
 				RunAsUser:    &distrolessNoRootUser,
 				RunAsNonRoot: &t,
@@ -139,7 +137,7 @@ func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.Reconcil
 				"--core-grpc-url", req.CoreAddress,
 				"--grpc-addr", ":60005",
 			},
-			Resources:       resources,
+			Resources:       req.DataConnector.Spec.Resources,
 			SecurityContext: r.SecurityContext,
 		}),
 	}
