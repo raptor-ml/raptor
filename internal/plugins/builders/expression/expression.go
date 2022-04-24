@@ -36,7 +36,7 @@ type ExprSpec struct {
 	Expression string `json:"pyexp"`
 }
 
-func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAPI, engine api.Engine) error {
+func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
 	spec := &ExprSpec{}
 	err := json.Unmarshal(builderSpec, spec)
 	if err != nil {

@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package natun.core.v1alpha1;
 
-import "validate/validate.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
 
 option go_package = "github.com/natun-ai/natun/core/v1alpha1;coreV1alpha1";
 
@@ -48,6 +48,10 @@ enum AggrFn {
     AGGR_FN_COUNT = 5;
 }
 
+message ObjectReference {
+    string name = 1;
+    string namespace = 2;
+}
 message Metadata {
     string fqn = 1 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
     Primitive primitive = 2 [(validate.rules).enum.defined_only = true];
@@ -59,6 +63,7 @@ message Metadata {
     google.protobuf.Duration staleness = 5;
     google.protobuf.Duration timeout = 6;
     string builder = 7;
+    string data_connector = 8;
 }
 message FeatureValue {
     string fqn = 1 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];

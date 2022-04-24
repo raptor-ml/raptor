@@ -35,7 +35,7 @@ type Plugins interface {
 type BindConfig func(set *pflag.FlagSet) error
 
 // FeatureApply applies changes on the feature abstraction.
-type FeatureApply func(metadata Metadata, builderSpec []byte, api FeatureAbstractAPI, engine Engine) error
+type FeatureApply func(metadata Metadata, builderSpec []byte, api FeatureAbstractAPI, engine EngineWithConnector) error
 
 // ReconcileRequest contains metadata for the reconcile.
 type ReconcileRequest struct {

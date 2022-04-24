@@ -28,30 +28,29 @@ import (
 	natunApi "github.com/natun-ai/natun/pkg/api/v1alpha1"
 )
 
-// FeatureReconciler reconciles a Feature object
+// DataConnectorReconciler reconciles a DataConnector object
 // This reconciler is used in every instance of the app, and not only the leader.
 // It is used to ensure the EngineManager's state is synchronized with the CustomResources.
 //
 // For the creation and modification external resources, the operator's controller is used.
 // For the operator's controller see the `internal/operator/feature_controller.go` file
-type FeatureReconciler struct {
+type DataConnectorReconciler struct {
 	client.Reader
-	Scheme         *runtime.Scheme
-	UpdatesAllowed bool
-	EngineManager  api.FeatureManager
+	Scheme        *runtime.Scheme
+	EngineManager api.DataConnectorManager
 }
 
 //+kubebuilder:rbac:groups=k8s.natun.ai,resources=features,verbs=get;list;watch
 
 // Reconcile is the main function of the reconciler.
-func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
-	// Fetch the Feature definition from the Kubernetes API.
-	feature := &natunApi.Feature{}
-	err := r.Get(ctx, req.NamespacedName, feature)
+	// Fetch the DataConnector definition from the Kubernetes API.
+	dc := &natunApi.DataConnector{}
+	err := r.Get(ctx, req.NamespacedName, dc)
 	if err != nil {
-		logger.Error(err, "Failed to get Feature")
+		logger.Error(err, "Failed to get DataConnector")
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
 		// requeue (we'll need to wait for a new notification), and we can get them
 		// on deleted requests.
@@ -59,28 +58,30 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	// examine DeletionTimestamp to determine if object is under deletion
-	if !feature.ObjectMeta.DeletionTimestamp.IsZero() {
+	if !dc.ObjectMeta.DeletionTimestamp.IsZero() {
 		// The object is being deleted
 		// Since this controller is used for the internal Core, we don't need to use finalizers
 
-		if err := r.EngineManager.UnbindFeature(feature.FQN()); err != nil {
+		if err := r.EngineManager.UnbindDataConnector(dc.FQN()); err != nil {
 			// if fail to delete, return with error, so that it can be retried
 			return ctrl.Result{}, err
 		}
 	}
 
-	if r.EngineManager.HasFeature(feature.FQN()) {
-		if !r.UpdatesAllowed {
-			logger.Info("Feature already exists. Ignoring since updates are not allowed")
-			return ctrl.Result{}, nil
-		}
-		if err := r.EngineManager.UnbindFeature(feature.FQN()); err != nil {
+	if r.EngineManager.HasDataConnector(dc.FQN()) {
+		if err := r.EngineManager.UnbindDataConnector(dc.FQN()); err != nil {
 			// if fail to delete, return with error, so that it can be retried
 			return ctrl.Result{}, err
 		}
 	}
 
-	if err := r.EngineManager.BindFeature(feature); err != nil {
+	dci, err := api.DataConnectorFromManifest(ctx, dc, r.Reader)
+	if err != nil {
+		logger.Error(err, "Failed to get DataConnector: %w", err)
+		return ctrl.Result{}, err
+	}
+
+	if err := r.EngineManager.BindDataConnector(dci); err != nil {
 		return ctrl.Result{RequeueAfter: 10 * time.Second}, err
 	}
 
@@ -88,6 +89,6 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 }
 
 // SetupWithManager sets up the controller with the FeatureManager.
-func (r *FeatureReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return attachCoreConnector(r, &natunApi.Feature{}, r.UpdatesAllowed, mgr)
+func (r *DataConnectorReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	return attachCoreConnector(r, &natunApi.Feature{}, true, mgr)
 }

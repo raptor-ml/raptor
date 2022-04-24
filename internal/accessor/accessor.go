@@ -48,7 +48,7 @@ type accessor struct {
 	logger    logr.Logger
 }
 
-func New(e api.Manager, logger logr.Logger) Accessor {
+func New(e api.FeatureManager, logger logr.Logger) Accessor {
 	svc := &accessor{
 		sdkServer: sdk.NewServiceServer(e.(api.Engine)),
 		logger:    logger,

@@ -17,6 +17,8 @@ limitations under the License.
 package streaming
 
 import (
+	"fmt"
+	"github.com/natun-ai/natun/pkg/api"
 	"github.com/natun-ai/natun/pkg/plugin"
 	"github.com/natun-ai/natun/pkg/runner"
 )
@@ -26,6 +28,8 @@ var (
 	Image      = "ghcr.io/natun-ai/streaming-runner:latest"
 	runtimeVer = "latest"
 )
+
+const name = "streaming"
 
 func init() {
 	baseRunner := runner.BaseRunner{
@@ -39,5 +43,22 @@ func init() {
 	}
 
 	// Register the plugin
-	plugin.DataConnectorReconciler.Register("streaming", reconciler)
+	plugin.DataConnectorReconciler.Register(name, reconciler)
+	plugin.FeatureAppliers.Register(name, FeatureApply)
+}
+
+func FeatureApply(metadata api.Metadata, spec []byte, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
+	if metadata.DataConnector == "" {
+		return fmt.Errorf("data connector must be set for `%s` builder", name)
+	}
+
+	dc, err := engine.GetDataConnector(metadata.DataConnector)
+	if err != nil {
+		return fmt.Errorf("failed to get data connector: %v", err)
+	}
+
+	if dc.Kind != name {
+		return fmt.Errorf("data connector must be of type `%s` for `%s` builder", name, name)
+	}
+	return nil
 }

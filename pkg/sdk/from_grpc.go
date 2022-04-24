@@ -68,13 +68,14 @@ func FromAPIAggrFuncs(fs []coreApi.AggrFn) []api.WindowFn {
 }
 func FromAPIMetadata(m *coreApi.Metadata) api.Metadata {
 	return api.Metadata{
-		FQN:       m.Fqn,
-		Primitive: FromAPIPrimitive(m.Primitive),
-		Aggr:      FromAPIAggrFuncs(m.Aggr),
-		Freshness: m.Freshness.AsDuration(),
-		Staleness: m.Staleness.AsDuration(),
-		Timeout:   m.Timeout.AsDuration(),
-		Builder:   m.Builder,
+		FQN:           m.Fqn,
+		Primitive:     FromAPIPrimitive(m.Primitive),
+		Aggr:          FromAPIAggrFuncs(m.Aggr),
+		Freshness:     m.Freshness.AsDuration(),
+		Staleness:     m.Staleness.AsDuration(),
+		Timeout:       m.Timeout.AsDuration(),
+		Builder:       m.Builder,
+		DataConnector: m.DataConnector,
 	}
 }
 

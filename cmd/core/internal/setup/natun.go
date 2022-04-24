@@ -32,26 +32,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
-func coreControllers(mgr manager.Manager, eng api.ManagerEngine) {
-	var err error
-
-	// Setup Operator Controllers
-	err = (&opctrl.FeatureReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr)
-	OrFail(err, "unable to create controller", "controller", "Feature")
-
-	// Setup Core Controllers
-	err = (&corectrl.FeatureReconciler{
-		Reader:         mgr.GetClient(),
-		Scheme:         mgr.GetScheme(),
-		UpdatesAllowed: updatesAllowed,
-		EngineManager:  eng,
-	}).SetupWithManager(mgr)
-	OrFail(err, "unable to create controller", "controller", "DataConnector")
-}
-
 func setupStats(mgr manager.Manager) {
 	// Setup usage reports
 	stats.UID = viper.GetString("usage-reporting-uid")
@@ -81,6 +61,26 @@ func historianClient(mgr manager.Manager) historian.Client {
 	OrFail(hsc.WithManager(mgr), "failed to create historian client")
 
 	return hsc
+}
+
+func coreControllers(mgr manager.Manager, eng api.ManagerEngine) {
+	var err error
+
+	// Setup Core Controllers
+	err = (&corectrl.DataConnectorReconciler{
+		Reader:        mgr.GetClient(),
+		Scheme:        mgr.GetScheme(),
+		EngineManager: eng,
+	}).SetupWithManager(mgr)
+	OrFail(err, "unable to create core controller", "controller", "DataConnector")
+
+	err = (&corectrl.FeatureReconciler{
+		Reader:         mgr.GetClient(),
+		Scheme:         mgr.GetScheme(),
+		UpdatesAllowed: updatesAllowed,
+		EngineManager:  eng,
+	}).SetupWithManager(mgr)
+	OrFail(err, "unable to create core controller", "controller", "Feature")
 }
 
 func operatorControllers(mgr manager.Manager) {

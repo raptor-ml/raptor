@@ -40,7 +40,7 @@ func init() {
 }
 
 type Server interface {
-	api.Manager
+	api.FeatureManager
 
 	// Collector is a runnable that collects data from the state and sends a writing notification via the WriteNotifier
 	Collector() LeaderRunnableFunc

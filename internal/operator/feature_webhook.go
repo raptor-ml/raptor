@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/natun-ai/natun/internal/engine"
+	"github.com/natun-ai/natun/pkg/api"
 	natunApi "github.com/natun-ai/natun/pkg/api/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -100,19 +101,28 @@ func (v *validator) Validate(ctx context.Context, f *natunApi.Feature) error {
 		return fmt.Errorf("builder kind is empty")
 	}
 
+	dummyEngine := engine.Dummy{}
+
 	if f.Spec.DataConnector != nil {
 		if ar, ok := ctx.Value(admissionRequestContextKey).(admission.Request); ok && ar.DryRun == nil || ok && !*ar.DryRun {
-			err := v.client.Get(ctx, f.Spec.DataConnector.ObjectKey(), &natunApi.DataConnector{})
+			dc := natunApi.DataConnector{}
+			err := v.client.Get(ctx, f.Spec.DataConnector.ObjectKey(), &dc)
 			if apierrors.IsNotFound(err) {
 				return fmt.Errorf("data connector %s/%s not found", f.Spec.DataConnector.Namespace, f.Spec.DataConnector.Name)
 			}
 			if err != nil {
 				return fmt.Errorf("failed to get data connector: %w", err)
 			}
+
+			dci, err := api.DataConnectorFromManifest(ctx, &dc, v.client)
+			if err != nil {
+				return fmt.Errorf("failed to get data connector instance: %w", err)
+			}
+			dummyEngine.DataConnector = dci
 		}
 	}
 
-	_, err := engine.FeatureWithEngine(&engine.Dummy{}, f)
+	_, err := engine.FeatureWithEngine(&dummyEngine, f)
 	return err
 }
 

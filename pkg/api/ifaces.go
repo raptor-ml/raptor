@@ -40,15 +40,37 @@ type Logger interface {
 	Logger() logr.Logger
 }
 
-// Manager is the main manager of the Core
+// FeatureManager is managing Feature(s) within Core
 // It is responsible for managing features as well as operating on them
-type Manager interface {
+type FeatureManager interface {
 	BindFeature(in *manifests.Feature) error
 	UnbindFeature(FQN string) error
 	HasFeature(FQN string) bool
 }
+
+// DataConnectorManager is managing DataConnector(s) within Core
+// It is responsible for maintaining the DataConnector(s) in an internal store
+type DataConnectorManager interface {
+	BindDataConnector(md DataConnector) error
+	UnbindDataConnector(FQN string) error
+	HasDataConnector(FQN string) bool
+}
+
+// DataConnectorGetter is a simple interface that returns a DataConnector
+type DataConnectorGetter interface {
+	GetDataConnector(FQN string) (DataConnector, error)
+}
+
+// EngineWithConnector is an Engine that has a DataConnector
+type EngineWithConnector interface {
+	Engine
+	DataConnectorGetter
+}
+
+// ManagerEngine is the business-logic implementation of the Core
 type ManagerEngine interface {
 	Logger
-	Manager
+	FeatureManager
+	DataConnectorManager
 	Engine
 }

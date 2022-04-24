@@ -25,7 +25,7 @@ import (
 )
 
 // FeatureWithEngine converts the k8s Feature CRD to the internal engine implementation.
-func FeatureWithEngine(e api.Engine, in *manifests.Feature) (*Feature, error) {
+func FeatureWithEngine(e api.EngineWithConnector, in *manifests.Feature) (*Feature, error) {
 	md, err := api.MetadataFromManifest(in)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse metadata from CR: %w", err)
@@ -73,4 +73,25 @@ func (e *engine) bindFeature(f *Feature) error {
 func (e *engine) HasFeature(fqn string) bool {
 	_, ok := e.features.Load(fqn)
 	return ok
+}
+
+func (e *engine) BindDataConnector(md api.DataConnector) error {
+	e.dataConnectors.Store(md.FQN, md)
+	return nil
+}
+func (e *engine) UnbindDataConnector(FQN string) error {
+	e.dataConnectors.Delete(FQN)
+	return nil
+}
+func (e *engine) HasDataConnector(FQN string) bool {
+	_, ok := e.dataConnectors.Load(FQN)
+	return ok
+}
+
+func (e *engine) GetDataConnector(fqn string) (api.DataConnector, error) {
+	md, ok := e.dataConnectors.Load(fqn)
+	if !ok {
+		return api.DataConnector{}, fmt.Errorf("DataConnector %s not found", fqn)
+	}
+	return md.(api.DataConnector), nil
 }

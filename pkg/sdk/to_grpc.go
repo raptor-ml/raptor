@@ -114,13 +114,14 @@ func ToAPIAggrFns(fs []api.WindowFn) []coreApi.AggrFn {
 
 func ToAPIMetadata(md api.Metadata) *coreApi.Metadata {
 	ret := &coreApi.Metadata{
-		Fqn:       md.FQN,
-		Primitive: ToAPIPrimitive(md.Primitive),
-		Aggr:      ToAPIAggrFns(md.Aggr),
-		Freshness: durationpb.New(md.Freshness),
-		Staleness: durationpb.New(md.Staleness),
-		Timeout:   durationpb.New(md.Timeout),
-		Builder:   md.Builder,
+		Fqn:           md.FQN,
+		Primitive:     ToAPIPrimitive(md.Primitive),
+		Aggr:          ToAPIAggrFns(md.Aggr),
+		Freshness:     durationpb.New(md.Freshness),
+		Staleness:     durationpb.New(md.Staleness),
+		Timeout:       durationpb.New(md.Timeout),
+		Builder:       md.Builder,
+		DataConnector: md.DataConnector,
 	}
 
 	return ret
