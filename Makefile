@@ -325,7 +325,7 @@ $(BUF):
 .PHONY: lint
 lint: fmt golangci-lint buf check-license ## Run golangci-lint linter
 	$(GOLANGCI_LINT) run
-	$(BUF) lint proto
+	$(BUF) lint api/proto
 
 .PHONY: lint-fix
 lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
