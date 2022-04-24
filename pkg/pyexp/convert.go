@@ -18,7 +18,7 @@ package pyexp
 
 import (
 	"fmt"
-	"github.com/natun-ai/natun/pkg/api"
+	"github.com/natun-ai/natun/api"
 	sTime "go.starlark.net/lib/time"
 	"go.starlark.net/starlark"
 	"time"

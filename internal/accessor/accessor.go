@@ -27,7 +27,7 @@ import (
 	grpcValidator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 	grpcPrometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/natun-ai/natun/pkg/api"
+	"github.com/natun-ai/natun/api"
 	"github.com/natun-ai/natun/pkg/sdk"
 	coreApi "go.buf.build/natun/api-go/natun/core/natun/core/v1alpha1"
 	"google.golang.org/grpc"

@@ -21,9 +21,9 @@ import (
 	goerrors "errors"
 	"fmt"
 	"github.com/go-logr/logr"
+	"github.com/natun-ai/natun/api"
 	"github.com/natun-ai/natun/internal/historian"
 	"github.com/natun-ai/natun/internal/stats"
-	"github.com/natun-ai/natun/pkg/api"
 	"sync"
 	"time"
 )

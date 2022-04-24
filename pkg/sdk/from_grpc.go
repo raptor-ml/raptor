@@ -17,7 +17,7 @@ limitations under the License.
 package sdk
 
 import (
-	"github.com/natun-ai/natun/pkg/api"
+	"github.com/natun-ai/natun/api"
 	coreApi "go.buf.build/natun/api-go/natun/core/natun/core/v1alpha1"
 )
 

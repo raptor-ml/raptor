@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jellydator/ttlcache/v3"
-	"github.com/natun-ai/natun/pkg/api"
+	"github.com/natun-ai/natun/api"
 	"strings"
 	"time"
 )

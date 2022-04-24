@@ -18,7 +18,7 @@ package engine
 
 import (
 	"context"
-	"github.com/natun-ai/natun/pkg/api"
+	"github.com/natun-ai/natun/api"
 )
 
 type Middlewares []api.Middleware

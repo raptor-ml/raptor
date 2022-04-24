@@ -19,7 +19,7 @@ package api
 import (
 	"context"
 	"github.com/go-logr/logr"
-	manifests "github.com/natun-ai/natun/pkg/api/v1alpha1"
+	manifests "github.com/natun-ai/natun/api/v1alpha1"
 	"time"
 )
 

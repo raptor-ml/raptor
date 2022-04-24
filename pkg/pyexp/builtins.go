@@ -19,7 +19,7 @@ package pyexp
 import (
 	"context"
 	"fmt"
-	"github.com/natun-ai/natun/pkg/api"
+	"github.com/natun-ai/natun/api"
 	"github.com/sourcegraph/starlight/convert"
 	sTime "go.starlark.net/lib/time"
 	"go.starlark.net/starlark"

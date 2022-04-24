@@ -18,13 +18,13 @@ package setup
 
 import (
 	"fmt"
+	"github.com/natun-ai/natun/api"
 	"github.com/natun-ai/natun/internal/accessor"
 	"github.com/natun-ai/natun/internal/engine"
 	corectrl "github.com/natun-ai/natun/internal/engine/controllers"
 	"github.com/natun-ai/natun/internal/historian"
 	opctrl "github.com/natun-ai/natun/internal/operator"
 	"github.com/natun-ai/natun/internal/stats"
-	"github.com/natun-ai/natun/pkg/api"
 	"github.com/natun-ai/natun/pkg/plugin"
 	"github.com/spf13/viper"
 	"net/http"

@@ -24,7 +24,7 @@ import (
 	"github.com/die-net/lrucache"
 	"github.com/gregjones/httpcache"
 	"github.com/hashicorp/go-retryablehttp"
-	"github.com/natun-ai/natun/pkg/api"
+	"github.com/natun-ai/natun/api"
 	"github.com/natun-ai/natun/pkg/plugin"
 	"github.com/natun-ai/natun/pkg/pyexp"
 	"io"

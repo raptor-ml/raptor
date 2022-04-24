@@ -18,9 +18,9 @@ package engine
 
 import (
 	"fmt"
+	"github.com/natun-ai/natun/api"
+	manifests "github.com/natun-ai/natun/api/v1alpha1"
 	"github.com/natun-ai/natun/internal/stats"
-	"github.com/natun-ai/natun/pkg/api"
-	manifests "github.com/natun-ai/natun/pkg/api/v1alpha1"
 	"github.com/natun-ai/natun/pkg/plugin"
 )
 

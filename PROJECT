@@ -14,7 +14,7 @@ resources:
   domain: natun.ai
   group: k8s
   kind: Feature
-  path: github.com/natun-ai/natun/pkg/api/v1alpha1
+  path: github.com/natun-ai/natun/api/v1alpha1
   version: v1alpha1
   webhooks:
     validation: true
@@ -26,6 +26,6 @@ resources:
   domain: natun.ai
   group: k8s
   kind: DataConnector
-  path: github.com/natun-ai/natun/pkg/api/v1alpha1
+  path: github.com/natun-ai/natun/api/v1alpha1
   version: v1alpha1
 version: "3"

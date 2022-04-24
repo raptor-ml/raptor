@@ -34,7 +34,7 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	natunApi "github.com/natun-ai/natun/pkg/api/v1alpha1"
+	natunApi "github.com/natun-ai/natun/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 

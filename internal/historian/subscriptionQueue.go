@@ -19,7 +19,7 @@ package historian
 import (
 	"context"
 	"github.com/go-logr/logr"
-	"github.com/natun-ai/natun/pkg/api"
+	"github.com/natun-ai/natun/api"
 	"sync"
 )
 

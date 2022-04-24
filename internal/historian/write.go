@@ -18,7 +18,7 @@ package historian
 
 import (
 	"context"
-	"github.com/natun-ai/natun/pkg/api"
+	"github.com/natun-ai/natun/api"
 )
 
 func (h *historian) dispatchWrite(ctx context.Context, notification api.WriteNotification) error {

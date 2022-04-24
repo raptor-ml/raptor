@@ -21,7 +21,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"github.com/jellydator/ttlcache/v3"
-	"github.com/natun-ai/natun/pkg/api"
+	"github.com/natun-ai/natun/api"
 	"github.com/natun-ai/natun/pkg/pyexp"
 	"time"
 )

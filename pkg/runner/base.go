@@ -19,8 +19,8 @@ package runner
 import (
 	"context"
 	"fmt"
-	"github.com/natun-ai/natun/pkg/api"
-	natunApi "github.com/natun-ai/natun/pkg/api/v1alpha1"
+	"github.com/natun-ai/natun/api"
+	natunApi "github.com/natun-ai/natun/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

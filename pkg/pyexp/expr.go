@@ -21,7 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/natun-ai/natun/pkg/api"
+	"github.com/natun-ai/natun/api"
 	"github.com/qri-io/starlib/bsoup"
 	"github.com/qri-io/starlib/encoding/base64"
 	"github.com/qri-io/starlib/geo"

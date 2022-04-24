@@ -19,7 +19,7 @@ package engine
 import (
 	"context"
 	"fmt"
-	"github.com/natun-ai/natun/pkg/api"
+	"github.com/natun-ai/natun/api"
 	"time"
 )
 

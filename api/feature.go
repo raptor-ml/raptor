@@ -20,7 +20,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	manifests "github.com/natun-ai/natun/pkg/api/v1alpha1"
+	manifests "github.com/natun-ai/natun/api/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"time"

@@ -19,8 +19,8 @@ package operator
 import (
 	"context"
 	"fmt"
-	"github.com/natun-ai/natun/pkg/api"
-	natunApi "github.com/natun-ai/natun/pkg/api/v1alpha1"
+	"github.com/natun-ai/natun/api"
+	natunApi "github.com/natun-ai/natun/api/v1alpha1"
 	"github.com/natun-ai/natun/pkg/plugin"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"time"

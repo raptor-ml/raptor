@@ -19,7 +19,7 @@ package parquet
 import (
 	"context"
 	"fmt"
-	"github.com/natun-ai/natun/pkg/api"
+	"github.com/natun-ai/natun/api"
 	"github.com/xitongsys/parquet-go/source"
 	"github.com/xitongsys/parquet-go/writer"
 	"sync"

@@ -29,7 +29,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	k8snatunaiv1alpha1 "github.com/natun-ai/natun/pkg/api/v1alpha1"
+	k8snatunaiv1alpha1 "github.com/natun-ai/natun/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 

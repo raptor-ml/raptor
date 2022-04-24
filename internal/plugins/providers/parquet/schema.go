@@ -17,7 +17,7 @@ limitations under the License.
 package parquet
 
 import (
-	"github.com/natun-ai/natun/pkg/api"
+	"github.com/natun-ai/natun/api"
 	"github.com/xitongsys/parquet-go/types"
 	"strings"
 	"time"

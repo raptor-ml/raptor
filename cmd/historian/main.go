@@ -43,8 +43,8 @@ import (
 	_ "github.com/natun-ai/natun/internal/plugins"
 	"github.com/natun-ai/natun/pkg/plugin"
 
+	natunApi "github.com/natun-ai/natun/api/v1alpha1"
 	corectrl "github.com/natun-ai/natun/internal/engine/controllers"
-	natunApi "github.com/natun-ai/natun/pkg/api/v1alpha1"
 )
 
 var (
