@@ -24,11 +24,11 @@ import (
 	"github.com/natun-ai/natun/pkg/plugin"
 )
 
-// BindFeature converts the k8s Feature CRD to the internal implementation, and adds it to the engine.
-func (e *engine) BindFeature(in *manifests.Feature) error {
+// FeatureWithEngine converts the k8s Feature CRD to the internal engine implementation.
+func FeatureWithEngine(e api.Engine, in *manifests.Feature) (*Feature, error) {
 	md, err := api.MetadataFromManifest(in)
 	if err != nil {
-		return fmt.Errorf("failed to parse metadata from CR: %w", err)
+		return nil, fmt.Errorf("failed to parse metadata from CR: %w", err)
 	}
 
 	ft := Feature{
@@ -38,10 +38,18 @@ func (e *engine) BindFeature(in *manifests.Feature) error {
 	if p := plugin.FeatureAppliers.Get(ft.Builder); p != nil {
 		err := p(ft.Metadata, in.Spec.Builder.Raw, &ft, e)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
+	return &ft, nil
+}
 
+// BindFeature converts the k8s Feature CRD to the internal implementation, and adds it to the engine.
+func (e *engine) BindFeature(in *manifests.Feature) error {
+	ft, err := FeatureWithEngine(e, in)
+	if err != nil {
+		return err
+	}
 	return e.bindFeature(ft)
 }
 
@@ -52,7 +60,7 @@ func (e *engine) UnbindFeature(fqn string) error {
 	return nil
 }
 
-func (e *engine) bindFeature(f Feature) error {
+func (e *engine) bindFeature(f *Feature) error {
 	defer stats.IncNumberOfFeatures()
 	if e.HasFeature(f.FQN) {
 		return fmt.Errorf("%w: %s", api.ErrFeatureAlreadyExists, f.FQN)

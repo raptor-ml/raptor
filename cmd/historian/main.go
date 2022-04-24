@@ -19,14 +19,16 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/natun-ai/natun/internal/historian"
-	"github.com/natun-ai/natun/internal/version"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
-	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	"k8s.io/client-go/tools/leaderelection/resourcelock"
+
+	"github.com/natun-ai/natun/internal/historian"
+	"github.com/natun-ai/natun/internal/version"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -43,7 +45,6 @@ import (
 
 	corectrl "github.com/natun-ai/natun/internal/engine/controllers"
 	natunApi "github.com/natun-ai/natun/pkg/api/v1alpha1"
-	//+kubebuilder:scaffold:imports
 )
 
 var (

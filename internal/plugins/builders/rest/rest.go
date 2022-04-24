@@ -60,6 +60,9 @@ func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAP
 		return fmt.Errorf("failed to unmarshal expression spec: %w", err)
 	}
 
+	if spec.Expression == "" {
+		return fmt.Errorf("expression is empty")
+	}
 	runtime, err := pyexp.New(spec.Expression, engine)
 	if err != nil {
 		return fmt.Errorf("failed to create expression runtime: %w", err)

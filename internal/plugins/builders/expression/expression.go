@@ -37,13 +37,17 @@ type ExprSpec struct {
 }
 
 func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAPI, engine api.Engine) error {
-	expSpec := &ExprSpec{}
-	err := json.Unmarshal(builderSpec, expSpec)
+	spec := &ExprSpec{}
+	err := json.Unmarshal(builderSpec, spec)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal expression spec: %w", err)
 	}
 
-	runtime, err := pyexp.New(expSpec.Expression, engine)
+	if spec.Expression == "" {
+		return fmt.Errorf("expression is empty")
+	}
+
+	runtime, err := pyexp.New(spec.Expression, engine)
 	if err != nil {
 		return fmt.Errorf("failed to create expression runtime: %w", err)
 	}

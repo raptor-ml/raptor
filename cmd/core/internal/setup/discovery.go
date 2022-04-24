@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package setup
 
 import (
 	"context"
@@ -44,23 +44,23 @@ func getInClusterNamespace() (string, error) {
 	return string(namespace), nil
 }
 
-func detectAccessor(c client.Client) (string, error) {
+func discoverAccessor(c client.Client) (string, error) {
 	ns, err := getInClusterNamespace()
 	if err != nil {
 		return "", err
 	}
 
-	var svc *corev1.Service
-	if err := c.Get(context.TODO(), client.ObjectKey{Name: "core", Namespace: ns}, svc); err != nil {
+	var lst corev1.ServiceList
+	if err := c.List(context.TODO(), &lst, client.InNamespace(ns), client.MatchingLabels{"app": "core"}); err != nil {
 		return "", fmt.Errorf("error getting accessor service: %w", err)
 	}
 
-	port := 70000
-	for _, p := range svc.Spec.Ports {
-		if p.Name == "grpc" {
-			port = int(p.Port)
-			break
+	for _, svc := range lst.Items {
+		for _, p := range svc.Spec.Ports {
+			if p.Name == "grpc" {
+				return fmt.Sprintf("%s.%s.svc:%d", svc.GetName(), svc.GetNamespace(), p.Port), nil
+			}
 		}
 	}
-	return fmt.Sprintf("%s.%s:%d", svc.GetName(), svc.GetName(), port), nil
+	return "", fmt.Errorf("no accessor service found")
 }

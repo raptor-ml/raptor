@@ -108,10 +108,10 @@ func (e *engine) Metadata(ctx context.Context, fqn string) (api.Metadata, error)
 func (e *engine) featureForRequest(ctx context.Context, fqn string) (*Feature, context.Context, context.CancelFunc, error) {
 	fqn, fn := api.FQNToRealFQN(fqn)
 	if f, ok := e.features.Load(fqn); ok {
-		if f, ok := f.(Feature); ok {
+		if f, ok := f.(*Feature); ok {
 			ctx, cancel := f.Context(ctx, e.Logger())
 			ctx = api.ContextWithWindowFn(ctx, fn)
-			return &f, ctx, cancel, nil
+			return f, ctx, cancel, nil
 		}
 	}
 	return nil, ctx, nil, fmt.Errorf("%w: %s", api.ErrFeatureNotFound, fqn)
