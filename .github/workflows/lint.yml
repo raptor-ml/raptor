@@ -19,13 +19,6 @@ jobs:
           go-version: '^1.18'
       - name: Clone the code
         uses: actions/checkout@v3
-      - name: Cache binaries
-        uses: actions/cache@v3
-        with:
-          path: bin/
-          key: ${{ runner.os }}-bin-${{ hashFiles('bin/**') }}
-          restore-keys: |
-            ${{ runner.os }}-bin-
       - name: Cache go dependencies
         uses: actions/cache@v3
         with:
@@ -35,9 +28,6 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      - name: Make generate
-        run: make generate
-        shell: bash
       - name: Run linter
         uses: golangci/golangci-lint-action@v3
         with:
