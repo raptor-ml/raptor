@@ -314,6 +314,7 @@ catalog-push: ## Push a catalog image.
 .PHONY: check-license-headers
 check-license:  ## Check the headers for the license.
 	./hack/check-headers-for-license.sh
+	./hack/licenses-check-allowed.sh
 
 BUF ?= $(LOCALBIN)/buf
 .PHONY: buf
@@ -322,7 +323,7 @@ $(BUF):
 	GOBIN=$(LOCALBIN) go install github.com/bufbuild/buf/cmd/buf@latest
 
 .PHONY: lint
-lint: golangci-lint buf ## Run golangci-lint linter
+lint: fmt golangci-lint buf check-license ## Run golangci-lint linter
 	$(GOLANGCI_LINT) run
 	$(BUF) lint proto
 
