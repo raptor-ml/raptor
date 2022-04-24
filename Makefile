@@ -145,9 +145,9 @@ LDFLAGS += -X github.com/natun-ai/natun/internal/plugins/builders/streaming.runn
 
 .PHONY: build
 build: generate fmt lint ## Build core binary.
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o bin/core cmd/core/*
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o bin/historian cmd/historian/*
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o bin/runtime cmd/runtime/*
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o bin/core cmd/core/*.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o bin/historian cmd/historian/*.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o bin/runtime cmd/runtime/*.go
 
 .PHONY: run
 run: manifests generate fmt lint ## Run a controller from your host.
