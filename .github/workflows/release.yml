@@ -60,7 +60,8 @@ jobs:
           make generate bundle installer build \
             VERSION=${{ steps.version.outputs.version }} \
             BUNDLE_VERSION=${{ steps.version.outputs.version_tag }} \
-            CHANNELS=${{ github.event.inputs.release_type }}
+            CHANNELS=${{ github.event.inputs.release_type }} \
+            ENV=prod
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:

@@ -141,7 +141,7 @@ test: manifests generate fmt lint envtest ## Run tests.
 
 STREAMING_RUNTIME_VERSION ?=$(VERSION)
 STREAMING_VERSION ?= latest
-#LDFLAGS ?= -s -w
+LDFLAGS ?= -s -w
 LDFLAGS += -X github.com/natun-ai/natun/internal/version.Version=$(VERSION)
 LDFLAGS += -X github.com/natun-ai/natun/internal/plugins/builders/streaming.runtimeVer=$(STREAMING_RUNTIME_VERSION)
 LDFLAGS += -X github.com/natun-ai/natun/internal/plugins/builders/streaming.runnerImg=ghcr.io/natun-ai/streaming-runner:$(STREAMING_VERSION)
@@ -197,6 +197,7 @@ update_images_pre: ## Update images in the manifests.
 	cd config/core && $(KUSTOMIZE) edit set image controller=${CORE_IMG_BASE}:${VERSION}
 	cd config/historian && $(KUSTOMIZE) edit set image historian=${HISTORIAN_IMG_BASE}:${VERSION}
 
+.PHONY: update_images_post
 .PHONY: update_images_post
 update_images_post: ## Update images in the manifests.
 	cd config/core && $(KUSTOMIZE) edit set image controller=${CORE_IMG_BASE}:latest
