@@ -1,0 +1,20 @@
+spec:
+  template:
+    spec:
+      containers:
+        - name: historian
+          args:
+            - -r=redis-standalone.default:6379
+            - "--s3-bucket=natun-test"
+            - "--aws-region=eu-west-1"
+          env:
+            - name: AWS_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-creds
+                  key: AWS_ACCESS_KEY
+            - name: AWS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aws-creds
+                  key: AWS_SECRET_KEY

@@ -1,0 +1,7 @@
+spec:
+  template:
+    spec:
+      containers:
+        - name: core
+          args:
+            - -r=redis-standalone.default:6379
