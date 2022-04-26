@@ -26,6 +26,7 @@ import (
 	"github.com/natun-ai/natun/api"
 	natunApi "github.com/natun-ai/natun/api/v1alpha1"
 	"github.com/natun-ai/natun/internal/engine"
+	"k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -50,13 +51,28 @@ type ctxKey string
 
 const admissionRequestContextKey ctxKey = "AdmissionRequest"
 
+type validatorWrapper struct {
+	admission.Handler
+}
+
+func (h *validatorWrapper) InjectDecoder(d *admission.Decoder) error {
+	if di, ok := h.Handler.(admission.DecoderInjector); ok {
+		return di.InjectDecoder(d)
+	}
+	return nil
+}
+func (h *validatorWrapper) Handle(ctx context.Context, req admission.Request) admission.Response {
+	ctx = context.WithValue(ctx, admissionRequestContextKey, req.AdmissionRequest)
+	return h.Handler.Handle(ctx, req)
+}
+
 func SetupFeatureWebhook(mgr ctrl.Manager, updatesAllowed bool) {
-	wh := admission.WithCustomValidator(&natunApi.Feature{}, &validator{updatesAllowed: updatesAllowed})
-	handler := wh.Handler
-	wh.Handler = admission.HandlerFunc(func(ctx context.Context, req admission.Request) admission.Response {
-		ctx = context.WithValue(ctx, admissionRequestContextKey, req.AdmissionRequest)
-		return handler.Handle(ctx, req)
+	wh := admission.WithCustomValidator(&natunApi.Feature{}, &validator{
+		updatesAllowed: updatesAllowed,
+		client:         mgr.GetClient(),
+		logger:         mgr.GetLogger().WithName("feature-webhook"),
 	})
+	wh.Handler = &validatorWrapper{Handler: wh.Handler}
 
 	gvk := natunApi.GroupVersion.WithKind("Feature")
 	mgr.GetWebhookServer().Register(generateValidatePath(gvk), wh)
@@ -71,10 +87,11 @@ func (v *validator) ValidateCreate(ctx context.Context, obj runtime.Object) erro
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (v *validator) ValidateUpdate(ctx context.Context, _, newObj runtime.Object) error {
+func (v *validator) ValidateUpdate(ctx context.Context, oldObject, newObj runtime.Object) error {
 	f := newObj.(*natunApi.Feature)
+	old := oldObject.(*natunApi.Feature)
 	v.logger.Info("validate update", "name", f.GetName())
-	if !v.updatesAllowed {
+	if !equality.Semantic.DeepEqual(old.Spec, f.Spec) && !v.updatesAllowed {
 		return fmt.Errorf("features are immutable in production")
 	}
 
@@ -121,7 +138,7 @@ func (v *validator) Validate(ctx context.Context, f *natunApi.Feature) error {
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (v *validator) ValidateDelete(ctx context.Context, obj runtime.Object) error {
+func (v *validator) ValidateDelete(_ context.Context, obj runtime.Object) error {
 	f := obj.(*natunApi.Feature)
 	v.logger.Info("validate delete", "name", f.GetName())
 
