@@ -16,6 +16,11 @@ limitations under the License.
 
 package setup
 
+// +kubebuilder:rbac:groups=cert-manager.io,resources=issuers;certificates,verbs=get;create;update;patch;delete;watch;list
+// +kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs=get;update;patch;watch;list
+// +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=validatingwebhookconfigurations,verbs=get;update;patch;list;watch
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;create;update;patch;list;watch
+
 import (
 	"context"
 	"fmt"
@@ -92,10 +97,6 @@ func dnsName(ns string) string {
 	return fmt.Sprintf("%s.%s.svc", serviceName, ns)
 }
 
-// +kubebuilder:rbac:groups=cert-manager.io,resources=issuers;certificates,verbs=get;create;update;patch;delete;watch;list
-// +kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs=get;update;patch;watch;list
-// +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=validatingwebhookconfigurations,verbs=get;update;patch;list;watch
-// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;create;update;patch;list;watch
 func certManagerRunnable(client client.Client, scheme *runtime.Scheme, ns string, isReady chan struct{}) manager.RunnableFunc {
 	return func(ctx context.Context) error {
 		logger := setupLog.WithName("certs-with-cert-manager")

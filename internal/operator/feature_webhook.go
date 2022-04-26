@@ -16,6 +16,8 @@ limitations under the License.
 
 package operator
 
+// +kubebuilder:webhook:path=/validate-k8s-natun-ai-v1alpha1-feature,mutating=false,failurePolicy=fail,sideEffects=None,groups=k8s.natun.ai,resources=features,verbs=create;update,versions=v1alpha1,name=vfeature.kb.io,admissionReviewVersions=v1
+
 import (
 	"context"
 	"encoding/json"
@@ -33,7 +35,6 @@ import (
 	"strings"
 )
 
-// +kubebuilder:webhook:path=/validate-k8s-natun-ai-v1alpha1-feature,mutating=false,failurePolicy=fail,sideEffects=None,groups=k8s.natun.ai,resources=features,verbs=create;update,versions=v1alpha1,name=vfeature.kb.io,admissionReviewVersions=v1
 type validator struct {
 	client         client.Client
 	logger         logr.Logger

@@ -16,6 +16,8 @@ limitations under the License.
 
 package controllers
 
+// +kubebuilder:rbac:groups=k8s.natun.ai,resources=dataconnectors,verbs=get;list;watch
+
 import (
 	"context"
 	"github.com/natun-ai/natun/api"
@@ -39,8 +41,6 @@ type DataConnectorReconciler struct {
 	Scheme        *runtime.Scheme
 	EngineManager api.DataConnectorManager
 }
-
-//+kubebuilder:rbac:groups=k8s.natun.ai,resources=dataconnectors,verbs=get;list;watch
 
 // Reconcile is the main function of the reconciler.
 func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {

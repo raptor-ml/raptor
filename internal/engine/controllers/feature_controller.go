@@ -16,6 +16,8 @@ limitations under the License.
 
 package controllers
 
+// +kubebuilder:rbac:groups=k8s.natun.ai,resources=features,verbs=get;list;watch
+
 import (
 	"context"
 	"github.com/natun-ai/natun/api"
@@ -40,8 +42,6 @@ type FeatureReconciler struct {
 	UpdatesAllowed bool
 	EngineManager  api.FeatureManager
 }
-
-//+kubebuilder:rbac:groups=k8s.natun.ai,resources=features,verbs=get;list;watch
 
 // Reconcile is the main function of the reconciler.
 func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {

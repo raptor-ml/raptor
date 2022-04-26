@@ -16,6 +16,9 @@ limitations under the License.
 
 package stats
 
+// +kubebuilder:rbac:groups="",resources=nodes,verbs=list;watch;get
+// +kubebuilder:rbac:groups="",resources=namespaces,verbs=get;list;watch
+
 import (
 	"context"
 	"crypto/sha256"
@@ -64,7 +67,6 @@ func init() {
 	}
 }
 
-// +kubebuilder:rbac:groups="",resources=nodes,verbs=list;watch;get
 func Run(cfg *rest.Config, kc client.Client, usageReporting bool, logger logr.Logger) NoLeaderRunnableFunc {
 	return func(ctx context.Context) error {
 		// Kubernetes server version
