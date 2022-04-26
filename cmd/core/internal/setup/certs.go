@@ -29,6 +29,7 @@ import (
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"net/http"
@@ -67,7 +68,8 @@ func Certs(mgr manager.Manager, certsReady chan struct{}) {
 	gvk := certApi.SchemeGroupVersion.WithKind(certApi.IssuerKind)
 	_, err = mgr.GetClient().RESTMapper().RESTMapping(gvk.GroupKind(), gvk.Version)
 	if err == nil {
-		err := mgr.Add(certManagerRunnable(mgr.GetClient(), ns, upstreamReady))
+		setupLog.Info("Cert-manager detected")
+		err := mgr.Add(certManagerRunnable(mgr.GetClient(), mgr.GetScheme(), ns, upstreamReady))
 		OrFail(err, "Failed to add cert-manager runnable")
 		return
 	}
@@ -90,14 +92,29 @@ func dnsName(ns string) string {
 	return fmt.Sprintf("%s.%s.svc", serviceName, ns)
 }
 
-// +kubebuilder:rbac:groups=cert-manager.io,resources=issuers;certificates,namespace=natun-system,verbs=get;create;update;patch;delete
-// +kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs=get;update;patch
-// +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=validatingwebhookconfigurations,verbs=get;update;patch;list
-// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;create;update;patch;list;watch,namespace=natun-system
-func certManagerRunnable(client client.Client, ns string, isReady chan struct{}) manager.RunnableFunc {
+// +kubebuilder:rbac:groups=cert-manager.io,resources=issuers;certificates,verbs=get;create;update;patch;delete;watch;list
+// +kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs=get;update;patch;watch;list
+// +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=validatingwebhookconfigurations,verbs=get;update;patch;list;watch
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get;create;update;patch;list;watch
+func certManagerRunnable(client client.Client, scheme *runtime.Scheme, ns string, isReady chan struct{}) manager.RunnableFunc {
 	return func(ctx context.Context) error {
 		logger := setupLog.WithName("certs-with-cert-manager")
 		logger.Info("Setting up certificate with Cert-Manager")
+
+		err := certApi.AddToScheme(scheme)
+		if err != nil {
+			return fmt.Errorf("unable to add cert-manager api to scheme: %w", err)
+		}
+
+		err = apiextensionsv1.AddToScheme(scheme)
+		if err != nil {
+			return fmt.Errorf("unable to add apiextensions api to scheme: %w", err)
+		}
+
+		err = admissionregistrationv1.AddToScheme(scheme)
+		if err != nil {
+			return fmt.Errorf("unable to add admissionregistration api to scheme: %w", err)
+		}
 
 		g, ctx := errgroup.WithContext(context.Background())
 
@@ -153,15 +170,22 @@ func certManagerRunnable(client client.Client, ns string, isReady chan struct{})
 			logger.Info("Injecting certificate to the CRD")
 
 			crd := apiextensionsv1.CustomResourceDefinition{}
-			gk := natunApi.GroupVersion.WithKind("Feature").GroupKind()
-			err := client.Get(ctx, types.NamespacedName{Name: gk.String()}, &crd)
+			gr := natunApi.GroupVersion.WithResource("features").GroupResource()
+			err := client.Get(ctx, types.NamespacedName{Name: gr.String()}, &crd)
 			if err != nil {
 				logger.Error(err, "Failed to get CRD")
 				return err
 			}
+			changed := false
 			if v, ok := crd.Annotations["cert-manager.io/inject-ca-from"]; !ok || v != injectName {
 				crd.Annotations["cert-manager.io/inject-ca-from"] = injectName
-				crd.Annotations["csi.cert-manager.io/certificate-file"] = injectName
+				changed = true
+			}
+			if v, ok := crd.Annotations["csi.cert-manager.io/certificate-file"]; !ok || v != certFileName {
+				crd.Annotations["csi.cert-manager.io/certificate-file"] = certFileName
+				changed = true
+			}
+			if changed {
 				err = client.Update(ctx, &crd)
 				if err != nil {
 					logger.Error(err, "Failed to update CRD")
@@ -181,8 +205,16 @@ func certManagerRunnable(client client.Client, ns string, isReady chan struct{})
 				logger.Error(err, "Failed to get validating webhook configuration")
 				return err
 			}
+			changed := false
 			if v, ok := vwc.Annotations["cert-manager.io/inject-ca-from"]; !ok || v != injectName {
 				vwc.Annotations["cert-manager.io/inject-ca-from"] = injectName
+				changed = true
+			}
+			if v, ok := vwc.Annotations["csi.cert-manager.io/certificate-file"]; !ok || v != certFileName {
+				vwc.Annotations["csi.cert-manager.io/certificate-file"] = certFileName
+				changed = true
+			}
+			if changed {
 				err = client.Update(ctx, &vwc)
 				if err != nil {
 					logger.Error(err, "Failed to update ValidatingWebhookConfiguration")
@@ -192,7 +224,7 @@ func certManagerRunnable(client client.Client, ns string, isReady chan struct{})
 			return nil
 		})
 
-		err := g.Wait()
+		err = g.Wait()
 		if err != nil {
 			return fmt.Errorf("failed to create Certificate using Cert-Manager: %w", err)
 		}

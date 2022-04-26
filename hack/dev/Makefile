@@ -89,8 +89,8 @@ setup-redis: ## Install redis cluster
 
 .PHONY: setup-certmanager
 setup-certmanager: ## Setup cert-manager
-	$(KUBECTL) apply -f https://github.com/jetstack/cert-manager/releases/download/v1.6.1/cert-manager.yaml
-	$(KUBECTL) wait --namespace cert-manager --for=condition=ready pod --selector=app=cert-manager --timeout=120s
+	$(KUBECTL) apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.8.0/cert-manager.yaml
+	$(KUBECTL) wait --namespace cert-manager --for=condition=ready pod --selector=app.kubernetes.io/name=cert-manager --timeout=120s
 
 .PHONY: delete-local-cluster
 delete-local-cluster: ## Delete local kind cluster
@@ -105,7 +105,6 @@ _unsafe_delete-cluster:
 
 .PHONY: rollout-natun
 rollout-natun: setup-redis ## build & deploy operator to cluster
-	#cd ${PROJECT_DIR} && $(MAKE) deploy
 	cd ${PROJECT_DIR} && $(MAKE) docker-build kind-load deploy
 	$(KUBECTL) scale deployment natun-controller-core --replicas 0
 	$(KUBECTL) scale deployment natun-historian --replicas 0
