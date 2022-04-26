@@ -35,7 +35,7 @@ import (
 // It is used to ensure the EngineManager's state is synchronized with the CustomResources.
 //
 // For the creation and modification external resources, the operator's controller is used.
-// For the operator's controller see the `internal/operator/feature_controller.go` file
+// For the operator's controller see the `internal/operator/dataconnector_controller.go` file
 type DataConnectorReconciler struct {
 	client.Reader
 	Scheme        *runtime.Scheme
@@ -88,7 +88,7 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	return ctrl.Result{}, nil
 }
 
-// SetupWithManager sets up the controller with the FeatureManager.
+// SetupWithManager sets up the controller with the Manager.
 func (r *DataConnectorReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return attachCoreConnector(r, &natunApi.Feature{}, true, mgr)
+	return attachCoreConnector(r, &natunApi.DataConnector{}, true, mgr)
 }
