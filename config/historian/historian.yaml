@@ -4,7 +4,7 @@ metadata:
   name: historian
   namespace: system
   labels:
-    control-plane: historian
+    app.kubernetes.io/part-of: natun
 spec:
   selector:
     matchLabels:
@@ -24,6 +24,7 @@ spec:
         command:
         - /historian
         image: historian:latest
+        imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true

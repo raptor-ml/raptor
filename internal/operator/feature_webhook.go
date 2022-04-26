@@ -49,23 +49,16 @@ type ctxKey string
 
 const admissionRequestContextKey ctxKey = "AdmissionRequest"
 
-func SetupFeatureWebhook(mgr ctrl.Manager, updatesAllowed bool) error {
-	ft := &natunApi.Feature{}
-	wh := admission.WithCustomValidator(ft, &validator{})
+func SetupFeatureWebhook(mgr ctrl.Manager, updatesAllowed bool) {
+	wh := admission.WithCustomValidator(&natunApi.Feature{}, &validator{updatesAllowed: updatesAllowed})
 	handler := wh.Handler
 	wh.Handler = admission.HandlerFunc(func(ctx context.Context, req admission.Request) admission.Response {
 		ctx = context.WithValue(ctx, admissionRequestContextKey, req.AdmissionRequest)
 		return handler.Handle(ctx, req)
 	})
 
-	mgr.GetWebhookServer().Register(generateValidatePath(ft.GroupVersionKind()), wh)
-	return ctrl.NewWebhookManagedBy(mgr).
-		WithValidator(&validator{
-			client:         mgr.GetClient(),
-			logger:         mgr.GetLogger().WithName("feature-validator"),
-			updatesAllowed: updatesAllowed,
-		}).
-		Complete()
+	gvk := natunApi.GroupVersion.WithKind("Feature")
+	mgr.GetWebhookServer().Register(generateValidatePath(gvk), wh)
 }
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type

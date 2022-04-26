@@ -33,7 +33,7 @@ func init() {
 func NotifierFactory[T api.Notification](viper *viper.Viper) (api.Notifier[T], error) {
 	rc, err := redisClient(viper)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create redis client: %w", err)
 	}
 	return &notifier[T]{
 		client: rc,

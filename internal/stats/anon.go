@@ -47,6 +47,7 @@ func getInClusterNamespace() (string, error) {
 
 var anonID = ""
 
+// +kubebuilder:rbac:groups="",resources=namespaces,verbs=get
 func getAnonID(kc client.Client) string {
 	if anonID != "" {
 		return anonID

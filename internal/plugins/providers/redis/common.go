@@ -26,6 +26,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -57,6 +58,9 @@ func redisClient(viper *viper.Viper) (redis.UniversalClient, error) {
 	if len(addrs) == 0 {
 		return nil, fmt.Errorf("redis: no redis addresses provided")
 	}
+	for i := range addrs {
+		addrs[i] = strings.TrimSpace(addrs[i])
+	}
 
 	return redis.NewUniversalClient(&redis.UniversalOptions{
 		Addrs:            addrs,
@@ -67,24 +71,25 @@ func redisClient(viper *viper.Viper) (redis.UniversalClient, error) {
 		SentinelPassword: viper.GetString("redis-sentinel-pass"),
 		MasterName:       viper.GetString("redis-master"),
 		TLSConfig:        redisTLS,
+		MaxRetries:       3,
 	}), nil
 }
 
 func StateFactory(viper *viper.Viper) (api.State, error) {
 	rc, err := redisClient(viper)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create redis client: %w", err)
 	}
 	// Load Lua scripts in advance. This is useful in case we have permissions issue, so we'll detect it in advance.
 	err = scripts.Load(rc)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to load redis scripts: %w", err)
 	}
 
 	return &state{rc}, nil
 }
 func BindConfig(set *pflag.FlagSet) error {
-	set.StringArrayP("redis", "r", []string{}, "Redis URI")
+	set.StringArrayP("redis", "r", []string{}, "Redis servers")
 	set.String("redis-user", "", "Redis username")
 	set.String("redis-pass", "", "Redis password")
 	set.String("redis-sentinel-user", "", "Redis Sentinel username")

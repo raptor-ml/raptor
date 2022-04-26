@@ -17,17 +17,20 @@ limitations under the License.
 package setup
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
-	corev1 "k8s.io/api/core/v1"
 	"os"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const inClusterNamespacePath = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
 
+var inClusterNamespace string = "natun-system"
+
 func getInClusterNamespace() (string, error) {
+	if inClusterNamespace != "" {
+		return inClusterNamespace, nil
+	}
+
 	// Check whether the namespace file exists.
 	// If not, we are not running in cluster so can't guess the namespace.
 	if _, err := os.Stat(inClusterNamespacePath); os.IsNotExist(err) {
@@ -41,26 +44,7 @@ func getInClusterNamespace() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error reading namespace file: %w", err)
 	}
-	return string(namespace), nil
-}
 
-func discoverAccessor(c client.Client) (string, error) {
-	ns, err := getInClusterNamespace()
-	if err != nil {
-		return "", err
-	}
-
-	var lst corev1.ServiceList
-	if err := c.List(context.TODO(), &lst, client.InNamespace(ns), client.MatchingLabels{"app": "core"}); err != nil {
-		return "", fmt.Errorf("error getting accessor service: %w", err)
-	}
-
-	for _, svc := range lst.Items {
-		for _, p := range svc.Spec.Ports {
-			if p.Name == "grpc" {
-				return fmt.Sprintf("%s.%s.svc:%d", svc.GetName(), svc.GetNamespace(), p.Port), nil
-			}
-		}
-	}
-	return "", fmt.Errorf("no accessor service found")
+	inClusterNamespace = string(namespace)
+	return inClusterNamespace, nil
 }

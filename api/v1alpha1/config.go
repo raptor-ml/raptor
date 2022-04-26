@@ -30,6 +30,7 @@ import (
 )
 
 // +kubebuilder:object:generate=false
+// +kubebuilder:rbac:groups="",resources=secrets,verbs=get
 
 // ParsedConfig is a parsed configuration
 type ParsedConfig map[string]string

@@ -88,8 +88,7 @@ func operatorControllers(mgr manager.Manager) {
 
 	coreAddr := viper.GetString("accessor-service")
 	if coreAddr == "" {
-		coreAddr, err = discoverAccessor(mgr.GetClient())
-		OrFail(err, "failed to detect accessor")
+		coreAddr = "natun-core-service.natun-system.svc"
 	}
 
 	err = (&opctrl.DataConnectorReconciler{
@@ -105,11 +104,10 @@ func operatorControllers(mgr manager.Manager) {
 	}).SetupWithManager(mgr)
 	OrFail(err, "unable to create controller", "operator", "Feature")
 
-	err = opctrl.SetupFeatureWebhook(mgr, updatesAllowed)
-	OrFail(err, "unable to create webhook", "webhook", "Feature")
+	opctrl.SetupFeatureWebhook(mgr, updatesAllowed)
 }
 
-func Core(mgr manager.Manager) {
+func Core(mgr manager.Manager, certsReady chan struct{}) {
 	// Setup usage reporting
 	setupStats(mgr)
 
@@ -118,7 +116,7 @@ func Core(mgr manager.Manager) {
 
 	// Create the state
 	state, err := plugin.NewState(viper.GetString("state-provider"), viper.GetViper())
-	OrFail(err, fmt.Sprintf("failed to create state for provider %s", viper.GetString("provider")))
+	OrFail(err, fmt.Sprintf("failed to create state for provider %s", viper.GetString("state-provider")))
 	healthChecks = append(healthChecks, func(req *http.Request) error {
 		return state.Ping(req.Context())
 	})
@@ -133,6 +131,19 @@ func Core(mgr manager.Manager) {
 		mgr.Add(acc.HTTP(viper.GetString("accessor-http-address"), viper.GetString("accessor-http-prefix"))),
 		"unable to start HTTP accessor")
 
-	coreControllers(mgr, eng)
-	operatorControllers(mgr)
+	// The call to mgr.Start will never return, but the certs won't be ready until the manager starts
+	// and we can't set up the webhooks without them (the webhook server runnable will try to read the
+	// certs, and if those certs don't exist, the entire process will exit). So start a goroutine
+	// which will wait until the certs are ready, and then create the rest of the HNC controllers.
+	go func() {
+		// The controllers won't work until the webhooks are operating, and those won't work until the
+		// certs are all in place.
+		setupLog.Info("Waiting for certificate generation to complete")
+		<-certsReady
+
+		setupLog.Info("Certs ready")
+
+		coreControllers(mgr, eng)
+		operatorControllers(mgr)
+	}()
 }

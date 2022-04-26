@@ -64,6 +64,7 @@ func init() {
 	}
 }
 
+// +kubebuilder:rbac:groups="",resources=nodes,verbs=list;watch;get
 func Run(cfg *rest.Config, kc client.Client, usageReporting bool, logger logr.Logger) NoLeaderRunnableFunc {
 	return func(ctx context.Context) error {
 		// Kubernetes server version

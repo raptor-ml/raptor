@@ -40,7 +40,7 @@ type DataConnectorReconciler struct {
 	EngineManager api.DataConnectorManager
 }
 
-//+kubebuilder:rbac:groups=k8s.natun.ai,resources=features,verbs=get;list;watch
+//+kubebuilder:rbac:groups=k8s.natun.ai,resources=dataconnectors,verbs=get;list;watch
 
 // Reconcile is the main function of the reconciler.
 func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {

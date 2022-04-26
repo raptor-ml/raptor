@@ -10,7 +10,7 @@ images:
   newTag: latest
 
 replicas:
-- count: 2
+- count: 1
   name: historian
 
 apiVersion: kustomize.config.k8s.io/v1beta1

@@ -1,6 +1,5 @@
 ### Historian
 FROM gcr.io/distroless/static:nonroot as historian
-ARG APP
 WORKDIR /
 COPY bin/historian .
 USER 65532:65532

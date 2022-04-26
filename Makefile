@@ -62,9 +62,11 @@ ifeq ($(ENV),prod)
   CONTEXT ?= gke_natun-test_europe-west3-a_natun-test
   $(info $(shell tput setaf 1)-+-+ PROD MODE -+-+$(shell tput sgr0))
 else
-  CONTEXT ?= kind-kind
+  CONTEXT ?= kind-natun
   $(info $(shell tput setaf 2)+-+- DEV MODE +-+-$(shell tput sgr0))
 endif
+KUBECTL = kubectl --context='${CONTEXT}'
+
 $(info $(shell tput setaf 3)Context: $(shell tput sgr0)$(CONTEXT))
 $(info $(shell tput setaf 3)Version: $(shell tput sgr0)$(VERSION))
 $(info $(shell tput setaf 3)Base Image: $(shell tput sgr0)$(IMAGE_BASE))
@@ -72,6 +74,7 @@ $(info $(shell tput setaf 3)Core Image: $(shell tput sgr0)$(CORE_IMG_BASE))
 $(info $(shell tput setaf 3)Historian Image: $(shell tput sgr0)$(HISTORIAN_IMG_BASE))
 $(info $(shell tput setaf 3)Bundle Image: $(shell tput sgr0)$(BUNDLE_IMG))
 $(info )
+
 .DEFAULT_GOAL := help
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
@@ -138,13 +141,13 @@ test: manifests generate fmt lint envtest ## Run tests.
 
 STREAMING_RUNTIME_VERSION ?=$(VERSION)
 STREAMING_VERSION ?= latest
-LDFLAGS ?= -s -w
+#LDFLAGS ?= -s -w
 LDFLAGS += -X github.com/natun-ai/natun/internal/version.Version=$(VERSION)
 LDFLAGS += -X github.com/natun-ai/natun/internal/plugins/builders/streaming.runtimeVer=$(STREAMING_RUNTIME_VERSION)
 LDFLAGS += -X github.com/natun-ai/natun/internal/plugins/builders/streaming.runnerImg=ghcr.io/natun-ai/streaming-runner:$(STREAMING_VERSION)
 
 .PHONY: build
-build: generate fmt lint ## Build core binary.
+build: generate ## Build core binary.
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o bin/core cmd/core/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o bin/historian cmd/historian/*.go
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o bin/runtime cmd/runtime/*.go
@@ -154,7 +157,7 @@ run: manifests generate fmt lint ## Run a controller from your host.
 	go run ./cmd/natun/*
 
 .PHONY: docker-build
-docker-build: build test ## Build docker images.
+docker-build: build ## Build docker images.
 	docker build -t ${CORE_IMG_BASE}:${VERSION}  -t ${CORE_IMG_BASE}:latest -f hack/release.Dockerfile --target core .
 	docker build -t ${RUNTIME_IMG_BASE}:${VERSION} -t ${RUNTIME_IMG_BASE}:latest -f hack/release.Dockerfile --target runtime .
 	docker build -t ${HISTORIAN_IMG_BASE}:${VERSION} -t ${HISTORIAN_IMG_BASE}:latest -f hack/release.Dockerfile --target historian .
@@ -171,9 +174,9 @@ endif
 
 .PHONY: kind-load
 kind-load: ## Load docker images into kind.
-	kind load docker-image ${CORE_IMG_BASE}:${VERSION}
-	kind load docker-image ${HISTORIAN_IMG_BASE}:${VERSION}
-	kind load docker-image ${RUNTIME_IMG_BASE}:${VERSION}
+	kind load docker-image --name natun ${CORE_IMG_BASE}:${VERSION}
+	kind load docker-image --name natun ${HISTORIAN_IMG_BASE}:${VERSION}
+	kind load docker-image --name natun ${RUNTIME_IMG_BASE}:${VERSION}
 
 ##@ Deployment
 
@@ -183,11 +186,11 @@ endif
 
 .PHONY: install
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
-	$(KUSTOMIZE) build config/crd | kubectl --context=$(CONTEXT) apply -f -
+	$(KUSTOMIZE) build config/crd | $(KUBECTL) apply -f -
 
 .PHONY: uninstall
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/crd | kubectl --context=$(CONTEXT) delete --ignore-not-found=$(ignore-not-found) -f -
+	$(KUSTOMIZE) build config/crd | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: update_images_pre
 update_images_pre: ## Update images in the manifests.
@@ -201,12 +204,12 @@ update_images_post: ## Update images in the manifests.
 
 .PHONY: deploy
 deploy: manifests kustomize update_images_pre ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	$(KUSTOMIZE) build config/default | kubectl --context=$(CONTEXT) apply -f -
+	$(KUSTOMIZE) build config/default | $(KUBECTL) apply -f -
 	$(MAKE) update_images_post
 
 .PHONY: undeploy
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+	$(KUSTOMIZE) build config/default | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: installer
 installer: manifests kustomize update_images_pre ## Create a kustomization file for the installer.

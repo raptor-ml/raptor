@@ -19,7 +19,6 @@ package main
 import (
 	"github.com/natun-ai/natun/cmd/core/internal/setup"
 	"github.com/spf13/viper"
-	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"os"
 
 	"github.com/natun-ai/natun/internal/version"
@@ -57,22 +56,23 @@ func main() {
 
 	// Set up a Manager
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                        scheme,
-		MetricsBindAddress:            viper.GetString("metrics-bind-address"),
-		Port:                          9443,
-		HealthProbeBindAddress:        viper.GetString("health-probe-bind-address"),
-		LeaderElection:                viper.GetBool("leader-elect"),
-		LeaderElectionResourceLock:    resourcelock.LeasesResourceLock,
-		LeaderElectionID:              "core.natun.ai",
-		LeaderElectionReleaseOnCancel: true,
+		Scheme:                 scheme,
+		MetricsBindAddress:     viper.GetString("metrics-bind-address"),
+		Port:                   9443,
+		HealthProbeBindAddress: viper.GetString("health-probe-bind-address"),
+		LeaderElection:         viper.GetBool("leader-elect"),
+		//LeaderElectionResourceLock:    resourcelock.LeasesResourceLock,
+		LeaderElectionID: "core.natun.ai",
+		//LeaderElectionReleaseOnCancel: true,
 	})
 	setup.OrFail(err, "unable to start manager")
 
 	// Set Up certificates for the webhooks
-	setup.Certs(mgr)
+	certsReady := make(chan struct{})
+	setup.Certs(mgr, certsReady)
 
 	// Set up the Core
-	setup.Core(mgr)
+	setup.Core(mgr, certsReady)
 
 	// +kubebuilder:scaffold:builder
 

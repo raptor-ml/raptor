@@ -110,16 +110,12 @@ func (a *accessor) HTTP(addr string, prefix string) NoLeaderRunnableFunc {
 		mux := http.NewServeMux()
 		mux.Handle(prefix[:len(prefix)-1], http.StripPrefix(fmt.Sprintf("%s/", prefix), gwMux))
 
-		l, err := net.Listen("tcp", addr)
-		if err != nil {
-			return fmt.Errorf("failed to listen: %w", err)
-		}
-
-		a.logger.WithValues("kind", "http", "addr", l.Addr()).Info("Starting Accessor server")
+		a.logger.WithValues("kind", "http", "addr", addr).Info("Starting Accessor server")
+		srv := http.Server{Handler: mux, Addr: addr}
 		go func() {
 			<-ctx.Done()
-			_ = l.Close()
+			_ = srv.Shutdown(context.TODO())
 		}()
-		return http.Serve(l, mux)
+		return srv.ListenAndServe()
 	}
 }

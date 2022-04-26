@@ -3,6 +3,7 @@ kind: Namespace
 metadata:
   labels:
     control-plane: controller-core
+    app.kubernetes.io/part-of: natun
   name: system
 ---
 apiVersion: apps/v1
@@ -24,13 +25,17 @@ spec:
       labels:
         control-plane: controller-core
     spec:
-      securityContext:
-        runAsNonRoot: true
+#      securityContext:
+#        runAsNonRoot: true
       containers:
       - name: core
         command:
         - /core
+        - "--health-probe-bind-address=:8081"
+        - "--metrics-bind-address=127.0.0.1:8080"
+        - "--leader-elect"
         image: controller:latest
+        imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -39,6 +44,13 @@ spec:
             name: http
           - containerPort: 60001
             name: grpc
+          - containerPort: 9443
+            name: webhook-server
+            protocol: TCP
+        volumeMounts:
+          - mountPath: /tmp/k8s-webhook-server/serving-certs
+            name: cert
+            readOnly: true
         livenessProbe:
           httpGet:
             path: /healthz
@@ -58,5 +70,10 @@ spec:
           requests:
             cpu: 100m
             memory: 200Mi
+      volumes:
+        - name: cert
+          secret:
+            defaultMode: 420
+            secretName: webhook-server-cert
       serviceAccountName: controller-core
       terminationGracePeriodSeconds: 10

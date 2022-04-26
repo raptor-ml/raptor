@@ -3,7 +3,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: controller-core
+  name: historian
   namespace: system
 spec:
   template:
@@ -30,3 +30,4 @@ spec:
           requests:
             cpu: 5m
             memory: 64Mi
+

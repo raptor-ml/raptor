@@ -1,6 +1,7 @@
 resources:
 - core.yaml
 - service.yaml
+- webhook-server-cert.yaml
 
 generatorOptions:
   disableNameSuffixHash: true
