@@ -45,13 +45,6 @@ spec:
                   Users can specify here multiple functions to calculate the aggregation.
                   Valid values: - `count` - `min` - `mix` - `sum`` - `mean` (alias
                   for `avg`) - `avg`'
-                enum:
-                - count
-                - min
-                - max
-                - sum
-                - avg
-                - mean
                 items:
                   description: AggrType defines the type of aggregation
                   enum:

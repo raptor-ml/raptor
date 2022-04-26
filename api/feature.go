@@ -95,14 +95,16 @@ func MetadataFromManifest(in *manifests.Feature) (*Metadata, error) {
 	}
 
 	md := &Metadata{
-		FQN:           in.FQN(),
-		Primitive:     primitive,
-		Aggr:          aggr,
-		Freshness:     in.Spec.Freshness.Duration,
-		Staleness:     in.Spec.Staleness.Duration,
-		Timeout:       in.Spec.Timeout.Duration,
-		Builder:       strings.ToLower(in.Spec.Builder.Kind),
-		DataConnector: fmt.Sprintf("%s.%s", in.Spec.DataConnector.Name, in.Spec.DataConnector.Namespace),
+		FQN:       in.FQN(),
+		Primitive: primitive,
+		Aggr:      aggr,
+		Freshness: in.Spec.Freshness.Duration,
+		Staleness: in.Spec.Staleness.Duration,
+		Timeout:   in.Spec.Timeout.Duration,
+		Builder:   strings.ToLower(in.Spec.Builder.Kind),
+	}
+	if in.Spec.DataConnector != nil {
+		md.DataConnector = in.Spec.DataConnector.FQN()
 	}
 
 	if md.Builder == "" {

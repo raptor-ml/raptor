@@ -78,6 +78,10 @@ func (in *ResourceReference) ObjectKey() client.ObjectKey {
 	}
 }
 
+func (in *ResourceReference) FQN() string {
+	return fmt.Sprintf("%s.%s", in.Name, in.Namespace)
+}
+
 // DataConnectorStatus defines the observed state of DataConnector
 type DataConnectorStatus struct {
 	// Features includes a list of references for the Feature that uses this DataConnector
