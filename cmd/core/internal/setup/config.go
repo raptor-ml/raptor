@@ -44,8 +44,9 @@ func InitConfig() {
 		"You can use this to set a unique identifier for your cluster.")
 	pflag.String("state-provider", "redis", "The state provider.")
 	pflag.String("notifier-provider", "redis", "The notifier provider.")
-	pflag.Bool("disable-cert-management", false, "Setting this flag on will disable the automatically "+
-		"certificate binding to the K8s API webhook.")
+	pflag.Bool("disable-cert-management", false, "Setting this flag will disable the automatically "+
+		"certificate binding to the K8s API webhooks.")
+	pflag.Bool("no-webhooks", false, "Setting this flag will disable the K8s API webhook.")
 
 	zapOpts := zap.Options{}
 	zapOpts.BindFlags(flag.CommandLine)

@@ -104,7 +104,9 @@ func operatorControllers(mgr manager.Manager) {
 	}).SetupWithManager(mgr)
 	OrFail(err, "unable to create controller", "operator", "Feature")
 
-	opctrl.SetupFeatureWebhook(mgr, updatesAllowed)
+	if !viper.GetBool("no-webhooks") {
+		opctrl.SetupFeatureWebhook(mgr, updatesAllowed)
+	}
 }
 
 func Core(mgr manager.Manager, certsReady chan struct{}) {

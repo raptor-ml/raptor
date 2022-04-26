@@ -54,7 +54,7 @@ func Certs(mgr manager.Manager, certsReady chan struct{}) {
 			return fmt.Errorf("cert rotation not ready")
 		}
 	})
-	if viper.GetBool("disable-cert-management") {
+	if viper.GetBool("disable-cert-management") || viper.GetBool("no-webhooks") {
 		close(certsReady)
 		return
 	}
