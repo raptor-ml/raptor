@@ -20,7 +20,6 @@ package operator
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/natun-ai/natun/api"
@@ -99,19 +98,6 @@ func (v *validator) ValidateUpdate(ctx context.Context, oldObject, newObj runtim
 }
 
 func (v *validator) Validate(ctx context.Context, f *natunApi.Feature) error {
-	builder := f.Spec.Builder.Kind
-	if builder == "" {
-		builderType := &natunApi.FeatureBuilderKind{}
-		err := json.Unmarshal(f.Spec.Builder.Raw, builderType)
-		if err != nil {
-			return fmt.Errorf("failed to unmarshal builder type: %w", err)
-		}
-		builder = builderType.Kind
-	}
-	if builder == "" {
-		return fmt.Errorf("builder kind is empty")
-	}
-
 	dummyEngine := engine.Dummy{}
 
 	if f.Spec.DataConnector != nil {

@@ -41,6 +41,8 @@ func FeatureWithEngine(e api.EngineWithConnector, in *manifests.Feature) (*Featu
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		return nil, fmt.Errorf("no feature builder found for %s", ft.Builder)
 	}
 	return &ft, nil
 }
