@@ -66,6 +66,7 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			// if fail to delete, return with error, so that it can be retried
 			return ctrl.Result{}, err
 		}
+		return ctrl.Result{}, nil
 	}
 
 	if r.EngineManager.HasDataConnector(dc.FQN()) {
@@ -88,7 +89,7 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	return ctrl.Result{}, nil
 }
 
-// SetupWithManager sets up the controller with the Manager.
+// SetupWithManager sets up the controller with the Controller Manager.
 func (r *DataConnectorReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return attachCoreConnector(r, &natunApi.DataConnector{}, true, mgr)
 }

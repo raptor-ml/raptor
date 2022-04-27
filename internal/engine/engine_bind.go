@@ -25,6 +25,7 @@ import (
 )
 
 // FeatureWithEngine converts the k8s Feature CRD to the internal engine implementation.
+// This is useful as a standalone function for validating features.
 func FeatureWithEngine(e api.EngineWithConnector, in *manifests.Feature) (*Feature, error) {
 	md, err := api.MetadataFromManifest(in)
 	if err != nil {

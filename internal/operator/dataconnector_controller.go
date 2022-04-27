@@ -119,7 +119,7 @@ func (r *DataConnectorReconciler) reconcileRequest(conn *natunApi.DataConnector)
 	}
 }
 
-// SetupWithManager sets up the controller with the Manager.
+// SetupWithManager sets up the controller with the Controller Manager.
 func (r *DataConnectorReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&natunApi.DataConnector{}).
