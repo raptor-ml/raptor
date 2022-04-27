@@ -102,6 +102,11 @@ func (h *historian) BindFeature(in *manifests.Feature) error {
 		return fmt.Errorf("failed to parse metadata from CR: %w", err)
 	}
 
+	if md.Primitive == api.PrimitiveTypeHeadless {
+		// Headless features are not stored and not backed up to historical storage
+		return nil
+	}
+
 	if md.ValidWindow() {
 		h.collectTasks.queue.AddAfter(api.CollectNotification{
 			FQN:    md.FQN,

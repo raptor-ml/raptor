@@ -26,6 +26,10 @@ import (
 func (e *engine) getValueMiddleware() api.Middleware {
 	return func(next api.MiddlewareHandler) api.MiddlewareHandler {
 		return func(ctx context.Context, md api.Metadata, entityID string, val api.Value) (api.Value, error) {
+			if md.Primitive == api.PrimitiveTypeHeadless {
+				return next(ctx, md, entityID, val)
+			}
+
 			wf, err := api.WindowFnFromContext(ctx)
 			if err != nil {
 				return val, err
@@ -69,7 +73,7 @@ func (e *engine) cachePostGetMiddleware(f *Feature) api.Middleware {
 	return func(next api.MiddlewareHandler) api.MiddlewareHandler {
 		return func(ctx context.Context, md api.Metadata, entityID string, val api.Value) (api.Value, error) {
 			// If the value is nil, we should not cache the value.
-			if val.Value == nil || md.ValidWindow() {
+			if val.Value == nil || md.ValidWindow() || md.Primitive == api.PrimitiveTypeHeadless {
 				return next(ctx, md, entityID, val)
 			}
 
