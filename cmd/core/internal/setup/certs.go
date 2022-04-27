@@ -27,18 +27,19 @@ import (
 	certApi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	"github.com/go-logr/logr"
-	natunApi "github.com/natun-ai/natun/api/v1alpha1"
+	opctrl "github.com/natun-ai/natun/internal/operator"
 	"github.com/open-policy-agent/cert-controller/pkg/rotator"
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
-	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"net/http"
 	"os"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -88,10 +89,16 @@ const (
 	serviceName    = "natun-webhook-service"
 	caName         = "natun-ca"
 	caOrganization = "natun"
-	vwhName        = "natun-validating-webhook-configuration"
 	certDir        = "/tmp/k8s-webhook-server/serving-certs"
 	certFileName   = "tls.crt"
 )
+
+var webhooks = []rotator.WebhookInfo{
+	{
+		Type: rotator.Validating,
+		Name: opctrl.FeatureWebhookValidatePath,
+	},
+}
 
 func dnsName(ns string) string {
 	return fmt.Sprintf("%s.%s.svc", serviceName, ns)
@@ -105,16 +112,6 @@ func certManagerRunnable(client client.Client, scheme *runtime.Scheme, ns string
 		err := certApi.AddToScheme(scheme)
 		if err != nil {
 			return fmt.Errorf("unable to add cert-manager api to scheme: %w", err)
-		}
-
-		err = apiextensionsv1.AddToScheme(scheme)
-		if err != nil {
-			return fmt.Errorf("unable to add apiextensions api to scheme: %w", err)
-		}
-
-		err = admissionregistrationv1.AddToScheme(scheme)
-		if err != nil {
-			return fmt.Errorf("unable to add admissionregistration api to scheme: %w", err)
 		}
 
 		g, ctx := errgroup.WithContext(context.Background())
@@ -166,64 +163,50 @@ func certManagerRunnable(client client.Client, scheme *runtime.Scheme, ns string
 
 		// Inject the CA certificate
 		injectName := fmt.Sprintf("%s/%s", ns, certName)
-		g.Go(func() error {
-			logger := logger.WithName("inject-crd")
-			logger.Info("Injecting certificate to the CRD")
 
-			crd := apiextensionsv1.CustomResourceDefinition{}
-			gr := natunApi.GroupVersion.WithResource("features").GroupResource()
-			err := client.Get(ctx, types.NamespacedName{Name: gr.String()}, &crd)
-			if err != nil {
-				logger.Error(err, "Failed to get CRD")
-				return err
-			}
-			changed := false
-			if v, ok := crd.Annotations["cert-manager.io/inject-ca-from"]; !ok || v != injectName {
-				crd.Annotations["cert-manager.io/inject-ca-from"] = injectName
-				changed = true
-			}
-			if v, ok := crd.Annotations["csi.cert-manager.io/certificate-file"]; !ok || v != certFileName {
-				crd.Annotations["csi.cert-manager.io/certificate-file"] = certFileName
-				changed = true
-			}
-			if changed {
-				err = client.Update(ctx, &crd)
+		for _, wh := range webhooks {
+			wh := wh // https://golang.org/doc/faq#closures_and_goroutines
+			g.Go(func() error {
+				logger.Info("Injecting certificate", "webhook", wh.Name)
+
+				resource := &unstructured.Unstructured{}
+				switch wh.Type {
+				case rotator.Mutating:
+					resource.SetGroupVersionKind(schema.GroupVersionKind{Group: "admissionregistration.k8s.io", Version: "v1", Kind: "MutatingWebhookConfiguration"})
+				case rotator.Validating:
+					resource.SetGroupVersionKind(schema.GroupVersionKind{Group: "admissionregistration.k8s.io", Version: "v1", Kind: "ValidatingWebhookConfiguration"})
+				case rotator.APIService:
+					resource.SetGroupVersionKind(schema.GroupVersionKind{Group: "apiregistration.k8s.io", Version: "v1", Kind: "APIService"})
+				case rotator.CRDConversion:
+					resource.SetGroupVersionKind(schema.GroupVersionKind{Group: "apiextensions.k8s.io", Version: "v1", Kind: "CustomResourceDefinition"})
+				default:
+					return fmt.Errorf("unknown webhook type: %o", wh.Type)
+				}
+
+				err := client.Get(ctx, types.NamespacedName{Name: wh.Name}, resource)
 				if err != nil {
-					logger.Error(err, "Failed to update CRD")
+					logger.Error(err, "Failed to get resource", "webhook", wh.Name)
 					return err
 				}
-			}
-			return nil
-		})
 
-		g.Go(func() error {
-			logger := logger.WithName("inject-webhook-conf")
-			logger.Info("Injecting certificate to the ValidatingWebhookConfiguration")
-
-			vwc := admissionregistrationv1.ValidatingWebhookConfiguration{}
-			err := client.Get(ctx, types.NamespacedName{Name: vwhName, Namespace: ns}, &vwc)
-			if err != nil {
-				logger.Error(err, "Failed to get validating webhook configuration")
-				return err
-			}
-			changed := false
-			if v, ok := vwc.Annotations["cert-manager.io/inject-ca-from"]; !ok || v != injectName {
-				vwc.Annotations["cert-manager.io/inject-ca-from"] = injectName
-				changed = true
-			}
-			if v, ok := vwc.Annotations["csi.cert-manager.io/certificate-file"]; !ok || v != certFileName {
-				vwc.Annotations["csi.cert-manager.io/certificate-file"] = certFileName
-				changed = true
-			}
-			if changed {
-				err = client.Update(ctx, &vwc)
-				if err != nil {
-					logger.Error(err, "Failed to update ValidatingWebhookConfiguration")
-					return err
+				annots := make(map[string]string)
+				for v, k := range resource.GetAnnotations() {
+					annots[v] = k
 				}
-			}
-			return nil
-		})
+				annots["cert-manager.io/inject-ca-from"] = injectName
+				annots["csi.cert-manager.io/certificate-file"] = certFileName
+
+				if !reflect.DeepEqual(resource.GetAnnotations(), annots) {
+					resource.SetAnnotations(annots)
+					err = client.Update(ctx, resource)
+					if err != nil {
+						logger.Error(err, "Failed to update webhook", "webhook", wh.Name)
+						return err
+					}
+				}
+				return nil
+			})
+		}
 
 		err = g.Wait()
 		if err != nil {
@@ -250,10 +233,7 @@ func certsWithCertsController(mgr manager.Manager, ns string, certsReady chan st
 		DNSName:                dnsName(ns),
 		IsReady:                certsReady,
 		RestartOnSecretRefresh: true,
-		Webhooks: []rotator.WebhookInfo{{
-			Type: rotator.Validating,
-			Name: vwhName,
-		}},
+		Webhooks:               webhooks,
 	})
 	OrFail(err, "unable to set up cert rotation")
 }
@@ -267,7 +247,7 @@ type certsEnsurer struct {
 func (ce *certsEnsurer) NeedLeaderElection() bool {
 	return false
 }
-func (ce *certsEnsurer) Start(ctx context.Context) error {
+func (ce *certsEnsurer) Start(_ context.Context) error {
 	checkFn := func() (bool, error) {
 		select {
 		case <-ce.upstreamReady:

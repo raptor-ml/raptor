@@ -28,22 +28,17 @@ import (
 	"k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-	"strings"
 )
+
+const FeatureWebhookValidatePath = "/validate-k8s-natun-ai-v1alpha1-feature"
 
 type validator struct {
 	client         client.Client
 	logger         logr.Logger
 	updatesAllowed bool
-}
-
-func generateValidatePath(gvk schema.GroupVersionKind) string {
-	return "/validate-" + strings.ReplaceAll(gvk.Group, ".", "-") + "-" +
-		gvk.Version + "-" + strings.ToLower(gvk.Kind)
 }
 
 type ctxKey string
@@ -73,8 +68,7 @@ func SetupFeatureWebhook(mgr ctrl.Manager, updatesAllowed bool) {
 	})
 	wh.Handler = &validatorWrapper{Handler: wh.Handler}
 
-	gvk := natunApi.GroupVersion.WithKind("Feature")
-	mgr.GetWebhookServer().Register(generateValidatePath(gvk), wh)
+	mgr.GetWebhookServer().Register(FeatureWebhookValidatePath, wh)
 }
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
