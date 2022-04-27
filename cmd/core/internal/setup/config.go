@@ -18,7 +18,7 @@ package setup
 
 import (
 	"flag"
-	"github.com/natun-ai/natun/pkg/plugin"
+	"github.com/natun-ai/natun/pkg/plugins"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -50,7 +50,7 @@ func InitConfig() {
 
 	zapOpts := zap.Options{}
 	zapOpts.BindFlags(flag.CommandLine)
-	utilruntime.Must(plugin.BindConfig(pflag.CommandLine))
+	utilruntime.Must(plugins.BindConfig(pflag.CommandLine))
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()

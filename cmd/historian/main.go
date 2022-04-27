@@ -41,7 +41,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	_ "github.com/natun-ai/natun/internal/plugins"
-	"github.com/natun-ai/natun/pkg/plugin"
+	"github.com/natun-ai/natun/pkg/plugins"
 
 	natunApi "github.com/natun-ai/natun/api/v1alpha1"
 	corectrl "github.com/natun-ai/natun/internal/engine/controllers"
@@ -72,7 +72,7 @@ func main() {
 
 	zapOpts := zap.Options{}
 	zapOpts.BindFlags(flag.CommandLine)
-	utilruntime.Must(plugin.BindConfig(pflag.CommandLine))
+	utilruntime.Must(plugins.BindConfig(pflag.CommandLine))
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
@@ -104,17 +104,17 @@ func main() {
 	}
 
 	// Create the state
-	state, err := plugin.NewState(viper.GetString("state-provider"), viper.GetViper())
+	state, err := plugins.NewState(viper.GetString("state-provider"), viper.GetViper())
 	orFail(err, fmt.Sprintf("failed to create state for provider %s", viper.GetString("provider")))
 
 	// Create Notifiers
-	collectNotifier, err := plugin.NewCollectNotifier(viper.GetString("notifier-provider"), viper.GetViper())
+	collectNotifier, err := plugins.NewCollectNotifier(viper.GetString("notifier-provider"), viper.GetViper())
 	orFail(err, "failed to create collect notifier")
-	writeNotifier, err := plugin.NewWriteNotifier(viper.GetString("notifier-provider"), viper.GetViper())
+	writeNotifier, err := plugins.NewWriteNotifier(viper.GetString("notifier-provider"), viper.GetViper())
 	orFail(err, "failed to create collect notifier")
 
 	// Historical Writer
-	historicalWriter, err := plugin.NewHistoricalWriter(viper.GetString("historical-writer-provider"), viper.GetViper())
+	historicalWriter, err := plugins.NewHistoricalWriter(viper.GetString("historical-writer-provider"), viper.GetViper())
 	orFail(err, "failed to create historical writer")
 
 	// Create an Historian Client

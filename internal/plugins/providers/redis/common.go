@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/natun-ai/natun/api"
-	"github.com/natun-ai/natun/pkg/plugin"
+	"github.com/natun-ai/natun/pkg/plugins"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"strconv"
@@ -33,8 +33,8 @@ import (
 const pluginName = "redis"
 
 func init() {
-	plugin.Configurers.Register(pluginName, BindConfig)
-	plugin.StateFactories.Register(pluginName, StateFactory)
+	plugins.Configurers.Register(pluginName, BindConfig)
+	plugins.StateFactories.Register(pluginName, StateFactory)
 }
 
 type state struct {

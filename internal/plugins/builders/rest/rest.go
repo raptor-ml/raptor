@@ -25,7 +25,7 @@ import (
 	"github.com/gregjones/httpcache"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/natun-ai/natun/api"
-	"github.com/natun-ai/natun/pkg/plugin"
+	"github.com/natun-ai/natun/pkg/plugins"
 	"github.com/natun-ai/natun/pkg/pyexp"
 	"io"
 	"net/http"
@@ -35,7 +35,7 @@ import (
 
 func init() {
 	const name = "rest"
-	plugin.FeatureAppliers.Register(name, FeatureApply)
+	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
 type Spec struct {

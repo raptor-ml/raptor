@@ -21,7 +21,7 @@ import (
 	"github.com/natun-ai/natun/api"
 	manifests "github.com/natun-ai/natun/api/v1alpha1"
 	"github.com/natun-ai/natun/internal/stats"
-	"github.com/natun-ai/natun/pkg/plugin"
+	"github.com/natun-ai/natun/pkg/plugins"
 )
 
 // FeatureWithEngine converts the k8s Feature CRD to the internal engine implementation.
@@ -36,7 +36,7 @@ func FeatureWithEngine(e api.EngineWithConnector, in *manifests.Feature) (*Featu
 		Metadata: *md,
 	}
 
-	if p := plugin.FeatureAppliers.Get(ft.Builder); p != nil {
+	if p := plugins.FeatureAppliers.Get(ft.Builder); p != nil {
 		err := p(ft.Metadata, in.Spec.Builder.Raw, &ft, e)
 		if err != nil {
 			return nil, err

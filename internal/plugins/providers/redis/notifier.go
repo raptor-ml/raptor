@@ -22,13 +22,13 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/natun-ai/natun/api"
-	"github.com/natun-ai/natun/pkg/plugin"
+	"github.com/natun-ai/natun/pkg/plugins"
 	"github.com/spf13/viper"
 )
 
 func init() {
-	plugin.CollectNotifierFactories.Register(pluginName, NotifierFactory[api.CollectNotification])
-	plugin.WriteNotifierFactories.Register(pluginName, NotifierFactory[api.WriteNotification])
+	plugins.CollectNotifierFactories.Register(pluginName, NotifierFactory[api.CollectNotification])
+	plugins.WriteNotifierFactories.Register(pluginName, NotifierFactory[api.WriteNotification])
 }
 func NotifierFactory[T api.Notification](viper *viper.Viper) (api.Notifier[T], error) {
 	rc, err := redisClient(viper)

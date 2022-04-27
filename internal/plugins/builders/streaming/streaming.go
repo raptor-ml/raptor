@@ -19,7 +19,7 @@ package streaming
 import (
 	"fmt"
 	"github.com/natun-ai/natun/api"
-	"github.com/natun-ai/natun/pkg/plugin"
+	"github.com/natun-ai/natun/pkg/plugins"
 	"github.com/natun-ai/natun/pkg/runner"
 )
 
@@ -43,11 +43,11 @@ func init() {
 	}
 
 	// Register the plugin
-	plugin.DataConnectorReconciler.Register(name, reconciler)
-	plugin.FeatureAppliers.Register(name, FeatureApply)
+	plugins.DataConnectorReconciler.Register(name, reconciler)
+	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
-func FeatureApply(metadata api.Metadata, spec []byte, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
+func FeatureApply(metadata api.Metadata, _ []byte, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
 	if metadata.DataConnector == "" {
 		return fmt.Errorf("data connector must be set for `%s` builder", name)
 	}

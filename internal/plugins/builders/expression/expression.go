@@ -21,13 +21,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/natun-ai/natun/api"
-	"github.com/natun-ai/natun/pkg/plugin"
+	"github.com/natun-ai/natun/pkg/plugins"
 	"github.com/natun-ai/natun/pkg/pyexp"
 )
 
 func init() {
 	const name = "expression"
-	plugin.FeatureAppliers.Register(name, FeatureApply)
+	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
 // ExprSpec is the specification of the expression plugin.

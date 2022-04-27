@@ -25,7 +25,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/natun-ai/natun/api"
 	"github.com/natun-ai/natun/internal/plugins/providers/parquet"
-	"github.com/natun-ai/natun/pkg/plugin"
+	"github.com/natun-ai/natun/pkg/plugins"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/xitongsys/parquet-go-source/s3v2"
@@ -36,8 +36,8 @@ import (
 const pluginName = "parquet-aws"
 
 func init() {
-	plugin.Configurers.Register(pluginName, BindConfig)
-	plugin.HistoricalWriterFactories.Register(pluginName, HistoricalWriterFactory)
+	plugins.Configurers.Register(pluginName, BindConfig)
+	plugins.HistoricalWriterFactories.Register(pluginName, HistoricalWriterFactory)
 }
 
 func BindConfig(set *pflag.FlagSet) error {

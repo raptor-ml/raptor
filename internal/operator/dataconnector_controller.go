@@ -27,7 +27,7 @@ import (
 	"fmt"
 	"github.com/natun-ai/natun/api"
 	natunApi "github.com/natun-ai/natun/api/v1alpha1"
-	"github.com/natun-ai/natun/pkg/plugin"
+	"github.com/natun-ai/natun/pkg/plugins"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"time"
 
@@ -94,7 +94,7 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, nil
 	}
 
-	if p := plugin.DataConnectorReconciler.Get(conn.Spec.Kind); p != nil {
+	if p := plugins.DataConnectorReconciler.Get(conn.Spec.Kind); p != nil {
 		if changed, err := p(ctx, r.reconcileRequest(conn)); err != nil {
 			return ctrl.Result{}, err
 		} else if changed {

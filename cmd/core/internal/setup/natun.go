@@ -25,7 +25,7 @@ import (
 	"github.com/natun-ai/natun/internal/historian"
 	opctrl "github.com/natun-ai/natun/internal/operator"
 	"github.com/natun-ai/natun/internal/stats"
-	"github.com/natun-ai/natun/pkg/plugin"
+	"github.com/natun-ai/natun/pkg/plugins"
 	"github.com/spf13/viper"
 	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -45,9 +45,9 @@ func setupStats(mgr manager.Manager) {
 
 func historianClient(mgr manager.Manager) historian.Client {
 	// Create Notifiers
-	collectNotifier, err := plugin.NewCollectNotifier(viper.GetString("notifier-provider"), viper.GetViper())
+	collectNotifier, err := plugins.NewCollectNotifier(viper.GetString("notifier-provider"), viper.GetViper())
 	OrFail(err, "failed to create collect notifier")
-	writeNotifier, err := plugin.NewWriteNotifier(viper.GetString("notifier-provider"), viper.GetViper())
+	writeNotifier, err := plugins.NewWriteNotifier(viper.GetString("notifier-provider"), viper.GetViper())
 	OrFail(err, "failed to create collect notifier")
 
 	// Create a Historian Client
@@ -117,7 +117,7 @@ func Core(mgr manager.Manager, certsReady chan struct{}) {
 	hsc := historianClient(mgr)
 
 	// Create the state
-	state, err := plugin.NewState(viper.GetString("state-provider"), viper.GetViper())
+	state, err := plugins.NewState(viper.GetString("state-provider"), viper.GetViper())
 	OrFail(err, fmt.Sprintf("failed to create state for provider %s", viper.GetString("state-provider")))
 	healthChecks = append(healthChecks, func(req *http.Request) error {
 		return state.Ping(req.Context())
