@@ -93,6 +93,9 @@ func MetadataFromManifest(in *manifests.Feature) (*Metadata, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse aggregation functions: %w", err)
 	}
+	if len(aggr) > 0 && primitive != PrimitiveTypeInteger && primitive != PrimitiveTypeFloat {
+		return nil, fmt.Errorf("%w with Aggregation: %s", ErrUnsupportedPrimitiveError, in.Spec.Primitive)
+	}
 
 	md := &Metadata{
 		FQN:       in.FQN(),

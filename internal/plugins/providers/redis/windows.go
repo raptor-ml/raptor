@@ -231,6 +231,8 @@ func (s *state) WindowAdd(ctx context.Context, md api.Metadata, entityID string,
 		val = float64(v)
 	case float64:
 		val = v
+	default:
+		return fmt.Errorf("unsupported value type %T", value)
 	}
 
 	tx := s.client.TxPipeline()
