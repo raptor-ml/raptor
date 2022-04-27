@@ -57,6 +57,7 @@ spec:
                   type: string
                 nullable: true
                 type: array
+                uniqueItems: true
               builder:
                 description: Builder defines a building-block to use to build the
                   feature-value

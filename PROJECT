@@ -28,4 +28,12 @@ resources:
   kind: DataConnector
   path: github.com/natun-ai/natun/api/v1alpha1
   version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: natun.ai
+  group: k8s
+  kind: FeatureSet
+  path: github.com/natun-ai/natun/api/v1alpha1
+  version: v1alpha1
 version: "3"
