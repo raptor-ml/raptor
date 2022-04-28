@@ -105,3 +105,7 @@ func (bw *baseParquet) FlushAll(ctx context.Context) error {
 	}
 	return nil
 }
+
+func (bw *baseParquet) Close(ctx context.Context) error {
+	return bw.FlushAll(ctx)
+}

@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -116,6 +117,7 @@ func main() {
 	// Historical Writer
 	historicalWriter, err := plugins.NewHistoricalWriter(viper.GetString("historical-writer-provider"), viper.GetViper())
 	orFail(err, "failed to create historical writer")
+	defer historicalWriter.Close(context.TODO())
 
 	// Create an Historian Client
 	hss := historian.NewServer(historian.ServerConfig{

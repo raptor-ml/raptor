@@ -44,6 +44,7 @@ type HistoricalWriter interface {
 	Commit(context.Context, WriteNotification) error
 	Flush(ctx context.Context, fqn string) error
 	FlushAll(context.Context) error
+	Close(ctx context.Context) error
 }
 
 const AliveMarker = "(alive)"
