@@ -32,7 +32,7 @@ func HealthCheck(r *http.Request) error {
 	g, ctx := errgroup.WithContext(r.Context())
 	r = r.WithContext(ctx)
 	for _, check := range healthChecks {
-		check := check
+		check := check // https://golang.org/doc/faq#closures_and_goroutines
 		g.Go(func() error {
 			return check(r)
 		})

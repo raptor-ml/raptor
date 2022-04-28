@@ -86,25 +86,24 @@ func (in *DataConnector) ParseConfig(ctx context.Context, rdr client.Reader) (Pa
 		if cv.SecretKeyRef == nil {
 			continue
 		}
-		g.Go(func(cv ConfigVar) func() error {
-			return func() error {
-				secret := &corev1.Secret{}
-				err := rdr.Get(ctx, client.ObjectKey{
-					Namespace: in.GetNamespace(),
-					Name:      cv.SecretKeyRef.Name,
-				}, secret)
-				if err != nil {
-					return fmt.Errorf("failed to get secret %s: %w", cv.SecretKeyRef.Name, err)
-				}
-
-				val, ok := secret.Data[cv.SecretKeyRef.Key]
-				if !ok {
-					return fmt.Errorf("secret %s does not have key %s", cv.SecretKeyRef.Name, cv.SecretKeyRef.Key)
-				}
-				cfg[cv.Name] = base64.StdEncoding.EncodeToString(val)
-				return nil
+		cv := cv // https://golang.org/doc/faq#closures_and_goroutines
+		g.Go(func() error {
+			secret := &corev1.Secret{}
+			err := rdr.Get(ctx, client.ObjectKey{
+				Namespace: in.GetNamespace(),
+				Name:      cv.SecretKeyRef.Name,
+			}, secret)
+			if err != nil {
+				return fmt.Errorf("failed to get secret %s: %w", cv.SecretKeyRef.Name, err)
 			}
-		}(cv))
+
+			val, ok := secret.Data[cv.SecretKeyRef.Key]
+			if !ok {
+				return fmt.Errorf("secret %s does not have key %s", cv.SecretKeyRef.Name, cv.SecretKeyRef.Key)
+			}
+			cfg[cv.Name] = base64.StdEncoding.EncodeToString(val)
+			return nil
+		})
 	}
 
 	if err := g.Wait(); err != nil {
