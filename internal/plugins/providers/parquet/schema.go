@@ -58,7 +58,7 @@ func NewHistoricalRecord(wn api.WriteNotification) HistoricalRecord {
 		Timestamp: types.TimeToTIMESTAMP_MICROS(wn.Value.Timestamp, false),
 	}
 	if wn.Bucket != "" {
-		alive := strings.HasPrefix(wn.Bucket, api.AliveMarker)
+		alive := isAlive(wn)
 		wrm := api.ToLowLevelValue[api.WindowResultMap](wn.Value.Value)
 
 		count := int64(wrm[api.WindowFnCount])
@@ -126,4 +126,8 @@ func NewHistoricalRecord(wn api.WriteNotification) HistoricalRecord {
 		}
 	}
 	return hr
+}
+
+func isAlive(wn api.WriteNotification) bool {
+	return strings.HasPrefix(wn.Bucket, api.AliveMarker)
 }

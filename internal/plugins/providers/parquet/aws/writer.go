@@ -84,12 +84,16 @@ func HistoricalWriterFactory(viper *viper.Viper) (api.HistoricalWriter, error) {
 	return parquet.BaseParquet(4, factory), nil
 }
 func sourceFactory(client s3v2.S3API, bucket string, basedir string) parquet.SourceFactory {
-	return func(ctx context.Context, fqn string) (source.ParquetFile, error) {
+	return func(ctx context.Context, fqn string, alive bool) (source.ParquetFile, error) {
 		if basedir[len(basedir)-1] != '/' {
 			basedir += "/"
 		}
 		d := time.Now().Format("2006-01-02")
-		filename := fmt.Sprintf("%sfqn=%s/timestamp=%s/data.snappy.parquet", basedir, fqn, d)
+		aliveTag := ""
+		if alive {
+			aliveTag = "-alive"
+		}
+		filename := fmt.Sprintf("%sfqn=%s/timestamp=%s/data%s.snappy.parquet", basedir, fqn, d, aliveTag)
 		return s3v2.NewS3FileWriterWithClient(ctx, client, bucket, filename, nil)
 	}
 }

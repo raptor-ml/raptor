@@ -25,7 +25,7 @@ import (
 	"sync"
 )
 
-type SourceFactory func(ctx context.Context, fqn string) (source.ParquetFile, error)
+type SourceFactory func(ctx context.Context, fqn string, alive bool) (source.ParquetFile, error)
 type baseParquet struct {
 	newParquetFile SourceFactory
 	np             int64
@@ -46,7 +46,7 @@ type parquetWriter struct {
 }
 
 func (bw *baseParquet) Commit(ctx context.Context, wn api.WriteNotification) error {
-	pw, err := bw.getWriter(ctx, wn.FQN)
+	pw, err := bw.getWriter(ctx, wn.FQN, isAlive(wn))
 	if err != nil {
 		return err
 	}
@@ -55,9 +55,13 @@ func (bw *baseParquet) Commit(ctx context.Context, wn api.WriteNotification) err
 	return pw.Write(NewHistoricalRecord(wn))
 }
 
-func (bw *baseParquet) getWriter(ctx context.Context, fqn string) (*parquetWriter, error) {
-	if _, ok := bw.writers[fqn]; !ok {
-		pf, err := bw.newParquetFile(ctx, fqn)
+func (bw *baseParquet) getWriter(ctx context.Context, fqn string, alive bool) (*parquetWriter, error) {
+	idx := fqn
+	if alive {
+		idx = fmt.Sprintf("%s_alive", fqn)
+	}
+	if _, ok := bw.writers[idx]; !ok {
+		pf, err := bw.newParquetFile(ctx, fqn, alive)
 		if err != nil {
 			return nil, fmt.Errorf("cannot create parquet file: %w", err)
 		}
@@ -76,23 +80,32 @@ func (bw *baseParquet) getWriter(ctx context.Context, fqn string) (*parquetWrite
 	}
 	return bw.writers[fqn], nil
 }
-func (bw *baseParquet) Flush(ctx context.Context, fqn string) error {
-	pw, err := bw.getWriter(ctx, fqn)
+func (bw *baseParquet) Flush(_ context.Context, fqn string) error {
+	err := bw.flush(fqn)
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot flush parquet file: %w", err)
 	}
-	pw.Lock()
-	defer pw.Unlock()
+	err = bw.flush(fmt.Sprintf("%s_alive", fqn))
+	if err != nil {
+		return fmt.Errorf("cannot flush (alive) parquet file: %w", err)
+	}
+	return nil
+}
+func (bw *baseParquet) flush(key string) error {
+	if pw, ok := bw.writers[key]; ok {
+		pw.Lock()
+		defer pw.Unlock()
 
-	err = pw.WriteStop()
-	if err != nil {
-		return fmt.Errorf("cannot write stop: %w", err)
+		err := pw.WriteStop()
+		if err != nil {
+			return fmt.Errorf("cannot write stop: %w", err)
+		}
+		err = pw.PFile.Close()
+		if err != nil {
+			return fmt.Errorf("cannot close parquet file: %w", err)
+		}
+		delete(bw.writers, key)
 	}
-	err = pw.PFile.Close()
-	if err != nil {
-		return fmt.Errorf("cannot close parquet file: %w", err)
-	}
-	delete(bw.writers, fqn)
 	return nil
 }
 

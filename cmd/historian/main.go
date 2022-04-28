@@ -119,7 +119,7 @@ func main() {
 	orFail(err, "failed to create historical writer")
 	defer historicalWriter.Close(context.TODO())
 
-	// Create an Historian Client
+	// Create a Historian Client
 	hss := historian.NewServer(historian.ServerConfig{
 		CollectNotifier:  collectNotifier,
 		WriteNotifier:    writeNotifier,
