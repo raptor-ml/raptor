@@ -27,7 +27,7 @@ func BindConfig(set *pflag.FlagSet) error {
 }
 
 func HistoricalWriterFactory(viper *viper.Viper) (api.HistoricalWriter, error) {
-	db, err := sql.Open("snowflake", "user:password@my_organization-my_account/mydb")
+	db, err := sql.Open("snowflake", viper.GetString("snowflake-uri"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to open snowflake connection: %w", err)
 	}
