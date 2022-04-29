@@ -24,7 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/natun-ai/natun/api"
-	"github.com/natun-ai/natun/internal/plugins/providers/parquet"
+	"github.com/natun-ai/natun/internal/plugins/providers/historical/parquet"
 	"github.com/natun-ai/natun/pkg/plugins"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"

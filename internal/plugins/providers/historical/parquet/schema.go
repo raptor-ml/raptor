@@ -66,7 +66,7 @@ func NewHistoricalRecord(wn api.WriteNotification) HistoricalRecord {
 		min := wrm[api.WindowFnMin]
 		max := wrm[api.WindowFnMax]
 		hr.Bucket = &Bucket{
-			BucketName: strings.TrimPrefix(wn.Bucket, api.AliveMarker),
+			BucketName: strings.TrimSuffix(wn.Bucket, api.AliveMarker),
 			Alive:      &alive,
 			Count:      &count,
 			Sum:        &sum,
@@ -129,5 +129,5 @@ func NewHistoricalRecord(wn api.WriteNotification) HistoricalRecord {
 }
 
 func isAlive(wn api.WriteNotification) bool {
-	return strings.HasPrefix(wn.Bucket, api.AliveMarker)
+	return strings.HasSuffix(wn.Bucket, api.AliveMarker)
 }

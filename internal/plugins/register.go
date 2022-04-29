@@ -22,7 +22,9 @@ import (
 	_ "github.com/natun-ai/natun/internal/plugins/builders/rest"
 	_ "github.com/natun-ai/natun/internal/plugins/builders/streaming"
 
-	// register all provider plugins
-	_ "github.com/natun-ai/natun/internal/plugins/providers/parquet/aws"
-	_ "github.com/natun-ai/natun/internal/plugins/providers/redis"
+	// register all historical provider plugins
+	_ "github.com/natun-ai/natun/internal/plugins/providers/historical/parquet/aws"
+
+	// register all state provider plugins
+	_ "github.com/natun-ai/natun/internal/plugins/providers/state/redis"
 )
