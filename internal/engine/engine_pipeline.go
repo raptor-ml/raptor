@@ -124,6 +124,11 @@ func (e *engine) setMiddleware(method api.StateMethod) api.Middleware {
 			if api.TypeDetect(val.Value) != md.Primitive {
 				return val, fmt.Errorf("value mismatch: got value with a different type than the feature type")
 			}
+			if !md.ValidWindow() && val.Timestamp.Before(time.Now().Add(-md.Staleness)) {
+				e.historian.AddWriteNotification(md.FQN, entityID, "", &val)
+				return next(ctx, md, entityID, val)
+			}
+
 			var err error
 			switch method {
 			case api.StateMethodSet:
