@@ -16,7 +16,7 @@ limitations under the License.
 
 package controllers
 
-// +kubebuilder:rbac:groups=k8s.natun.ai,resources=features,verbs=get;list;watch
+// +kubebuilder:rbac:groups=k8s.natun.ai,resources=featuresets,verbs=get;list;watch
 
 import (
 	"context"

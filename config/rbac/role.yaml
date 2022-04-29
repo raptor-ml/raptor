@@ -141,3 +141,11 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - k8s.natun.ai
+  resources:
+  - featuresets
+  verbs:
+  - get
+  - list
+  - watch
