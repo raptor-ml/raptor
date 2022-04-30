@@ -19,9 +19,11 @@ package historian
 import (
 	"context"
 	"github.com/natun-ai/natun/api"
+	"sync/atomic"
 )
 
 func (h *historian) dispatchWrite(ctx context.Context, notification api.WriteNotification) error {
+	atomic.AddUint32(&h.writes, 1)
 	return h.HistoricalWriter.Commit(ctx, notification)
 }
 
@@ -29,5 +31,8 @@ func (h *historian) finalizeWrite(ctx context.Context) {
 	err := h.HistoricalWriter.FlushAll(ctx)
 	if err != nil {
 		h.Logger.Error(err, "failed to flush historical logs to storage")
+	} else if h.writes > 0 {
+		atomic.StoreUint32(&h.writes, 0)
+		h.Logger.Info("successfully flushed historical logs to storage", "writes", h.writes)
 	}
 }

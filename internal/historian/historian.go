@@ -55,6 +55,7 @@ type historian struct {
 	ServerConfig
 	collectTasks   subscriptionQueue[api.CollectNotification]
 	writeTasks     subscriptionQueue[api.WriteNotification]
+	writes         uint32
 	metadata       sync.Map
 	handledBuckets *ttlcache.Cache[string, struct{}]
 }
@@ -115,17 +116,18 @@ func (h *historian) BindFeature(in *manifests.Feature) error {
 	}
 
 	h.metadata.Store(in.FQN(), md)
+	h.Logger.Info("feature bounded", "feature", in.FQN())
 	return nil
 }
 
-func (h *historian) UnbindFeature(FQN string) error {
-	h.metadata.Delete(FQN)
-	h.Logger.Info("feature unbound", "feature", FQN)
+func (h *historian) UnbindFeature(fqn string) error {
+	h.metadata.Delete(fqn)
+	h.Logger.Info("feature unbound", "feature", fqn)
 	return nil
 }
 
-func (h *historian) HasFeature(FQN string) bool {
-	_, ok := h.metadata.Load(FQN)
+func (h *historian) HasFeature(fqn string) bool {
+	_, ok := h.metadata.Load(fqn)
 	return ok
 }
 
