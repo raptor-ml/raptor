@@ -48,7 +48,7 @@ func HistoricalWriterFactory(viper *viper.Viper) (api.HistoricalWriter, error) {
 		return nil, fmt.Errorf("failed to open snowflake connection: %w", err)
 	}
 	const create = `CREATE TABLE IF NOT EXISTS historical (
-		id integer default id_seq.nextval,
+		id number autoincrement start 1 increment 1,
 		fqn string(255) not null,
 		entity_id string(255) not null,
 		value variant not null,
