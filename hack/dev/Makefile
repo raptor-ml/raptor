@@ -114,6 +114,7 @@ deploy-natun: setup-redis ## deploy operator to cluster
 	$(KUBECTL) scale deployment natun-controller-core --replicas 0
 	$(KUBECTL) scale deployment natun-historian --replicas 0
 	$(KUBECTL) apply -f config/aws-creds.yaml
+	$(KUBECTL) apply -f config/snowflake-creds.yaml
 	$(KUBECTL) --namespace natun-system patch deployment natun-controller-core --patch-file config/natun-core-patch.yaml
 	$(KUBECTL) --namespace natun-system patch deployment natun-historian --patch-file config/natun-historian-patch.yaml
 	$(KUBECTL) scale deployment natun-controller-core --replicas 2
