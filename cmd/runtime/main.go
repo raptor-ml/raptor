@@ -52,7 +52,7 @@ func main() {
 	pflag.Parse()
 	must(viper.BindPFlags(pflag.CommandLine))
 
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 	viper.AutomaticEnv()
 
 	zl := logger()
