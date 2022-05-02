@@ -21,52 +21,36 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/natun-ai/natun/api"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"
 	"sync"
-	"time"
 )
 
-func newBaseQueue[T api.Notification](logger logr.Logger, fn NotifyFn[T]) baseQueuer[T] {
-	return baseQueuer[T]{
-		queue:  workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
-		logger: logger,
-		fn:     fn,
+func newQueue[T api.Notification](logger logr.Logger, fn HandleFn[T]) queue[T] {
+	return queue[T]{
+		RateLimitingInterface: workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
+		logger:                logger,
+		fn:                    fn,
 	}
 }
 
-type NotifyFn[T api.Notification] func(ctx context.Context, notification T) error
-type baseQueuer[T api.Notification] struct {
-	queue     workqueue.RateLimitingInterface
-	logger    logr.Logger
-	fn        NotifyFn[T]
-	finalizer func(ctx context.Context)
+type queue[T api.Notification] struct {
+	workqueue.RateLimitingInterface
+	logger logr.Logger
+	fn     HandleFn[T]
 }
 
-func (b *baseQueuer[T]) Add(item T) {
-	b.AddAfter(item, 0)
-}
-
-func (b *baseQueuer[T]) AddAfter(item T, duration time.Duration) {
-	b.queue.AddAfter(item, duration)
-}
-
-func (b *baseQueuer[T]) Runnable(workers int) func(ctx context.Context) error {
+func (b *queue[T]) Runnable(workers int) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
-		defer b.queue.ShutDownWithDrain()
+		defer b.ShutDownWithDrain()
 
 		wg := sync.WaitGroup{}
+		wg.Add(workers)
 		for i := 0; i < workers; i++ {
-			go wait.UntilWithContext(ctx, func(ctx context.Context) {
-				wg.Add(1)
+			go func() {
 				defer wg.Done()
-
-				for b.processNextItem(ctx) {
+				for b.processNextItem(ctx, false) {
 				}
-				if b.finalizer != nil {
-					b.finalizer(ctx)
-				}
-			}, SyncPeriod)
+			}()
 		}
 
 		<-ctx.Done()
@@ -76,32 +60,38 @@ func (b *baseQueuer[T]) Runnable(workers int) func(ctx context.Context) error {
 		return nil
 	}
 }
-func (b *baseQueuer[T]) processNextItem(ctx context.Context) bool {
-	// The queue was drained, wait until the next cycle
-	if b.queue.Len() == 0 {
+func (b *queue[T]) processNextItem(ctx context.Context, stopOnDrained bool) bool {
+	select {
+	case <-ctx.Done():
+		return false
+	default:
+	}
+
+	if stopOnDrained && b.Len() == 0 {
+		// The queue was drained, wait until the next cycle
 		return false
 	}
 
 	// Wait until there is a new item in the working queue
-	item, quit := b.queue.Get()
+	item, quit := b.Get()
 	if quit {
 		return false
 	}
-	defer b.queue.Done(item)
+	defer b.Done(item)
 
 	notification, ok := item.(T)
 	if !ok {
 		b.logger.Error(fmt.Errorf("casting failure"), "failed to cast item to notification", "item", item)
-		b.queue.Forget(item)
+		b.Forget(item)
 		return true
 	}
 
 	err := b.fn(ctx, notification)
 	if err != nil {
-		b.logger.WithValues("notification", notification).Error(err, "Failed to process. Requeing item...")
-		b.queue.AddRateLimited(item)
+		b.logger.WithValues("notification", notification).Error(err, "Failed to process. Requeuing item...")
+		b.AddRateLimited(item)
 	}
 
-	b.queue.Forget(item)
+	b.Forget(item)
 	return true
 }

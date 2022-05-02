@@ -65,21 +65,17 @@ type ServerConfig struct {
 	WriteNotifier   api.Notifier[api.WriteNotification]
 	Logger          logr.Logger
 
-	CollectWorkers   int
 	State            api.State
 	HistoricalWriter api.HistoricalWriter
 }
 
 func NewServer(config ServerConfig) Server {
-	if config.CollectWorkers == 0 {
-		config.CollectWorkers = 5
-	}
 	h := &historian{
 		ServerConfig: config,
 	}
 	h.collectTasks = newSubscriptionQueue[api.CollectNotification](h.CollectNotifier, h.Logger.WithName("collectTasks"), h.dispatchCollect)
 	h.writeTasks = newSubscriptionQueue[api.WriteNotification](h.WriteNotifier, h.Logger.WithName("dispatchWrite"), h.dispatchWrite)
-	h.writeTasks.queue.finalizer = h.finalizeWrite
+	h.writeTasks.finalizer = h.finalizeWrite
 	return h
 }
 
@@ -94,7 +90,7 @@ func (h *historian) WithManager(manager manager.Manager) error {
 }
 
 func (h *historian) Writer() LeaderRunnableFunc {
-	return h.writeTasks.Runnable(1) // must have only one writer
+	return h.writeTasks.Runnable // must have only one writer
 }
 
 func (h *historian) BindFeature(in *manifests.Feature) error {
@@ -109,10 +105,10 @@ func (h *historian) BindFeature(in *manifests.Feature) error {
 	}
 
 	if md.ValidWindow() {
-		h.collectTasks.queue.AddAfter(api.CollectNotification{
+		h.collectTasks.queue.Add(api.CollectNotification{
 			FQN:    md.FQN,
 			Bucket: DeadRequestMarker,
-		}, timeTillNextBucket(md.Freshness))
+		})
 	}
 
 	h.metadata.Store(in.FQN(), md)

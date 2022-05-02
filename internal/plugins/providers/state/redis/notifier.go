@@ -86,6 +86,8 @@ func (n *notifier[T]) Subscribe(ctx context.Context) (<-chan T, error) {
 			}
 			c <- notification
 		}
+		fmt.Println("subscription closed")
+		close(c)
 	}()
 
 	return c, nil

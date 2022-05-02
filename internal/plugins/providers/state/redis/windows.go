@@ -37,7 +37,7 @@ func windowKey(FQN string, bucketName string, entityID string) string {
 func fromWindowKey(k string) (fqn string, bucketName string, entityID string) {
 	firstSep := strings.Index(k, "/")
 	lastColon := strings.LastIndex(k, ":")
-	return fqn[:firstSep], fqn[firstSep+1 : lastColon], fqn[lastColon+1:]
+	return k[:firstSep], k[firstSep+1 : lastColon], k[lastColon+1:]
 }
 
 func (s *state) DeadWindowBuckets(ctx context.Context, md api.Metadata, ignore api.RawBuckets) (api.RawBuckets, error) {
@@ -54,7 +54,7 @@ func (s *state) DeadWindowBuckets(ctx context.Context, md api.Metadata, ignore a
 		go func(bucketName string, wg *sync.WaitGroup, cRes chan string, cErr chan error) {
 			defer wg.Done()
 
-			itr := s.client.ScanType(ctx, 0, windowKey(md.FQN, "*", ""), MaxScanCount, "hash").Iterator()
+			itr := s.client.ScanType(ctx, 0, windowKey(md.FQN, bucketName, "*"), MaxScanCount, "hash").Iterator()
 			for itr.Next(ctx) {
 				cRes <- itr.Val()
 			}
@@ -248,7 +248,7 @@ func (s *state) WindowAdd(ctx context.Context, md api.Metadata, entityID string,
 			luaHMax.Run(ctx, tx, []string{key, "max"}, val)
 		}
 	}
-	exp := api.BucketTime(bucket, md.Freshness).Add(md.Staleness + api.DeadGracePeriod)
+	exp := api.BucketDeadTime(bucket, md.Freshness, md.Staleness)
 	setTimestampExpireAt(ctx, tx, key, ts, exp)
 	tx.PExpireAt(ctx, key, exp)
 

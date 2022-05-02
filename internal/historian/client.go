@@ -49,8 +49,8 @@ type ClientConfig struct {
 }
 type client struct {
 	ClientConfig
-	pendingWrite    baseQueuer[api.WriteNotification]
-	pendingCollects baseQueuer[api.CollectNotification]
+	pendingWrite    queue[api.WriteNotification]
+	pendingCollects queue[api.CollectNotification]
 }
 
 func NewClient(config ClientConfig) Client {
@@ -63,8 +63,8 @@ func NewClient(config ClientConfig) Client {
 	c := &client{
 		ClientConfig: config,
 	}
-	c.pendingWrite = newBaseQueue[api.WriteNotification](c.Logger.WithName("pendingWrite"), c.queueWrite)
-	c.pendingCollects = newBaseQueue[api.CollectNotification](c.Logger.WithName("pendingCollect"), c.queueCollect)
+	c.pendingWrite = newQueue[api.WriteNotification](c.Logger.WithName("pendingWrite"), c.queueWrite)
+	c.pendingCollects = newQueue[api.CollectNotification](c.Logger.WithName("pendingCollect"), c.queueCollect)
 	return c
 }
 

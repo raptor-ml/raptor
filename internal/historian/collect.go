@@ -36,7 +36,7 @@ func (h *historian) Collector() LeaderRunnableFunc {
 			}(ctx)
 		}
 
-		return h.collectTasks.Runnable(h.CollectWorkers)(ctx)
+		return h.collectTasks.Runnable(ctx)
 	}
 }
 

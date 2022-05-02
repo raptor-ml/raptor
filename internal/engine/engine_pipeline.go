@@ -124,6 +124,7 @@ func (e *engine) setMiddleware(method api.StateMethod) api.Middleware {
 			if api.TypeDetect(val.Value) != md.Primitive {
 				return val, fmt.Errorf("value mismatch: got value with a different type than the feature type")
 			}
+			// (retrospective write): when the value is expired, only write it to the historical storage
 			if !md.ValidWindow() && val.Timestamp.Before(time.Now().Add(-md.Staleness)) {
 				e.historian.AddWriteNotification(md.FQN, entityID, "", &val)
 				return next(ctx, md, entityID, val)
@@ -146,11 +147,12 @@ func (e *engine) setMiddleware(method api.StateMethod) api.Middleware {
 				return val, err
 			}
 
-			bucket := ""
 			if md.ValidWindow() {
-				bucket = api.BucketName(val.Timestamp, md.Freshness)
+				bucket := api.BucketName(val.Timestamp, md.Freshness)
+				e.historian.AddCollectNotification(md.FQN, entityID, bucket)
+			} else {
+				e.historian.AddWriteNotification(md.FQN, entityID, "", &val)
 			}
-			e.historian.AddCollectNotification(md.FQN, entityID, bucket)
 
 			return next(ctx, md, entityID, val)
 		}

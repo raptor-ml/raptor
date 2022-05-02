@@ -126,7 +126,6 @@ func main() {
 		State:            state,
 		Logger:           logger.WithName("historian"),
 		HistoricalWriter: historicalWriter,
-		CollectWorkers:   5,
 	})
 	orFail(hss.WithManager(mgr), "failed to create historian client")
 

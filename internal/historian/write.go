@@ -32,7 +32,7 @@ func (h *historian) finalizeWrite(ctx context.Context) {
 	if err != nil {
 		h.Logger.Error(err, "failed to flush historical logs to storage")
 	} else if h.writes > 0 {
-		atomic.StoreUint32(&h.writes, 0)
 		h.Logger.Info("successfully flushed historical logs to storage", "writes", h.writes)
+		atomic.StoreUint32(&h.writes, 0)
 	}
 }
