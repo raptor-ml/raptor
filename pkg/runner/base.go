@@ -74,6 +74,7 @@ func (r BaseRunner) reconcile(ctx context.Context, req api.ReconcileRequest) (bo
 	})
 	if err != nil {
 		logger.Error(err, "Deployment reconcile failed")
+		return false, err
 	} else {
 		logger.V(1).Info("Deployment successfully reconciled", "operation", op)
 	}
