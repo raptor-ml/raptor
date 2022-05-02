@@ -50,7 +50,7 @@ help: ## Display this help.
 ##@ Setup local cluster
 
 .PHONY: new-local-cluster
-new-local-cluster: delete-local-cluster create-local-cluster setup-local-cluster rollout-natun  ## Recreate and setup local cluster with Natun
+new-local-cluster: delete-local-cluster create-local-cluster setup-local-cluster setup-redis rollout-natun  ## Recreate and setup local cluster with Natun
 
 .PHONY: create-local-cluster
 create-local-cluster: ## Create a Kind cluster
@@ -60,6 +60,7 @@ else
 	kind create cluster --config config/kind-cluster.yaml
 	@echo Cluster and node created, waiting for them to be Ready...
 	$(KUBECTL) wait --for=condition=Ready nodes/natun-control-plane --timeout=600s
+	$(KUBECTL) config use-context ${CONTEXT}
 endif
 
 .PHONY: setup-local-cluster
@@ -78,6 +79,7 @@ endif
 
 .PHONY: setup-redis
 setup-redis: ## Install redis cluster
+	-$(KUBECTL) create namespace redis-operator
 	$(KUBECTL) apply -f https://raw.githubusercontent.com/OT-CONTAINER-KIT/redis-operator/master/config/crd/bases/redis.redis.opstreelabs.in_redis.yaml
 	$(KUBECTL) apply -f https://raw.githubusercontent.com/OT-CONTAINER-KIT/redis-operator/master/config/crd/bases/redis.redis.opstreelabs.in_redisclusters.yaml
 	$(KUBECTL) apply -f https://raw.githubusercontent.com/OT-CONTAINER-KIT/redis-operator/master/config/rbac/serviceaccount.yaml
@@ -95,7 +97,7 @@ setup-certmanager: ## Setup cert-manager
 .PHONY: delete-local-cluster
 delete-local-cluster: ## Delete local kind cluster
 	@echo "This will delete your current KiND cluster if exists."
-	@echo "Are you sure? [y/N] " && read ans && if [ $${ans:-'N'} = 'y' ]; then $(MAKE) _unsafe_delete-cluster ENV=${ENV}; fi
+	@echo "Are you sure? [y/N] " && read ans && if [ $${ans:-'N'} = 'y' ]; then $(MAKE) _unsafe_delete-cluster ENV=${ENV}; else exit 1; fi
 
 .PHONY: delete-cluster-unsafe
 _unsafe_delete-cluster:

@@ -61,3 +61,26 @@ spec:
   # priorityClassName:
   # affinity:
   # Tolerations: []
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: redis-standalone
+    redis_setup_type: standalone
+    role: standalone
+  name: redis-standalone-external
+  namespace: default
+spec:
+  ports:
+    - name: redis-client
+      port: 6379
+      protocol: TCP
+      targetPort: 6379
+      nodePort: 32094
+  selector:
+    app: redis-standalone
+    redis_setup_type: standalone
+    role: standalone
+  type: NodePort
