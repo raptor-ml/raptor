@@ -77,6 +77,16 @@ them in one PR, mark the commit separately.
 ## Where the CI Tests are configured
 See the [action files](.github/workflows) to check its tests, and the scripts used on it.
 
+## Profiling
+If you find yourself in a need to profile the app, it's possible by adding the following lines to the `main.go`:
+```go
+mgr.AddMetricsExtraHandler("/debug/pprof/", http.HandlerFunc(pprof.Index))
+mgr.AddMetricsExtraHandler("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
+mgr.AddMetricsExtraHandler("/debug/pprof/profile", http.HandlerFunc(pprof.Profile))
+mgr.AddMetricsExtraHandler("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
+mgr.AddMetricsExtraHandler("/debug/pprof/trace", http.HandlerFunc(pprof.Trace))
+```
+
 ## Code of conduct
 
 Participation in the Natun community is governed by the [Kubernetes Code of Conduct](CODE_OF_CONDUCT.md).
