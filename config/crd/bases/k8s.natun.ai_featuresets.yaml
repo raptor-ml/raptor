@@ -47,7 +47,6 @@ spec:
                   type: string
                 minItems: 2
                 type: array
-                uniqueItems: true
               timeout:
                 description: Timeout defines the maximum ingestion time allowed to
                   calculate the feature value.

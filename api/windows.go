@@ -119,6 +119,11 @@ func BucketTime(bucketName string, bucketSize time.Duration) time.Time {
 	return time.Unix(0, bucket*int64(bucketSize))
 }
 
+// BucketDeadTime returns the end time of a given bucket by its name
+func BucketDeadTime(bucketName string, bucketSize, staleness time.Duration) time.Time {
+	return BucketTime(bucketName, bucketSize).Add(staleness + DeadGracePeriod)
+}
+
 // AliveWindowBuckets returns a list of all the *valid* buckets up until now
 func AliveWindowBuckets(staleness, bucketSize time.Duration) []string {
 	numberOfBuckets := int(math.Ceil(float64(staleness) / float64(bucketSize)))

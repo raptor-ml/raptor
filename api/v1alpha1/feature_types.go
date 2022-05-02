@@ -71,7 +71,6 @@ type FeatureSpec struct {
 	//  - `avg`
 	// +optional
 	// +nullable
-	// +kubebuilder:validation:UniqueItems=true
 	Aggr []AggrType `json:"aggr"`
 
 	// DataConnector is a reference for the DataConnector that this Feature is associated with

@@ -31,7 +31,6 @@ type FeatureSetSpec struct {
 	// Features is the list of feature FQNs that are enabled for a given feature set
 	// +kubebuilder:validation:MinItems=2
 	// +kubebuilder:validation:Required
-	// +kubebuilder:validation:UniqueItems=true
 	Features []string `json:"features"`
 }
 
