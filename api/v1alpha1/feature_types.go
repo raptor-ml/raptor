@@ -79,14 +79,12 @@ type FeatureSpec struct {
 	DataConnector *ResourceReference `json:"connector,omitempty"`
 
 	// Builder defines a building-block to use to build the feature-value
-	// +kubebuilder:validation:Required
 	Builder FeatureBuilder `json:"builder"`
 }
 
 // FeatureBuilderKind select the building-block to use to build the feature-value
 type FeatureBuilderKind struct {
 	// Kind defines the type of Builder to use to build the feature-value.
-	// +kubebuilder:validation:Required
 	Kind string `json:"kind"`
 }
 
