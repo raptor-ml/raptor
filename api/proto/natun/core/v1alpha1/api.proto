@@ -9,18 +9,6 @@ import "natun/core/v1alpha1/types.proto";
 
 // +++ Read methods +++
 
-// HistoricalGetRequest
-message HistoricalGetRequest {
-  string uuid = 1 [(validate.rules).string.uuid = true];
-  string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-  google.protobuf.Timestamp start_time = 3;
-  google.protobuf.Timestamp end_time = 4;
-}
-message HistoricalGetResponse {
-  string uuid = 1 [(validate.rules).string.uuid = true];
-  repeated FeatureValue values = 2;
-}
-
 // GetRequest
 message GetRequest {
   string uuid = 1 [(validate.rules).string.uuid = true];
@@ -102,12 +90,6 @@ service EngineService {
   rpc Get(GetRequest) returns (GetResponse) {
     option (google.api.http) = {
       get: "/{fqn}/{entity_id}"
-    };
-  }
-  rpc HistoricalGet(HistoricalGetRequest) returns (HistoricalGetResponse) {
-    option (google.api.http) = {
-      post: "/{fqn}/historical"
-      body: "*"
     };
   }
   rpc Set(SetRequest) returns (SetResponse) {

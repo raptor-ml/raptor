@@ -87,10 +87,6 @@ func (s *serviceServer) Get(ctx context.Context, req *coreApi.GetRequest) (*core
 	return ret, nil
 }
 
-func (s *serviceServer) HistoricalGet(ctx context.Context, req *coreApi.HistoricalGetRequest) (*coreApi.HistoricalGetResponse, error) {
-	_, _ = ctx, req
-	return nil, nil // TODO
-}
 func (s *serviceServer) Set(ctx context.Context, req *coreApi.SetRequest) (*coreApi.SetResponse, error) {
 	err := s.engine.Set(ctx, req.GetFqn(), req.GetEntityId(), FromValue(req.Value), req.Timestamp.AsTime())
 	if err != nil {

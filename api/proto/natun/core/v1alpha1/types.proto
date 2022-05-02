@@ -10,7 +10,7 @@ option go_package = "github.com/natun-ai/natun/core/v1alpha1;coreV1alpha1";
 
 message Scalar {
     oneof value {
-        int64 int_value = 1;
+        int32 int_value = 1;
         double float_value = 2;
         string string_value = 3;
         google.protobuf.Timestamp timestamp_value = 4;

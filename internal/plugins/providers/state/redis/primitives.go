@@ -67,13 +67,16 @@ func (s *state) getPrimitive(ctx context.Context, md api.Metadata, entityID stri
 			return nil, err
 		}
 		for _, v := range res {
-			v2, err := api.ScalarFromString(v, md.Primitive)
+			v2, err := api.ScalarFromString(v, md.Primitive.Singular())
 			if err != nil {
 				return nil, err
 			}
 			ret = append(ret, v2)
 		}
-		val = ret
+		val, err = api.NormalizeAny(ret)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &api.Value{

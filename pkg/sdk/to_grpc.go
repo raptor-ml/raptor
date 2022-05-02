@@ -22,6 +22,7 @@ import (
 	coreApi "go.buf.build/natun/api-go/natun/core/natun/core/v1alpha1"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"reflect"
 	"time"
 )
 
@@ -32,7 +33,7 @@ func ToAPIScalar(val any) *coreApi.Scalar {
 	case api.PrimitiveTypeString:
 		return &coreApi.Scalar{Value: &coreApi.Scalar_StringValue{StringValue: val.(string)}}
 	case api.PrimitiveTypeInteger:
-		return &coreApi.Scalar{Value: &coreApi.Scalar_IntValue{IntValue: int64(val.(int))}}
+		return &coreApi.Scalar{Value: &coreApi.Scalar_IntValue{IntValue: int32(val.(int))}}
 	case api.PrimitiveTypeFloat:
 		return &coreApi.Scalar{Value: &coreApi.Scalar_FloatValue{FloatValue: val.(float64)}}
 	case api.PrimitiveTypeTimestamp:
@@ -59,8 +60,9 @@ func ToAPIValue(val any) *coreApi.Value {
 		list := &coreApi.List{}
 		ret.Value = &coreApi.Value_ListValue{ListValue: list}
 
-		for _, v := range val.([]any) {
-			list.Values = append(list.Values, ToAPIScalar(v))
+		v := reflect.ValueOf(val)
+		for i := 0; i < v.Len(); i++ {
+			list.Values = append(list.Values, ToAPIScalar(v.Index(i).Interface()))
 		}
 	}
 	return &ret

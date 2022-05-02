@@ -17,6 +17,7 @@ limitations under the License.
 package api
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -44,7 +45,7 @@ func StringToPrimitiveType(s string) PrimitiveType {
 		return PrimitiveTypeString
 	case "time", "datetime", "timestamp", "time.time":
 		return PrimitiveTypeTimestamp
-	case "integer", "int", "int64", "int32":
+	case "integer", "int", "int32":
 		return PrimitiveTypeInteger
 	case "float", "double", "float32", "float64":
 		return PrimitiveTypeFloat
@@ -63,16 +64,16 @@ func StringToPrimitiveType(s string) PrimitiveType {
 	}
 }
 
-func (ft PrimitiveType) Scalar() bool {
-	switch ft {
+func (pt PrimitiveType) Scalar() bool {
+	switch pt {
 	case PrimitiveTypeTimestampList, PrimitiveTypeStringList, PrimitiveTypeIntegerList, PrimitiveTypeFloatList:
 		return false
 	default:
 		return true
 	}
 }
-func (ft PrimitiveType) Singular() PrimitiveType {
-	switch ft {
+func (pt PrimitiveType) Singular() PrimitiveType {
+	switch pt {
 	case PrimitiveTypeTimestampList:
 		return PrimitiveTypeTimestamp
 	case PrimitiveTypeStringList:
@@ -82,11 +83,11 @@ func (ft PrimitiveType) Singular() PrimitiveType {
 	case PrimitiveTypeFloatList:
 		return PrimitiveTypeFloat
 	default:
-		return ft
+		return pt
 	}
 }
-func (ft PrimitiveType) Plural() PrimitiveType {
-	switch ft {
+func (pt PrimitiveType) Plural() PrimitiveType {
+	switch pt {
 	case PrimitiveTypeTimestamp:
 		return PrimitiveTypeTimestampList
 	case PrimitiveTypeString:
@@ -96,7 +97,27 @@ func (ft PrimitiveType) Plural() PrimitiveType {
 	case PrimitiveTypeFloat:
 		return PrimitiveTypeFloatList
 	default:
-		return ft
+		return pt
+	}
+}
+func (pt PrimitiveType) String() string {
+	return reflect.TypeOf(pt).String()
+}
+func (pt PrimitiveType) Interface() any {
+	if !pt.Scalar() {
+		return reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(pt.Singular().Interface())), 0, 0).Interface()
+	}
+	switch pt {
+	case PrimitiveTypeTimestamp:
+		return time.Time{}
+	case PrimitiveTypeString:
+		return ""
+	case PrimitiveTypeInteger:
+		return 0
+	case PrimitiveTypeFloat:
+		return float64(0)
+	default:
+		return pt
 	}
 }
 
@@ -116,6 +137,9 @@ func ScalarString(val any) string {
 }
 
 func ScalarFromString(val string, scalar PrimitiveType) (any, error) {
+	if !scalar.Scalar() {
+		return nil, fmt.Errorf("%s is not a scalar type", scalar)
+	}
 	switch scalar {
 	case PrimitiveTypeInteger:
 		return strconv.Atoi(val)
@@ -136,6 +160,30 @@ func ScalarFromString(val string, scalar PrimitiveType) (any, error) {
 
 // TypeDetect detects the PrimitiveType of the value.
 func TypeDetect(t any) PrimitiveType {
-	reflectType := reflect.TypeOf(t).String()
-	return StringToPrimitiveType(reflectType)
+	reflectType := reflect.TypeOf(t)
+	if reflectType == reflect.TypeOf([]any{}) {
+		for _, v := range t.([]any) {
+			if reflect.TypeOf(v) != reflect.TypeOf(t.([]any)[0]) {
+				return PrimitiveTypeUnknown
+			}
+		}
+		return TypeDetect(t.([]any)[0]).Plural()
+	}
+	return StringToPrimitiveType(reflectType.String())
+}
+
+func NormalizeAny(t any) (any, error) {
+	switch v := t.(type) {
+	case []any:
+		if len(v) == 0 {
+			return nil, nil
+		}
+
+		ret := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(v[0])), len(v), len(v))
+		for i, v2 := range v {
+			ret.Index(i).Set(reflect.ValueOf(v2))
+		}
+		t = ret.Interface()
+	}
+	return t, nil
 }

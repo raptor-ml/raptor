@@ -2,6 +2,7 @@
 resources:
 - feature.basic.simple-aggr.yaml
 - feature.basic.hello-world.yaml
+- feature.basic.simple-array.yaml
 - feature.rest.user-city.yaml
 - featureset.basic.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

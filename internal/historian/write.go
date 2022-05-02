@@ -24,6 +24,11 @@ import (
 
 func (h *historian) dispatchWrite(ctx context.Context, notification api.WriteNotification) error {
 	atomic.AddUint32(&h.writes, 1)
+	nv, err := api.NormalizeAny(notification.Value.Value)
+	if err != nil {
+		return err
+	}
+	notification.Value.Value = nv
 	return h.HistoricalWriter.Commit(ctx, notification)
 }
 

@@ -48,7 +48,7 @@ func starToGo(val any) (any, error) {
 			}
 			elems = append(elems, nv)
 		}
-		return elems, nil
+		return api.NormalizeAny(elems)
 	case sTime.Time:
 		return time.Time(v), nil
 	case starlark.NoneType:

@@ -26,9 +26,7 @@ import (
 	sf "github.com/snowflakedb/gosnowflake"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"github.com/xitongsys/parquet-go/types"
 	"strings"
-	"time"
 )
 
 const pluginName = "snowflake"
@@ -94,34 +92,14 @@ func (sw *snowflakeWriter) Commit(ctx context.Context, wn api.WriteNotification)
 		q = fmt.Sprintf(q, "parse_json(%s)")
 		val = string(rawJSON)
 	} else {
-		switch api.TypeDetect(wn.Value.Value) {
-		case api.PrimitiveTypeString:
-			val = api.ToLowLevelValue[string](wn.Value.Value)
-		case api.PrimitiveTypeInteger:
-			val = int64(api.ToLowLevelValue[int](wn.Value.Value))
-		case api.PrimitiveTypeFloat:
-			val = api.ToLowLevelValue[float64](wn.Value.Value)
-		case api.PrimitiveTypeTimestamp:
-			val = api.ToLowLevelValue[time.Time](wn.Value.Value)
-		case api.PrimitiveTypeStringList:
-			val = sf.Array(api.ToLowLevelValue[[]string](wn.Value.Value))
-
-		case api.PrimitiveTypeIntegerList:
-			v := api.ToLowLevelValue[[]int](wn.Value.Value)
-			var l []int64
-			for _, i := range v {
-				l = append(l, int64(i))
+		val = wn.Value.Value
+		if !api.TypeDetect(val).Scalar() {
+			rawJSON, err := json.Marshal(val)
+			if err != nil {
+				return fmt.Errorf("failed to marshal snowflake value: %w", err)
 			}
-			val = sf.Array(l)
-		case api.PrimitiveTypeFloatList:
-			val = sf.Array(api.ToLowLevelValue[[]float64](wn.Value.Value))
-		case api.PrimitiveTypeTimestampList:
-			v := api.ToLowLevelValue[[]time.Time](wn.Value.Value)
-			var l []int64
-			for _, t := range v {
-				l = append(l, types.TimeToTIMESTAMP_MICROS(t, false))
-			}
-			val = sf.Array(l)
+			q = fmt.Sprintf(q, "parse_json(%s)")
+			val = string(rawJSON)
 		}
 	}
 

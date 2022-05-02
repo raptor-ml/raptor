@@ -1,0 +1,71 @@
+apiVersion: k8s.natun.ai/v1alpha1
+kind: Feature
+metadata:
+  name: simple-array
+  namespace: default
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+spec:
+  primitive: "[]string"
+  freshness: 10s
+  staleness: 5m
+  builder:
+    kind: expression
+    pyexp: |
+      def handler():
+        return [
+          "a",
+          "b",
+          "c",
+        ]
+---
+apiVersion: k8s.natun.ai/v1alpha1
+kind: Feature
+metadata:
+  name: simple-array2
+  namespace: default
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+spec:
+  primitive: "[]int"
+  freshness: 10s
+  staleness: 5m
+  builder:
+    kind: expression
+    pyexp: |
+      def handler():
+        return [1,2,3]
+---
+apiVersion: k8s.natun.ai/v1alpha1
+kind: Feature
+metadata:
+  name: simple-array3
+  namespace: default
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+spec:
+  primitive: "[]float"
+  freshness: 10s
+  staleness: 5m
+  builder:
+    kind: expression
+    pyexp: |
+      def handler():
+        return [1.4,2.0,3.2]
+---
+apiVersion: k8s.natun.ai/v1alpha1
+kind: Feature
+metadata:
+  name: simple-date4
+  namespace: default
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+spec:
+  primitive: "timestamp"
+  freshness: 10s
+  staleness: 5m
+  builder:
+    kind: expression
+    pyexp: |
+      def handler():
+        return time.Now()

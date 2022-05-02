@@ -90,7 +90,7 @@ func fromScalar(scalar *coreApi.Scalar) any {
 	case *coreApi.Scalar_FloatValue:
 		return scalar.GetFloatValue()
 	case *coreApi.Scalar_IntValue:
-		return scalar.GetIntValue()
+		return int(scalar.GetIntValue())
 	case *coreApi.Scalar_TimestampValue:
 		return scalar.GetTimestampValue().AsTime()
 	}
