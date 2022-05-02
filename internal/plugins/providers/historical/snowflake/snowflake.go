@@ -19,6 +19,7 @@ package snowflake
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"github.com/natun-ai/natun/api"
 	"github.com/natun-ai/natun/pkg/plugins"
@@ -68,12 +69,7 @@ type snowflakeWriter struct {
 }
 
 func (sw *snowflakeWriter) Commit(ctx context.Context, wn api.WriteNotification) error {
-	stmt, err := sw.db.PrepareContext(ctx, `INSERT INTO historical (fqn, entity_id, value, timestamp, bucket, bucket_active) VALUES (?, ?, ?, ?, ?, ?)`)
-	if err != nil {
-		return fmt.Errorf("failed to prepare snowflake insert: %w", err)
-	}
-
-	var valTyp []byte
+	q := `INSERT INTO historical (fqn, entity_id, value, timestamp, bucket, bucket_active) SELECT ?, ?, to_variant(%s), ?, ?, ?`
 	var val any
 	var bucket *string
 	var alive *bool
@@ -87,24 +83,28 @@ func (sw *snowflakeWriter) Commit(ctx context.Context, wn api.WriteNotification)
 		alive = &alv
 
 		wrm := api.ToLowLevelValue[api.WindowResultMap](wn.Value.Value)
-		valTyp = sf.DataTypeObject
 		v := make(map[string]float64)
 		for k, vv := range wrm {
 			v[k.String()] = vv
 		}
-		val = v
+		rawJSON, err := json.Marshal(v)
+		if err != nil {
+			return fmt.Errorf("failed to marshal snowflake value: %w", err)
+		}
+		q = fmt.Sprintf(q, "parse_json(%s)")
+		val = string(rawJSON)
 	} else {
 		switch api.TypeDetect(wn.Value.Value) {
 		case api.PrimitiveTypeString:
-			valTyp, val = sf.DataTypeFixed, api.ToLowLevelValue[string](wn.Value.Value)
+			val = api.ToLowLevelValue[string](wn.Value.Value)
 		case api.PrimitiveTypeInteger:
-			valTyp, val = sf.DataTypeVariant, int64(api.ToLowLevelValue[int](wn.Value.Value))
+			val = int64(api.ToLowLevelValue[int](wn.Value.Value))
 		case api.PrimitiveTypeFloat:
-			valTyp, val = sf.DataTypeReal, api.ToLowLevelValue[float64](wn.Value.Value)
+			val = api.ToLowLevelValue[float64](wn.Value.Value)
 		case api.PrimitiveTypeTimestamp:
-			valTyp, val = sf.DataTypeTimestampLtz, api.ToLowLevelValue[time.Time](wn.Value.Value)
+			val = api.ToLowLevelValue[time.Time](wn.Value.Value)
 		case api.PrimitiveTypeStringList:
-			valTyp, val = sf.DataTypeArray, sf.Array(api.ToLowLevelValue[[]string](wn.Value.Value))
+			val = sf.Array(api.ToLowLevelValue[[]string](wn.Value.Value))
 
 		case api.PrimitiveTypeIntegerList:
 			v := api.ToLowLevelValue[[]int](wn.Value.Value)
@@ -112,19 +112,24 @@ func (sw *snowflakeWriter) Commit(ctx context.Context, wn api.WriteNotification)
 			for _, i := range v {
 				l = append(l, int64(i))
 			}
-			valTyp, val = sf.DataTypeArray, sf.Array(l)
+			val = sf.Array(l)
 		case api.PrimitiveTypeFloatList:
-			valTyp, val = sf.DataTypeArray, sf.Array(api.ToLowLevelValue[[]float64](wn.Value.Value))
+			val = sf.Array(api.ToLowLevelValue[[]float64](wn.Value.Value))
 		case api.PrimitiveTypeTimestampList:
 			v := api.ToLowLevelValue[[]time.Time](wn.Value.Value)
 			var l []int64
 			for _, t := range v {
 				l = append(l, types.TimeToTIMESTAMP_MICROS(t, false))
 			}
-			valTyp, val = sf.DataTypeArray, sf.Array(l)
+			val = sf.Array(l)
 		}
 	}
-	_, err = stmt.ExecContext(ctx, wn.FQN, wn.EntityID, valTyp, val, sf.DataTypeTimestampLtz, wn.Value.Timestamp, bucket, alive)
+
+	stmt, err := sw.db.PrepareContext(ctx, fmt.Sprintf(q, "?"))
+	if err != nil {
+		return fmt.Errorf("failed to prepare snowflake insert: %w", err)
+	}
+	_, err = stmt.ExecContext(ctx, wn.FQN, wn.EntityID, val, sf.DataTypeTimestampLtz, wn.Value.Timestamp, bucket, alive)
 	return err
 }
 func (sw *snowflakeWriter) Flush(ctx context.Context, fqn string) error { return nil }
