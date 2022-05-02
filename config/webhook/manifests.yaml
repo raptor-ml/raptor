@@ -24,4 +24,4 @@ webhooks:
     - UPDATE
     resources:
     - features
-  sideEffects: None
+  sideEffects: NoneOnDryRun
