@@ -1,0 +1,10 @@
+### Rename this file to `providers-creds.yaml` and change the following values
+apiVersion: v1
+kind: Secret
+metadata:
+  name: providers-creds
+  namespace: natun-system
+data:
+  AWS_ACCESS_KEY: ""
+  AWS_SECRET_KEY: ""
+  SNOWFLAKE_URI: <user>:<pass>@<account-id>/<db>/<schema>?warehouse=<warehouse-name>
