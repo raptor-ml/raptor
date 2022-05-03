@@ -26,6 +26,7 @@ import (
 	sf "github.com/snowflakedb/gosnowflake"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"net/url"
 	"strings"
 )
 
@@ -42,28 +43,38 @@ func BindConfig(set *pflag.FlagSet) error {
 }
 
 func HistoricalWriterFactory(viper *viper.Viper) (api.HistoricalWriter, error) {
-	db, err := sql.Open("snowflake", viper.GetString("snowflake-uri"))
+	uri := viper.GetString("snowflake-uri")
+	if !strings.HasPrefix(uri, "snowflake://") {
+		uri = "snowflake://" + uri
+	}
+	u, err := url.Parse(uri)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse snowflake uri: %w", err)
+	}
+	if u.Query().Get("warehouse") == "" {
+		return nil, fmt.Errorf("warehouse is required")
+	}
+	if u.Scheme != "snowflake" {
+		return nil, fmt.Errorf("scheme must be snowflake")
+	}
+	dsn := strings.TrimPrefix(u.String(), "snowflake://")
+
+	db, err := sql.Open("snowflake", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open snowflake connection: %w", err)
 	}
-	const create = `CREATE TABLE IF NOT EXISTS historical (
-		id number autoincrement start 1 increment 1,
-		fqn string(255) not null,
-		entity_id string(255) not null,
-		value variant not null,
-		timestamp timestamp_ltz	not null,
-		bucket string(10),
-		bucket_active boolean
-	);`
-	_, err = db.Exec(create)
+
+	sw := &snowflakeWriter{db: db, config: u.Query()}
+	err = sw.init()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create snowflake table: %w", err)
+		return nil, fmt.Errorf("failed to initialize snowflake writer: %w", err)
 	}
 	return &snowflakeWriter{db: db}, nil
 }
 
 type snowflakeWriter struct {
-	db *sql.DB
+	db     *sql.DB
+	config url.Values
 }
 
 func (sw *snowflakeWriter) Commit(ctx context.Context, wn api.WriteNotification) error {
@@ -114,6 +125,57 @@ func (sw *snowflakeWriter) Flush(ctx context.Context, fqn string) error { return
 func (sw *snowflakeWriter) FlushAll(context.Context) error              { return nil }
 func (sw *snowflakeWriter) Close(ctx context.Context) error {
 	return sw.db.Close()
+}
+
+func (sw *snowflakeWriter) init() error {
+	err := sw.createTable()
+	if err != nil {
+		return fmt.Errorf("failed to create snowflake table: %w", err)
+	}
+
+	err = sw.createTask()
+	if err != nil {
+		return fmt.Errorf("failed to verify snowflake task: %w", err)
+	}
+	return nil
+}
+func (sw *snowflakeWriter) createTable() error {
+	const create = `CREATE TABLE IF NOT EXISTS historical (
+		id number autoincrement start 1 increment 1,
+		fqn string(255) not null,
+		entity_id string(255) not null,
+		value variant not null,
+		timestamp timestamp_ltz	not null,
+		bucket string(10),
+		bucket_active boolean
+	);`
+	_, err := sw.db.Exec(create)
+	return err
+}
+
+func (sw *snowflakeWriter) createTask() error {
+	const cleanupTask = `create task if not exists active_buckets_cleanup
+    schedule = '60 minute'
+    allow_overlapping_execution = false
+    warehouse = '%s'
+as
+    merge into historical as target using historical as source
+        on target.fqn = source.fqn
+        and target.entity_id = source.entity_id
+        and target.bucket = source.bucket
+        when matched and target.bucket is not null and target.bucket_active = true and source.bucket_active = false
+        then delete`
+	_, err := sw.db.Exec(fmt.Sprintf(cleanupTask, sw.config.Get("warehouse")))
+	if err != nil {
+		return fmt.Errorf("failed to create snowflake task: %w", err)
+	}
+
+	const resumeTask = `ALTER TASK active_buckets_cleanup RESUME`
+	_, err = sw.db.Exec(resumeTask)
+	if err != nil {
+		return fmt.Errorf("failed to resume snowflake task: %w", err)
+	}
+	return nil
 }
 
 func isAlive(wn api.WriteNotification) bool {
