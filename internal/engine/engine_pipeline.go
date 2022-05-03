@@ -77,6 +77,10 @@ func (e *engine) cachePostGetMiddleware(f *Feature) api.Middleware {
 				return next(ctx, md, entityID, val)
 			}
 
+			if api.TypeDetect(val.Value) != md.Primitive {
+				return val, fmt.Errorf("value mismatch: got value with a different type than the feature type")
+			}
+
 			// If the flag `ContextKeyCachePostGet` is disabled, we should not cache the value.
 			if cpg, ok := ctx.Value(api.ContextKeyCachePostGet).(bool); ok && !cpg {
 				return next(ctx, md, entityID, val)
