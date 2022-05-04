@@ -22,7 +22,6 @@ import (
 	"github.com/jellydator/ttlcache/v3"
 	"github.com/natun-ai/natun/api"
 	"strings"
-	"time"
 )
 
 func (h *historian) Collector() LeaderRunnableFunc {
@@ -83,19 +82,16 @@ func (h *historian) dispatchCollectWithWindow(ctx context.Context, notification 
 		return fmt.Errorf("failed to get buckets for %s: %w", notification.FQN, err)
 	}
 	for _, b := range buckets {
-		if !contains(deadBuckets, b.Bucket) {
-			b.Bucket = fmt.Sprintf("%s%s", b.Bucket, AliveMarker)
-		} else {
-			h.handledBuckets.Set(deadBucketKey(b.FQN, b.Bucket, b.EntityID), struct{}{}, api.DeadGracePeriod+time.Minute)
-		}
+		activeBucket := !contains(deadBuckets, b.Bucket)
 		h.writeTasks.queue.Add(api.WriteNotification{
 			FQN:      b.FQN,
 			EntityID: b.EntityID,
 			Value: &api.Value{
 				Value:     b.Data,
-				Timestamp: time.Now(),
+				Timestamp: api.BucketTime(b.Bucket, md.Freshness),
 			},
-			Bucket: b.Bucket,
+			Bucket:       b.Bucket,
+			ActiveBucket: activeBucket,
 		})
 	}
 	return nil
@@ -104,7 +100,7 @@ func (h *historian) dispatchCollectWithWindow(ctx context.Context, notification 
 func (h *historian) dispatchCollectDead(ctx context.Context, md api.Metadata) error {
 	var ignore api.RawBuckets
 	for k := range h.handledBuckets.Items() {
-		if strings.HasPrefix(k, fmt.Sprintf("%s:", md.FQN)) {
+		if strings.HasPrefix(k, fmt.Sprintf("%s/", md.FQN)) {
 			fqn, bucket, eid := fromDeadBucketKey(k)
 			ignore = append(ignore, api.RawBucket{
 				FQN:      fqn,
@@ -124,9 +120,10 @@ func (h *historian) dispatchCollectDead(ctx context.Context, md api.Metadata) er
 			EntityID: b.EntityID,
 			Value: &api.Value{
 				Value:     b.Data,
-				Timestamp: time.Now(),
+				Timestamp: api.BucketTime(b.Bucket, md.Freshness),
 			},
-			Bucket: b.Bucket,
+			Bucket:       b.Bucket,
+			ActiveBucket: false,
 		})
 	}
 

@@ -11,7 +11,7 @@ metadata:
 spec:
   primitive: int
   freshness: 10s
-  staleness: 5m
+  staleness: 1m
   aggr:
     - sum
     - count

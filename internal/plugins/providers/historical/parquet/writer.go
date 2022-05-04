@@ -46,7 +46,7 @@ type parquetWriter struct {
 }
 
 func (bw *baseParquet) Commit(ctx context.Context, wn api.WriteNotification) error {
-	pw, err := bw.getWriter(ctx, wn.FQN, isAlive(wn))
+	pw, err := bw.getWriter(ctx, wn.FQN, wn.ActiveBucket)
 	if err != nil {
 		return err
 	}

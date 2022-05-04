@@ -28,7 +28,6 @@ import (
 )
 
 const SyncPeriod = 5 * time.Minute
-const AliveMarker = api.AliveMarker
 const DeadRequestMarker = "*dead*"
 
 // Although this is done at compile time, we want to make sure nobody messed with the numbers inappropriately

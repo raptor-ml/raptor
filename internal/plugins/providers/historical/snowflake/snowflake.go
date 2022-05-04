@@ -83,13 +83,8 @@ func (sw *snowflakeWriter) Commit(ctx context.Context, wn api.WriteNotification)
 	var bucket *string
 	var alive *bool
 	if wn.Bucket != "" {
-		b := strings.TrimSuffix(wn.Bucket, api.AliveMarker)
-		bucket = &b
-		alv := false
-		if isAlive(wn) {
-			alv = true
-		}
-		alive = &alv
+		bucket = &wn.Bucket
+		alive = &wn.ActiveBucket
 
 		wrm := api.ToLowLevelValue[api.WindowResultMap](wn.Value.Value)
 		v := make(map[string]float64)
@@ -147,7 +142,8 @@ func (sw *snowflakeWriter) createTable() error {
 		value variant not null,
 		timestamp timestamp_ltz	not null,
 		bucket string(10),
-		bucket_active boolean
+		bucket_active boolean,
+		UNIQUE(fqn, entity_id, value, timestamp, bucket, bucket_active)
 	);`
 	_, err := sw.db.Exec(create)
 	return err
@@ -176,8 +172,4 @@ as
 		return fmt.Errorf("failed to resume snowflake task: %w", err)
 	}
 	return nil
-}
-
-func isAlive(wn api.WriteNotification) bool {
-	return strings.HasSuffix(wn.Bucket, api.AliveMarker)
 }

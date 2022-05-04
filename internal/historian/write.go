@@ -20,16 +20,22 @@ import (
 	"context"
 	"github.com/natun-ai/natun/api"
 	"sync/atomic"
+	"time"
 )
 
-func (h *historian) dispatchWrite(ctx context.Context, notification api.WriteNotification) error {
+func (h *historian) dispatchWrite(ctx context.Context, ntf api.WriteNotification) error {
 	atomic.AddUint32(&h.writes, 1)
-	nv, err := api.NormalizeAny(notification.Value.Value)
+	nv, err := api.NormalizeAny(ntf.Value.Value)
 	if err != nil {
 		return err
 	}
-	notification.Value.Value = nv
-	return h.HistoricalWriter.Commit(ctx, notification)
+	ntf.Value.Value = nv
+
+	err = h.HistoricalWriter.Commit(ctx, ntf)
+	if err == nil && ntf.Bucket != "" && !ntf.ActiveBucket {
+		h.handledBuckets.Set(deadBucketKey(ntf.FQN, ntf.Bucket, ntf.EntityID), struct{}{}, api.DeadGracePeriod+time.Minute)
+	}
+	return err
 }
 
 func (h *historian) finalizeWrite(ctx context.Context) {

@@ -27,10 +27,11 @@ type CollectNotification struct {
 	Bucket   string `json:"bucket,omitempty"`
 }
 type WriteNotification struct {
-	FQN      string `json:"fqn"`
-	EntityID string `json:"entity_id"`
-	Bucket   string `json:"bucket,omitempty"`
-	Value    *Value `json:"value,omitempty"`
+	FQN          string `json:"fqn"`
+	EntityID     string `json:"entity_id"`
+	Bucket       string `json:"bucket,omitempty"`
+	ActiveBucket bool   `json:"active_bucket,omitempty"`
+	Value        *Value `json:"value,omitempty"`
 }
 
 // Notifier is the interface to be implemented by plugins that want to provide a Queue implementation
@@ -46,5 +47,3 @@ type HistoricalWriter interface {
 	FlushAll(context.Context) error
 	Close(ctx context.Context) error
 }
-
-const AliveMarker = "(alive)"

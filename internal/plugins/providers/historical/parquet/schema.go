@@ -19,7 +19,6 @@ package parquet
 import (
 	"github.com/natun-ai/natun/api"
 	"github.com/xitongsys/parquet-go/types"
-	"strings"
 	"time"
 )
 
@@ -58,7 +57,6 @@ func NewHistoricalRecord(wn api.WriteNotification) HistoricalRecord {
 		Timestamp: types.TimeToTIMESTAMP_MICROS(wn.Value.Timestamp, false),
 	}
 	if wn.Bucket != "" {
-		alive := isAlive(wn)
 		wrm := api.ToLowLevelValue[api.WindowResultMap](wn.Value.Value)
 
 		count := int64(wrm[api.WindowFnCount])
@@ -66,8 +64,8 @@ func NewHistoricalRecord(wn api.WriteNotification) HistoricalRecord {
 		min := wrm[api.WindowFnMin]
 		max := wrm[api.WindowFnMax]
 		hr.Bucket = &Bucket{
-			BucketName: strings.TrimSuffix(wn.Bucket, api.AliveMarker),
-			Alive:      &alive,
+			BucketName: wn.Bucket,
+			Alive:      &wn.ActiveBucket,
 			Count:      &count,
 			Sum:        &sum,
 			Min:        &min,
@@ -126,8 +124,4 @@ func NewHistoricalRecord(wn api.WriteNotification) HistoricalRecord {
 		}
 	}
 	return hr
-}
-
-func isAlive(wn api.WriteNotification) bool {
-	return strings.HasSuffix(wn.Bucket, api.AliveMarker)
 }
