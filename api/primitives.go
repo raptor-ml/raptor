@@ -101,7 +101,28 @@ func (pt PrimitiveType) Plural() PrimitiveType {
 	}
 }
 func (pt PrimitiveType) String() string {
-	return reflect.TypeOf(pt).String()
+	switch pt {
+	case PrimitiveTypeString:
+		return "string"
+	case PrimitiveTypeTimestamp:
+		return "timestamp"
+	case PrimitiveTypeInteger:
+		return "int"
+	case PrimitiveTypeFloat:
+		return "float"
+	case PrimitiveTypeIntegerList:
+		return "[]int"
+	case PrimitiveTypeFloatList:
+		return "[]]list"
+	case PrimitiveTypeStringList:
+		return "[]string"
+	case PrimitiveTypeTimestampList:
+		return "[]timestamp"
+	case PrimitiveTypeHeadless:
+		return "headless"
+	default:
+		return "(unknown)"
+	}
 }
 func (pt PrimitiveType) Interface() any {
 	if !pt.Scalar() {

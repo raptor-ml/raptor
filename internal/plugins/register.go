@@ -19,6 +19,7 @@ package plugins
 import (
 	// register all builder plugins
 	_ "github.com/natun-ai/natun/internal/plugins/builders/expression"
+	_ "github.com/natun-ai/natun/internal/plugins/builders/featureset"
 	_ "github.com/natun-ai/natun/internal/plugins/builders/rest"
 	_ "github.com/natun-ai/natun/internal/plugins/builders/streaming"
 
