@@ -81,6 +81,13 @@ func coreControllers(mgr manager.Manager, eng api.ManagerEngine) {
 		EngineManager:  eng,
 	}).SetupWithManager(mgr)
 	OrFail(err, "unable to create core controller", "controller", "Feature")
+
+	err = (&corectrl.FeatureSetReconciler{
+		Reader:        mgr.GetClient(),
+		Scheme:        mgr.GetScheme(),
+		EngineManager: eng,
+	}).SetupWithManager(mgr)
+	OrFail(err, "unable to create core controller", "controller", "FeatureSet")
 }
 
 func operatorControllers(mgr manager.Manager) {
