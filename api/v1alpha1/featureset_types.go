@@ -32,6 +32,11 @@ type FeatureSetSpec struct {
 	// +kubebuilder:validation:MinItems=2
 	// +kubebuilder:validation:Required
 	Features []string `json:"features"`
+
+	// KeyFeature is the feature FQN that is used to align the rest of the features with.
+	// If this is unset, the first feature in the list will be used.
+	// +optional
+	KeyFeature string `json:"keyFeature,omitempty"`
 }
 
 // FeatureSetStatus defines the observed state of FeatureSet
