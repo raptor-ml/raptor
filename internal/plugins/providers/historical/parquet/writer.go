@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/natun-ai/natun/api"
+	manifests "github.com/natun-ai/natun/api/v1alpha1"
 	"github.com/xitongsys/parquet-go/source"
 	"github.com/xitongsys/parquet-go/writer"
 	"sync"
@@ -121,4 +122,9 @@ func (bw *baseParquet) FlushAll(ctx context.Context) error {
 
 func (bw *baseParquet) Close(ctx context.Context) error {
 	return bw.FlushAll(ctx)
+}
+
+func (bw *baseParquet) BindFeature(md *api.Metadata, fs *manifests.FeatureSetSpec, getter api.MetadataGetter) error {
+	// TODO implement
+	return nil
 }

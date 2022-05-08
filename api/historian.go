@@ -16,7 +16,10 @@ limitations under the License.
 
 package api
 
-import "context"
+import (
+	"context"
+	manifests "github.com/natun-ai/natun/api/v1alpha1"
+)
 
 type Notification interface {
 	CollectNotification | WriteNotification
@@ -46,4 +49,5 @@ type HistoricalWriter interface {
 	Flush(ctx context.Context, fqn string) error
 	FlushAll(context.Context) error
 	Close(ctx context.Context) error
+	BindFeature(md *Metadata, fs *manifests.FeatureSetSpec, getter MetadataGetter) error
 }

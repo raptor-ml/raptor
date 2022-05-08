@@ -17,6 +17,8 @@ limitations under the License.
 package historian
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/jellydator/ttlcache/v3"
@@ -98,6 +100,17 @@ func (h *historian) BindFeature(in *manifests.Feature) error {
 		return fmt.Errorf("failed to parse metadata from CR: %w", err)
 	}
 
+	var fs *manifests.FeatureSetSpec
+	if md.Builder == api.FeatureSetBuilder {
+		fs = &manifests.FeatureSetSpec{}
+		err := json.Unmarshal(in.Spec.Builder.Raw, fs)
+		if err != nil {
+			return fmt.Errorf("failed to parse featureset builder spec: %w", err)
+		}
+	}
+	if err := h.HistoricalWriter.BindFeature(md, fs, h.Metadata); err != nil {
+		return fmt.Errorf("failed to bind feature to historical writer: %w", err)
+	}
 	if md.Primitive == api.PrimitiveTypeHeadless {
 		// Headless features are not stored and not backed up to historical storage
 		return nil
@@ -110,7 +123,7 @@ func (h *historian) BindFeature(in *manifests.Feature) error {
 		})
 	}
 
-	h.metadata.Store(in.FQN(), md)
+	h.metadata.Store(in.FQN(), *md)
 	h.Logger.Info("feature bounded", "feature", in.FQN())
 	return nil
 }
@@ -124,6 +137,13 @@ func (h *historian) UnbindFeature(fqn string) error {
 func (h *historian) HasFeature(fqn string) bool {
 	_, ok := h.metadata.Load(fqn)
 	return ok
+}
+func (h *historian) Metadata(ctx context.Context, FQN string) (api.Metadata, error) {
+	md, ok := h.metadata.Load(FQN)
+	if !ok {
+		return api.Metadata{}, api.ErrFeatureNotFound
+	}
+	return md.(api.Metadata), nil
 }
 
 func timeTillNextBucket(bucketSize time.Duration) time.Duration {

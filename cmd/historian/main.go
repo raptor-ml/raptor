@@ -73,11 +73,11 @@ func main() {
 
 	zapOpts := zap.Options{}
 	zapOpts.BindFlags(flag.CommandLine)
-	utilruntime.Must(plugins.BindConfig(pflag.CommandLine))
+	orFail(plugins.BindConfig(pflag.CommandLine), "failed to bind plugins' config")
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
-	utilruntime.Must(viper.BindPFlags(pflag.CommandLine))
+	orFail(viper.BindPFlags(pflag.CommandLine), "failed to bind flags")
 
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 	viper.AutomaticEnv()
@@ -99,10 +99,7 @@ func main() {
 		LeaderElectionID:              "historian.natun.ai",
 		LeaderElectionReleaseOnCancel: true,
 	})
-	if err != nil {
-		setupLog.Error(err, "unable to start manager")
-		os.Exit(1)
-	}
+	orFail(err, "unable to start manager")
 
 	// Create the state
 	state, err := plugins.NewState(viper.GetString("state-provider"), viper.GetViper())
@@ -130,41 +127,52 @@ func main() {
 	orFail(hss.WithManager(mgr), "failed to create historian client")
 
 	// Setup Core Controllers
-	if err = (&corectrl.FeatureReconciler{
+	err = (&corectrl.FeatureReconciler{
 		Reader:         mgr.GetClient(),
 		Scheme:         mgr.GetScheme(),
 		UpdatesAllowed: !viper.GetBool("production"),
 		EngineManager:  hss,
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "DataConnector")
-		os.Exit(1)
-	}
+	}).SetupWithManager(mgr)
+	orFail(err, "failed to setup feature contoller")
+
+	err = (&corectrl.FeatureReconciler{
+		Reader:         mgr.GetClient(),
+		Scheme:         mgr.GetScheme(),
+		UpdatesAllowed: !viper.GetBool("production"),
+		EngineManager:  hss,
+	}).SetupWithManager(mgr)
+	orFail(err, "unable to create core controller", "controller", "Feature")
+
+	err = (&corectrl.FeatureSetReconciler{
+		Reader:        mgr.GetClient(),
+		Scheme:        mgr.GetScheme(),
+		EngineManager: hss,
+	}).SetupWithManager(mgr)
+	orFail(err, "unable to create core controller", "controller", "FeatureSet")
 
 	health := func(r *http.Request) error {
 		return state.Ping(r.Context())
 	}
 
-	if err := mgr.AddHealthzCheck("healthz", health); err != nil {
-		setupLog.Error(err, "unable to set up health check")
-		os.Exit(1)
-	}
+	err = mgr.AddHealthzCheck("healthz", health)
+	orFail(err, "failed to set up health check")
 
 	// Currently, this is being solved by configuring a `initialDelaySeconds` for the probe
-	if err := mgr.AddReadyzCheck("readyz", health); err != nil {
-		setupLog.Error(err, "unable to set up ready check")
-		os.Exit(1)
-	}
+	err = mgr.AddReadyzCheck("readyz", health)
+	orFail(err, "failed to set up ready check")
 
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		setupLog.Error(err, "problem running manager")
-		os.Exit(1)
-	}
+	err = mgr.Start(ctrl.SetupSignalHandler())
+	orFail(err, "problem starting manager")
 }
 
-func orFail(e error, message string) {
-	if e != nil {
-		setupLog.Error(e, message)
+func orFail(err error, message string, keyAndValues ...any) {
+	if err != nil {
+		if setupLog.GetSink() == nil {
+			_, _ = fmt.Fprint(os.Stderr, append([]any{"error", err, "message", message}, keyAndValues...)...)
+		} else {
+			setupLog.Error(err, message, keyAndValues...)
+		}
 		os.Exit(1)
 	}
 }

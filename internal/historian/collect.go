@@ -41,13 +41,9 @@ func (h *historian) Collector() LeaderRunnableFunc {
 
 // dispatch collect notifications: collect the data and send it to the write queue
 func (h *historian) dispatchCollect(ctx context.Context, notification api.CollectNotification) error {
-	var md api.Metadata
-	if v, ok := h.metadata.Load(notification.FQN); !ok {
+	md, err := h.Metadata(ctx, notification.FQN)
+	if err != nil {
 		return fmt.Errorf("failed to get metadata for %s", notification.FQN)
-	} else if m, ok := v.(*api.Metadata); !ok {
-		panic(fmt.Sprintf("metadata for %s is not exists in the internal store", notification.FQN))
-	} else {
-		md = *m
 	}
 
 	if md.ValidWindow() {
