@@ -21,7 +21,6 @@ import (
 	"github.com/natun-ai/natun/pkg/plugins"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"strings"
@@ -50,11 +49,11 @@ func InitConfig() {
 
 	zapOpts := zap.Options{}
 	zapOpts.BindFlags(flag.CommandLine)
-	utilruntime.Must(plugins.BindConfig(pflag.CommandLine))
+	OrFail(plugins.BindConfig(pflag.CommandLine), "Failed to bind plugins' config")
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
-	utilruntime.Must(viper.BindPFlags(pflag.CommandLine))
+	OrFail(viper.BindPFlags(pflag.CommandLine), "Failed to bind flags")
 
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 	viper.AutomaticEnv()

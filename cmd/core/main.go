@@ -18,11 +18,9 @@ package main
 
 import (
 	"github.com/natun-ai/natun/cmd/core/internal/setup"
+	"github.com/natun-ai/natun/internal/version"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
-	"os"
-
-	"github.com/natun-ai/natun/internal/version"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -52,7 +50,6 @@ func init() {
 
 func main() {
 	setup.InitConfig()
-
 	setupLog.WithValues("version", version.Version).Info("Initializing Core...")
 
 	// Set up a Manager
@@ -77,20 +74,14 @@ func main() {
 
 	// +kubebuilder:scaffold:builder
 
-	if err := mgr.AddHealthzCheck("healthz", setup.HealthCheck); err != nil {
-		setupLog.Error(err, "unable to set up health check")
-		os.Exit(1)
-	}
+	err = mgr.AddHealthzCheck("healthz", setup.HealthCheck)
+	setup.OrFail(err, "unable to set up health check")
 
 	// Currently, this is being solved by configuring a `initialDelaySeconds` for the probe
-	if err := mgr.AddReadyzCheck("readyz", setup.HealthCheck); err != nil {
-		setupLog.Error(err, "unable to set up ready check")
-		os.Exit(1)
-	}
+	err = mgr.AddReadyzCheck("readyz", setup.HealthCheck)
+	setup.OrFail(err, "unable to set up ready check")
 
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		setupLog.Error(err, "problem running manager")
-		os.Exit(1)
-	}
+	err = mgr.Start(ctrl.SetupSignalHandler())
+	setup.OrFail(err, "problem running manager")
 }
