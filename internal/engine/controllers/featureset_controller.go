@@ -98,7 +98,8 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	if err := r.EngineManager.BindFeature(ft); err != nil {
-		return ctrl.Result{RequeueAfter: 10 * time.Second}, err
+		logger.Error(err, "Failed to bind FeatureSet as feature")
+		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 
 	return ctrl.Result{}, nil

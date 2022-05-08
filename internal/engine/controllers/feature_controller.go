@@ -82,7 +82,8 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	if err := r.EngineManager.BindFeature(feature); err != nil {
-		return ctrl.Result{RequeueAfter: 10 * time.Second}, err
+		logger.Error(err, "Failed to bind feature")
+		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 
 	return ctrl.Result{}, nil
