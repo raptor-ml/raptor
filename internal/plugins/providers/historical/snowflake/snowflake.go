@@ -135,32 +135,32 @@ func (sw *snowflakeWriter) init() error {
 	return nil
 }
 func (sw *snowflakeWriter) createTable() error {
-	const create = `CREATE TABLE IF NOT EXISTS historical (
-		id number autoincrement start 1 increment 1,
-		fqn string(255) not null,
-		entity_id string(255) not null,
-		value variant not null,
-		timestamp timestamp_ltz	not null,
-		bucket string(10),
-		bucket_active boolean,
-		UNIQUE(fqn, entity_id, value, timestamp, bucket, bucket_active)
-	);`
+	const create = `CREATE TABLE IF NOT EXISTS historical(
+    id            number autoincrement start 1 increment 1,
+    fqn           string(255)   not null,
+    entity_id     string(255)   not null,
+    value         variant       not null,
+    timestamp     timestamp_ltz not null,
+    bucket        string(10),
+    bucket_active boolean,
+    UNIQUE (fqn, entity_id, value, timestamp, bucket, bucket_active)
+) CLUSTER BY (fqn, timestamp);`
 	_, err := sw.db.Exec(create)
 	return err
 }
 
 func (sw *snowflakeWriter) createTask() error {
-	const cleanupTask = `create task if not exists active_buckets_cleanup
-    schedule = '60 minute'
-    allow_overlapping_execution = false
-    warehouse = '%s'
-as
-    merge into historical as target using historical as source
-        on target.fqn = source.fqn
-        and target.entity_id = source.entity_id
-        and target.bucket = source.bucket
-        when matched and target.bucket is not null and target.bucket_active = true and source.bucket_active = false
-        then delete`
+	const cleanupTask = `CREATE TASK IF NOT EXISTS active_buckets_cleanup
+    SCHEDULE = '60 minute'
+    ALLOW_OVERLAPPING_EXECUTION = FALSE
+    WAREHOUSE = '%s'
+    AS
+        MERGE INTO historical AS target USING historical AS source
+            ON target.fqn = source.fqn
+                AND target.entity_id = source.entity_id
+                AND target.bucket = source.bucket
+            WHEN MATCHED AND target.bucket IS NOT NULL AND target.bucket_active = TRUE AND source.bucket_active = FALSE
+                THEN DELETE;`
 	_, err := sw.db.Exec(fmt.Sprintf(cleanupTask, sw.config.Get("warehouse")))
 	if err != nil {
 		return fmt.Errorf("failed to create snowflake task: %w", err)
