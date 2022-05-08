@@ -26,6 +26,8 @@ import (
 	"time"
 )
 
+const FeatureSetBuilder = "featureset"
+
 // DataConnector is a parsed abstracted representation of a manifests.DataConnector
 type DataConnector struct {
 	FQN    string                 `json:"fqn"`

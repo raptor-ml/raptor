@@ -67,11 +67,11 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			Namespace: fs.Namespace,
 		},
 		Spec: natunApi.FeatureSpec{
-			Primitive: "headless",
+			Primitive: api.PrimitiveTypeHeadless.String(),
 			Timeout:   fs.Spec.Timeout,
 		},
 	}
-	ft.Spec.Builder.Kind = "featureset"
+	ft.Spec.Builder.Kind = api.FeatureSetBuilder
 	ft.Spec.Builder.Raw, err = json.Marshal(fs.Spec.Features)
 	if err != nil {
 		logger.Error(err, "Failed to marshal features")

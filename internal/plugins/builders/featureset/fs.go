@@ -26,7 +26,7 @@ import (
 )
 
 func init() {
-	const name = "featureset"
+	const name = api.FeatureSetBuilder
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
