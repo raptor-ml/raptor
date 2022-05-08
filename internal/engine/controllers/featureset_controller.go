@@ -72,7 +72,7 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		},
 	}
 	ft.Spec.Builder.Kind = api.FeatureSetBuilder
-	ft.Spec.Builder.Raw, err = json.Marshal(fs.Spec.Features)
+	ft.Spec.Builder.Raw, err = json.Marshal(fs.Spec)
 	if err != nil {
 		logger.Error(err, "Failed to marshal features")
 		return ctrl.Result{}, err

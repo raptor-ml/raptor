@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/natun-ai/natun/api"
+	manifests "github.com/natun-ai/natun/api/v1alpha1"
 	"github.com/natun-ai/natun/pkg/plugins"
 	"sync"
 )
@@ -31,16 +32,17 @@ func init() {
 }
 
 func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
-	fs := &featureset{engine: engine}
-	err := json.Unmarshal(builderSpec, &fs.features)
+	spec := manifests.FeatureSetSpec{}
+	err := json.Unmarshal(builderSpec, &spec)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal expression spec: %w", err)
 	}
 
-	if len(fs.features) < 2 {
+	if len(spec.Features) < 2 {
 		return fmt.Errorf("featureset must have at least 2 features")
 	}
 
+	fs := &featureset{engine: engine, features: spec.Features}
 	api.AddPostGetMiddleware(0, fs.preGetMiddleware)
 	return nil
 }
