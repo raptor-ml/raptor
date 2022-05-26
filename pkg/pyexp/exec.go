@@ -40,6 +40,12 @@ type ExecRequest struct {
 	DependencyGetter DependencyGetter
 }
 
+// ExecReqWithDepGetter returns a new ExecRequest with the given DependencyGetter.
+func ExecReqWithDepGetter(req ExecRequest, depGetter DependencyGetter) ExecRequest {
+	req.DependencyGetter = depGetter
+	return req
+}
+
 type InstructionOp int
 
 const (
