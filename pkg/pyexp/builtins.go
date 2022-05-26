@@ -131,7 +131,7 @@ func (r *runtime) GetFeature(t *starlark.Thread, b *starlark.Builtin, args starl
 		}
 	}
 
-	getter := t.Local(localKeyDependenciesData).(DependencyGetter)
+	getter := t.Local(localKeyDependencyGetter).(DependencyGetter)
 	val, err := getter(fqn, entityID, nowf(t))
 	if err != nil {
 		return nil, fmt.Errorf("couldn't get feature value: %w", err)

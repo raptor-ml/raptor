@@ -29,11 +29,10 @@ import (
 
 type DependenciesData map[string]map[string]api.Value
 
-const localKeyDependenciesData = "dependencies_data"
+const localKeyDependencyGetter = "dependency_getter"
 
 type DependencyGetter func(FQN string, entityID string, timestamp time.Time) (api.Value, error)
 type ExecRequest struct {
-	Dependencies     DependenciesData
 	Headers          map[string][]string
 	Payload          any
 	EntityID         string
@@ -156,7 +155,7 @@ func (r *runtime) exec(req ExecRequest, discoveryMode bool) (starlark.Value, *st
 	if discoveryMode {
 		thread.SetLocal(localKeyDiscoverDependencies, make(discoveredDependencies))
 	} else {
-		thread.SetLocal(localKeyDependenciesData, req.Dependencies)
+		thread.SetLocal(localKeyDependencyGetter, req.DependencyGetter)
 	}
 
 	// Execute the program
