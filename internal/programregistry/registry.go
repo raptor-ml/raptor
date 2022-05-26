@@ -34,7 +34,7 @@ var ErrNotFound = fmt.Errorf("not found")
 // This allows the runtime to store the program regardless to the feature definition, and to execute programs
 // by passing their hash.
 type Registry interface {
-	Register(program string) (hash string, err error)
+	Register(program string, fqn string) (hash string, err error)
 	Get(hash string) (program pyexp.Runtime, err error)
 }
 type registry struct {
@@ -60,12 +60,12 @@ func New(ctx context.Context, engine api.Engine) Registry {
 }
 
 // Register a program
-func (r *registry) Register(program string) (string, error) {
+func (r *registry) Register(program string, fqn string) (string, error) {
 	if v := r.cache.Get(program); v != nil {
 		return "", ErrAlreadyRegistered
 	}
 
-	rt, err := pyexp.New(program, r.engine)
+	rt, err := pyexp.New(program, fqn, r.engine)
 	if err != nil {
 		return "", fmt.Errorf("failed to create pyexp runtime: %w", err)
 	}

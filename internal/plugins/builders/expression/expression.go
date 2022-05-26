@@ -47,7 +47,7 @@ func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAP
 		return fmt.Errorf("expression is empty")
 	}
 
-	runtime, err := pyexp.New(spec.Expression, engine)
+	runtime, err := pyexp.New(spec.Expression, md.FQN, engine)
 	if err != nil {
 		return fmt.Errorf("failed to create expression runtime: %w", err)
 	}
@@ -76,7 +76,6 @@ func (p *expr) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
 			Headers:   nil,
 			Payload:   val.Value,
 			EntityID:  entityID,
-			Fqn:       md.FQN,
 			Timestamp: val.Timestamp,
 			Logger:    api.LoggerFromContext(ctx),
 		})

@@ -35,11 +35,10 @@ import (
 	"go.starlark.net/resolve"
 	"go.starlark.net/starlark"
 	"go.starlark.net/starlarkstruct"
+	"strings"
 	"time"
 )
 
-// HandlerFuncName is the name of the function that the use need to implement to handle the request.
-const HandlerFuncName = "handler"
 const localKeyContext = "go.context"
 
 func init() {
@@ -72,13 +71,16 @@ type Runtime interface {
 type runtime struct {
 	program  *starlark.Program
 	builtins starlark.StringDict
+	fqn      string
 	engine   api.Engine
+	handler  string
 }
 
 // New returns a new PyExp runtime
-func New(program string, e api.Engine) (Runtime, error) {
+func New(program string, fqn string, e api.Engine) (Runtime, error) {
 	d := &runtime{
 		engine:   e,
+		fqn:      fqn,
 		builtins: starlark.StringDict{},
 	}
 
@@ -89,11 +91,6 @@ func New(program string, e api.Engine) (Runtime, error) {
 	d.builtins["update_feature"] = starlark.NewBuiltin("update_feature", d.Update)
 	d.builtins["append_feature"] = starlark.NewBuiltin("append_feature", d.AppendFeature)
 	d.builtins["incr_feature"] = starlark.NewBuiltin("incr_feature", d.Incr)
-	d.builtins["payload"] = starlark.None
-	d.builtins["headers"] = starlark.None
-	d.builtins["feature_fqn"] = starlark.None
-	d.builtins["entity_id"] = starlark.None
-	d.builtins["timestamp"] = starlark.None
 
 	// Parse, resolve, and compile a Starlark source file.
 	f, p, err := starlark.SourceProgram("<pyexp>", program, d.builtins.Has)
@@ -105,8 +102,10 @@ func New(program string, e api.Engine) (Runtime, error) {
 		return nil, errors.New("pyexp cannot load files")
 	}
 
-	if !isHandlerImplemented(f) {
-		return nil, fmt.Errorf("`%s` func has not declared and is required by the Natun spec", HandlerFuncName)
+	altHandler := strings.SplitN(fqn, ".", 2)[0]
+	d.handler = programHandler(f, altHandler)
+	if d.handler == "" {
+		return nil, fmt.Errorf("`%s` func or `%s` has not declared and is required by the Natun spec", HandlerFuncName, altHandler)
 	}
 
 	d.program = p
@@ -117,21 +116,27 @@ type ExecRequest struct {
 	Headers   map[string][]string
 	Payload   any
 	EntityID  string
-	Fqn       string
 	Timestamp time.Time
 	Logger    logr.Logger
 }
 
 func (r *runtime) Exec(ctx context.Context, req ExecRequest) (any, time.Time, string, error) {
-	// Prepare globals
-	predeclared, err := requestToPredeclared(req, r.builtins)
+	// Prepare request
+	kwargs, err := requestToKwargs(req)
 	if err != nil {
-		return nil, time.Now(), "", err
+		return nil, req.Timestamp, "", err
+	}
+
+	// Create the globals dict
+	predeclared := starlark.StringDict{}
+	// Set builtins types
+	for k, v := range r.builtins {
+		predeclared[k] = v
 	}
 
 	// Create a Thread and redefine the behavior of the built-in 'print' function.
 	thread := &starlark.Thread{
-		Name:  req.Fqn,
+		Name:  r.fqn,
 		Print: func(_ *starlark.Thread, msg string) { req.Logger.WithName("program").Info(msg) },
 	}
 	thread.SetLocal(localKeyContext, ctx)
@@ -142,27 +147,27 @@ func (r *runtime) Exec(ctx context.Context, req ExecRequest) (any, time.Time, st
 
 	if err != nil {
 		logExexErr(err, req.Logger)
-		return nil, time.Now(), "", err
+		return nil, req.Timestamp, "", err
 	}
 
 	// Call the handler
-	v, err := starlark.Call(thread, globals[HandlerFuncName], nil, nil)
+	v, err := starlark.Call(thread, globals[r.handler], nil, kwargs)
 	if err != nil {
 		logExexErr(err, req.Logger)
-		return nil, time.Now(), "", err
+		return nil, req.Timestamp, "", err
 	}
 
 	// Convert and validate the returned value
 	ret, ts, eid, err := parseHandlerResults(v)
 	if err != nil {
-		return nil, time.Now(), "", err
+		return nil, req.Timestamp, "", err
 	}
 	if req.EntityID != "" && eid != "" && eid != req.EntityID {
 		err := fmt.Errorf("execution returned entity id %s, but the request was for entity id %s", eid, req.EntityID)
 		return nil, ts, req.EntityID, err
 	}
 	if req.EntityID == "" && eid == "" {
-		return nil, time.Now(), "", fmt.Errorf("this program must return an entity_id along with the value")
+		return nil, req.Timestamp, "", fmt.Errorf("this program must return an entity_id along with the value")
 	}
 
 	return ret, ts, eid, nil
@@ -181,7 +186,7 @@ func logExexErr(err error, logger logr.Logger) {
 	}
 }
 
-func requestToPredeclared(req ExecRequest, builtins starlark.StringDict) (starlark.StringDict, error) {
+func requestToKwargs(req ExecRequest) ([]starlark.Tuple, error) {
 	var payload starlark.Value
 	var err error
 	if req.Payload == nil {
@@ -199,18 +204,10 @@ func requestToPredeclared(req ExecRequest, builtins starlark.StringDict) (starla
 		}
 	}
 
-	// Create the globals dict
-	globals := starlark.StringDict{}
-	// Set builtins types
-	for k, v := range builtins {
-		globals[k] = v
-	}
-
-	// Set per invocation environment for the script
-	globals["headers"] = headersToStarDict(req.Headers)
-	globals["payload"] = payload
-	globals["entity_id"] = starlark.String(req.EntityID)
-	globals["feature_fqn"] = starlark.String(req.Fqn)
-	globals["timestamp"] = sTime.Time(req.Timestamp)
-	return globals, nil
+	return []starlark.Tuple{
+		{starlark.String("payload"), payload},
+		{starlark.String("headers"), headersToStarDict(req.Headers)},
+		{starlark.String("entity_id"), starlark.String(req.EntityID)},
+		{starlark.String("timestamp"), starlark.String(req.Timestamp.Format(time.RFC3339))},
+	}, nil
 }

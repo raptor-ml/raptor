@@ -21,6 +21,6 @@ spec:
   builder:
     kind: expression
     pyexp: |
-      def handler():
+      def handler(**req):
         print("Setting a windowed feature from the pyexp")
-        update_feature(feature_fqn, entity_id, 1)
+        update_feature(req["feature_fqn"], req["entity_id"], 1)

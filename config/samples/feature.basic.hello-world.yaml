@@ -9,5 +9,5 @@ spec:
   builder:
     kind: expression
     pyexp: |-
-      def handler():
-         return "Hello world " + entity_id
+      def handler(**req):
+         return "Hello world " + req["entity_id"]

@@ -12,5 +12,5 @@ spec:
     method: GET
     body: ~
     pyexp: |
-      def handler():
-        return payload["address"]["city"]
+      def handler(**req):
+        return req["payload"]["address"]["city"]

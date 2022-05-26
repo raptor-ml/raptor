@@ -53,7 +53,7 @@ func New(engine api.Engine, programs programregistry.Registry, logger logr.Logge
 }
 
 func (r *runtime) LoadPyExpProgram(_ context.Context, req *pbRuntime.LoadPyExpProgramRequest) (*pbRuntime.LoadPyExpProgramResponse, error) {
-	hash, err := r.programs.Register(req.GetProgram())
+	hash, err := r.programs.Register(req.GetProgram(), req.GetFqn())
 	if err != nil && !errors.Is(err, programregistry.ErrAlreadyRegistered) {
 		return nil, status.Errorf(codes.Internal, "failed to register program: %v", err)
 	}
@@ -105,7 +105,6 @@ func (r *runtime) ExecutePyExp(ctx context.Context, req *pbRuntime.ExecutePyExpR
 		Headers:   headers,
 		Payload:   payload,
 		EntityID:  req.GetEntityId(),
-		Fqn:       req.GetFqn(),
 		Timestamp: ev.Time(),
 		Logger:    r.logger.WithName(req.Fqn),
 	})

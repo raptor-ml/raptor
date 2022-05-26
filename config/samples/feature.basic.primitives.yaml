@@ -12,7 +12,7 @@ spec:
   builder:
     kind: expression
     pyexp: |
-      def handler():
+      def handler(**req):
         return "hello"
 ---
 apiVersion: k8s.natun.ai/v1alpha1
@@ -29,7 +29,7 @@ spec:
   builder:
     kind: expression
     pyexp: |
-      def handler():
+      def handler(**req):
         return 1
 ---
 apiVersion: k8s.natun.ai/v1alpha1
@@ -46,7 +46,7 @@ spec:
   builder:
     kind: expression
     pyexp: |
-      def handler():
+      def handler(**req):
         return 1.1
 ---
 apiVersion: k8s.natun.ai/v1alpha1
@@ -63,7 +63,7 @@ spec:
   builder:
     kind: expression
     pyexp: |
-      def handler():
+      def handler(**req):
         return time.now()
 ---
 apiVersion: k8s.natun.ai/v1alpha1
@@ -80,7 +80,7 @@ spec:
   builder:
     kind: expression
     pyexp: |
-      def handler():
+      def handler(**req):
         return [
           "a",
           "b",
@@ -101,7 +101,7 @@ spec:
   builder:
     kind: expression
     pyexp: |
-      def handler():
+      def handler(**req):
         return [1,2,3]
 ---
 apiVersion: k8s.natun.ai/v1alpha1
@@ -118,7 +118,7 @@ spec:
   builder:
     kind: expression
     pyexp: |
-      def handler():
+      def handler(**req):
         return [1.4,2.0,3.2]
 ---
 apiVersion: k8s.natun.ai/v1alpha1
@@ -135,6 +135,6 @@ spec:
   builder:
     kind: expression
     pyexp: |
-      def handler():
+      def handler(**req):
         now = time.now()
         return [now, time.from_timestamp(now.unix+1), time.from_timestamp(now.unix+2)]

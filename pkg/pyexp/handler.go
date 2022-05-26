@@ -20,22 +20,30 @@ import (
 	"fmt"
 	"github.com/sourcegraph/starlight/convert"
 	sTime "go.starlark.net/lib/time"
+	"go.starlark.net/resolve"
 	"go.starlark.net/starlark"
 	"go.starlark.net/syntax"
 	"time"
 )
 
-// Check if the `handler:` function is implemented in the code
-func isHandlerImplemented(file *syntax.File) bool {
+// HandlerFuncName is the name of the function that the use need to implement to handle the request.
+const HandlerFuncName = "handler"
+
+// Find handler in the code, if not found return empty string
+func programHandler(file *syntax.File, altHandler string) string {
 	for _, stmt := range file.Stmts {
 		if def, ok := stmt.(*syntax.DefStmt); ok {
-			if def.Name.Name == HandlerFuncName {
-				return true
+			if def.Name.Name == HandlerFuncName || (altHandler != "" && def.Name.Name == altHandler) {
+				if fn, ok := def.Function.(*resolve.Function); ok {
+					if fn.HasKwargs && !fn.HasVarargs {
+						return def.Name.Name
+					}
+				}
 			}
 		}
 	}
 
-	return false
+	return ""
 }
 
 // Parse and convert return value. Can be a single value, or a tuple of value, timestamp, entity_id
