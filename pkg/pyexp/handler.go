@@ -47,8 +47,8 @@ func programHandler(file *syntax.File, altHandler string) string {
 }
 
 // Parse and convert return value. Can be a single value, or a tuple of value, timestamp, entity_id
-func parseHandlerResults(returnedValue starlark.Value) (val any, ts time.Time, entityID string, err error) {
-	ts = time.Now()
+func parseHandlerResults(returnedValue starlark.Value, thread *starlark.Thread) (val any, ts time.Time, entityID string, err error) {
+	ts = nowf(thread)
 
 	if returnedValue == starlark.None {
 		return
@@ -86,4 +86,30 @@ func parseHandlerResults(returnedValue starlark.Value) (val any, ts time.Time, e
 		}
 	}
 	return
+}
+
+func requestToKwargs(req ExecRequest) ([]starlark.Tuple, error) {
+	var payload starlark.Value
+	var err error
+	if req.Payload == nil {
+		payload = starlark.None
+	} else {
+		if v, ok := req.Payload.(map[string]interface{}); ok {
+			req.Payload, err = convert.MakeStringDict(v)
+			if err != nil {
+				return nil, err
+			}
+		}
+		payload, err = convert.ToValue(req.Payload)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return []starlark.Tuple{
+		{starlark.String("payload"), payload},
+		{starlark.String("headers"), headersToStarDict(req.Headers)},
+		{starlark.String("entity_id"), starlark.String(req.EntityID)},
+		{starlark.String("timestamp"), starlark.String(req.Timestamp.Format(time.RFC3339))},
+	}, nil
 }

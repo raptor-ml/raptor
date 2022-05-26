@@ -46,7 +46,7 @@ func (r *runtime) basicOp(op BasicOp) (res BasicOpResponse) {
 	if op.valueField == "" {
 		op.valueField = "value"
 	}
-	var ts = sTime.Time(time.Now())
+	var ts = sTime.Time(nowf(op.thread))
 	res.err = starlark.UnpackArgs(op.builtin.Name(), op.args, op.kwargs, "fqn", &res.fqn, "entity_id", &res.entityID, op.valueField, &res.val, "timestamp?", &ts)
 	if res.err != nil {
 		return
@@ -155,4 +155,19 @@ func (r *runtime) GetFeature(t *starlark.Thread, b *starlark.Builtin, args starl
 		sTime.Time(val.Timestamp),
 	}, nil
 
+}
+
+func nowf(thread *starlark.Thread) time.Time {
+	now := time.Now
+	if nf := thread.Local("nowfunc"); nf != nil {
+		if nowf, ok := nf.(func() time.Time); ok {
+			now = nowf
+		}
+	}
+	return now()
+}
+
+// Allow now function to be overridden per thread
+func now(thread *starlark.Thread, _ *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
+	return sTime.Time(nowf(thread)), nil
 }

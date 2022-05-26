@@ -28,7 +28,6 @@ import (
 	"github.com/qri-io/starlib/hash"
 	"github.com/qri-io/starlib/html"
 	"github.com/qri-io/starlib/re"
-	"github.com/sourcegraph/starlight/convert"
 	sJson "go.starlark.net/lib/json"
 	sMath "go.starlark.net/lib/math"
 	sTime "go.starlark.net/lib/time"
@@ -46,6 +45,12 @@ func init() {
 	starlark.Universe["time"] = sTime.Module
 	starlark.Universe["math"] = sMath.Module
 	starlark.Universe["struct"] = starlark.NewBuiltin("struct", starlarkstruct.Make)
+
+	// Clone the time module, and override the now function
+	tm := &(*sTime.Module)
+	tm.Members["now"] = starlark.NewBuiltin("now", now)
+	starlark.Universe["time"] = tm
+
 	resolve.AllowRecursion = true
 	resolve.AllowSet = true
 
@@ -146,19 +151,19 @@ func (r *runtime) Exec(ctx context.Context, req ExecRequest) (any, time.Time, st
 	globals.Freeze()
 
 	if err != nil {
-		logExexErr(err, req.Logger)
+		logExecErr(err, req.Logger)
 		return nil, req.Timestamp, "", err
 	}
 
 	// Call the handler
 	v, err := starlark.Call(thread, globals[r.handler], nil, kwargs)
 	if err != nil {
-		logExexErr(err, req.Logger)
+		logExecErr(err, req.Logger)
 		return nil, req.Timestamp, "", err
 	}
 
 	// Convert and validate the returned value
-	ret, ts, eid, err := parseHandlerResults(v)
+	ret, ts, eid, err := parseHandlerResults(v, thread)
 	if err != nil {
 		return nil, req.Timestamp, "", err
 	}
@@ -173,7 +178,7 @@ func (r *runtime) Exec(ctx context.Context, req ExecRequest) (any, time.Time, st
 	return ret, ts, eid, nil
 }
 
-func logExexErr(err error, logger logr.Logger) {
+func logExecErr(err error, logger logr.Logger) {
 	if err == nil {
 		return
 	}
@@ -184,30 +189,4 @@ func logExexErr(err error, logger logr.Logger) {
 	} else {
 		logger.Error(err, "execution failed")
 	}
-}
-
-func requestToKwargs(req ExecRequest) ([]starlark.Tuple, error) {
-	var payload starlark.Value
-	var err error
-	if req.Payload == nil {
-		payload = starlark.None
-	} else {
-		if v, ok := req.Payload.(map[string]interface{}); ok {
-			req.Payload, err = convert.MakeStringDict(v)
-			if err != nil {
-				return nil, err
-			}
-		}
-		payload, err = convert.ToValue(req.Payload)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return []starlark.Tuple{
-		{starlark.String("payload"), payload},
-		{starlark.String("headers"), headersToStarDict(req.Headers)},
-		{starlark.String("entity_id"), starlark.String(req.EntityID)},
-		{starlark.String("timestamp"), starlark.String(req.Timestamp.Format(time.RFC3339))},
-	}, nil
 }
