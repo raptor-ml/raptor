@@ -17,9 +17,7 @@ limitations under the License.
 package pyexp
 
 import (
-	"context"
 	"fmt"
-	"github.com/natun-ai/natun/api"
 	"github.com/sourcegraph/starlight/convert"
 	sTime "go.starlark.net/lib/time"
 	"go.starlark.net/starlark"
@@ -27,97 +25,87 @@ import (
 )
 
 type BasicOp struct {
+	op         InstructionOp
 	thread     *starlark.Thread
 	builtin    *starlark.Builtin
 	args       starlark.Tuple
 	kwargs     []starlark.Tuple
 	valueField string
 }
-type BasicOpResponse struct {
-	ctx      context.Context
-	fqn      string
-	entityID string
-	val      any
-	ts       time.Time
-	err      error
-}
 
-func (r *runtime) basicOp(op BasicOp) (res BasicOpResponse) {
+func (r *runtime) basicOp(op BasicOp) (starlark.Value, error) {
 	if op.valueField == "" {
 		op.valueField = "value"
 	}
 	var ts = sTime.Time(nowf(op.thread))
-	res.err = starlark.UnpackArgs(op.builtin.Name(), op.args, op.kwargs, "fqn", &res.fqn, "entity_id", &res.entityID, op.valueField, &res.val, "timestamp?", &ts)
-	if res.err != nil {
-		return
+	var fqn, entityID string
+	var val any
+	err := starlark.UnpackArgs(op.builtin.Name(), op.args, op.kwargs, "fqn", &fqn, "entity_id", &entityID, op.valueField, &val, "timestamp?", &ts)
+	if err != nil {
+		return nil, err
 	}
 
-	if res.val, res.err = starToGo(res.val); res.err != nil {
-		return
+	if val, err = starToGo(val); err != nil {
+		return nil, err
 	}
 
-	var ok bool
-	if res.ctx, ok = op.thread.Local(localKeyContext).(context.Context); !ok {
-		res.err = api.ErrInvalidPipelineContext
-		return
-	}
+	ib := op.thread.Local(localKeyInstructions).(*InstructionsBag)
+	ib.Lock()
+	defer ib.Unlock()
+	ib.Instructions = append(ib.Instructions, Instruction{
+		Operation: op.op,
+		FQN:       fqn,
+		EntityID:  entityID,
+		Timestamp: time.Time(ts),
+		Value:     val,
+	})
 
-	res.ts = time.Time(ts)
-	return
+	return starlark.None, nil
 }
 
 func (r *runtime) SetFeature(t *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
-	res := r.basicOp(BasicOp{
+	return r.basicOp(BasicOp{
+		op:      InstructionOpSet,
 		thread:  t,
 		builtin: b,
 		args:    args,
 		kwargs:  kwargs,
 	})
-	if res.err != nil {
-		return nil, res.err
-	}
-
-	return starlark.None, r.engine.Set(res.ctx, res.fqn, res.entityID, res.val, res.ts)
 }
 func (r *runtime) Update(t *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
-	res := r.basicOp(BasicOp{
+	return r.basicOp(BasicOp{
+		op:      InstructionOpUpdate,
 		thread:  t,
 		builtin: b,
 		args:    args,
 		kwargs:  kwargs,
 	})
-	if res.err != nil {
-		return nil, res.err
-	}
-	return starlark.None, r.engine.Update(res.ctx, res.fqn, res.entityID, res.val, res.ts)
 }
 func (r *runtime) Incr(t *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
-	res := r.basicOp(BasicOp{
+	return r.basicOp(BasicOp{
+		op:         InstructionOpIncr,
 		thread:     t,
 		builtin:    b,
 		args:       args,
 		kwargs:     kwargs,
 		valueField: "by",
 	})
-	if res.err != nil {
-		return nil, res.err
-	}
-
-	return starlark.None, r.engine.Incr(res.ctx, res.fqn, res.entityID, res.val, res.ts)
 }
 
 func (r *runtime) AppendFeature(t *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
-	res := r.basicOp(BasicOp{
+	return r.basicOp(BasicOp{
+		op:      InstructionOpAppend,
 		thread:  t,
 		builtin: b,
 		args:    args,
 		kwargs:  kwargs,
 	})
-	if res.err != nil {
-		return nil, res.err
-	}
-	return starlark.None, r.engine.Append(res.ctx, res.fqn, res.entityID, res.val, res.ts)
+
 }
+
+type discoveredDependencies map[string]struct{}
+
+const localKeyDiscoverDependencies = "discover_dependencies"
 
 func (r *runtime) GetFeature(t *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
 	var fqn string
@@ -131,37 +119,45 @@ func (r *runtime) GetFeature(t *starlark.Thread, b *starlark.Builtin, args starl
 		return nil, fmt.Errorf("cyclic Get: you tried to fetch the feature your'e in")
 	}
 
-	ctx, ok := t.Local(localKeyContext).(context.Context)
-	if !ok {
-		return nil, api.ErrInvalidPipelineContext
+	if dd := t.Local(localKeyDiscoverDependencies); dd != nil {
+		if d, ok := dd.(discoveredDependencies); ok {
+			d[fqn] = struct{}{}
+			return starlark.Tuple{
+				starlark.None,
+				sTime.Time(nowf(t)),
+			}, nil
+		} else {
+			panic("discover_dependencies is not valid")
+		}
 	}
 
-	val, _, err := r.engine.Get(ctx, fqn, entityID)
+	getter := t.Local(localKeyDependenciesData).(DependencyGetter)
+	val, err := getter(fqn, entityID, nowf(t))
 	if err != nil {
-		return nil, err
-	}
-	if val.Value == nil {
-		return nil, fmt.Errorf("feature value not found for this fqn and entity id")
+		return nil, fmt.Errorf("couldn't get feature value: %w", err)
 	}
 
-	// Return the value and the timestamp
 	starlarkVal, err := convert.ToValue(val.Value)
 	if err != nil {
 		return nil, err
 	}
 
+	// Return the value and the timestamp
 	return starlark.Tuple{
 		starlarkVal,
 		sTime.Time(val.Timestamp),
 	}, nil
-
 }
+
+const localKeyNow = "now"
 
 func nowf(thread *starlark.Thread) time.Time {
 	now := time.Now
-	if nf := thread.Local("nowfunc"); nf != nil {
-		if nowf, ok := nf.(func() time.Time); ok {
-			now = nowf
+	if n := thread.Local(localKeyNow); n != nil {
+		if nv, ok := n.(time.Time); ok {
+			now = func() time.Time {
+				return nv
+			}
 		}
 	}
 	return now()

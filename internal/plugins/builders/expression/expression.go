@@ -47,11 +47,11 @@ func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAP
 		return fmt.Errorf("expression is empty")
 	}
 
-	runtime, err := pyexp.New(spec.Expression, md.FQN, engine)
+	runtime, err := pyexp.New(spec.Expression, md.FQN)
 	if err != nil {
 		return fmt.Errorf("failed to create expression runtime: %w", err)
 	}
-	e := expr{runtime}
+	e := expr{runtime: runtime, engine: engine}
 
 	if md.Freshness <= 0 {
 		api.AddPreGetMiddleware(0, e.getMiddleware)
@@ -63,6 +63,7 @@ func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAP
 
 type expr struct {
 	runtime pyexp.Runtime
+	engine  api.Engine
 }
 
 func (p *expr) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
@@ -72,24 +73,24 @@ func (p *expr) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
 			return next(ctx, md, entityID, val)
 		}
 
-		v, ts, _, err := p.runtime.Exec(ctx, pyexp.ExecRequest{
+		ret, err := p.runtime.ExecWithEngine(ctx, pyexp.ExecRequest{
 			Headers:   nil,
 			Payload:   val.Value,
 			EntityID:  entityID,
 			Timestamp: val.Timestamp,
 			Logger:    api.LoggerFromContext(ctx),
-		})
+		}, p.engine)
 		if err != nil {
 			return val, err
 		}
 
-		if v != nil {
-			if ts.IsZero() && !val.Timestamp.IsZero() {
-				ts = val.Timestamp
+		if ret.Value != nil {
+			if ret.Timestamp.IsZero() && !val.Timestamp.IsZero() {
+				ret.Timestamp = val.Timestamp
 			}
 			val = api.Value{
-				Value:     v,
-				Timestamp: ts,
+				Value:     ret.Value,
+				Timestamp: ret.Timestamp,
 				Fresh:     true,
 			}
 		}

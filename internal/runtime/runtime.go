@@ -101,21 +101,22 @@ func (r *runtime) ExecutePyExp(ctx context.Context, req *pbRuntime.ExecutePyExpR
 	headers["X-SUBJECT"] = []string{ev.Subject()}
 	headers["X-ID"] = []string{ev.ID()}
 
-	v, ts, eid, err := programRuntime.Exec(ctx, pyexp.ExecRequest{
+	ret, err := programRuntime.ExecWithEngine(ctx, pyexp.ExecRequest{
 		Headers:   headers,
 		Payload:   payload,
 		EntityID:  req.GetEntityId(),
 		Timestamp: ev.Time(),
 		Logger:    r.logger.WithName(req.Fqn),
-	})
+	}, r.engine)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to execute program: %v", err)
 	}
-	if v != nil {
-		if eid == "" && req.GetEntityId() == "" {
+
+	if ret.Value != nil {
+		if ret.EntityID == "" && req.GetEntityId() == "" {
 			return nil, fmt.Errorf("you must return entity_id is when returning from this expression")
 		}
-		err := r.engine.Update(ctx, req.GetFqn(), eid, v, ts)
+		err := r.engine.Update(ctx, req.GetFqn(), ret.EntityID, ret.Value, ret.Timestamp)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "failed to update entity: %v", err)
 		}

@@ -20,7 +20,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/go-logr/logr"
 	"github.com/natun-ai/natun/api"
 	"github.com/qri-io/starlib/bsoup"
 	"github.com/qri-io/starlib/encoding/base64"
@@ -35,10 +34,7 @@ import (
 	"go.starlark.net/starlark"
 	"go.starlark.net/starlarkstruct"
 	"strings"
-	"time"
 )
-
-const localKeyContext = "go.context"
 
 func init() {
 	starlark.Universe["json"] = sJson.Module
@@ -70,21 +66,21 @@ func init() {
 
 // Runtime is the starlark runtime for the PyExp.
 type Runtime interface {
-	Exec(context.Context, ExecRequest) (value any, timestamp time.Time, entityID string, err error)
+	Exec(ExecRequest) (*ExecResponse, error)
+	ExecWithEngine(ctx context.Context, req ExecRequest, e api.Engine) (*ExecResponse, error)
+	DiscoverDependencies() ([]string, error)
 }
 
 type runtime struct {
 	program  *starlark.Program
 	builtins starlark.StringDict
 	fqn      string
-	engine   api.Engine
 	handler  string
 }
 
 // New returns a new PyExp runtime
-func New(program string, fqn string, e api.Engine) (Runtime, error) {
+func New(program string, fqn string) (Runtime, error) {
 	d := &runtime{
-		engine:   e,
 		fqn:      fqn,
 		builtins: starlark.StringDict{},
 	}
@@ -115,78 +111,4 @@ func New(program string, fqn string, e api.Engine) (Runtime, error) {
 
 	d.program = p
 	return d, nil
-}
-
-type ExecRequest struct {
-	Headers   map[string][]string
-	Payload   any
-	EntityID  string
-	Timestamp time.Time
-	Logger    logr.Logger
-}
-
-func (r *runtime) Exec(ctx context.Context, req ExecRequest) (any, time.Time, string, error) {
-	// Prepare request
-	kwargs, err := requestToKwargs(req)
-	if err != nil {
-		return nil, req.Timestamp, "", err
-	}
-
-	// Create the globals dict
-	predeclared := starlark.StringDict{}
-	// Set builtins types
-	for k, v := range r.builtins {
-		predeclared[k] = v
-	}
-
-	// Create a Thread and redefine the behavior of the built-in 'print' function.
-	thread := &starlark.Thread{
-		Name:  r.fqn,
-		Print: func(_ *starlark.Thread, msg string) { req.Logger.WithName("program").Info(msg) },
-	}
-	thread.SetLocal(localKeyContext, ctx)
-
-	// Execute the program
-	globals, err := r.program.Init(thread, predeclared)
-	globals.Freeze()
-
-	if err != nil {
-		logExecErr(err, req.Logger)
-		return nil, req.Timestamp, "", err
-	}
-
-	// Call the handler
-	v, err := starlark.Call(thread, globals[r.handler], nil, kwargs)
-	if err != nil {
-		logExecErr(err, req.Logger)
-		return nil, req.Timestamp, "", err
-	}
-
-	// Convert and validate the returned value
-	ret, ts, eid, err := parseHandlerResults(v, thread)
-	if err != nil {
-		return nil, req.Timestamp, "", err
-	}
-	if req.EntityID != "" && eid != "" && eid != req.EntityID {
-		err := fmt.Errorf("execution returned entity id %s, but the request was for entity id %s", eid, req.EntityID)
-		return nil, ts, req.EntityID, err
-	}
-	if req.EntityID == "" && eid == "" {
-		return nil, req.Timestamp, "", fmt.Errorf("this program must return an entity_id along with the value")
-	}
-
-	return ret, ts, eid, nil
-}
-
-func logExecErr(err error, logger logr.Logger) {
-	if err == nil {
-		return
-	}
-
-	evalErr := &starlark.EvalError{}
-	if ok := errors.As(err, &evalErr); ok {
-		logger.WithValues("backtrace", evalErr.Backtrace()).Error(evalErr, "execution failed")
-	} else {
-		logger.Error(err, "execution failed")
-	}
 }

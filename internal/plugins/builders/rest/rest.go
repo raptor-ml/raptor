@@ -63,7 +63,7 @@ func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAP
 	if spec.Expression == "" {
 		return fmt.Errorf("expression is empty")
 	}
-	runtime, err := pyexp.New(spec.Expression, md.FQN, engine)
+	runtime, err := pyexp.New(spec.Expression, md.FQN)
 	if err != nil {
 		return fmt.Errorf("failed to create expression runtime: %w", err)
 	}
@@ -77,6 +77,7 @@ func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAP
 	tr.Transport = &retryablehttp.RoundTripper{}
 
 	r := rest{
+		engine:  engine,
 		runtime: runtime,
 		client: http.Client{
 			Transport: httpcache.NewTransport(httpMemoryCache),
@@ -98,6 +99,7 @@ func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAP
 
 type rest struct {
 	runtime pyexp.Runtime
+	engine  api.Engine
 	client  http.Client
 	url     string
 	method  string
@@ -147,24 +149,24 @@ func (rp *rest) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler 
 			payload = unmarshalledPayload
 		}
 
-		v, ts, _, err := rp.runtime.Exec(ctx, pyexp.ExecRequest{
+		ret, err := rp.runtime.ExecWithEngine(ctx, pyexp.ExecRequest{
 			Headers:   resp.Header,
 			Payload:   payload,
 			EntityID:  entityID,
 			Timestamp: val.Timestamp,
 			Logger:    api.LoggerFromContext(ctx),
-		})
+		}, rp.engine)
 		if err != nil {
 			return val, err
 		}
 
-		if v != nil {
-			if ts.IsZero() && !val.Timestamp.IsZero() {
-				ts = val.Timestamp
+		if ret.Value != nil {
+			if ret.Timestamp.IsZero() && !val.Timestamp.IsZero() {
+				ret.Timestamp = val.Timestamp
 			}
 			val = api.Value{
-				Value:     v,
-				Timestamp: ts,
+				Value:     ret.Value,
+				Timestamp: ret.Timestamp,
 				Fresh:     true,
 			}
 		}
