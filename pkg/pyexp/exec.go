@@ -28,8 +28,6 @@ import (
 	"time"
 )
 
-type DependenciesData map[string]map[string]api.Value
-
 const localKeyDependencyGetter = "dependency_getter"
 
 type DependencyGetter func(FQN string, entityID string, timestamp time.Time) (api.Value, error)
