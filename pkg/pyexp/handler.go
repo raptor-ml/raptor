@@ -63,8 +63,8 @@ func parseHandlerResults(returnedValue starlark.Value, thread *starlark.Thread) 
 		// Second item is timestamp (RFC3339)
 		if x.Len() > 1 {
 			timeStr := x[1]
-			if sTs, ok := x[1].(sTime.Time); ok {
-				ts = time.Time(sTs)
+			if sTimestamp, ok := x[1].(sTime.Time); ok {
+				ts = time.Time(sTimestamp)
 			}
 			err = fmt.Errorf("program returned a tuple with an invalid timestamp: %v", timeStr)
 			return
