@@ -47,7 +47,6 @@ func init() {
 	tm.Members["now"] = starlark.NewBuiltin("now", now)
 	starlark.Universe["time"] = tm
 
-	resolve.AllowRecursion = true
 	resolve.AllowSet = true
 
 	rer, _ := re.LoadModule()

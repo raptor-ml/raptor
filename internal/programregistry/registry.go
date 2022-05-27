@@ -65,7 +65,7 @@ func (r *registry) Register(program string, fqn string) (string, error) {
 		return "", ErrAlreadyRegistered
 	}
 
-	rt, err := pyexp.New(program, fqn, r.engine)
+	rt, err := pyexp.New(program, fqn)
 	if err != nil {
 		return "", fmt.Errorf("failed to create pyexp runtime: %w", err)
 	}

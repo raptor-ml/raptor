@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/go-logr/logr/funcr"
 	"github.com/natun-ai/natun/api"
 	"go.starlark.net/starlark"
 	"sync"
@@ -38,12 +37,6 @@ type ExecRequest struct {
 	Timestamp        time.Time
 	Logger           logr.Logger
 	DependencyGetter DependencyGetter
-}
-
-// ExecReqWithDepGetter returns a new ExecRequest with the given DependencyGetter.
-func ExecReqWithDepGetter(req ExecRequest, depGetter DependencyGetter) ExecRequest {
-	req.DependencyGetter = depGetter
-	return req
 }
 
 type InstructionOp int
@@ -101,6 +94,7 @@ func (r *runtime) Exec(req ExecRequest) (*ExecResponse, error) {
 		} else {
 			req.Logger.Error(err, "execution failed")
 		}
+		return nil, err
 	}
 
 	// Convert and validate the returned value
@@ -136,22 +130,7 @@ func (r *runtime) DiscoverDependencies() ([]string, error) {
 	return deps, nil
 }
 
-// NewStdoutLogger returns a logr.Logger that prints to stdout.
-func NewStdoutLogger() logr.Logger {
-	return funcr.New(func(prefix, args string) {
-		if prefix != "" {
-			_ = fmt.Sprintf("%s: %s\n", prefix, args)
-		} else {
-			fmt.Println(args)
-		}
-	}, funcr.Options{})
-}
-
 func (r *runtime) exec(req ExecRequest, discoveryMode bool) (starlark.Value, *starlark.Thread, error) {
-	if req.Logger.GetSink() == nil {
-		req.Logger = NewStdoutLogger()
-	}
-
 	// Prepare request
 	kwargs, err := requestToKwargs(req)
 	if err != nil {

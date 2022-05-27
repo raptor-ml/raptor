@@ -88,19 +88,53 @@ func parseHandlerResults(returnedValue starlark.Value, thread *starlark.Thread) 
 	return
 }
 
+func recursiveToValue(input any) (out starlark.Value, err error) {
+	if err != nil {
+		return nil, err
+	}
+	if input == nil {
+		return starlark.None, nil
+	}
+	switch v := input.(type) {
+	case map[string]any:
+		dict := starlark.Dict{}
+		for k, v := range v {
+			key, err := convert.ToValue(k)
+			if err != nil {
+				return nil, err
+			}
+			val, err := recursiveToValue(v)
+			if err != nil {
+				return nil, err
+			}
+			err = dict.SetKey(key, val)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return &dict, nil
+	case []any:
+		out := make([]starlark.Value, len(v))
+		for i := 0; i < len(v); i++ {
+			val, err := recursiveToValue(v[i])
+			if err != nil {
+				return nil, err
+			}
+			out[i] = val
+		}
+		return starlark.NewList(out), nil
+	default:
+		return convert.ToValue(input)
+	}
+}
+
 func requestToKwargs(req ExecRequest) ([]starlark.Tuple, error) {
 	var payload starlark.Value
 	var err error
 	if req.Payload == nil {
 		payload = starlark.None
 	} else {
-		if v, ok := req.Payload.(map[string]interface{}); ok {
-			req.Payload, err = convert.MakeStringDict(v)
-			if err != nil {
-				return nil, err
-			}
-		}
-		payload, err = convert.ToValue(req.Payload)
+		payload, err = recursiveToValue(req.Payload)
 		if err != nil {
 			return nil, err
 		}

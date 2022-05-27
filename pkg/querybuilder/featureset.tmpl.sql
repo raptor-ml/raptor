@@ -95,13 +95,13 @@ WITH
 {{- /* 4. Build the final results */}}
 SELECT key.TIMESTAMP,
        key.ENTITY_ID
-       {{- range $_, $f := .Features}},
+   {{- range $_, $f := .Features}},
        {{- if eq $f.FQN $.KeyFeature}}
        key.VAL as {{escapeName $f.FQN}}
        {{- else}}
        {{printf "%s.VAL" (tmpName $f.FQN)}} as {{escapeName $f.FQN}}
        {{- end}}
-       {{- end}}
+   {{- e    nd}}
 FROM {{tmpName .KeyFeature}} as key
 {{- range $_, $f := .Features}}
 {{- if eq $f.FQN $.KeyFeature}}{{continue}}{{end}}
