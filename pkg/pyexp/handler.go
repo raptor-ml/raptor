@@ -144,6 +144,6 @@ func requestToKwargs(req ExecRequest) ([]starlark.Tuple, error) {
 		{starlark.String("payload"), payload},
 		{starlark.String("headers"), headersToStarDict(req.Headers)},
 		{starlark.String("entity_id"), starlark.String(req.EntityID)},
-		{starlark.String("timestamp"), starlark.String(req.Timestamp.Format(time.RFC3339))},
+		{starlark.String("timestamp"), sTime.Time(req.Timestamp)},
 	}, nil
 }
