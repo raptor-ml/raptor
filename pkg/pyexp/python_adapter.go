@@ -65,8 +65,8 @@ func PyExecReq(jsonPayload string, p PyDepGetter) (ExecRequest, error) {
 	return ret, nil
 }
 
-func MarshalExecResponse(resp ExecResponse) string {
-	b, err := json.Marshal(resp)
+func JsonAny(a any) string {
+	b, err := json.Marshal(a)
 	if err != nil {
 		panic(err)
 	}
@@ -78,4 +78,7 @@ func PyTime(str string, layout string) (time.Time, error) {
 		layout = time.RFC3339
 	}
 	return time.Parse(layout, str)
+}
+func PyTimeRFC3339(t time.Time) string {
+	return t.Format(time.RFC3339)
 }
