@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/go-logr/logr/funcr"
 	"github.com/natun-ai/natun/api"
+	"reflect"
 	"time"
 )
 
@@ -65,8 +66,12 @@ func PyExecReq(jsonPayload string, p PyDepGetter) (ExecRequest, error) {
 	return ret, nil
 }
 
-func JsonAny(a any) string {
-	b, err := json.Marshal(a)
+func JsonAny(o any, field string) string {
+	v := reflect.ValueOf(o)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	b, err := json.Marshal(v.FieldByName(field).Interface())
 	if err != nil {
 		panic(err)
 	}
