@@ -19,6 +19,7 @@ package pyexp
 import (
 	"fmt"
 	"github.com/sourcegraph/starlight/convert"
+	"go.starlark.net/lib/proto"
 	sTime "go.starlark.net/lib/time"
 	"go.starlark.net/resolve"
 	"go.starlark.net/starlark"
@@ -129,9 +130,32 @@ func recursiveToValue(input any) (out starlark.Value, err error) {
 			out[i] = val
 		}
 		return starlark.NewList(out), nil
+	case *proto.Message:
+		return protoToMap(v)
 	default:
 		return convert.ToValue(input)
 	}
+}
+
+func protoToMap(p *proto.Message) (starlark.Value, error) {
+	ret := starlark.Dict{}
+	for _, a := range p.AttrNames() {
+		vv, err := p.Attr(a)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get attribute %v: %v", a, err)
+		}
+		if f, ok := vv.(*proto.Message); ok {
+			vv, err = recursiveToValue(f)
+			if err != nil {
+				return nil, err
+			}
+		}
+		err = ret.SetKey(starlark.String(a), vv)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &ret, nil
 }
 
 func requestToKwargs(req ExecRequest) ([]starlark.Tuple, error) {
