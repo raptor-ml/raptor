@@ -58,7 +58,7 @@ func FeatureApply(metadata api.Metadata, _ []byte, api api.FeatureAbstractAPI, e
 	}
 
 	if dc.Kind != name {
-		return fmt.Errorf("data connector must be of type `%s` for `%s` builder", name, name)
+		return fmt.Errorf("data connector must be of type `%s`. got `%s`", name, dc.Kind)
 	}
 	return nil
 }

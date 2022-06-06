@@ -76,6 +76,7 @@ func (r BaseRunner) reconcile(ctx context.Context, req api.ReconcileRequest) (bo
 		logger.Error(err, "Deployment reconcile failed")
 		return false, err
 	} else {
+		// If you see many of these, make sure you don't have 2 leaders (i.e. local, and kind)
 		logger.V(1).Info("Deployment successfully reconciled", "operation", op)
 	}
 
