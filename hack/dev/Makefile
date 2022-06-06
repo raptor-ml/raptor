@@ -1,6 +1,6 @@
 VERSION ?= $(shell git rev-parse --short HEAD)
 
-PROJECT_DIR = $(shell dirname $(shell dirname $(shell pwd))) # equal to ../../
+PROJECT_DIR ?= $(shell dirname $(shell dirname $(shell pwd))) # equal to ../../
 
 ## Location to install dependencies to
 LOCALBIN ?= $(shell echo $(PROJECT_DIR)|xargs)/bin
@@ -107,19 +107,19 @@ _unsafe_delete-cluster:
 
 .PHONY: rollout-natun
 rollout-natun: setup-redis ## build & deploy operator to cluster
-	cd ${PROJECT_DIR} && $(MAKE) docker-build kind-load ENV=${ENV}
+	$(MAKE) -C ${PROJECT_DIR} docker-build kind-load ENV=${ENV}
 	$(MAKE) deploy-natun
 
 .PHONY: deploy-natun
 deploy-natun: setup-redis ## deploy operator to cluster
-	cd ${PROJECT_DIR} && $(MAKE) deploy ENV=${ENV}
-	$(KUBECTL) scale deployment natun-controller-core --replicas 0
-	$(KUBECTL) scale deployment natun-historian --replicas 0
+	$(MAKE) -C ${PROJECT_DIR} deploy ENV=${ENV}
 	$(KUBECTL) apply -f config/providers-creds.yaml
 	$(KUBECTL) --namespace natun-system patch deployment natun-controller-core --patch-file config/natun-core-patch.yaml
 	$(KUBECTL) --namespace natun-system patch deployment natun-historian --patch-file config/natun-historian-patch.yaml
-	$(KUBECTL) scale deployment natun-controller-core --replicas 2
-	$(KUBECTL) scale deployment natun-historian --replicas 1
+	$(KUBECTL) --namespace natun-system scale deployment natun-controller-core --replicas 0
+	$(KUBECTL) --namespace natun-system scale deployment natun-historian --replicas 0
+	$(KUBECTL) --namespace natun-system scale deployment natun-controller-core --replicas 2
+	$(KUBECTL) --namespace natun-system scale deployment natun-historian --replicas 1
 
 ## TOOLS
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
