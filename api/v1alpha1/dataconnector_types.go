@@ -109,6 +109,12 @@ type DataConnector struct {
 func (in *DataConnector) FQN() string {
 	return fmt.Sprintf("%s.%s", in.GetName(), in.GetNamespace())
 }
+func (in *DataConnector) ResourceReference() ResourceReference {
+	return ResourceReference{
+		Namespace: in.GetNamespace(),
+		Name:      in.GetName(),
+	}
+}
 
 //+kubebuilder:object:root=true
 
