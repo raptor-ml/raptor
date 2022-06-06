@@ -137,6 +137,9 @@ func (r *runtime) GetFeature(t *starlark.Thread, b *starlark.Builtin, args starl
 		return nil, fmt.Errorf("couldn't get feature value: %w", err)
 	}
 
+	if val.Value == nil {
+		return starlark.Tuple{starlark.None, starlark.None}, nil
+	}
 	starlarkVal, err := convert.ToValue(val.Value)
 	if err != nil {
 		return nil, err

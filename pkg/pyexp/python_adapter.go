@@ -44,9 +44,11 @@ func PyExecReq(jsonPayload string, p PyDepGetter) (ExecRequest, error) {
 			Timestamp: pv.Timestamp,
 			Fresh:     pv.Fresh,
 		}
-		err := json.Unmarshal([]byte(pv.Value), &ret.Value)
-		if err != nil {
-			return api.Value{}, fmt.Errorf("failed to unmarshal value: %w", err)
+		if pv.Value != "" {
+			err := json.Unmarshal([]byte(pv.Value), &ret.Value)
+			if err != nil {
+				return api.Value{}, fmt.Errorf("failed to unmarshal value: %w", err)
+			}
 		}
 		return ret, nil
 	}
