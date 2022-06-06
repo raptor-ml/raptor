@@ -30,3 +30,4 @@ bundle.Dockerfile
 installer.sh
 hack/dev/config/*-creds*
 hack/dev/config/*-secret*
+.DS_Store
