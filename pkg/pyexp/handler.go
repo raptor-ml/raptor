@@ -53,27 +53,33 @@ func parseHandlerResults(returnedValue starlark.Value, thread *starlark.Thread) 
 	if returnedValue == starlark.None {
 		return
 	}
-	switch x := returnedValue.(type) {
+	switch retVals := returnedValue.(type) {
 	case starlark.Tuple:
-		val, err = starToGo(x[0])
+		val, err = starToGo(retVals[0])
 		if err != nil {
 			return
 		}
 
 		// Second item is timestamp (RFC3339)
-		if x.Len() > 1 {
-			timeStr := x[1]
-			if sTimestamp, ok := x[1].(sTime.Time); ok {
-				ts = time.Time(sTimestamp)
+		if retVals.Len() > 1 {
+			if t, ok := retVals[1].(starlark.String); ok {
+				ts, err = time.Parse(time.RFC3339, string(t))
+				if err != nil {
+					err = fmt.Errorf("returned timestamp(%v) was not PyExp's Time or RFC3339", t)
+					return
+				}
+			} else if t, ok := retVals[1].(sTime.Time); ok {
+				ts = time.Time(t)
+			} else {
+				err = fmt.Errorf("program returned a tuple with an invalid timestamp: %v", retVals[1])
+				return
 			}
-			err = fmt.Errorf("program returned a tuple with an invalid timestamp: %v", timeStr)
-			return
 		}
 
 		// Third param is entityID and must be a string
-		if x.Len() > 2 {
+		if retVals.Len() > 2 {
 			var ok bool
-			entityID, ok = convert.FromValue(x[2]).(string)
+			entityID, ok = convert.FromValue(retVals[2]).(string)
 			if !ok {
 				err = fmt.Errorf("program returned a non string value as entity_id (third return tuple item)")
 				return
