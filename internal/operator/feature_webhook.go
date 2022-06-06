@@ -34,6 +34,7 @@ import (
 )
 
 const FeatureWebhookValidatePath = "/validate-k8s-natun-ai-v1alpha1-feature"
+const FeatureWebhookValidateName = "natun-validating-webhook-configuration"
 
 type validator struct {
 	client         client.Client

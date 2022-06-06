@@ -96,7 +96,7 @@ const (
 var webhooks = []rotator.WebhookInfo{
 	{
 		Type: rotator.Validating,
-		Name: opctrl.FeatureWebhookValidatePath,
+		Name: opctrl.FeatureWebhookValidateName,
 	},
 }
 
