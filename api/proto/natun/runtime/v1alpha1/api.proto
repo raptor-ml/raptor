@@ -13,7 +13,7 @@ option go_package = "github.com/natun-ai/natun/core/v1alpha1;coreV1alpha1";
 message ExecutePyExpRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
     string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-    string program_hash = 3 [(validate.rules).string.len = 40];
+    string program_hash = 3 [(validate.rules).string.len = 64];
     optional string entity_id = 4;
     google.protobuf.Any data = 5 [(validate.rules).any = {
         required: true,

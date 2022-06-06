@@ -57,7 +57,7 @@ func (h *validatorWrapper) InjectDecoder(d *admission.Decoder) error {
 	return nil
 }
 func (h *validatorWrapper) Handle(ctx context.Context, req admission.Request) admission.Response {
-	ctx = context.WithValue(ctx, admissionRequestContextKey, req.AdmissionRequest)
+	ctx = context.WithValue(ctx, admissionRequestContextKey, req)
 	return h.Handler.Handle(ctx, req)
 }
 
@@ -113,7 +113,6 @@ func (v *validator) Validate(ctx context.Context, f *natunApi.Feature) error {
 			dummyEngine.DataConnector = dci
 		}
 	}
-
 	_, err := engine.FeatureWithEngine(&dummyEngine, f)
 	return err
 }

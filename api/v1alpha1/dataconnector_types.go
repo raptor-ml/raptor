@@ -85,10 +85,7 @@ func (in *ResourceReference) FQN() string {
 // DataConnectorStatus defines the observed state of DataConnector
 type DataConnectorStatus struct {
 	// Features includes a list of references for the Feature that uses this DataConnector
-	Features []ResourceReference `json:"connector"`
-
-	// Deployments includes a list of deployments that was deployed for this DataConnector
-	Deployments []ResourceReference `json:"deployments"`
+	Features []ResourceReference `json:"features"`
 
 	Replicas int32 `json:"replicas,omitempty"`
 }

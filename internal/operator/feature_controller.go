@@ -163,7 +163,12 @@ func (r *FeatureReconciler) addToConnector(ctx context.Context, feature *natunAp
 		logger.Error(err, "Failed to get associated DataConnector")
 		return err
 	}
+	for _, f := range conn.Status.Features {
+		if f.Name == feature.Name {
+			return nil
+		}
+	}
 
-	conn.Status.Features = append(conn.Status.Features, *feature.Spec.DataConnector)
+	conn.Status.Features = append(conn.Status.Features, feature.ResourceReference())
 	return r.Status().Update(ctx, conn)
 }

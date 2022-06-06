@@ -1,0 +1,26 @@
+apiVersion: k8s.natun.ai/v1alpha1
+kind: Feature
+metadata:
+  name: clicks
+  namespace: default #production
+  labels:
+    app: massivedynamic
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+    a8r.io/description: "Demonstration of a simple aggr function"
+spec:
+  primitive: int
+  freshness: 10s
+  staleness: 1m
+  aggr:
+    - sum
+    - count
+  connector:
+    name: clicks
+    namespace: default
+  builder:
+    kind: streaming
+    schema: https://raw.githubusercontent.com/Natun-AI/massivedynamic-protos/master/click.proto#Click
+    pyexp: |
+      def handler(**req):
+        return 1, req["timestamp"], req["payload"].client_id.split(":")[1]

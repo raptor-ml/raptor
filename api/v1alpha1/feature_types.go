@@ -123,6 +123,13 @@ func (in *Feature) FQN() string {
 	return fmt.Sprintf("%s.%s", in.GetName(), in.GetNamespace())
 }
 
+func (in *Feature) ResourceReference() ResourceReference {
+	return ResourceReference{
+		Namespace: in.GetNamespace(),
+		Name:      in.GetName(),
+	}
+}
+
 //+kubebuilder:object:root=true
 
 // FeatureList contains a list of Feature

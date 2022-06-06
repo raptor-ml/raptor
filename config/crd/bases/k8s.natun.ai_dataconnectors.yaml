@@ -114,26 +114,9 @@ spec:
           status:
             description: DataConnectorStatus defines the observed state of DataConnector
             properties:
-              connector:
+              features:
                 description: Features includes a list of references for the Feature
                   that uses this DataConnector
-                items:
-                  description: ResourceReference represents a resource reference.
-                    It has enough information to retrieve resource in any namespace.
-                  properties:
-                    name:
-                      description: Name is unique within a namespace to reference
-                        a resource.
-                      type: string
-                    namespace:
-                      description: Namespace defines the space within which the resource
-                        name must be unique.
-                      type: string
-                  type: object
-                type: array
-              deployments:
-                description: Deployments includes a list of deployments that was deployed
-                  for this DataConnector
                 items:
                   description: ResourceReference represents a resource reference.
                     It has enough information to retrieve resource in any namespace.
@@ -152,8 +135,7 @@ spec:
                 format: int32
                 type: integer
             required:
-            - connector
-            - deployments
+            - features
             type: object
         type: object
     served: true

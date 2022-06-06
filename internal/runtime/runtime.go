@@ -151,7 +151,7 @@ func (r *runtime) pyExpPayload(ev *cloudevents.Event) (starlark.Value, error) {
 
 		s := u.Fragment
 		if strings.Count(s, ".") < 1 {
-			s = fmt.Sprintf("%s.%s", pack, schema)
+			s = fmt.Sprintf("%s.%s", pack, u.Fragment)
 		}
 		md, err = protoregistry.GetDescriptor(s)
 		if err != nil {

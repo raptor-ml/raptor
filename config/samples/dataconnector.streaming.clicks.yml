@@ -8,8 +8,10 @@ spec:
     - name: kind
       value: kafka
     - name: brokers
-      value: kafka:9092
+      value: :9093
     - name: topics
-      value: clicks
-    - name: groupId
-      value: clicks
+      value: clickstream
+    - name: consumer_group
+      value: clicks-consumer-group
+    - name: tls_disable
+      value: "true"
