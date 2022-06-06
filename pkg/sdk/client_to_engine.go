@@ -84,10 +84,13 @@ func (e *grpcEngine) Set(ctx context.Context, fqn string, entityID string, val a
 		Timestamp: timestamppb.New(ts),
 	}
 	resp, err := e.client.Set(ctx, &req)
+	if err != nil {
+		return normalizeError(err)
+	}
 	if resp.Uuid != req.Uuid {
 		return fmt.Errorf("got %s uuid but requested with %s", resp.Uuid, req.Uuid)
 	}
-	return normalizeError(err)
+	return nil
 }
 func (e *grpcEngine) Append(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
 	req := coreApi.AppendRequest{
@@ -98,10 +101,13 @@ func (e *grpcEngine) Append(ctx context.Context, fqn string, entityID string, va
 		Timestamp: timestamppb.New(ts),
 	}
 	resp, err := e.client.Append(ctx, &req)
+	if err != nil {
+		return normalizeError(err)
+	}
 	if resp.Uuid != req.Uuid {
 		return fmt.Errorf("got %s uuid but requested with %s", resp.Uuid, req.Uuid)
 	}
-	return normalizeError(err)
+	return nil
 }
 func (e *grpcEngine) Incr(ctx context.Context, fqn string, entityID string, by any, ts time.Time) error {
 	req := coreApi.IncrRequest{
@@ -112,10 +118,13 @@ func (e *grpcEngine) Incr(ctx context.Context, fqn string, entityID string, by a
 		Timestamp: timestamppb.New(ts),
 	}
 	resp, err := e.client.Incr(ctx, &req)
+	if err != nil {
+		return normalizeError(err)
+	}
 	if resp.Uuid != req.Uuid {
 		return fmt.Errorf("got %s uuid but requested with %s", resp.Uuid, req.Uuid)
 	}
-	return normalizeError(err)
+	return nil
 }
 func (e *grpcEngine) Update(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
 	req := coreApi.UpdateRequest{
@@ -126,10 +135,13 @@ func (e *grpcEngine) Update(ctx context.Context, fqn string, entityID string, va
 		Timestamp: timestamppb.New(ts),
 	}
 	resp, err := e.client.Update(ctx, &req)
+	if err != nil {
+		return normalizeError(err)
+	}
 	if resp.Uuid != req.Uuid {
 		return fmt.Errorf("got %s uuid but requested with %s", resp.Uuid, req.Uuid)
 	}
-	return normalizeError(err)
+	return nil
 }
 
 func normalizeError(err error) error {
@@ -141,7 +153,7 @@ func normalizeError(err error) error {
 		return err
 	}
 	if e.Err() == nil {
-		return nil
+		return err
 	}
 
 	if e.Code() == codes.NotFound {
