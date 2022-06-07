@@ -91,6 +91,7 @@ func (r *runtime) Exec(req ExecRequest) (*ExecResponse, error) {
 		evalErr := &starlark.EvalError{}
 		if ok := errors.As(err, &evalErr); ok {
 			req.Logger.WithValues("backtrace", evalErr.Backtrace()).Error(evalErr, "execution failed")
+			return nil, fmt.Errorf(evalErr.Backtrace())
 		} else {
 			req.Logger.Error(err, "execution failed")
 		}
