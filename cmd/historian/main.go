@@ -69,7 +69,7 @@ func main() {
 
 	pflag.String("state-provider", "redis", "The state provider.")
 	pflag.String("notifier-provider", "redis", "The notifier provider.")
-	pflag.String("historical-writer-provider", "parquet-aws", "The historical writer provider.")
+	pflag.String("historical-writer-provider", "s3-parquet", "The historical writer provider.")
 
 	zapOpts := zap.Options{}
 	zapOpts.BindFlags(flag.CommandLine)

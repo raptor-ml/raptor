@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package aws
+package s3
 
 import (
 	"context"
@@ -33,7 +33,7 @@ import (
 	"time"
 )
 
-const pluginName = "parquet-aws"
+const pluginName = "s3-parquet"
 
 func init() {
 	plugins.Configurers.Register(pluginName, BindConfig)

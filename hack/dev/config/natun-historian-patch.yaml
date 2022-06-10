@@ -26,4 +26,4 @@ spec:
                   name: providers-creds
                   key: SNOWFLAKE_URI
             - name: HISTORICAL_WRITER_PROVIDER
-              value: snowflake
+              value: s3-parquet

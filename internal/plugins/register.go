@@ -24,7 +24,7 @@ import (
 	_ "github.com/natun-ai/natun/internal/plugins/builders/streaming"
 
 	// register all historical provider plugins
-	_ "github.com/natun-ai/natun/internal/plugins/providers/historical/parquet/aws"
+	_ "github.com/natun-ai/natun/internal/plugins/providers/historical/parquet/s3"
 	_ "github.com/natun-ai/natun/internal/plugins/providers/historical/snowflake"
 
 	// register all state provider plugins
