@@ -43,21 +43,25 @@ type FeatureSpec struct {
 	//  - `headless`
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Enum=int;float;string;timestamp;[]int;[]float;[]string;[]timestamp;headless
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Primitive Type"
 	Primitive string `json:"primitive"`
 
 	// Freshness defines the age of a feature-value(time since the value has set) to consider as *fresh*.
 	// Fresh values doesn't require re-ingestion
 	// +kubebuilder:validation:Required
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Freshness"
 	Freshness metav1.Duration `json:"freshness"`
 
 	// Staleness defines the age of a feature-value(time since the value has set) to consider as *stale*.
 	// Stale values are not fit for usage, therefore will not be returned and will REQUIRE re-ingestion.
 	// +kubebuilder:validation:Required
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Staleness"
 	Staleness metav1.Duration `json:"staleness"`
 
 	// Timeout defines the maximum ingestion time allowed to calculate the feature value.
 	// +optional
 	// +nullable
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Timeout"
 	Timeout metav1.Duration `json:"timeout"`
 
 	// Aggr defines an aggregation on top of the underlying feature-value. Aggregations will be calculated on time-of-request.
@@ -71,14 +75,17 @@ type FeatureSpec struct {
 	//  - `avg`
 	// +optional
 	// +nullable
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Aggregations"
 	Aggr []AggrType `json:"aggr"`
 
 	// DataConnector is a reference for the DataConnector that this Feature is associated with
 	// +optional
 	// +nullable
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Data Connector"
 	DataConnector *ResourceReference `json:"connector,omitempty"`
 
 	// Builder defines a building-block to use to build the feature-value
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Builder"
 	Builder FeatureBuilder `json:"builder"`
 }
 
@@ -100,7 +107,8 @@ type FeatureBuilder struct {
 
 // FeatureStatus defines the observed state of Feature
 type FeatureStatus struct {
-	// FQN is the Fully Qualified Name for the feature
+	// FQN is the Fully Qualified Name for the Feature
+	// +operator-sdk:csv:customresourcedefinitions:type=status
 	FQN string `json:"fqn"`
 }
 
@@ -108,6 +116,7 @@ type FeatureStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:categories=datascience,shortName=ft
+// +operator-sdk:csv:customresourcedefinitions:displayName="ML Feature",resources={{Deployment,natun-controller-core}}
 
 // Feature is the Schema for the features API
 type Feature struct {

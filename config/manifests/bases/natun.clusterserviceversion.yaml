@@ -11,39 +11,124 @@ spec:
   customresourcedefinitions:
     owned:
     - description: DataConnector is the Schema for the dataconnectors API
-      displayName: Data Connector
+      displayName: DataConnector
       kind: DataConnector
       name: dataconnectors.k8s.natun.ai
+      resources:
+      - kind: Deployment
+        name: natun-conn-<name>
+        version: v1
       specDescriptors:
+      - description: Config of the DataConnector
+        displayName: Config
+        path: config
       - displayName: Secret Key Ref
         path: config[0].secretKeyRef
         x-descriptors:
         - urn:alm:descriptor:io.kubernetes:Secret
-      - description: 'Limits describes the maximum amount of compute resources allowed.
-          More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
-        displayName: Limits
-        path: resources.limits
-        x-descriptors:
-        - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
+      - description: Kind of the DataConnector
+        displayName: Connector Kind
+        path: kind
       - description: Number of desired pods. This is a pointer to distinguish between
           explicit zero and not specified. Defaults to 1.
         displayName: Replicas
-        path: resources.replicas
+        path: replicas
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:podCount
-      - description: 'Requests describes the minimum amount of compute resources required.
-          If Requests is omitted for a container, it defaults to Limits if that is
-          explicitly specified, otherwise to an implementation-defined value. More
-          info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
-        displayName: Requests
-        path: resources.requests
+      - description: "Resources defines the required resources for a single container(underlying
+          implementation) of this DataConnector. Notice that this is not applicable
+          for every DataConnector, but only for those who implement an External Runner.
+          \n More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/"
+        displayName: Resources
+        path: resources
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
+      statusDescriptors:
+      - description: Features includes a list of references for the Feature that uses
+          this DataConnector
+        displayName: Features
+        path: features
+      - displayName: Replicas
+        path: replicas
       version: v1alpha1
     - description: Feature is the Schema for the features API
-      displayName: Feature
+      displayName: ML Feature
       kind: Feature
       name: features.k8s.natun.ai
+      resources:
+      - kind: Deployment
+        name: ""
+        version: natun-controller-core
+      specDescriptors:
+      - description: 'Aggr defines an aggregation on top of the underlying feature-value.
+          Aggregations will be calculated on time-of-request. Users can specify here
+          multiple functions to calculate the aggregation. Valid values: - `count`
+          - `min` - `mix` - `sum`` - `mean` (alias for `avg`) - `avg`'
+        displayName: Aggregations
+        path: aggr
+      - description: Builder defines a building-block to use to build the feature-value
+        displayName: Builder
+        path: builder
+      - description: DataConnector is a reference for the DataConnector that this
+          Feature is associated with
+        displayName: Data Connector
+        path: connector
+      - description: Name is unique within a namespace to reference a resource.
+        displayName: Resource's Name
+        path: connector.name
+      - description: Namespace defines the space within which the resource name must
+          be unique.
+        displayName: Resource's Namespace
+        path: connector.namespace
+      - description: Freshness defines the age of a feature-value(time since the value
+          has set) to consider as *fresh*. Fresh values doesn't require re-ingestion
+        displayName: Freshness
+        path: freshness
+      - description: 'Primitive defines the type of the underlying feature-value that
+          a Feature should respond with Valid values are: - `int` - `float` - `string`
+          - `timestamp - `[]int` - `[]float` - `[]string` - `[]timestamp` - `headless`'
+        displayName: Primitive Type
+        path: primitive
+      - description: Staleness defines the age of a feature-value(time since the value
+          has set) to consider as *stale*. Stale values are not fit for usage, therefore
+          will not be returned and will REQUIRE re-ingestion.
+        displayName: Staleness
+        path: staleness
+      - description: Timeout defines the maximum ingestion time allowed to calculate
+          the feature value.
+        displayName: Timeout
+        path: timeout
+      statusDescriptors:
+      - description: FQN is the Fully Qualified Name for the Feature
+        displayName: FQN
+        path: fqn
+      version: v1alpha1
+    - description: FeatureSet is the Schema for the featuresets API
+      displayName: ML FeatureSet
+      kind: FeatureSet
+      name: featuresets.k8s.natun.ai
+      resources:
+      - kind: Deployment
+        name: ""
+        version: natun-controller-core
+      specDescriptors:
+      - description: Features is the list of feature FQNs that are enabled for a given
+          feature set
+        displayName: Features
+        path: features
+      - description: KeyFeature is the feature FQN that is used to align the rest
+          of the features with it timestamp. If this is unset, the first feature in
+          the list will be used.
+        displayName: Key Feature FQN
+        path: keyFeature
+      - description: Timeout defines the maximum ingestion time allowed to calculate
+          the feature value.
+        displayName: Timeout
+        path: timeout
+      statusDescriptors:
+      - description: FQN is the Fully Qualified Name for the FeatureSet
+        displayName: FQN
+        path: fqn
       version: v1alpha1
   description: Serverless Feature Engineering for Production
   displayName: Natun

@@ -33,6 +33,8 @@ func InitConfig() {
 		"Enabling this will ensure there is only one active controller manager.")
 	pflag.String("metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	pflag.String("health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+	pflag.StringArray("watch-namespaces", []string{}, "Enable namespace-level only by specify a list of"+
+		"namespaces that the operator is watching. If not specify, the operator will run on cluster level.")
 	pflag.String("accessor-grpc-address", ":60000", "The address the grpc accessor binds to.")
 	pflag.String("accessor-http-address", ":60001", "The address the http accessor binds to.")
 	pflag.String("accessor-http-prefix", "/api", "The the http accessor path prefix.")

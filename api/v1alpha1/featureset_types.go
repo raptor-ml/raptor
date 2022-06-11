@@ -26,25 +26,33 @@ type FeatureSetSpec struct {
 	// Timeout defines the maximum ingestion time allowed to calculate the feature value.
 	// +optional
 	// +nullable
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Timeout"
 	Timeout metav1.Duration `json:"timeout"`
 
 	// Features is the list of feature FQNs that are enabled for a given feature set
 	// +kubebuilder:validation:MinItems=2
 	// +kubebuilder:validation:Required
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Features"
 	Features []string `json:"features"`
 
-	// KeyFeature is the feature FQN that is used to align the rest of the features with.
+	// KeyFeature is the feature FQN that is used to align the rest of the features with it timestamp.
 	// If this is unset, the first feature in the list will be used.
 	// +optional
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Key Feature FQN"
 	KeyFeature string `json:"keyFeature,omitempty"`
 }
 
 // FeatureSetStatus defines the observed state of FeatureSet
-type FeatureSetStatus struct{}
+type FeatureSetStatus struct {
+	// FQN is the Fully Qualified Name for the FeatureSet
+	// +operator-sdk:csv:customresourcedefinitions:type=status
+	FQN string `json:"fqn"`
+}
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:categories=datascience,shortName=ftset
+// +operator-sdk:csv:customresourcedefinitions:displayName="ML FeatureSet",resources={{Deployment,natun-controller-core}}
 
 // FeatureSet is the Schema for the featuresets API
 type FeatureSet struct {

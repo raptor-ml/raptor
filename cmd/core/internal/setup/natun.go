@@ -105,6 +105,12 @@ func operatorControllers(mgr manager.Manager) {
 	}).SetupWithManager(mgr)
 	OrFail(err, "unable to create controller", "operator", "DataConnector")
 
+	err = (&opctrl.FeatureSetReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr)
+	OrFail(err, "unable to create controller", "operator", "FeatureSet")
+
 	err = (&opctrl.FeatureReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),

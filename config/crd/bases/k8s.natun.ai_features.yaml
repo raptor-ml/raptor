@@ -124,7 +124,7 @@ spec:
             description: FeatureStatus defines the observed state of Feature
             properties:
               fqn:
-                description: FQN is the Fully Qualified Name for the feature
+                description: FQN is the Fully Qualified Name for the Feature
                 type: string
             required:
             - fqn

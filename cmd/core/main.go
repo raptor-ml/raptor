@@ -21,6 +21,7 @@ import (
 	"github.com/natun-ai/natun/internal/version"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -53,7 +54,7 @@ func main() {
 	setupLog.WithValues("version", version.Version).Info("Initializing Core...")
 
 	// Set up a Manager
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	mgrOpts := ctrl.Options{
 		Scheme:                        scheme,
 		MetricsBindAddress:            viper.GetString("metrics-bind-address"),
 		Port:                          9443,
@@ -62,7 +63,18 @@ func main() {
 		LeaderElectionResourceLock:    resourcelock.LeasesResourceLock,
 		LeaderElectionID:              "core.natun.ai",
 		LeaderElectionReleaseOnCancel: true,
-	})
+	}
+	{
+		nss := viper.GetStringSlice("watch-namespaces")
+		if len(nss) == 1 {
+			mgrOpts.Namespace = nss[0]
+		} else if len(nss) > 1 {
+			setupLog.Info("manager set up with multiple namespaces", "namespaces", nss)
+			// configure cluster-scoped with MultiNamespacedCacheBuilder
+			mgrOpts.NewCache = cache.MultiNamespacedCacheBuilder(nss)
+		}
+	}
+	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), mgrOpts)
 	setup.OrFail(err, "unable to start manager")
 
 	// Set Up certificates for the webhooks

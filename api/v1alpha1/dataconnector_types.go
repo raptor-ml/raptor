@@ -29,9 +29,11 @@ import (
 type DataConnectorSpec struct {
 	// Kind of the DataConnector
 	// +kubebuilder:validation:Required
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Connector Kind"
 	Kind string `json:"kind"`
 
 	// Config of the DataConnector
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Config"
 	Config []ConfigVar `json:"config"`
 
 	// Resources defines the required resources for a single container(underlying implementation) of this DataConnector.
@@ -39,12 +41,13 @@ type DataConnectorSpec struct {
 	//
 	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 	// +optional
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Resources",xDescriptors={"urn:alm:descriptor:com.tectonic.ui:resourceRequirements"}
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 
 	// Number of desired pods. This is a pointer to distinguish between explicit
 	// zero and not specified. Defaults to 1.
 	// +optional
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors={"urn:alm:descriptor:com.tectonic.ui:podCount"}
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Replicas",xDescriptors={"urn:alm:descriptor:com.tectonic.ui:podCount"}
 	Replicas *int32 `json:"replicas,omitempty"`
 }
 
@@ -63,10 +66,12 @@ type ConfigVar struct {
 type ResourceReference struct {
 	// Name is unique within a namespace to reference a resource.
 	// +kubebuilder:validation:Required
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Resource's Name"
 	Name string `json:"name,omitempty" protobuf:"bytes,1,opt,name=name"`
 
 	// Namespace defines the space within which the resource name must be unique.
 	// +optional
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Resource's Namespace"
 	Namespace string `json:"namespace,omitempty" protobuf:"bytes,2,opt,name=namespace"`
 }
 
@@ -85,8 +90,10 @@ func (in *ResourceReference) FQN() string {
 // DataConnectorStatus defines the observed state of DataConnector
 type DataConnectorStatus struct {
 	// Features includes a list of references for the Feature that uses this DataConnector
+	// +operator-sdk:csv:customresourcedefinitions:type=status
 	Features []ResourceReference `json:"features"`
 
+	// +operator-sdk:csv:customresourcedefinitions:type=status
 	Replicas int32 `json:"replicas,omitempty"`
 }
 
@@ -95,6 +102,7 @@ type DataConnectorStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas
 // +kubebuilder:resource:categories=datascience,shortName=conn
+// +operator-sdk:csv:customresourcedefinitions:displayName="DataConnector",resources={{Deployment,v1,natun-conn-<name>}}
 
 // DataConnector is the Schema for the dataconnectors API
 type DataConnector struct {
