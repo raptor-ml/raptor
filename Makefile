@@ -78,7 +78,7 @@ $(info )
 .DEFAULT_GOAL := help
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.23
+ENVTEST_K8S_VERSION = 1.24.1
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -250,7 +250,7 @@ $(ENVTEST):
 	GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
 OSDK ?= $(LOCALBIN)/operator-sdk
-OPERATOR_SDK_VERSION=v1.19.0
+OPERATOR_SDK_VERSION=v1.21.0
 
 .PHONY: operator-sdk
 operator-sdk: $(OSDK) ## Download controller-gen locally if necessary.
@@ -259,7 +259,7 @@ $(OSDK):
 
 .PHONY: bundle
 bundle: operator-sdk manifests kustomize update_images_pre ## Generate bundle manifests and metadata, then validate generated files.
-	$(OSDK) generate kustomize manifests --apis-dir pkg/api/v1alpha1 -q
+	$(OSDK) generate kustomize manifests --apis-dir api/v1alpha1 -q
 	$(KUSTOMIZE) build config/manifests | $(OSDK) generate bundle $(BUNDLE_GEN_FLAGS)
 	$(OSDK) bundle validate ./bundle
 	$(MAKE) update_images_post
