@@ -1,0 +1,10 @@
+run:
+  tests: false
+  timeout: 5m
+
+linters:
+  disable:
+    - gosimple
+    - staticcheck
+    - stylecheck
+    - unused
