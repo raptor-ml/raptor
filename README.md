@@ -10,14 +10,14 @@
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
 <br />
-<div style="text-align: center">
+<div align="center">
   <a href="https://github.com/natun-ai/natun">
     <img src=".github/logo.svg" alt="Natun - Production-ready feature enigneering" width="300">
   </a>
   
-  <h3 style="text-align: center">Serverless feature engineering</h3>
+  <h3 align="center">Serverless feature engineering</h3>
 
-  <p style="text-align: center">
+  <p align="center">
     Build production-ready ML features, directly from your notebook, without being a software engineer. <br />
     Focus on <strong>data science</strong>, Natun will take care of the engineering overhead.
     <br />
@@ -74,7 +74,7 @@ And what about the engineers? we'll, we finally take this "burden" away from the
     montiroing and logging.
 
 
-<p style="text-align: right">(<a href="#top">back to top</a>)</p>
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 💡 How does it work?
 Natun is extending Kubernetes to serve Natun compatible features in a production-grade manner.
@@ -117,7 +117,7 @@ Because Natun
 ### Installation
 The easiest way to install Natun is to use the [OperatorHub Installation method](https://operatorhub.io/operator/natun).
 
-<p style="text-align: right">(<a href="#top">back to top</a>)</p>
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 
 ## 🌍 Hello world feature
@@ -151,7 +151,7 @@ apiVersion: k8s.natun.ai/v1alpha1
           return 'hello ' + req['entity_id']) + '!'
 ```
 
-<p style="text-align: right">(<a href="#top">back to top</a>)</p>
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 
 
@@ -170,7 +170,7 @@ apiVersion: k8s.natun.ai/v1alpha1
 
 See the [open issues](https://github.com/natun-ai/natun/issues) for a full list of proposed features (and known issues).
 
-<p style="text-align: right">(<a href="#top">back to top</a>)</p>
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 
 
@@ -187,7 +187,7 @@ simply open an issue and choosing "Feature Request" to give us some feedback.
 
 For more information about contributing code to the project, read the `CONTRIBUTING.md` file.
 
-<p style="text-align: right">(<a href="#top">back to top</a>)</p>
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 
 
@@ -197,14 +197,14 @@ For more information about contributing code to the project, read the `CONTRIBUT
 
 Distributed under the Apache2 License. Read the `LICENSE` file for more information.
 
-<p style="text-align: right">(<a href="#top">back to top</a>)</p>
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 
 ## 👫 Joining the community
 
 
 
-<p style="text-align: right">(<a href="#top">back to top</a>)</p>
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 [godoc-shield]: https://pkg.go.dev/badge/github.com/natun-ai/natun.svg
 [godoc-url]: https://pkg.go.dev/github.com/natun-ai/natun
