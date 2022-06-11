@@ -52,7 +52,7 @@ type FeatureSetStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:categories=datascience,shortName=ftset
-// +operator-sdk:csv:customresourcedefinitions:displayName="ML FeatureSet",resources={{Deployment,natun-controller-core}}
+// +operator-sdk:csv:customresourcedefinitions:displayName="ML FeatureSet",resources={{Deployment,v1,natun-controller-core}}
 
 // FeatureSet is the Schema for the featuresets API
 type FeatureSet struct {

@@ -45,9 +45,10 @@ spec:
                   description: ConfigVar is a name/value pair for the config.
                   properties:
                     name:
+                      description: Configuration name
                       type: string
                     secretKeyRef:
-                      description: SecretKeySelector selects a key of a Secret.
+                      description: Configuration value from secret
                       properties:
                         key:
                           description: The key of the secret to select from.  Must
@@ -65,6 +66,7 @@ spec:
                       - key
                       type: object
                     value:
+                      description: Configuration value
                       type: string
                   required:
                   - name
@@ -74,8 +76,9 @@ spec:
                 description: Kind of the DataConnector
                 type: string
               replicas:
-                description: Number of desired pods. This is a pointer to distinguish
-                  between explicit zero and not specified. Defaults to 1.
+                description: Replicas defines the number of desired pods. This is
+                  a pointer to distinguish between explicit zero and not specified.
+                  Defaults to 1.
                 format: int32
                 type: integer
               resources:

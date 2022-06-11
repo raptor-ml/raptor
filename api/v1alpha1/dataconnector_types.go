@@ -44,7 +44,7 @@ type DataConnectorSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Resources",xDescriptors={"urn:alm:descriptor:com.tectonic.ui:resourceRequirements"}
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 
-	// Number of desired pods. This is a pointer to distinguish between explicit
+	// Replicas defines the number of desired pods. This is a pointer to distinguish between explicit
 	// zero and not specified. Defaults to 1.
 	// +optional
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Replicas",xDescriptors={"urn:alm:descriptor:com.tectonic.ui:podCount"}
@@ -53,9 +53,12 @@ type DataConnectorSpec struct {
 
 // ConfigVar is a name/value pair for the config.
 type ConfigVar struct {
+	// Configuration name
 	Name string `json:"name"`
+	// Configuration value
 	// +optional
 	Value string `json:"value,omitempty"`
+	// Configuration value from secret
 	// +optional
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors={"urn:alm:descriptor:io.kubernetes:Secret"}
 	SecretKeyRef *corev1.SecretKeySelector `json:"secretKeyRef,omitempty"`

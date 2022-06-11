@@ -5,4 +5,5 @@ resources:
 - feature.basic.primitives.yaml
 - feature.rest.user-city.yaml
 - featureset.basic.yaml
+- dataconnector.streaming.clicks.yml
 #+kubebuilder:scaffold:manifestskustomizesamples

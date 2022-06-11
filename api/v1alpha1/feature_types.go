@@ -116,7 +116,7 @@ type FeatureStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:categories=datascience,shortName=ft
-// +operator-sdk:csv:customresourcedefinitions:displayName="ML Feature",resources={{Deployment,natun-controller-core}}
+// +operator-sdk:csv:customresourcedefinitions:displayName="ML Feature",resources={{Deployment,v1,natun-controller-core}}
 
 // Feature is the Schema for the features API
 type Feature struct {

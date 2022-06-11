@@ -2,17 +2,14 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   annotations:
-    alm-examples: |-
-      [
-        {"apiVersion":"k8s.natun.ai/v1alpha1","kind":"DataConnector","metadata":{"name":"clicks"},"spec":{"kind":"streaming","config":[{"name":"kind","value":"kafka"},{"name":"brokers","value":":9093"},{"name":"topics","value":"clickstream"},{"name":"consumer_group","value":"clicks-consumer-group"},{"name":"tls_disable","value":"true"}]}},
-        {"apiVersion":"k8s.natun.ai/v1alpha1","kind":"Feature","metadata":{"name":"hello-world"},"spec":{"primitive":"string","freshness":"1h","staleness":"2h","builder":{"kind":"expression","pyexp":"def handler(**req):\n   return \"Hello world \" + req[\"entity_id\"]"}}},
-        {"apiVersion":"k8s.natun.ai/v1alpha1","kind":"FeatureSet","metadata":{"name":"featureset-basic"},"spec":{"timeout":"2s","features":["hello-world.default","simple-aggr.default"]}}
-      ]
+    alm-examples: ""
     capabilities: Basic Install
     categories: AI/Machine Learning
-    containerImage: ghcr.io/natun-ai/natun-core:latest
+    containerImage: controller:latest
+    createdAt: "2022-06-30T00:00:00Z"
     description: Serverless Feature Engineering for Production
     repository: https://github.com/natun-ai/natun
+    support: Natun
   name: natun.v0.0.0
   namespace: natun-system
 spec:
@@ -31,15 +28,16 @@ spec:
       - description: Config of the DataConnector
         displayName: Config
         path: config
-      - displayName: Secret Key Ref
+      - description: Configuration value from secret
+        displayName: Secret Key Ref
         path: config[0].secretKeyRef
         x-descriptors:
         - urn:alm:descriptor:io.kubernetes:Secret
       - description: Kind of the DataConnector
         displayName: Connector Kind
         path: kind
-      - description: Number of desired pods. This is a pointer to distinguish between
-          explicit zero and not specified. Defaults to 1.
+      - description: Replicas defines the number of desired pods. This is a pointer
+          to distinguish between explicit zero and not specified. Defaults to 1.
         displayName: Replicas
         path: replicas
         x-descriptors:
@@ -66,8 +64,8 @@ spec:
       name: features.k8s.natun.ai
       resources:
       - kind: Deployment
-        name: ""
-        version: natun-controller-core
+        name: natun-controller-core
+        version: v1
       specDescriptors:
       - description: 'Aggr defines an aggregation on top of the underlying feature-value.
           Aggregations will be calculated on time-of-request. Users can specify here
@@ -118,8 +116,8 @@ spec:
       name: featuresets.k8s.natun.ai
       resources:
       - kind: Deployment
-        name: ""
-        version: natun-controller-core
+        name: natun-controller-core
+        version: v1
       specDescriptors:
       - description: Features is the list of feature FQNs that are enabled for a given
           feature set
@@ -171,8 +169,11 @@ spec:
   links:
   - name: Natun
     url: https://natun.ai
+  maintainers:
+  - email: almog.baku@gmail.com
+    name: Almog Baku
   maturity: alpha
-  minKubeVersion: v1.21
+  minKubeVersion: 1.21.0
   provider:
     name: Natun
     url: https://natun.ai
