@@ -261,7 +261,7 @@ $(OSDK):
 bundle: operator-sdk manifests kustomize update_images_pre ## Generate bundle manifests and metadata, then validate generated files.
 	$(OSDK) generate kustomize manifests --apis-dir api/v1alpha1 -q
 	$(KUSTOMIZE) build config/manifests | $(OSDK) generate bundle $(BUNDLE_GEN_FLAGS)
-	$(OSDK) bundle validate ./bundle
+	$(OSDK) bundle validate ./bundle --select-optional suite=operatorframework
 	$(MAKE) update_images_post
 
 .PHONY: bundle-build
