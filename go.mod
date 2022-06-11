@@ -8,8 +8,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.5
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.26.11
 	github.com/cert-manager/cert-manager v1.8.0
-	github.com/cloudevents/sdk-go/binding/format/protobuf/v2 v2.10.0
-	github.com/cloudevents/sdk-go/v2 v2.10.0
+	github.com/cloudevents/sdk-go/binding/format/protobuf/v2 v2.10.1
+	github.com/cloudevents/sdk-go/v2 v2.10.1
 	github.com/die-net/lrucache v0.0.0-20210908122246-903d43d14082
 	github.com/go-logr/logr v1.2.3
 	github.com/go-logr/zapr v1.2.3
@@ -106,7 +106,7 @@ require (
 	github.com/klauspost/compress v1.15.6 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattn/go-ieproxy v0.0.6 // indirect
+	github.com/mattn/go-ieproxy v0.0.7 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
