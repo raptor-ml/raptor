@@ -21,9 +21,8 @@
     Build production-ready ML features, directly from your notebook, without being a software engineer. <br />
     Focus on <strong>data science</strong>, Natun will take care of the engineering overhead.
     <br />
-    <p markdown="1">
-        [**Explore the docs »**][docs-url]
-    </p>
+    <br />
+    <a href="https://docs.natun.ai"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <a href="https://github.com/natun-ai/natun">Getting started in 5 minutes</a>
@@ -37,7 +36,7 @@
 
 ## 🧐 What is Natun?
 
-[//]: # ([![Natun Screen Shot][product-screenshot]][docs-url])
+<!-- # ([![Natun Screen Shot][product-screenshot]][docs-url]) -->
 
 With Natun, Data Scientists can write ML Features that can work in production directly in your notebook, and deploy
 them to production on their own (yes! without going through the engineering team). **It's like writing Lambda for Feature Engineering.**
@@ -45,9 +44,7 @@ them to production on their own (yes! without going through the engineering team
 After developing your ML features, just deploy them to your Kubernetes, and the Natun extension will take care of the
 engineering concerns of production (such as: scale, high-availability, authentication, caching, monitoring, etc.)
 
-<div style="text-align:center" markdown="1">
 [![Colab][colab-button]][colab-url]
-</div>
 
 ### 😍 Why does people *love* Natun?
  * **Data Scientists** love Natun because it's easy to use, and let them take ownership of their ML features.
