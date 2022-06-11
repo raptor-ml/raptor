@@ -6,6 +6,7 @@ metadata:
   name: historian
   namespace: system
 spec:
+  replicas: -123
   template:
     spec:
       containers:
@@ -14,4 +15,4 @@ spec:
         - "--health-probe-bind-address=:8081"
         - "--metrics-bind-address=127.0.0.1:8080"
         - "--leader-elect"
-        - $installer_args$
+        - $installer_historian_args$
