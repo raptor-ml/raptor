@@ -27,6 +27,7 @@ import (
 )
 
 const FeatureSetBuilder = "featureset"
+const ExpressionBuilder = "expression"
 
 // DataConnector is a parsed abstracted representation of a manifests.DataConnector
 type DataConnector struct {
@@ -112,13 +113,17 @@ func MetadataFromManifest(in *manifests.Feature) (*Metadata, error) {
 		md.DataConnector = in.Spec.DataConnector.FQN()
 	}
 
-	if md.Builder == "" {
+	if md.Builder == "" && in.Spec.Builder.Raw != nil && len(in.Spec.Builder.Raw) > 0 {
 		builderType := &manifests.FeatureBuilderKind{}
 		err := json.Unmarshal(in.Spec.Builder.Raw, builderType)
 		if err != nil || builderType.Kind == "" {
 			return nil, fmt.Errorf("failed to unmarshal builder type: %w", err)
 		}
 		md.Builder = strings.ToLower(builderType.Kind)
+	}
+	if md.Builder == "" {
+		//Todo auto-detect builder
+		md.Builder = ExpressionBuilder
 	}
 
 	if len(md.Aggr) > 0 && !md.ValidWindow() {
