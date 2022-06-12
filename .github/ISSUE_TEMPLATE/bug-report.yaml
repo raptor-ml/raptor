@@ -1,0 +1,57 @@
+name: Bug report
+description: Create a report to help us improve
+title: "[BUG] "
+labels: [ "bug" ]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+        Please provide as much information as possible. We'll use this to help us fix the bug and improve Natun.
+  - type: textarea
+    id: bug-description
+    attributes:
+        label: What is the bug?
+        description: A clear and concise description of what the bug is.
+        placeholder: e.g. "I'm getting an error when I try to run a script..."
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+        label: Steps to reproduce the bug
+        description: How do you reproduce the bug?
+        placeholder: |
+          1. Create manifest '...'
+          2. Deploy to cluster '....'
+          3. Query for feature '....'
+          4. See the error
+    validations:
+      required: true
+  - type: textarea
+    id: expected-result
+    attributes:
+      label: What is the expected result?
+      description: A clear and concise description of what the expected result is.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The version of Natun you are using.
+  - type: textarea
+    id: cluster
+    attributes:
+      label: Cluster version
+      description: "Run the following command and paste the output: `kubectl version -o yaml`"
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: What else should we know?
+      description: A clear use-case description can help us to understand the context, and realize if there's a problem
+        here.
+      placeholder: e.g. "Create a feature that counts the number of times a user clicks a button"
+    validations:
+      required: false

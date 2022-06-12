@@ -1,0 +1,35 @@
+name: Ask a question
+description: Use this issue type to ask for assistance using Natun
+title: "[HELP] "
+labels: [ "question" ]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We are always happy to help! Please provide as much information as possible, so we can learn more about your
+        use-case and try to give you a hand.
+  - type: textarea
+    id: use-case
+    attributes:
+      label: What is your use-case?
+      description: Tell us about the use-case(including an example), so we'll have some context.
+      placeholder: e.g. "I'm trying to build a feature that is depended on another feature"
+  - type: textarea
+    id: problem
+    attributes:
+        label: How can we help?
+        description: Describe the problem you are facing, and what we can do to help you.
+        placeholder: How do I join between two data points?
+    validations:
+      required: true
+  - type: textarea
+    id: tried-to-solve-with
+    attributes:
+        label: What have you already tried?
+        description: Describe here what did you try, and what didn't work.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The version of Natun you are using.
