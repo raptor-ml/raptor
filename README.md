@@ -15,7 +15,7 @@
     <img src=".github/logo.svg" alt="Natun - Production-ready feature enigneering" width="300">
   </a>
   
-  <h3 align="center">Serverless feature engineering</h3>
+  <h3 align="center">Serverless feature engineering - from notebook to production</h3>
 
   <p align="center">
     Build production-ready ML features, directly from your notebook, without being a software engineer. <br />
@@ -81,11 +81,14 @@ Natun is extending Kubernetes to serve Natun compatible features in a production
 It's implementing the "Kubernetes Way" which advocates for writing the desired state and allows you to
 **focus on writing** the business logic.
 
-Behind the scene, the solution take care the engineering concerns of implementing the "desired state" by managing and
+Natun take care the engineering concerns of implementing the "desired state" by managing and
 controlling Kubernetes-native resources such as deployments to connect your production data-sources and to run your
 business logic at scale.
 
 ![High-level design](.github/high-level-diagram.png)
+
+Behind the scenes, Natun is attaching the right building block to implement the "production behavior" of your use-case
+(i.e. streaming, rest-api, grpc, expression, etc.).
 
 You can read more about Natun's architecture in [the docs][docs-url].
 
