@@ -31,6 +31,9 @@
 - color: 8e5494
   description: Related to the Streaming runner
   name: component/streaming
+- color: 589fa3
+  description: Related to the LabSDK
+  name: component/labsdk
 - color: 7e5494
   description: Related to the Historian
   name: component/historian
