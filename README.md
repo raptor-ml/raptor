@@ -33,10 +33,9 @@
   </p>
 </div>
 
+[![Natun Screen Shot][product-screenshot]][docs-url]
 
 ## 🧐 What is Natun?
-
-<!-- # ([![Natun Screen Shot][product-screenshot]][docs-url]) -->
 
 With Natun, Data Scientists can write ML Features that can work in production directly in your notebook and deploy
 them to production on their own (yes! without going through the engineering team). **It's like writing Lambda for Feature Engineering.**
@@ -233,7 +232,7 @@ Distributed under the Apache2 License. Read the `LICENSE` file for more informat
 [go-report-card-shield]: https://goreportcard.com/badge/github.com/natun-ai/natun
 [go-report-card-url]: https://goreportcard.com/report/github.com/natun-ai/natun
 
-[product-screenshot]: images/screenshot.png
+[product-screenshot]: .github/demo.svg
 
 [colab-button]: https://img.shields.io/badge/-Getting%20started%20with%20Colab-blue?style=for-the-badge&logo=googlecolab
 [colab-url]: https://colab.research.google.com/github/natun-ai/docs/blob/master/docs/getting-started-with-labsdk.ipynb
