@@ -54,23 +54,18 @@ production concerns (such as scale, high availability, authentication, caching, 
 And what about the engineers? Well, it's finally taking away this "burden"  from them.
 
 ### ⭐️ Features
- * **Same code for both training and production**
-
+ * **Same code for both training and production**<br/>
     You can run the same Natun compatible features in training and production and prevent the *training serving skew*.
- * **Real-Time / On-demand feature calculation**
-
+ * **Real-Time / On-demand feature calculation**<br/>
     Natun is optimizing features to be calculated at the time of the request.
- * **Caching and storing**
-
+ * **Caching and storing**<br/>
     Natun is utilizing an integrated Feature-Store to cache the calculation results and take snapshots of the data
     to cold storage for historical purposes (such as re-training).
- * **Pluggable**
-
+ * **Pluggable**<br/>
     Natun is highly-pluggable. Technically, you can even bring your own feature store implementation.
- * **Kubernetes Native and Standards**
-
+ * **Kubernetes Native and Standards**<br/>
     Natun is implementing by-design functionalities of Kubernetes such as leader-election, scaling, health, auto-recovery,
-    montiroing and logging.
+    monitoring and logging.
 
 
 <p align="right">(<a href="#top">back to top</a>)</p>
