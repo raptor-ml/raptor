@@ -105,8 +105,8 @@ Because Natun
 1. Kubernetes cluster
 
    (You can use [Kind](https://kind.sigs.k8s.io/) to install Natun locally)
-   1. `kubectl` installed and configured to your cluster.
-2. Redis server
+2. `kubectl` installed and configured to your cluster.
+3. Redis server
 
    ⚠️ *Tip: You can also use a managed Redis solution such as [AWS ElasticCache](https://aws.amazon.com/elasticache/)
    or [GCP Memorystore](https://cloud.google.com/memorystore), or via the [K8s Redis Operator](https://operatorhub.io/operator/redis-operator)*
