@@ -25,11 +25,11 @@
     <a href="https://docs.natun.ai"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/natun-ai/natun">Getting started in 5 minutes</a>
+    <a href="https://colab.research.google.com/github/dataploy-ai/docs/blob/master/docs/getting-started-with-labsdk.ipynb">Getting started in 5 minutes</a>
     ·
-    <a href="https://github.com/natun-ai/natun/issues">Report Bug</a>
+    <a href="https://github.com/natun-ai/natun/issues">Report a Bug</a>
     ·
-    <a href="https://github.com/natun-ai/natun/issues">Request Feature</a>
+    <a href="https://github.com/natun-ai/natun/issues">Request a Feature</a>
   </p>
 </div>
 
@@ -230,6 +230,6 @@ Distributed under the Apache2 License. Read the `LICENSE` file for more informat
 [product-screenshot]: .github/demo.svg
 
 [colab-button]: https://img.shields.io/badge/-Getting%20started%20with%20Colab-blue?style=for-the-badge&logo=googlecolab
-[colab-url]: https://colab.research.google.com/github/natun-ai/docs/blob/master/docs/getting-started-with-labsdk.ipynb
+[colab-url]: https://colab.research.google.com/github/dataploy-ai/docs/blob/master/docs/getting-started-with-labsdk.ipynb
 
 [docs-url]: https://docs.natun.ai/
