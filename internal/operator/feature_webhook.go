@@ -16,27 +16,51 @@ limitations under the License.
 
 package operator
 
+// These are referring tho the values in FeatureWebhookValidatePath and FeatureWebhookMutatePath
+// They are package-level markers, and should be as a standalone comment block
+// +kubebuilder:webhook:path=/mutate-k8s-natun-ai-v1alpha1-feature,mutating=true,failurePolicy=fail,sideEffects=NoneOnDryRun,groups=k8s.natun.ai,resources=features,verbs=create;update,versions=v1alpha1,name=vfeature.kb.io,admissionReviewVersions=v1
 // +kubebuilder:webhook:path=/validate-k8s-natun-ai-v1alpha1-feature,mutating=false,failurePolicy=fail,sideEffects=NoneOnDryRun,groups=k8s.natun.ai,resources=features,verbs=create;update,versions=v1alpha1,name=vfeature.kb.io,admissionReviewVersions=v1
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/natun-ai/natun/api"
 	natunApi "github.com/natun-ai/natun/api/v1alpha1"
 	"github.com/natun-ai/natun/internal/engine"
+	"github.com/natun-ai/natun/pkg/plugins"
 	"k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+	"strings"
 )
 
 const FeatureWebhookValidatePath = "/validate-k8s-natun-ai-v1alpha1-feature"
 const FeatureWebhookValidateName = "natun-validating-webhook-configuration"
+const FeatureWebhookMutatePath = "/mutate-k8s-natun-ai-v1alpha1-feature"
+const FeatureWebhookMutateName = "natun-mutating-webhook-configuration"
 
-type validator struct {
+func SetupFeatureWebhook(mgr ctrl.Manager, updatesAllowed bool) {
+	impl := &webhook{
+		updatesAllowed: updatesAllowed,
+		client:         mgr.GetClient(),
+		logger:         mgr.GetLogger().WithName("feature-webhook"),
+	}
+	wh := admission.WithCustomValidator(&natunApi.Feature{}, impl)
+	wh.Handler = &admissionWrapper{Handler: wh.Handler}
+
+	mgr.GetWebhookServer().Register(FeatureWebhookValidatePath, wh)
+
+	wh = admission.WithCustomDefaulter(&natunApi.Feature{}, impl)
+	wh.Handler = &admissionWrapper{Handler: wh.Handler}
+	mgr.GetWebhookServer().Register(FeatureWebhookMutatePath, wh)
+}
+
+type webhook struct {
 	client         client.Client
 	logger         logr.Logger
 	updatesAllowed bool
@@ -46,59 +70,103 @@ type ctxKey string
 
 const admissionRequestContextKey ctxKey = "AdmissionRequest"
 
-type validatorWrapper struct {
+type admissionWrapper struct {
 	admission.Handler
 }
 
-func (h *validatorWrapper) InjectDecoder(d *admission.Decoder) error {
+func (h *admissionWrapper) InjectDecoder(d *admission.Decoder) error {
 	if di, ok := h.Handler.(admission.DecoderInjector); ok {
 		return di.InjectDecoder(d)
 	}
 	return nil
 }
-func (h *validatorWrapper) Handle(ctx context.Context, req admission.Request) admission.Response {
+func (h *admissionWrapper) Handle(ctx context.Context, req admission.Request) admission.Response {
 	ctx = context.WithValue(ctx, admissionRequestContextKey, req)
 	return h.Handler.Handle(ctx, req)
 }
 
-func SetupFeatureWebhook(mgr ctrl.Manager, updatesAllowed bool) {
-	wh := admission.WithCustomValidator(&natunApi.Feature{}, &validator{
-		updatesAllowed: updatesAllowed,
-		client:         mgr.GetClient(),
-		logger:         mgr.GetLogger().WithName("feature-webhook"),
-	})
-	wh.Handler = &validatorWrapper{Handler: wh.Handler}
+func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
+	f := obj.(*natunApi.Feature)
+	wh.logger.Info("defaulting", "name", f.GetName())
 
-	mgr.GetWebhookServer().Register(FeatureWebhookValidatePath, wh)
+	if f.Spec.Builder.Kind == "" {
+		if f.Spec.Builder.Raw != nil && len(f.Spec.Builder.Raw) > 0 {
+			builderType := &natunApi.FeatureBuilderKind{}
+			err := json.Unmarshal(f.Spec.Builder.Raw, builderType)
+			if err != nil {
+				return fmt.Errorf("failed to unmarshal builder type: %w", err)
+			}
+			f.Spec.Builder.Kind = strings.ToLower(builderType.Kind)
+		}
+		if f.Spec.Builder.Kind == "" && f.Spec.DataConnector != nil {
+			if ar, ok := ctx.Value(admissionRequestContextKey).(admission.Request); ok && ar.DryRun == nil || ok && !*ar.DryRun {
+				dc := natunApi.DataConnector{}
+				err := wh.client.Get(ctx, f.Spec.DataConnector.ObjectKey(), &dc)
+				if apierrors.IsNotFound(err) {
+					return fmt.Errorf("data connector %s/%s not found", f.Spec.DataConnector.Namespace, f.Spec.DataConnector.Name)
+				}
+				if err != nil {
+					return fmt.Errorf("failed to get data connector: %w", err)
+				}
+
+				dci, err := api.DataConnectorFromManifest(ctx, &dc, wh.client)
+				if err != nil {
+					return fmt.Errorf("failed to get data connector instance: %w", err)
+				}
+
+				// Check if data-connector is mapped to a special builder
+				if plugins.FeatureAppliers[dci.Kind] != nil {
+					f.Spec.Builder.Kind = dci.Kind
+				}
+			}
+		}
+		if f.Spec.Builder.Kind == "" {
+			f.Spec.Builder.Kind = api.ExpressionBuilder
+		}
+
+		//encode the json back with the default builder
+		j := make(map[string]any)
+		err := json.Unmarshal(f.Spec.Builder.Raw, &j)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal builder: %w", err)
+		}
+		j["kind"] = f.Spec.Builder.Kind
+		f.Spec.Builder.Raw, err = json.Marshal(j)
+		if err != nil {
+			return fmt.Errorf("failed to marshal builder: %w", err)
+		}
+	}
+
+	return nil
 }
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (v *validator) ValidateCreate(ctx context.Context, obj runtime.Object) error {
+func (wh *webhook) ValidateCreate(ctx context.Context, obj runtime.Object) error {
 	f := obj.(*natunApi.Feature)
-	v.logger.Info("validate create", "name", f.Name)
+	wh.logger.Info("validate create", "name", f.Name)
 
-	return v.Validate(ctx, f)
+	return wh.Validate(ctx, f)
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (v *validator) ValidateUpdate(ctx context.Context, oldObject, newObj runtime.Object) error {
+func (wh *webhook) ValidateUpdate(ctx context.Context, oldObject, newObj runtime.Object) error {
 	f := newObj.(*natunApi.Feature)
 	old := oldObject.(*natunApi.Feature)
-	v.logger.Info("validate update", "name", f.GetName())
-	if !equality.Semantic.DeepEqual(old.Spec, f.Spec) && !v.updatesAllowed {
+	wh.logger.Info("validate update", "name", f.GetName())
+	if !equality.Semantic.DeepEqual(old.Spec, f.Spec) && !wh.updatesAllowed {
 		return fmt.Errorf("features are immutable in production")
 	}
 
-	return v.Validate(ctx, f)
+	return wh.Validate(ctx, f)
 }
 
-func (v *validator) Validate(ctx context.Context, f *natunApi.Feature) error {
+func (wh *webhook) Validate(ctx context.Context, f *natunApi.Feature) error {
 	dummyEngine := engine.Dummy{}
 
 	if f.Spec.DataConnector != nil {
 		if ar, ok := ctx.Value(admissionRequestContextKey).(admission.Request); ok && ar.DryRun == nil || ok && !*ar.DryRun {
 			dc := natunApi.DataConnector{}
-			err := v.client.Get(ctx, f.Spec.DataConnector.ObjectKey(), &dc)
+			err := wh.client.Get(ctx, f.Spec.DataConnector.ObjectKey(), &dc)
 			if apierrors.IsNotFound(err) {
 				return fmt.Errorf("data connector %s/%s not found", f.Spec.DataConnector.Namespace, f.Spec.DataConnector.Name)
 			}
@@ -106,7 +174,7 @@ func (v *validator) Validate(ctx context.Context, f *natunApi.Feature) error {
 				return fmt.Errorf("failed to get data connector: %w", err)
 			}
 
-			dci, err := api.DataConnectorFromManifest(ctx, &dc, v.client)
+			dci, err := api.DataConnectorFromManifest(ctx, &dc, wh.client)
 			if err != nil {
 				return fmt.Errorf("failed to get data connector instance: %w", err)
 			}
@@ -118,9 +186,9 @@ func (v *validator) Validate(ctx context.Context, f *natunApi.Feature) error {
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (v *validator) ValidateDelete(_ context.Context, obj runtime.Object) error {
+func (wh *webhook) ValidateDelete(_ context.Context, obj runtime.Object) error {
 	f := obj.(*natunApi.Feature)
-	v.logger.Info("validate delete", "name", f.GetName())
+	wh.logger.Info("validate delete", "name", f.GetName())
 
 	// DISABLED. To enable deletion validation, change the above annotation's verbs to "verbs=create;update;delete"
 

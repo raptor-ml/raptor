@@ -19,6 +19,7 @@ package setup
 // +kubebuilder:rbac:groups=cert-manager.io,resources=issuers;certificates,verbs=get;create;update;patch;delete;watch;list
 // +kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs=get;update;patch;watch;list
 // +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=validatingwebhookconfigurations,verbs=get;update;patch;list;watch
+// +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations,verbs=get;update;patch;list;watch
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;create;update;patch;list;watch
 
 import (
@@ -97,6 +98,10 @@ var webhooks = []rotator.WebhookInfo{
 	{
 		Type: rotator.Validating,
 		Name: opctrl.FeatureWebhookValidateName,
+	},
+	{
+		Type: rotator.Mutating,
+		Name: opctrl.FeatureWebhookMutateName,
 	},
 }
 

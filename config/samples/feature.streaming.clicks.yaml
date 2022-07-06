@@ -19,7 +19,6 @@ spec:
     name: clicks
     namespace: default
   builder:
-    kind: streaming
     schema: https://raw.githubusercontent.com/Natun-AI/massivedynamic-protos/master/click.proto#Click
     pyexp: |
       def handler(**req):

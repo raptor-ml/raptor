@@ -7,7 +7,6 @@ spec:
   freshness: 1h
   staleness: 2h
   builder:
-    kind: expression
     pyexp: |-
       def handler(**req):
          return "Hello world " + req["entity_id"]
