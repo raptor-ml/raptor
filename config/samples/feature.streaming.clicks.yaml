@@ -17,7 +17,6 @@ spec:
     - count
   connector:
     name: clicks
-    namespace: default
   builder:
     schema: https://raw.githubusercontent.com/Natun-AI/massivedynamic-protos/master/click.proto#Click
     pyexp: |

@@ -5,5 +5,5 @@ metadata:
 spec:
   timeout: 2s
   features:
-    - hello-world.default
-    - simple-aggr.default
+    - hello-world
+    - simple-aggr

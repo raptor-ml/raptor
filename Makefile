@@ -78,7 +78,7 @@ $(info )
 .DEFAULT_GOAL := help
 
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.24.1
+ENVTEST_K8S_VERSION = 1.24.2
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -136,6 +136,10 @@ fmt: ## Run go fmt against code.
 .PHONY: test
 test: manifests generate fmt lint envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
+
+.PHONY: test-e2e
+test-e2e: docker-build ## Run e2e tests.
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./internal/e2e/... -tags e2e --build-tag=$(VERSION)
 
 ##@ Build
 
@@ -318,7 +322,7 @@ catalog-push: ## Push a catalog image.
 ##@ Development
 
 .PHONY: check-license-headers
-check-license:  ## Check the headers for the license.
+check-license:  ## Check the licenses and the license header.
 	./hack/check-headers-for-license.sh
 	./hack/licenses-check-allowed.sh
 
