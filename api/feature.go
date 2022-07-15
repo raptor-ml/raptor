@@ -131,3 +131,16 @@ func MetadataFromManifest(in *manifests.Feature) (*Metadata, error) {
 	}
 	return md, nil
 }
+
+func NormalizeFQN(fqn, defaultNamespace string) string {
+	ns := strings.Index(fqn, ".")
+	if ns != -1 {
+		return fqn
+	}
+
+	fn := strings.Index(fqn, "[")
+	if fn != -1 {
+		return fmt.Sprintf("%s.%s%s", fqn, defaultNamespace, fqn[fn:])
+	}
+	return fmt.Sprintf("%s.%s", fqn, defaultNamespace)
+}

@@ -18,9 +18,11 @@ package pyexp
 
 import (
 	"fmt"
+	"github.com/natun-ai/natun/api"
 	"github.com/sourcegraph/starlight/convert"
 	sTime "go.starlark.net/lib/time"
 	"go.starlark.net/starlark"
+	"strings"
 	"time"
 )
 
@@ -44,6 +46,9 @@ func (r *runtime) basicOp(op BasicOp) (starlark.Value, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	ns := op.thread.Name[strings.Index(op.thread.Name, ".")+1:]
+	fqn = api.NormalizeFQN(fqn, ns)
 
 	if val, err = starToGo(val); err != nil {
 		return nil, err
@@ -113,6 +118,9 @@ func (r *runtime) GetFeature(t *starlark.Thread, b *starlark.Builtin, args starl
 	if err := starlark.UnpackArgs(b.Name(), args, kwargs, "fqn", &fqn, "entity_id", &entityID); err != nil {
 		return nil, err
 	}
+
+	ns := t.Name[strings.Index(t.Name, ".")+1:]
+	fqn = api.NormalizeFQN(fqn, ns)
 
 	// TODO protect cyclic fetch
 	if t.Name == fqn {

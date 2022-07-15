@@ -23,6 +23,7 @@ import (
 	"github.com/natun-ai/natun/api"
 	manifests "github.com/natun-ai/natun/api/v1alpha1"
 	"github.com/natun-ai/natun/pkg/plugins"
+	"strings"
 	"sync"
 )
 
@@ -31,7 +32,7 @@ func init() {
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
-func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
+func FeatureApply(md api.Metadata, builderSpec []byte, faapi api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
 	spec := manifests.FeatureSetSpec{}
 	err := json.Unmarshal(builderSpec, &spec)
 	if err != nil {
@@ -42,8 +43,14 @@ func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAP
 		return fmt.Errorf("featureset must have at least 2 features")
 	}
 
+	//normalize features
+	for i, f := range spec.Features {
+		ns := md.FQN[strings.Index(md.FQN, ".")+1:]
+		spec.Features[i] = api.NormalizeFQN(f, ns)
+	}
+
 	fs := &featureset{engine: engine, features: spec.Features}
-	api.AddPostGetMiddleware(0, fs.preGetMiddleware)
+	faapi.AddPostGetMiddleware(0, fs.preGetMiddleware)
 	return nil
 }
 

@@ -89,6 +89,9 @@ func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
 	f := obj.(*natunApi.Feature)
 	wh.logger.Info("defaulting", "name", f.GetName())
 
+	if f.Spec.DataConnector != nil && f.Spec.DataConnector.Namespace == "" {
+		f.Spec.DataConnector.Namespace = f.GetNamespace()
+	}
 	if f.Spec.Builder.Kind == "" {
 		if f.Spec.Builder.Raw != nil && len(f.Spec.Builder.Raw) > 0 {
 			builderType := &natunApi.FeatureBuilderKind{}
