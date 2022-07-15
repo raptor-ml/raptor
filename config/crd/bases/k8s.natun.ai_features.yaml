@@ -65,8 +65,6 @@ spec:
                     description: Kind defines the type of Builder to use to build
                       the feature-value.
                     type: string
-                required:
-                - kind
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               connector:
