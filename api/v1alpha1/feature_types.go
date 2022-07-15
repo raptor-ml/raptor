@@ -92,6 +92,7 @@ type FeatureSpec struct {
 // FeatureBuilderKind select the building-block to use to build the feature-value
 type FeatureBuilderKind struct {
 	// Kind defines the type of Builder to use to build the feature-value.
+	// +optional
 	Kind string `json:"kind"`
 }
 
