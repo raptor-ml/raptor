@@ -95,7 +95,9 @@ func operatorControllers(mgr manager.Manager) {
 
 	coreAddr := viper.GetString("accessor-service")
 	if coreAddr == "" {
-		coreAddr = "natun-core-service.natun-system.svc"
+		ns, err := getInClusterNamespace()
+		OrFail(err, "unable to get in-cluster namespace. Please set the accessor-service flag")
+		coreAddr = fmt.Sprintf("natun-core-service.%s.svc", ns)
 	}
 
 	err = (&opctrl.DataConnectorReconciler{
