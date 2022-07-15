@@ -1,0 +1,65 @@
+name: Integration Tests
+
+# Trigger the workflow on pull requests and direct pushes to any branch
+on:
+  push: ~
+  pull_request: ~
+
+jobs:
+
+  e2e:
+    name: e2e-test
+    runs-on: ubuntu-latest
+    # Pull requests from the same repository won't trigger this checks as they were already triggered by the push
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    steps:
+      - name: Setup Go environment
+        uses: actions/setup-go@v3
+        with:
+          go-version: '^1.18'
+      - name: Clone the code
+        uses: actions/checkout@v3
+      - name: Cache go dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Install KiND
+        uses: helm/kind-action@v1.3.0
+        with:
+          install_only: true
+      - name: Install Kustomize
+        uses: imranismail/setup-kustomize@v1
+      - name: Set up gotestfmt
+        uses: haveyoudebuggedit/gotestfmt-action@v2
+        with:
+          # Optional: pass GITHUB_TOKEN to avoid rate limiting.
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build the containers
+        run: make docker-build
+        shell: bash
+      - name: Run Integration tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test ./internal/e2e/... -tags e2e --build-tag=$(git rev-parse --short HEAD) -json -v 2>&1 | tee /tmp/gotest.log | gotestfmt
+      - name: Upload test log
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: test-log
+          path: /tmp/gotest.log
+          if-no-files-found: error
+      - name: Report failure
+        if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: 'create-issue'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: 🐛 E2E failed for ${{ github.sha }}
+          body: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          labels: bug
