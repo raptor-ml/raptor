@@ -1,4 +1,4 @@
-apiVersion: k8s.natun.ai/v1alpha1
+apiVersion: k8s.raptor.ml/v1alpha1
 kind: Feature
 metadata:
   name: primitive-string
@@ -15,7 +15,7 @@ spec:
       def handler(**req):
         return "hello"
 ---
-apiVersion: k8s.natun.ai/v1alpha1
+apiVersion: k8s.raptor.ml/v1alpha1
 kind: Feature
 metadata:
   name: primitive-int
@@ -32,7 +32,7 @@ spec:
       def handler(**req):
         return 1
 ---
-apiVersion: k8s.natun.ai/v1alpha1
+apiVersion: k8s.raptor.ml/v1alpha1
 kind: Feature
 metadata:
   name: primitive-float
@@ -49,7 +49,7 @@ spec:
       def handler(**req):
         return 1.1
 ---
-apiVersion: k8s.natun.ai/v1alpha1
+apiVersion: k8s.raptor.ml/v1alpha1
 kind: Feature
 metadata:
   name: primitive-timestamp
@@ -66,7 +66,7 @@ spec:
       def handler(**req):
         return time.now()
 ---
-apiVersion: k8s.natun.ai/v1alpha1
+apiVersion: k8s.raptor.ml/v1alpha1
 kind: Feature
 metadata:
   name: primitive-array-strings
@@ -87,7 +87,7 @@ spec:
           "c",
         ]
 ---
-apiVersion: k8s.natun.ai/v1alpha1
+apiVersion: k8s.raptor.ml/v1alpha1
 kind: Feature
 metadata:
   name: primitive-array-ints
@@ -104,7 +104,7 @@ spec:
       def handler(**req):
         return [1,2,3]
 ---
-apiVersion: k8s.natun.ai/v1alpha1
+apiVersion: k8s.raptor.ml/v1alpha1
 kind: Feature
 metadata:
   name: primitive-array-floats
@@ -121,7 +121,7 @@ spec:
       def handler(**req):
         return [1.4,2.0,3.2]
 ---
-apiVersion: k8s.natun.ai/v1alpha1
+apiVersion: k8s.raptor.ml/v1alpha1
 kind: Feature
 metadata:
   name: primitive-array-timestamps

@@ -16,18 +16,18 @@ limitations under the License.
 
 package operator
 
-// +kubebuilder:rbac:groups=k8s.natun.ai,resources=dataconnectors,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=k8s.natun.ai,resources=dataconnectors/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=k8s.natun.ai,resources=dataconnectors/finalizers,verbs=update
+// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=dataconnectors,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=dataconnectors/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=dataconnectors/finalizers,verbs=update
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch;create;update;patch;delete
 
 import (
 	"context"
 	"fmt"
-	"github.com/natun-ai/natun/api"
-	natunApi "github.com/natun-ai/natun/api/v1alpha1"
-	"github.com/natun-ai/natun/pkg/plugins"
+	"github.com/raptor-ml/natun/api"
+	natunApi "github.com/raptor-ml/natun/api/v1alpha1"
+	"github.com/raptor-ml/natun/pkg/plugins"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"time"
 

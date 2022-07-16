@@ -1,34 +1,36 @@
 syntax = "proto3";
-package natun.core.v1alpha1;
-option go_package = "github.com/natun-ai/natun/core/v1alpha1;coreV1alpha1";
 
-import "validate/validate.proto";
-import "google/protobuf/timestamp.proto";
+package natun.core.v1alpha1;
+
 import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
 import "natun/core/v1alpha1/types.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/raptor-ml/natun/core/v1alpha1;coreV1alpha1";
 
 // +++ Read methods +++
 
 // GetRequest
 message GetRequest {
-  string uuid = 1 [(validate.rules).string.uuid = true];
-  string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-  string entity_id = 3;
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    string entity_id = 3;
 }
 message GetResponse {
-  string uuid = 1 [(validate.rules).string.uuid = true];
-  FeatureValue value = 2;
-  Metadata metadata = 3;
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    FeatureValue value = 2;
+    Metadata metadata = 3;
 }
 
 // +++ Write methods +++
 
 message SetRequest {
-  string uuid = 1 [(validate.rules).string.uuid = true];
-  string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-  string entity_id = 3;
-  Value value = 4;
-  google.protobuf.Timestamp timestamp = 5;
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    string entity_id = 3;
+    Value value = 4;
+    google.protobuf.Timestamp timestamp = 5;
 }
 message SetResponse {
     string uuid = 1 [(validate.rules).string.uuid = true];
@@ -36,11 +38,11 @@ message SetResponse {
 }
 
 message AppendRequest {
-  string uuid = 1 [(validate.rules).string.uuid = true];
-  string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-  string entity_id = 3;
-  Scalar value = 4;
-  google.protobuf.Timestamp timestamp = 5;
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    string entity_id = 3;
+    Scalar value = 4;
+    google.protobuf.Timestamp timestamp = 5;
 }
 message AppendResponse {
     string uuid = 1 [(validate.rules).string.uuid = true];
@@ -48,11 +50,11 @@ message AppendResponse {
 }
 
 message IncrRequest {
-  string uuid = 1 [(validate.rules).string.uuid = true];
-  string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-  string entity_id = 3;
-  Scalar value = 4;
-  google.protobuf.Timestamp timestamp = 5;
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    string entity_id = 3;
+    Scalar value = 4;
+    google.protobuf.Timestamp timestamp = 5;
 }
 message IncrResponse {
     string uuid = 1 [(validate.rules).string.uuid = true];
@@ -60,11 +62,11 @@ message IncrResponse {
 }
 
 message UpdateRequest {
-  string uuid = 1 [(validate.rules).string.uuid = true];
-  string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-  string entity_id = 3;
-  Value value = 4;
-  google.protobuf.Timestamp timestamp = 5;
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    string entity_id = 3;
+    Value value = 4;
+    google.protobuf.Timestamp timestamp = 5;
 }
 message UpdateResponse {
     string uuid = 1 [(validate.rules).string.uuid = true];
@@ -82,34 +84,34 @@ message MetadataResponse {
 
 // +++ Service +++
 service EngineService {
-  rpc Metadata(MetadataRequest) returns (MetadataResponse) {
-    option (google.api.http) = {
-      get: "/{fqn}"
-    };
-  }
-  rpc Get(GetRequest) returns (GetResponse) {
-    option (google.api.http) = {
-      get: "/{fqn}/{entity_id}"
-    };
-  }
-  rpc Set(SetRequest) returns (SetResponse) {
-    option (google.api.http) = {
-      put: "/{fqn}/{entity_id}"
-    };
-  }
-  rpc Append(AppendRequest) returns (AppendResponse) {
-    option (google.api.http) = {
-      post: "/{fqn}/{entity_id}/append"
-    };
-  }
-  rpc Incr(IncrRequest) returns (IncrResponse) {
-    option (google.api.http) = {
-      post: "/{fqn}/{entity_id}/incr"
-    };
-  }
-  rpc Update(UpdateRequest) returns (UpdateResponse) {
-    option (google.api.http) = {
-      post: "/{fqn}/{entity_id}"
-    };
-  }
+    rpc Metadata (MetadataRequest) returns (MetadataResponse) {
+        option (google.api.http) = {
+            get: "/{fqn}"
+        };
+    }
+    rpc Get (GetRequest) returns (GetResponse) {
+        option (google.api.http) = {
+            get: "/{fqn}/{entity_id}"
+        };
+    }
+    rpc Set (SetRequest) returns (SetResponse) {
+        option (google.api.http) = {
+            put: "/{fqn}/{entity_id}"
+        };
+    }
+    rpc Append (AppendRequest) returns (AppendResponse) {
+        option (google.api.http) = {
+            post: "/{fqn}/{entity_id}/append"
+        };
+    }
+    rpc Incr (IncrRequest) returns (IncrResponse) {
+        option (google.api.http) = {
+            post: "/{fqn}/{entity_id}/incr"
+        };
+    }
+    rpc Update (UpdateRequest) returns (UpdateResponse) {
+        option (google.api.http) = {
+            post: "/{fqn}/{entity_id}"
+        };
+    }
 }

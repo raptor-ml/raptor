@@ -19,8 +19,8 @@ package runner
 import (
 	"context"
 	"fmt"
-	"github.com/natun-ai/natun/api"
-	natunApi "github.com/natun-ai/natun/api/v1alpha1"
+	"github.com/raptor-ml/natun/api"
+	natunApi "github.com/raptor-ml/natun/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,7 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-const runtimeImg = "ghcr.io/natun-ai/natun-runtime"
+const runtimeImg = "ghcr.io/raptor-ml/natun-runtime"
 
 var distrolessNoRootUser int64 = 65532
 

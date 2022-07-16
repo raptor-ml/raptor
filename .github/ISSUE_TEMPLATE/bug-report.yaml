@@ -2,7 +2,7 @@ name: Bug report
 description: Create a report to help us improve
 title: "[BUG] "
 labels: [ "bug" ]
-assignees: []
+assignees: [ ]
 body:
   - type: markdown
     attributes:
@@ -12,21 +12,21 @@ body:
   - type: textarea
     id: bug-description
     attributes:
-        label: What is the bug?
-        description: A clear and concise description of what the bug is.
-        placeholder: e.g. "I'm getting an error when I try to run a script..."
+      label: What is the bug?
+      description: A clear and concise description of what the bug is.
+      placeholder: e.g. "I'm getting an error when I try to run a script..."
     validations:
       required: true
   - type: textarea
     id: steps-to-reproduce
     attributes:
-        label: Steps to reproduce the bug
-        description: How do you reproduce the bug?
-        placeholder: |
-          1. Create manifest '...'
-          2. Deploy to cluster '....'
-          3. Query for feature '....'
-          4. See the error
+      label: Steps to reproduce the bug
+      description: How do you reproduce the bug?
+      placeholder: |
+        1. Create manifest '...'
+        2. Deploy to cluster '....'
+        3. Query for feature '....'
+        4. See the error
     validations:
       required: true
   - type: textarea

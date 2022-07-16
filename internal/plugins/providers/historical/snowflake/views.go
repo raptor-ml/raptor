@@ -19,9 +19,9 @@ package snowflake
 import (
 	"context"
 	"fmt"
-	"github.com/natun-ai/natun/api"
-	manifests "github.com/natun-ai/natun/api/v1alpha1"
-	"github.com/natun-ai/natun/pkg/querybuilder"
+	"github.com/raptor-ml/natun/api"
+	manifests "github.com/raptor-ml/natun/api/v1alpha1"
+	"github.com/raptor-ml/natun/pkg/querybuilder"
 	sf "github.com/snowflakedb/gosnowflake"
 	"time"
 )

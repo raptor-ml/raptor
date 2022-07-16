@@ -16,4 +16,4 @@ limitations under the License.
 
 package operator
 
-const finalizerName = "k8s.natun.ai/finalizer"
+const finalizerName = "k8s.raptor.ml/finalizer"

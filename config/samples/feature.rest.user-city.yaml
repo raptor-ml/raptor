@@ -1,4 +1,4 @@
-apiVersion: k8s.natun.ai/v1alpha1
+apiVersion: k8s.raptor.ml/v1alpha1
 kind: Feature
 metadata:
   name: user-city

@@ -21,7 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis/v8"
-	"github.com/natun-ai/natun/api"
+	"github.com/raptor-ml/natun/api"
 	"reflect"
 	"time"
 )

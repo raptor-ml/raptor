@@ -2,9 +2,9 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-- bases/k8s.natun.ai_features.yaml
-- bases/k8s.natun.ai_dataconnectors.yaml
-- bases/k8s.natun.ai_featuresets.yaml
+- bases/k8s.raptor.ml_features.yaml
+- bases/k8s.raptor.ml_dataconnectors.yaml
+- bases/k8s.raptor.ml_featuresets.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
 #patchesStrategicMerge:

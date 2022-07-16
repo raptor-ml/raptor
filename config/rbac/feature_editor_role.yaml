@@ -5,7 +5,7 @@ metadata:
   name: feature-editor-role
 rules:
 - apiGroups:
-  - k8s.natun.ai
+  - k8s.raptor.ml
   resources:
   - features
   verbs:
@@ -17,7 +17,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - k8s.natun.ai
+  - k8s.raptor.ml
   resources:
   - features/status
   verbs:

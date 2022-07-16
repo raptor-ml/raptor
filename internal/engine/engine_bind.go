@@ -18,10 +18,10 @@ package engine
 
 import (
 	"fmt"
-	"github.com/natun-ai/natun/api"
-	manifests "github.com/natun-ai/natun/api/v1alpha1"
-	"github.com/natun-ai/natun/internal/stats"
-	"github.com/natun-ai/natun/pkg/plugins"
+	"github.com/raptor-ml/natun/api"
+	manifests "github.com/raptor-ml/natun/api/v1alpha1"
+	"github.com/raptor-ml/natun/internal/stats"
+	"github.com/raptor-ml/natun/pkg/plugins"
 )
 
 // FeatureWithEngine converts the k8s Feature CRD to the internal engine implementation.

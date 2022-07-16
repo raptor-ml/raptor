@@ -28,8 +28,8 @@ import (
 	"github.com/spf13/viper"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 
-	"github.com/natun-ai/natun/internal/historian"
-	"github.com/natun-ai/natun/internal/version"
+	"github.com/raptor-ml/natun/internal/historian"
+	"github.com/raptor-ml/natun/internal/version"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -41,11 +41,11 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	_ "github.com/natun-ai/natun/internal/plugins"
-	"github.com/natun-ai/natun/pkg/plugins"
+	_ "github.com/raptor-ml/natun/internal/plugins"
+	"github.com/raptor-ml/natun/pkg/plugins"
 
-	natunApi "github.com/natun-ai/natun/api/v1alpha1"
-	corectrl "github.com/natun-ai/natun/internal/engine/controllers"
+	natunApi "github.com/raptor-ml/natun/api/v1alpha1"
+	corectrl "github.com/raptor-ml/natun/internal/engine/controllers"
 )
 
 var (
@@ -96,7 +96,7 @@ func main() {
 		HealthProbeBindAddress:        viper.GetString("health-probe-bind-address"),
 		LeaderElection:                viper.GetBool("leader-elect"),
 		LeaderElectionResourceLock:    resourcelock.LeasesResourceLock,
-		LeaderElectionID:              "historian.natun.ai",
+		LeaderElectionID:              "historian.raptor.ml",
 		LeaderElectionReleaseOnCancel: true,
 	})
 	orFail(err, "unable to start manager")

@@ -8,7 +8,7 @@ generatorOptions:
 
 images:
 - name: controller
-  newName: ghcr.io/natun-ai/natun-core
+  newName: ghcr.io/raptor-ml/natun-core
   newTag: latest
 
 replicas:

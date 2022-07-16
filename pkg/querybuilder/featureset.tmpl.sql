@@ -1,4 +1,4 @@
-{{- /*gotype: github.com/natun-ai/natun/internal/querybuilder.featureSetQuery */ -}}
+{{- /*gotype: github.com/raptor-ml/natun/internal/querybuilder.featureSetQuery */ -}}
 {{- /***
   # Point in time join query
   --------------------------
@@ -29,85 +29,85 @@
   * - if the feature is the key feature, don't limit the number of rows
  ***/ -}}
 WITH
-    {{- /* 1. Get all the data relevant for this feature set */}}
-    base AS (SELECT FQN,
-                    ENTITY_ID,
-                    TIMESTAMP,
-                    VALUE AS VAL,
-                    BUCKET,
-                    BUCKET_ACTIVE
-             FROM {{.FeaturesTable}}
-             {{- /* we should take a greater time before $SINCE to avoid a window that started exactly at 00:00 */}}
-             WHERE TIMESTAMP BETWEEN {{subtractDuration .BeforePadding .Since}} AND {{.Until}}
-               AND FQN IN (
+{{- /* 1. Get all the data relevant for this feature set */}}
+base AS (SELECT FQN,
+ENTITY_ID,
+TIMESTAMP,
+VALUE AS VAL,
+BUCKET,
+BUCKET_ACTIVE
+FROM {{.FeaturesTable}}
+{{- /* we should take a greater time before $SINCE to avoid a window that started exactly at 00:00 */}}
+WHERE TIMESTAMP BETWEEN {{subtractDuration .BeforePadding .Since}} AND {{.Until}}
+AND FQN IN (
 {{- range $i, $f := .Features -}}
-    {{- if ne $i 0}}, {{end -}}
-    '{{$f.FQN}}'
+{{- if ne $i 0}}, {{end -}}
+'{{$f.FQN}}'
 {{- end -}})
-    ),
-    data as (SELECT * FROM base WHERE TIMESTAMP >= {{.Since}}),
-    primitivesData AS (SELECT * FROM data WHERE BUCKET IS NULL)
+),
+data as (SELECT * FROM base WHERE TIMESTAMP >= {{.Since}}),
+primitivesData AS (SELECT * FROM data WHERE BUCKET IS NULL)
 {{- range $_, $f := .Features}}
 {{- if $f.ValidWindow}}
-    {{- /* 2.1. Get the buckets data with start and end dates */ -}}
-    ,
-    winData_{{tmpName $f.FQN}} AS (SELECT *, {{subtractDuration $f.Staleness "timestamp"}} AS WIN_START, TIMESTAMP AS WIN_END
-                 FROM base
-                 WHERE BUCKET IS NOT NULL
-                   AND BUCKET_ACTIVE = false
-                   AND FQN = '{{$f.FQN}}'
-                   AND TIMESTAMP >= {{subtractDuration $f.Staleness $.Since}}
-    ),
-    {{- /* 2.2. Get the windowed feature */}}
-    {{tmpName $f.FQN}} AS (SELECT
-                b1.ENTITY_ID,
-                b1.WIN_START,
-                b1.WIN_END,
-                b1.WIN_END           as TIMESTAMP,
-                sum(b1.VAL['count']) as _COUNT,
-                sum(b1.VAL['sum'])   as _SUM,
-                min(b1.VAL['min'])   as _MIN,
-                max(b1.VAL['max'])   as _MAX,
-                (_SUM / _COUNT)      as _AVG,
-                OBJECT_CONSTRUCT( {{- /*- building a unified value object*/}}
-                  'count', _COUNT::int::variant,
-                  'sum', _SUM::int::variant,
-                  'min', _MIN::int::variant,
-                  'max', _MAX::int::variant,
-                  'avg', _AVG::double::variant
-                  )                  as VAL
-           FROM (SELECT * FROM winData_{{tmpName $f.FQN}} WHERE WIN_END >= {{$.Since}}) b1
-                    LEFT JOIN winData_{{tmpName $f.FQN}} as b2 ON b1.ENTITY_ID = b2.ENTITY_ID
-               AND b2.WIN_END >= b1.WIN_START and b2.WIN_END < b1.WIN_END AND b2.BUCKET != b1.BUCKET
-           GROUP BY b1.ENTITY_ID, b1.WIN_START, b1.WIN_END
-           {{ if ne $f.FQN $.KeyFeature}}ORDER BY TIMESTAMP DESC LIMIT 1{{end}}
-   )
+{{- /* 2.1. Get the buckets data with start and end dates */ -}}
+,
+winData_{{tmpName $f.FQN}} AS (SELECT *, {{subtractDuration $f.Staleness "timestamp"}} AS WIN_START, TIMESTAMP AS WIN_END
+FROM base
+WHERE BUCKET IS NOT NULL
+AND BUCKET_ACTIVE = false
+AND FQN = '{{$f.FQN}}'
+AND TIMESTAMP >= {{subtractDuration $f.Staleness $.Since}}
+),
+{{- /* 2.2. Get the windowed feature */}}
+{{tmpName $f.FQN}} AS (SELECT
+b1.ENTITY_ID,
+b1.WIN_START,
+b1.WIN_END,
+b1.WIN_END           as TIMESTAMP,
+sum(b1.VAL['count']) as _COUNT,
+sum(b1.VAL['sum'])   as _SUM,
+min(b1.VAL['min'])   as _MIN,
+max(b1.VAL['max'])   as _MAX,
+(_SUM / _COUNT)      as _AVG,
+OBJECT_CONSTRUCT( {{- /*- building a unified value object*/}}
+'count', _COUNT::int::variant,
+'sum', _SUM::int::variant,
+'min', _MIN::int::variant,
+'max', _MAX::int::variant,
+'avg', _AVG::double::variant
+)                  as VAL
+FROM (SELECT * FROM winData_{{tmpName $f.FQN}} WHERE WIN_END >= {{$.Since}}) b1
+LEFT JOIN winData_{{tmpName $f.FQN}} as b2 ON b1.ENTITY_ID = b2.ENTITY_ID
+AND b2.WIN_END >= b1.WIN_START and b2.WIN_END < b1.WIN_END AND b2.BUCKET != b1.BUCKET
+GROUP BY b1.ENTITY_ID, b1.WIN_START, b1.WIN_END
+{{ if ne $f.FQN $.KeyFeature}}ORDER BY TIMESTAMP DESC LIMIT 1{{end}}
+)
 {{- else}}
-    {{- /* 3. Get the buckets data with start and end dates */ -}}
-    ,
-    {{tmpName $f.FQN}} AS (SELECT *
-           FROM primitivesData
-           WHERE FQN = '{{$f.FQN}}'
-           {{ if ne $f.FQN $.KeyFeature}}ORDER BY TIMESTAMP DESC LIMIT 1{{end}}
-   )
+{{- /* 3. Get the buckets data with start and end dates */ -}}
+,
+{{tmpName $f.FQN}} AS (SELECT *
+FROM primitivesData
+WHERE FQN = '{{$f.FQN}}'
+{{ if ne $f.FQN $.KeyFeature}}ORDER BY TIMESTAMP DESC LIMIT 1{{end}}
+)
 {{- end}}
 {{- end}}
 {{- /* 4. Build the final results */}}
 SELECT key.TIMESTAMP,
-       key.ENTITY_ID
-   {{- range $_, $f := .Features}},
-       {{- if eq $f.FQN $.KeyFeature}}
-       key.VAL as {{escapeName $f.FQN}}
-       {{- else}}
-       {{printf "%s.VAL" (tmpName $f.FQN)}} as {{escapeName $f.FQN}}
-       {{- end}}
-   {{- e    nd}}
+key.ENTITY_ID
+{{- range $_, $f := .Features}},
+{{- if eq $f.FQN $.KeyFeature}}
+key.VAL as {{escapeName $f.FQN}}
+{{- else}}
+{{printf "%s.VAL" (tmpName $f.FQN)}} as {{escapeName $f.FQN}}
+{{- end}}
+{{- e    nd}}
 FROM {{tmpName .KeyFeature}} as key
 {{- range $_, $f := .Features}}
 {{- if eq $f.FQN $.KeyFeature}}{{continue}}{{end}}
 {{- $n := tmpName $f.FQN}}
 {{- /* 4.1. Join the KeyFeature with the feature's CTE */}}
-         LEFT JOIN {{$n}} ON {{$n}}.ENTITY_ID = key.ENTITY_ID AND {{$n}}.TIMESTAMP <= key.TIMESTAMP
-                         AND {{$n}}.TIMESTAMP >= {{subtractDuration $f.Staleness "key.TIMESTAMP"}}
+LEFT JOIN {{$n}} ON {{$n}}.ENTITY_ID = key.ENTITY_ID AND {{$n}}.TIMESTAMP <= key.TIMESTAMP
+AND {{$n}}.TIMESTAMP >= {{subtractDuration $f.Staleness "key.TIMESTAMP"}}
 {{- end}}
 ORDER BY TIMESTAMP;

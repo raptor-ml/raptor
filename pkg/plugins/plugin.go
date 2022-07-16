@@ -18,7 +18,7 @@ package plugins
 
 import (
 	"fmt"
-	"github.com/natun-ai/natun/api"
+	"github.com/raptor-ml/natun/api"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )

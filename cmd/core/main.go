@@ -17,8 +17,8 @@ limitations under the License.
 package main
 
 import (
-	"github.com/natun-ai/natun/cmd/core/internal/setup"
-	"github.com/natun-ai/natun/internal/version"
+	"github.com/raptor-ml/natun/cmd/core/internal/setup"
+	"github.com/raptor-ml/natun/internal/version"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -27,13 +27,13 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	_ "github.com/natun-ai/natun/internal/plugins"
+	_ "github.com/raptor-ml/natun/internal/plugins"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	natunApi "github.com/natun-ai/natun/api/v1alpha1"
+	natunApi "github.com/raptor-ml/natun/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -61,7 +61,7 @@ func main() {
 		HealthProbeBindAddress:        viper.GetString("health-probe-bind-address"),
 		LeaderElection:                viper.GetBool("leader-elect"),
 		LeaderElectionResourceLock:    resourcelock.LeasesResourceLock,
-		LeaderElectionID:              "core.natun.ai",
+		LeaderElectionID:              "core.raptor.ml",
 		LeaderElectionReleaseOnCancel: true,
 	}
 	{

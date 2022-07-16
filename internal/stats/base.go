@@ -25,9 +25,9 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
-	"github.com/natun-ai/natun/internal/version"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/push"
+	"github.com/raptor-ml/natun/internal/version"
 	coreV1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/discovery"
@@ -41,7 +41,7 @@ import (
 
 const (
 	coreSubsystemKey = "core"
-	usageAPI         = "https://usage.natun.ai"
+	usageAPI         = "https://usage.raptor.ml"
 	pushPeriod       = time.Hour
 )
 

@@ -2,7 +2,7 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: features.k8s.natun.ai
+  name: features.k8s.raptor.ml
 spec:
   conversion:
     strategy: Webhook

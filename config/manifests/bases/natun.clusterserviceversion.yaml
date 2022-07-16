@@ -8,7 +8,7 @@ metadata:
     containerImage: controller:latest
     createdAt: "2022-06-30T00:00:00Z"
     description: Serverless Feature Engineering for Production
-    repository: https://github.com/natun-ai/natun
+    repository: https://github.com/raptor-ml/natun
     support: Natun
   name: natun.v0.0.0
   namespace: natun-system
@@ -19,7 +19,7 @@ spec:
     - description: DataConnector is the Schema for the dataconnectors API
       displayName: DataConnector
       kind: DataConnector
-      name: dataconnectors.k8s.natun.ai
+      name: dataconnectors.k8s.raptor.ml
       resources:
       - kind: Deployment
         name: natun-conn-<name>
@@ -61,7 +61,7 @@ spec:
     - description: Feature is the Schema for the features API
       displayName: ML Feature
       kind: Feature
-      name: features.k8s.natun.ai
+      name: features.k8s.raptor.ml
       resources:
       - kind: Deployment
         name: natun-controller-core
@@ -113,7 +113,7 @@ spec:
     - description: FeatureSet is the Schema for the featuresets API
       displayName: ML FeatureSet
       kind: FeatureSet
-      name: featuresets.k8s.natun.ai
+      name: featuresets.k8s.raptor.ml
       resources:
       - kind: Deployment
         name: natun-controller-core
@@ -144,7 +144,7 @@ spec:
     Data Scientists can *focus* on the business logic, and the Natun Kubernetes Operator take care of the engineering overhead
     (like caching, authentication, scale, etc).
     
-    For more information, please visit [Natun's docs](https://docs.natun.ai).
+    For more information, please visit [Natun's docs](https://docs.raptor.ml).
     
     ## Prerequisites
     - Kubernetes v1.18+
@@ -212,7 +212,7 @@ spec:
   - data science
   links:
   - name: Natun
-    url: https://natun.ai
+    url: https://raptor.ml
   maintainers:
   - email: almog.baku@gmail.com
     name: Almog Baku
@@ -220,5 +220,5 @@ spec:
   minKubeVersion: 1.18.0
   provider:
     name: Natun
-    url: https://natun.ai
+    url: https://raptor.ml
   version: 0.0.0

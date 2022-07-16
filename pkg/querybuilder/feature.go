@@ -19,7 +19,7 @@ package querybuilder
 import (
 	"bytes"
 	"fmt"
-	"github.com/natun-ai/natun/api"
+	"github.com/raptor-ml/natun/api"
 	"text/template"
 )
 

@@ -41,7 +41,7 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/natun-ai/natun/internal/plugins"
+	_ "github.com/raptor-ml/natun/internal/plugins"
 )
 
 type redisContextKey string

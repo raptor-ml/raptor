@@ -29,8 +29,8 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # This variable is used to construct full image tags for bundle and catalog images.
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
-# ghcr.io/natun-ai/natun-bundle:$VERSION and ghcr.io/natun-ai/natun-catalog:$VERSION.
-IMAGE_BASE ?= ghcr.io/natun-ai/natun
+# ghcr.io/raptor-ml/natun-bundle:$VERSION and ghcr.io/raptor-ml/natun-catalog:$VERSION.
+IMAGE_BASE ?= ghcr.io/raptor-ml/natun
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
@@ -146,9 +146,9 @@ test-e2e: docker-build ## Run integration tests.
 STREAMING_RUNTIME_VERSION ?=$(VERSION)
 STREAMING_VERSION ?= latest
 LDFLAGS ?= -s -w
-LDFLAGS += -X github.com/natun-ai/natun/internal/version.Version=$(VERSION)
-LDFLAGS += -X github.com/natun-ai/natun/internal/plugins/builders/streaming.runtimeVer=$(STREAMING_RUNTIME_VERSION)
-LDFLAGS += -X github.com/natun-ai/natun/internal/plugins/builders/streaming.runnerImg=ghcr.io/natun-ai/streaming-runner:$(STREAMING_VERSION)
+LDFLAGS += -X github.com/raptor-ml/natun/internal/version.Version=$(VERSION)
+LDFLAGS += -X github.com/raptor-ml/natun/internal/plugins/builders/streaming.runtimeVer=$(STREAMING_RUNTIME_VERSION)
+LDFLAGS += -X github.com/raptor-ml/natun/internal/plugins/builders/streaming.runnerImg=ghcr.io/raptor-ml/streaming-runner:$(STREAMING_VERSION)
 
 .PHONY: build
 build: generate ## Build core binary.

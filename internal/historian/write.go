@@ -18,7 +18,7 @@ package historian
 
 import (
 	"context"
-	"github.com/natun-ai/natun/api"
+	"github.com/raptor-ml/natun/api"
 	"sync/atomic"
 	"time"
 )

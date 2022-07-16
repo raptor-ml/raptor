@@ -16,9 +16,9 @@ limitations under the License.
 
 package operator
 
-// +kubebuilder:rbac:groups=k8s.natun.ai,resources=features,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=k8s.natun.ai,resources=features/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=k8s.natun.ai,resources=features/finalizers,verbs=update
+// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=features,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=features/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=features/finalizers,verbs=update
 
 import (
 	"context"
@@ -29,7 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
 
-	natunApi "github.com/natun-ai/natun/api/v1alpha1"
+	natunApi "github.com/raptor-ml/natun/api/v1alpha1"
 )
 
 // FeatureReconciler reconciles a Feature object

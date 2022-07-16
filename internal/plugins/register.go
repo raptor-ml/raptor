@@ -18,15 +18,15 @@ package plugins
 
 import (
 	// register all builder plugins
-	_ "github.com/natun-ai/natun/internal/plugins/builders/expression"
-	_ "github.com/natun-ai/natun/internal/plugins/builders/featureset"
-	_ "github.com/natun-ai/natun/internal/plugins/builders/rest"
-	_ "github.com/natun-ai/natun/internal/plugins/builders/streaming"
+	_ "github.com/raptor-ml/natun/internal/plugins/builders/expression"
+	_ "github.com/raptor-ml/natun/internal/plugins/builders/featureset"
+	_ "github.com/raptor-ml/natun/internal/plugins/builders/rest"
+	_ "github.com/raptor-ml/natun/internal/plugins/builders/streaming"
 
 	// register all historical provider plugins
-	_ "github.com/natun-ai/natun/internal/plugins/providers/historical/parquet/s3"
-	_ "github.com/natun-ai/natun/internal/plugins/providers/historical/snowflake"
+	_ "github.com/raptor-ml/natun/internal/plugins/providers/historical/parquet/s3"
+	_ "github.com/raptor-ml/natun/internal/plugins/providers/historical/snowflake"
 
 	// register all state provider plugins
-	_ "github.com/natun-ai/natun/internal/plugins/providers/state/redis"
+	_ "github.com/raptor-ml/natun/internal/plugins/providers/state/redis"
 )

@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/natun-ai/natun/api"
+	"github.com/raptor-ml/natun/api"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 

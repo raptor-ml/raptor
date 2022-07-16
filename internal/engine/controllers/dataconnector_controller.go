@@ -16,18 +16,18 @@ limitations under the License.
 
 package controllers
 
-// +kubebuilder:rbac:groups=k8s.natun.ai,resources=dataconnectors,verbs=get;list;watch
+// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=dataconnectors,verbs=get;list;watch
 
 import (
 	"context"
-	"github.com/natun-ai/natun/api"
+	"github.com/raptor-ml/natun/api"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
 
-	natunApi "github.com/natun-ai/natun/api/v1alpha1"
+	natunApi "github.com/raptor-ml/natun/api/v1alpha1"
 )
 
 // DataConnectorReconciler reconciles a DataConnector object

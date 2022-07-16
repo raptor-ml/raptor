@@ -18,7 +18,7 @@ package setup
 
 import (
 	"flag"
-	"github.com/natun-ai/natun/pkg/plugins"
+	"github.com/raptor-ml/natun/pkg/plugins"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	ctrl "sigs.k8s.io/controller-runtime"

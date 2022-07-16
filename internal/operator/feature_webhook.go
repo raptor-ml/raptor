@@ -18,18 +18,18 @@ package operator
 
 // These are referring tho the values in FeatureWebhookValidatePath and FeatureWebhookMutatePath
 // They are package-level markers, and should be as a standalone comment block
-// +kubebuilder:webhook:path=/mutate-k8s-natun-ai-v1alpha1-feature,mutating=true,failurePolicy=fail,sideEffects=NoneOnDryRun,groups=k8s.natun.ai,resources=features,verbs=create;update,versions=v1alpha1,name=vfeature.kb.io,admissionReviewVersions=v1
-// +kubebuilder:webhook:path=/validate-k8s-natun-ai-v1alpha1-feature,mutating=false,failurePolicy=fail,sideEffects=NoneOnDryRun,groups=k8s.natun.ai,resources=features,verbs=create;update,versions=v1alpha1,name=vfeature.kb.io,admissionReviewVersions=v1
+// +kubebuilder:webhook:path=/mutate-k8s-raptor-ml-v1alpha1-feature,mutating=true,failurePolicy=fail,sideEffects=NoneOnDryRun,groups=k8s.raptor.ml,resources=features,verbs=create;update,versions=v1alpha1,name=vfeature.kb.io,admissionReviewVersions=v1
+// +kubebuilder:webhook:path=/validate-k8s-raptor-ml-v1alpha1-feature,mutating=false,failurePolicy=fail,sideEffects=NoneOnDryRun,groups=k8s.raptor.ml,resources=features,verbs=create;update,versions=v1alpha1,name=vfeature.kb.io,admissionReviewVersions=v1
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/natun-ai/natun/api"
-	natunApi "github.com/natun-ai/natun/api/v1alpha1"
-	"github.com/natun-ai/natun/internal/engine"
-	"github.com/natun-ai/natun/pkg/plugins"
+	"github.com/raptor-ml/natun/api"
+	natunApi "github.com/raptor-ml/natun/api/v1alpha1"
+	"github.com/raptor-ml/natun/internal/engine"
+	"github.com/raptor-ml/natun/pkg/plugins"
 	"k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -39,9 +39,9 @@ import (
 	"strings"
 )
 
-const FeatureWebhookValidatePath = "/validate-k8s-natun-ai-v1alpha1-feature"
+const FeatureWebhookValidatePath = "/validate-k8s-raptor-ml-v1alpha1-feature"
 const FeatureWebhookValidateName = "natun-validating-webhook-configuration"
-const FeatureWebhookMutatePath = "/mutate-k8s-natun-ai-v1alpha1-feature"
+const FeatureWebhookMutatePath = "/mutate-k8s-raptor-ml-v1alpha1-feature"
 const FeatureWebhookMutateName = "natun-mutating-webhook-configuration"
 
 func SetupFeatureWebhook(mgr ctrl.Manager, updatesAllowed bool) {

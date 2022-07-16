@@ -35,7 +35,7 @@ var (
 
 func TestMain(m *testing.M) {
 	buildTag := flag.String("build-tag", "", "The docker image tag that used when testing")
-	imgBasename := flag.String("image-basename", "ghcr.io/natun-ai/natun", "The base name for docker images")
+	imgBasename := flag.String("image-basename", "ghcr.io/raptor-ml/natun", "The base name for docker images")
 	cfg, _ := envconf.NewFromFlags()
 
 	if *buildTag == "" {

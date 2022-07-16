@@ -100,7 +100,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - k8s.natun.ai
+  - k8s.raptor.ml
   resources:
   - dataconnectors
   verbs:
@@ -112,13 +112,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - k8s.natun.ai
+  - k8s.raptor.ml
   resources:
   - dataconnectors/finalizers
   verbs:
   - update
 - apiGroups:
-  - k8s.natun.ai
+  - k8s.raptor.ml
   resources:
   - dataconnectors/status
   verbs:
@@ -126,7 +126,7 @@ rules:
   - patch
   - update
 - apiGroups:
-  - k8s.natun.ai
+  - k8s.raptor.ml
   resources:
   - features
   verbs:
@@ -138,13 +138,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - k8s.natun.ai
+  - k8s.raptor.ml
   resources:
   - features/finalizers
   verbs:
   - update
 - apiGroups:
-  - k8s.natun.ai
+  - k8s.raptor.ml
   resources:
   - features/status
   verbs:
@@ -152,7 +152,7 @@ rules:
   - patch
   - update
 - apiGroups:
-  - k8s.natun.ai
+  - k8s.raptor.ml
   resources:
   - featuresets
   verbs:
@@ -164,7 +164,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - k8s.natun.ai
+  - k8s.raptor.ml
   resources:
   - featuresets/status
   verbs:

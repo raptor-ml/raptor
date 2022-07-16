@@ -2,7 +2,7 @@ name: Ask a question
 description: Use this issue type to ask for assistance using Natun
 title: "[HELP] "
 labels: [ "question" ]
-assignees: []
+assignees: [ ]
 body:
   - type: markdown
     attributes:
@@ -18,16 +18,16 @@ body:
   - type: textarea
     id: problem
     attributes:
-        label: How can we help?
-        description: Describe the problem you are facing, and what we can do to help you.
-        placeholder: How do I join between two data points?
+      label: How can we help?
+      description: Describe the problem you are facing, and what we can do to help you.
+      placeholder: How do I join between two data points?
     validations:
       required: true
   - type: textarea
     id: tried-to-solve-with
     attributes:
-        label: What have you already tried?
-        description: Describe here what did you try, and what didn't work.
+      label: What have you already tried?
+      description: Describe here what did you try, and what didn't work.
   - type: input
     id: version
     attributes:

@@ -16,12 +16,12 @@ limitations under the License.
 
 package operator
 
-// +kubebuilder:rbac:groups=k8s.natun.ai,resources=featuresets,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=k8s.natun.ai,resources=featuresets/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=featuresets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=featuresets/status,verbs=get;update;patch
 
 import (
 	"context"
-	natunApi "github.com/natun-ai/natun/api/v1alpha1"
+	natunApi "github.com/raptor-ml/natun/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

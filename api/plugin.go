@@ -18,7 +18,7 @@ package api
 
 import (
 	"context"
-	manifests "github.com/natun-ai/natun/api/v1alpha1"
+	manifests "github.com/raptor-ml/natun/api/v1alpha1"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/runtime"

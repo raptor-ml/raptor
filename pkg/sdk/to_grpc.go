@@ -18,7 +18,7 @@ package sdk
 
 import (
 	"fmt"
-	"github.com/natun-ai/natun/api"
+	"github.com/raptor-ml/natun/api"
 	coreApi "go.buf.build/natun/api-go/natun/core/natun/core/v1alpha1"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"

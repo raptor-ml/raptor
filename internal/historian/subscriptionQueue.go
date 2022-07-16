@@ -19,7 +19,7 @@ package historian
 import (
 	"context"
 	"github.com/go-logr/logr"
-	"github.com/natun-ai/natun/api"
+	"github.com/raptor-ml/natun/api"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"time"
 )

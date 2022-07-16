@@ -21,7 +21,7 @@ package e2e
 
 import (
 	"context"
-	manifests "github.com/natun-ai/natun/api/v1alpha1"
+	manifests "github.com/raptor-ml/natun/api/v1alpha1"
 	"os"
 	"sigs.k8s.io/e2e-framework/pkg/envfuncs"
 	"testing"

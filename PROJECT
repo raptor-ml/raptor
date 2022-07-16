@@ -1,39 +1,39 @@
-domain: natun.ai
+domain: raptor.ml
 layout:
-- go.kubebuilder.io/v3
+  - go.kubebuilder.io/v3
 plugins:
-  manifests.sdk.operatorframework.io/v2: {}
-  scorecard.sdk.operatorframework.io/v2: {}
+  manifests.sdk.operatorframework.io/v2: { }
+  scorecard.sdk.operatorframework.io/v2: { }
 projectName: natun
-repo: github.com/natun-ai/natun
+repo: github.com/raptor-ml/natun
 resources:
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: natun.ai
-  group: k8s
-  kind: Feature
-  path: github.com/natun-ai/natun/api/v1alpha1
-  version: v1alpha1
-  webhooks:
-    validation: true
-    webhookVersion: v1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: natun.ai
-  group: k8s
-  kind: DataConnector
-  path: github.com/natun-ai/natun/api/v1alpha1
-  version: v1alpha1
-- api:
-    crdVersion: v1
-    namespaced: true
-  domain: natun.ai
-  group: k8s
-  kind: FeatureSet
-  path: github.com/natun-ai/natun/api/v1alpha1
-  version: v1alpha1
+  - api:
+      crdVersion: v1
+      namespaced: true
+    controller: true
+    domain: raptor.ml
+    group: k8s
+    kind: Feature
+    path: github.com/raptor-ml/natun/api/v1alpha1
+    version: v1alpha1
+    webhooks:
+      validation: true
+      webhookVersion: v1
+  - api:
+      crdVersion: v1
+      namespaced: true
+    controller: true
+    domain: raptor.ml
+    group: k8s
+    kind: DataConnector
+    path: github.com/raptor-ml/natun/api/v1alpha1
+    version: v1alpha1
+  - api:
+      crdVersion: v1
+      namespaced: true
+    domain: raptor.ml
+    group: k8s
+    kind: FeatureSet
+    path: github.com/raptor-ml/natun/api/v1alpha1
+    version: v1alpha1
 version: "3"

@@ -1,4 +1,4 @@
-{{- /*gotype: github.com/natun-ai/natun/internal/querybuilder.FeatureSetQueryData */ -}}
+{{- /*gotype: github.com/raptor-ml/natun/internal/querybuilder.FeatureSetQueryData */ -}}
 WITH results as (
     SELECT  FQN,
             ENTITY_ID,

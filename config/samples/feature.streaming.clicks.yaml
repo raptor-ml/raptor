@@ -1,4 +1,4 @@
-apiVersion: k8s.natun.ai/v1alpha1
+apiVersion: k8s.raptor.ml/v1alpha1
 kind: Feature
 metadata:
   name: clicks
@@ -18,7 +18,7 @@ spec:
   connector:
     name: clicks
   builder:
-    schema: https://raw.githubusercontent.com/Natun-AI/massivedynamic-protos/master/click.proto#Click
+    schema: https://raw.githubusercontent.com/raptor-ml/massivedynamic-protos/master/click.proto#Click
     pyexp: |
       def handler(**req):
         return 1, req["timestamp"], req["payload"]["client_id"].split(":")[1]

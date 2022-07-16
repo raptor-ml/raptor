@@ -2,6 +2,6 @@ resources:
 - natun.clusterserviceversion.yaml
 
 commonAnnotations:
-  containerImage: ghcr.io/natun-ai/natun-core:latest
+  containerImage: ghcr.io/raptor-ml/natun-core:latest
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization

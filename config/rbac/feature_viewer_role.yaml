@@ -5,7 +5,7 @@ metadata:
   name: feature-viewer-role
 rules:
 - apiGroups:
-  - k8s.natun.ai
+  - k8s.raptor.ml
   resources:
   - features
   verbs:
@@ -13,7 +13,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - k8s.natun.ai
+  - k8s.raptor.ml
   resources:
   - features/status
   verbs:

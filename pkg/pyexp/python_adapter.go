@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr/funcr"
-	"github.com/natun-ai/natun/api"
+	"github.com/raptor-ml/natun/api"
 	"reflect"
 	"time"
 )

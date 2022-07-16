@@ -20,9 +20,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/natun-ai/natun/api"
-	"github.com/natun-ai/natun/pkg/plugins"
-	"github.com/natun-ai/natun/pkg/pyexp"
+	"github.com/raptor-ml/natun/api"
+	"github.com/raptor-ml/natun/pkg/plugins"
+	"github.com/raptor-ml/natun/pkg/pyexp"
 )
 
 func init() {

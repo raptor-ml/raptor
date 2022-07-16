@@ -2,11 +2,11 @@ syntax = "proto3";
 
 package natun.runtime.v1alpha1;
 
-import "google/protobuf/any.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
 import "validate/validate.proto";
 
-option go_package = "github.com/natun-ai/natun/core/v1alpha1;coreV1alpha1";
+option go_package = "github.com/raptor-ml/natun/core/v1alpha1;coreV1alpha1";
 
 // +++ Read methods +++
 

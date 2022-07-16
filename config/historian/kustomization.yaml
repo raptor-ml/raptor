@@ -6,7 +6,7 @@ generatorOptions:
 
 images:
 - name: historian
-  newName: ghcr.io/natun-ai/natun-historian
+  newName: ghcr.io/raptor-ml/natun-historian
   newTag: latest
 
 replicas:
