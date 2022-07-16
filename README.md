@@ -2,16 +2,17 @@
 
 [![Go Report Card][go-report-card-shield]][go-report-card-url]
 [![Go Reference][godoc-shield]][godoc-url]
-[![Contributors][contributors-shield]][contributors-url]
+[![E2E Tests][e2e-tests-shield]][e2e-tests-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
+<!-- [![Contributors][contributors-shield]][contributors-url] -->
 
 <br />
 <div align="center">
-  <a href="https://github.com/natun-ai/natun">
+  <a href="https://github.com/dataploy-ai/natun">
     <img src=".github/logo.svg" alt="Natun - Production-ready feature enigneering" width="300">
   </a>
   
@@ -27,9 +28,9 @@
     <br />
     <a href="https://colab.research.google.com/github/dataploy-ai/docs/blob/master/docs/guides/getting-started-with-labsdk.ipynb">Getting started in 5 minutes</a>
     ·
-    <a href="https://github.com/natun-ai/natun/issues">Report a Bug</a>
+    <a href="https://github.com/dataploy-ai/natun/issues">Report a Bug</a>
     ·
-    <a href="https://github.com/natun-ai/natun/issues">Request a Feature</a>
+    <a href="https://github.com/dataploy-ai/natun/issues">Request a Feature</a>
   </p>
 </div>
 
@@ -166,7 +167,7 @@ apiVersion: k8s.natun.ai/v1alpha1
 - [ ] Seldon Integration
 - [ ] Scheduler builder
 
-See the [open issues](https://github.com/natun-ai/natun/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/dataploy-ai/natun/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -203,29 +204,32 @@ Distributed under the Apache2 License. Read the `LICENSE` file for more informat
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-[godoc-shield]: https://pkg.go.dev/badge/github.com/natun-ai/natun.svg
-[godoc-url]: https://pkg.go.dev/github.com/natun-ai/natun
+[godoc-shield]: https://pkg.go.dev/badge/github.com/dataploy-ai/natun.svg
+[godoc-url]: https://pkg.go.dev/github.com/dataploy-ai/natun
 
-[contributors-shield]: https://img.shields.io/github/contributors/natun-ai/natun.svg?style=flat
-[contributors-url]: https://github.com/natun-ai/natun/graphs/contributors
+[contributors-shield]: https://img.shields.io/github/contributors/dataploy-ai/natun.svg?style=flat
+[contributors-url]: https://github.com/dataploy-ai/natun/graphs/contributors
 
-[forks-shield]: https://img.shields.io/github/forks/natun-ai/natun.svg?style=flat
-[forks-url]: https://github.com/natun-ai/natun/network/members
+[forks-shield]: https://img.shields.io/github/forks/dataploy-ai/natun.svg?style=flat
+[forks-url]: https://github.com/dataploy-ai/natun/network/members
 
-[stars-shield]: https://img.shields.io/github/stars/natun-ai/natun.svg?style=flat
-[stars-url]: https://github.com/natun-ai/natun/stargazers
+[stars-shield]: https://img.shields.io/github/stars/dataploy-ai/natun.svg?style=flat
+[stars-url]: https://github.com/dataploy-ai/natun/stargazers
 
-[issues-shield]: https://img.shields.io/github/issues/natun-ai/natun.svg?style=flat
-[issues-url]: https://github.com/natun-ai/natun/issues
+[issues-shield]: https://img.shields.io/github/issues/dataploy-ai/natun.svg?style=flat
+[issues-url]: https://github.com/dataploy-ai/natun/issues
 
-[license-shield]: https://img.shields.io/github/license/natun-ai/natun.svg?style=flat
-[license-url]: https://github.com/natun-ai/natun/blob/master/LICENSE.txt
+[e2e-tests-shield]: https://img.shields.io/github/workflow/status/dataploy-ai/natun/Integration%20Tests?label=Tests
+[e2e-tests-url]: https://github.com/dataploy-ai/natun/actions/workflows/e2e-test.yml
+
+[license-shield]: https://img.shields.io/github/license/dataploy-ai/natun.svg?style=flat
+[license-url]: https://github.com/dataploy-ai/natun/blob/master/LICENSE.txt
 
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/natun-ai
+[linkedin-url]: https://linkedin.com/in/dataploy-ai
 
-[go-report-card-shield]: https://goreportcard.com/badge/github.com/natun-ai/natun
-[go-report-card-url]: https://goreportcard.com/report/github.com/natun-ai/natun
+[go-report-card-shield]: https://goreportcard.com/badge/github.com/dataploy-ai/natun
+[go-report-card-url]: https://goreportcard.com/report/github.com/dataploy-ai/natun
 
 [product-screenshot]: .github/demo.svg
 
