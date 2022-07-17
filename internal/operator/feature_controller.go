@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
 
-	natunApi "github.com/raptor-ml/natun/api/v1alpha1"
+	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
 )
 
 // FeatureReconciler reconciles a Feature object
@@ -47,7 +47,7 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	logger := log.FromContext(ctx)
 
 	// Fetch the Feature definition from the Kubernetes API.
-	feature := &natunApi.Feature{}
+	feature := &raptorApi.Feature{}
 	err := r.Get(ctx, req.NamespacedName, feature)
 	if err != nil {
 		logger.Error(err, "Failed to get Feature")
@@ -108,11 +108,11 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 // SetupWithManager sets up the controller with the Controller Manager.
 func (r *FeatureReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&natunApi.Feature{}).
+		For(&raptorApi.Feature{}).
 		Complete(r)
 }
 
-func (r *FeatureReconciler) deleteFromConnector(ctx context.Context, feature *natunApi.Feature) error {
+func (r *FeatureReconciler) deleteFromConnector(ctx context.Context, feature *raptorApi.Feature) error {
 	if feature.Spec.DataConnector == nil {
 		return nil
 	}
@@ -124,7 +124,7 @@ func (r *FeatureReconciler) deleteFromConnector(ctx context.Context, feature *na
 		feature.Spec.DataConnector.Namespace = feature.Namespace
 	}
 
-	conn := &natunApi.DataConnector{}
+	conn := &raptorApi.DataConnector{}
 	err := r.Get(ctx, feature.Spec.DataConnector.ObjectKey(), conn)
 	if err != nil {
 		logger.Error(err, "Failed to get associated DataConnector")
@@ -135,7 +135,7 @@ func (r *FeatureReconciler) deleteFromConnector(ctx context.Context, feature *na
 	if len(conn.Status.Features) == 0 {
 		return nil
 	}
-	var fts []natunApi.ResourceReference
+	var fts []raptorApi.ResourceReference
 	for _, f := range conn.Status.Features {
 		if f.Name != feature.Name {
 			fts = append(fts, f)
@@ -145,7 +145,7 @@ func (r *FeatureReconciler) deleteFromConnector(ctx context.Context, feature *na
 	return r.Status().Update(ctx, conn)
 }
 
-func (r *FeatureReconciler) addToConnector(ctx context.Context, feature *natunApi.Feature) error {
+func (r *FeatureReconciler) addToConnector(ctx context.Context, feature *raptorApi.Feature) error {
 	if feature.Spec.DataConnector == nil {
 		return nil
 	}
@@ -157,7 +157,7 @@ func (r *FeatureReconciler) addToConnector(ctx context.Context, feature *natunAp
 		feature.Spec.DataConnector.Namespace = feature.Namespace
 	}
 
-	conn := &natunApi.DataConnector{}
+	conn := &raptorApi.DataConnector{}
 	err := r.Get(ctx, feature.Spec.DataConnector.ObjectKey(), conn)
 	if err != nil {
 		logger.Error(err, "Failed to get associated DataConnector")

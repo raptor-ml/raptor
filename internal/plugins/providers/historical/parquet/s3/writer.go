@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/raptor-ml/natun/api"
-	"github.com/raptor-ml/natun/internal/plugins/providers/historical/parquet"
-	"github.com/raptor-ml/natun/pkg/plugins"
+	"github.com/raptor-ml/raptor/api"
+	"github.com/raptor-ml/raptor/internal/plugins/providers/historical/parquet"
+	"github.com/raptor-ml/raptor/pkg/plugins"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/xitongsys/parquet-go-source/s3v2"
@@ -45,7 +45,7 @@ func BindConfig(set *pflag.FlagSet) error {
 	set.String("aws-secret-key", "", "AWS Secret Key - for historical data")
 	set.String("aws-region", "", "AWS Region - for historical data")
 	set.String("s3-bucket", "", "S3 Bucket - for historical data")
-	set.String("s3-basedir", "natun/features/", "S3 Base directory for storing features - for historical data")
+	set.String("s3-basedir", "raptor/features/", "S3 Base directory for storing features - for historical data")
 	return nil
 }
 

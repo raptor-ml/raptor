@@ -2,7 +2,7 @@
 // +build e2e
 
 /*
- * Copyright (c) 2022 Natun.
+ * Copyright (c) 2022 Raptor.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ var (
 
 func TestMain(m *testing.M) {
 	buildTag := flag.String("build-tag", "", "The docker image tag that used when testing")
-	imgBasename := flag.String("image-basename", "ghcr.io/raptor-ml/natun", "The base name for docker images")
+	imgBasename := flag.String("image-basename", "ghcr.io/raptor-ml/raptor", "The base name for docker images")
 	cfg, _ := envconf.NewFromFlags()
 
 	if *buildTag == "" {
@@ -43,7 +43,7 @@ func TestMain(m *testing.M) {
 	}
 
 	testEnv = env.NewWithConfig(cfg)
-	kindClusterName := envconf.RandomName("natun-test", 16)
+	kindClusterName := envconf.RandomName("raptor-test", 16)
 
 	testEnv.Setup(
 		SetupCfg(extraCfg{

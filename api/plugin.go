@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package api
 
 import (
 	"context"
-	manifests "github.com/raptor-ml/natun/api/v1alpha1"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/runtime"

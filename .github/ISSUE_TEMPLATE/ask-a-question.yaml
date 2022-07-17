@@ -1,5 +1,5 @@
 name: Ask a question
-description: Use this issue type to ask for assistance using Natun
+description: Use this issue type to ask for assistance using Raptor
 title: "[HELP] "
 labels: [ "question" ]
 assignees: [ ]
@@ -32,4 +32,4 @@ body:
     id: version
     attributes:
       label: Version
-      description: The version of Natun you are using.
+      description: The version of Raptor you are using.

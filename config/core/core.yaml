@@ -3,7 +3,7 @@ kind: Namespace
 metadata:
   labels:
     control-plane: controller-core
-    app.kubernetes.io/part-of: natun
+    app.kubernetes.io/part-of: raptor
   name: system
 ---
 apiVersion: apps/v1

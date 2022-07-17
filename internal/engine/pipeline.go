@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package engine
 
 import (
 	"context"
-	"github.com/raptor-ml/natun/api"
+	"github.com/raptor-ml/raptor/api"
 )
 
 type Middlewares []api.Middleware

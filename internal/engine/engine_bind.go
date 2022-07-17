@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ package engine
 
 import (
 	"fmt"
-	"github.com/raptor-ml/natun/api"
-	manifests "github.com/raptor-ml/natun/api/v1alpha1"
-	"github.com/raptor-ml/natun/internal/stats"
-	"github.com/raptor-ml/natun/pkg/plugins"
+	"github.com/raptor-ml/raptor/api"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
+	"github.com/raptor-ml/raptor/internal/stats"
+	"github.com/raptor-ml/raptor/pkg/plugins"
 )
 
 // FeatureWithEngine converts the k8s Feature CRD to the internal engine implementation.

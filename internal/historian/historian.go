@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/jellydator/ttlcache/v3"
-	"github.com/raptor-ml/natun/api"
-	manifests "github.com/raptor-ml/natun/api/v1alpha1"
+	"github.com/raptor-ml/raptor/api"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sync"
 	"time"

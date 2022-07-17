@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ type FeatureSetStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:categories=datascience,shortName=ftset
-// +operator-sdk:csv:customresourcedefinitions:displayName="ML FeatureSet",resources={{Deployment,v1,natun-controller-core}}
+// +operator-sdk:csv:customresourcedefinitions:displayName="ML FeatureSet",resources={{Deployment,v1,raptor-controller-core}}
 
 // FeatureSet is the Schema for the featuresets API
 type FeatureSet struct {

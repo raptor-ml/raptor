@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis/v8"
-	"github.com/raptor-ml/natun/api"
-	"github.com/raptor-ml/natun/pkg/plugins"
+	"github.com/raptor-ml/raptor/api"
+	"github.com/raptor-ml/raptor/pkg/plugins"
 	"github.com/spf13/viper"
 )
 
@@ -48,9 +48,9 @@ func (n *notifier[T]) NotificationChannel() string {
 	var t T
 	switch any(t).(type) {
 	case api.WriteNotification:
-		return "_natun:notification:write"
+		return "_raptor:notification:write"
 	case api.CollectNotification:
-		return "_natun:notification:collect"
+		return "_raptor:notification:collect"
 	}
 	panic("not implemented")
 }

@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ limitations under the License.
 package main
 
 import (
-	"github.com/raptor-ml/natun/cmd/core/internal/setup"
-	"github.com/raptor-ml/natun/internal/version"
+	"github.com/raptor-ml/raptor/cmd/core/internal/setup"
+	"github.com/raptor-ml/raptor/internal/version"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -27,13 +27,13 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	_ "github.com/raptor-ml/natun/internal/plugins"
+	_ "github.com/raptor-ml/raptor/internal/plugins"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	natunApi "github.com/raptor-ml/natun/api/v1alpha1"
+	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -45,7 +45,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(natunApi.AddToScheme(scheme))
+	utilruntime.Must(raptorApi.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 

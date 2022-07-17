@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,15 +18,15 @@ package plugins
 
 import (
 	// register all builder plugins
-	_ "github.com/raptor-ml/natun/internal/plugins/builders/expression"
-	_ "github.com/raptor-ml/natun/internal/plugins/builders/featureset"
-	_ "github.com/raptor-ml/natun/internal/plugins/builders/rest"
-	_ "github.com/raptor-ml/natun/internal/plugins/builders/streaming"
+	_ "github.com/raptor-ml/raptor/internal/plugins/builders/expression"
+	_ "github.com/raptor-ml/raptor/internal/plugins/builders/featureset"
+	_ "github.com/raptor-ml/raptor/internal/plugins/builders/rest"
+	_ "github.com/raptor-ml/raptor/internal/plugins/builders/streaming"
 
 	// register all historical provider plugins
-	_ "github.com/raptor-ml/natun/internal/plugins/providers/historical/parquet/s3"
-	_ "github.com/raptor-ml/natun/internal/plugins/providers/historical/snowflake"
+	_ "github.com/raptor-ml/raptor/internal/plugins/providers/historical/parquet/s3"
+	_ "github.com/raptor-ml/raptor/internal/plugins/providers/historical/snowflake"
 
 	// register all state provider plugins
-	_ "github.com/raptor-ml/natun/internal/plugins/providers/state/redis"
+	_ "github.com/raptor-ml/raptor/internal/plugins/providers/state/redis"
 )

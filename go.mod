@@ -1,4 +1,4 @@
-module github.com/raptor-ml/natun
+module github.com/raptor-ml/raptor
 
 go 1.18
 
@@ -35,7 +35,7 @@ require (
 	github.com/vladimirvivien/gexe v0.1.1
 	github.com/xitongsys/parquet-go v1.6.2
 	github.com/xitongsys/parquet-go-source v0.0.0-20220624101223-5cb561a812f4
-	go.buf.build/natun/api-go/natun/core v1.1.10
+	go.buf.build/raptor/api-go/raptor/core v1.7.1
 	go.starlark.net v0.0.0-20220714194419-4cadf0a12139
 	go.uber.org/zap v1.21.0
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
@@ -127,7 +127,7 @@ require (
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/subosito/gotenv v1.4.0 // indirect
-	go.buf.build/natun/api-go/envoyproxy/protoc-gen-validate v1.1.6 // indirect
+	go.buf.build/raptor/api-go/envoyproxy/protoc-gen-validate v1.7.6 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect

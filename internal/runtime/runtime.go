@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@ import (
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/cloudevents/sdk-go/v2/types"
 	"github.com/go-logr/logr"
-	"github.com/raptor-ml/natun/api"
-	"github.com/raptor-ml/natun/internal/programregistry"
-	"github.com/raptor-ml/natun/pkg/protoregistry"
-	"github.com/raptor-ml/natun/pkg/pyexp"
-	pbRuntime "go.buf.build/natun/api-go/natun/core/natun/runtime/v1alpha1"
+	"github.com/raptor-ml/raptor/api"
+	"github.com/raptor-ml/raptor/internal/programregistry"
+	"github.com/raptor-ml/raptor/pkg/protoregistry"
+	"github.com/raptor-ml/raptor/pkg/pyexp"
+	pbRuntime "go.buf.build/raptor/api-go/raptor/core/raptor/runtime/v1alpha1"
 	"go.starlark.net/lib/proto"
 	"go.starlark.net/starlark"
 	"google.golang.org/grpc/codes"

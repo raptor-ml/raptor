@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package streaming
 
 import (
 	"fmt"
-	"github.com/raptor-ml/natun/api"
-	"github.com/raptor-ml/natun/pkg/plugins"
-	"github.com/raptor-ml/natun/pkg/runner"
+	"github.com/raptor-ml/raptor/api"
+	"github.com/raptor-ml/raptor/pkg/plugins"
+	"github.com/raptor-ml/raptor/pkg/runner"
 )
 
 // These variables are being overwritten by the build process

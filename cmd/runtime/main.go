@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,14 +25,14 @@ import (
 	grpcRetry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
 	grpcCtxTags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpcValidator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
-	"github.com/raptor-ml/natun/internal/programregistry"
-	"github.com/raptor-ml/natun/internal/runtime"
-	"github.com/raptor-ml/natun/internal/version"
-	"github.com/raptor-ml/natun/pkg/sdk"
+	"github.com/raptor-ml/raptor/internal/programregistry"
+	"github.com/raptor-ml/raptor/internal/runtime"
+	"github.com/raptor-ml/raptor/internal/version"
+	"github.com/raptor-ml/raptor/pkg/sdk"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	pbEngine "go.buf.build/natun/api-go/natun/core/natun/core/v1alpha1"
-	pbRuntime "go.buf.build/natun/api-go/natun/core/natun/runtime/v1alpha1"
+	pbEngine "go.buf.build/raptor/api-go/raptor/core/raptor/core/v1alpha1"
+	pbRuntime "go.buf.build/raptor/api-go/raptor/core/raptor/runtime/v1alpha1"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -47,7 +47,7 @@ import (
 
 func main() {
 	pflag.Bool("production", true, "Set as production")
-	pflag.String("core-grpc-url", "core.natun-system:60000", "The gRPC URL of the Natun's Core")
+	pflag.String("core-grpc-url", "core.raptor-system:60000", "The gRPC URL of the Raptor's Core")
 	pflag.String("grpc-addr", ":60005", "The gRPC address to listen on")
 	pflag.Parse()
 	must(viper.BindPFlags(pflag.CommandLine))
@@ -58,7 +58,7 @@ func main() {
 	zl := logger()
 	logger := zapr.NewLogger(zl)
 
-	logger.WithName("setup").WithValues("version", version.Version).Info("Initializing Natun Runtime...")
+	logger.WithName("setup").WithValues("version", version.Version).Info("Initializing Raptor Runtime...")
 
 	// Creating Engine
 	cc, err := grpc.Dial(

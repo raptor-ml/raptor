@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import (
 	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	"github.com/go-logr/logr"
 	"github.com/open-policy-agent/cert-controller/pkg/rotator"
-	opctrl "github.com/raptor-ml/natun/internal/operator"
+	opctrl "github.com/raptor-ml/raptor/internal/operator"
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -85,11 +85,11 @@ func Certs(mgr manager.Manager, certsReady chan struct{}) {
 }
 
 const (
-	secretName     = "natun-webhook-server-cert" //nolint:gosec
-	certName       = "natun-serving-cert"
-	serviceName    = "natun-webhook-service"
-	caName         = "natun-ca"
-	caOrganization = "natun"
+	secretName     = "raptor-webhook-server-cert" //nolint:gosec
+	certName       = "raptor-serving-cert"
+	serviceName    = "raptor-webhook-service"
+	caName         = "raptor-ca"
+	caOrganization = "raptor"
 	certDir        = "/tmp/k8s-webhook-server/serving-certs"
 	certFileName   = "tls.crt"
 )

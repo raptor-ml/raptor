@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,14 +21,14 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"github.com/raptor-ml/natun/api"
+	"github.com/raptor-ml/raptor/api"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
 
-	natunApi "github.com/raptor-ml/natun/api/v1alpha1"
+	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -46,7 +46,7 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	logger := log.FromContext(ctx)
 
 	// Fetch the FeatureSet definition from the Kubernetes API.
-	fs := &natunApi.FeatureSet{}
+	fs := &raptorApi.FeatureSet{}
 	err := r.Get(ctx, req.NamespacedName, fs)
 	if err != nil {
 		logger.Error(err, "Failed to get FeatureSet")
@@ -57,16 +57,16 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	// Convert the FeatureSet definition to a MetaData object.
-	ft := &natunApi.Feature{
+	ft := &raptorApi.Feature{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Feature",
-			APIVersion: natunApi.GroupVersion.String(),
+			APIVersion: raptorApi.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fs.Name,
 			Namespace: fs.Namespace,
 		},
-		Spec: natunApi.FeatureSpec{
+		Spec: raptorApi.FeatureSpec{
 			Primitive: api.PrimitiveTypeHeadless.String(),
 			Timeout:   fs.Spec.Timeout,
 		},
@@ -107,5 +107,5 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 // SetupWithManager sets up the controller with the Controller Manager.
 func (r *FeatureSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return attachCoreConnector(r, &natunApi.FeatureSet{}, true, mgr)
+	return attachCoreConnector(r, &raptorApi.FeatureSet{}, true, mgr)
 }

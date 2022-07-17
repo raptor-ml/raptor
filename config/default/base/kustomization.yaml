@@ -1,5 +1,5 @@
-namespace: natun-system
-namePrefix: natun-
+namespace: raptor-system
+namePrefix: raptor-
 
 resources:
 - ../../rbac

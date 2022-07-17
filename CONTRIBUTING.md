@@ -17,17 +17,17 @@ This document describes how to contribute to the project.
 1. Fork the desired repo, develop and test your code changes.
 1. Submit a pull request.
 
-## How to build Natun locally
+## How to build Raptor locally
 
-Note that, by building Natun from the source code we are allowed to test the changes made locally.
+Note that, by building Raptor from the source code we are allowed to test the changes made locally.
 
 1. Run the following command to clone your fork of the project locally
 
 ```
-$ git clone git@github.com:<user>/natun.git
+$ git clone git@github.com:<user>/raptor.git
 ```
 
-2. Run the command `make -C hack/dev new-local-cluster` to create a new local cluster with Natun installed.
+2. Run the command `make -C hack/dev new-local-cluster` to create a new local cluster with Raptor installed.
 
 ## What to do before submitting a pull request
 
@@ -92,7 +92,7 @@ mgr.AddMetricsExtraHandler("/debug/pprof/trace", http.HandlerFunc(pprof.Trace))
 
 ## Code of conduct
 
-Participation in the Natun community is governed by the [Kubernetes Code of Conduct](CODE_OF_CONDUCT.md).
+Participation in the Raptor community is governed by the [Kubernetes Code of Conduct](CODE_OF_CONDUCT.md).
 
 [golangci]:https://github.com/golangci/golangci-lint
 

@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@ package setup
 
 import (
 	"fmt"
-	"github.com/raptor-ml/natun/api"
-	"github.com/raptor-ml/natun/internal/accessor"
-	"github.com/raptor-ml/natun/internal/engine"
-	corectrl "github.com/raptor-ml/natun/internal/engine/controllers"
-	"github.com/raptor-ml/natun/internal/historian"
-	opctrl "github.com/raptor-ml/natun/internal/operator"
-	"github.com/raptor-ml/natun/internal/stats"
-	"github.com/raptor-ml/natun/pkg/plugins"
+	"github.com/raptor-ml/raptor/api"
+	"github.com/raptor-ml/raptor/internal/accessor"
+	"github.com/raptor-ml/raptor/internal/engine"
+	corectrl "github.com/raptor-ml/raptor/internal/engine/controllers"
+	"github.com/raptor-ml/raptor/internal/historian"
+	opctrl "github.com/raptor-ml/raptor/internal/operator"
+	"github.com/raptor-ml/raptor/internal/stats"
+	"github.com/raptor-ml/raptor/pkg/plugins"
 	"github.com/spf13/viper"
 	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -97,7 +97,7 @@ func operatorControllers(mgr manager.Manager) {
 	if coreAddr == "" {
 		ns, err := getInClusterNamespace()
 		OrFail(err, "unable to get in-cluster namespace. Please set the accessor-service flag")
-		coreAddr = fmt.Sprintf("natun-core-service.%s.svc", ns)
+		coreAddr = fmt.Sprintf("raptor-core-service.%s.svc", ns)
 	}
 
 	err = (&opctrl.DataConnectorReconciler{

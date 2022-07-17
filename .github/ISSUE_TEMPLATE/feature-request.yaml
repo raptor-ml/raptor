@@ -8,7 +8,7 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this feature request!
-        Please provide as much information as possible, so we can take your feedback in account and try to improve Natun.
+        Please provide as much information as possible, so we can take your feedback in account and try to improve Raptor.
   - type: textarea
     id: background
     attributes:

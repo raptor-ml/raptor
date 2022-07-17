@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,14 +20,14 @@ package controllers
 
 import (
 	"context"
-	"github.com/raptor-ml/natun/api"
+	"github.com/raptor-ml/raptor/api"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
 
-	natunApi "github.com/raptor-ml/natun/api/v1alpha1"
+	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
 )
 
 // DataConnectorReconciler reconciles a DataConnector object
@@ -47,7 +47,7 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	logger := log.FromContext(ctx)
 
 	// Fetch the DataConnector definition from the Kubernetes API.
-	dc := &natunApi.DataConnector{}
+	dc := &raptorApi.DataConnector{}
 	err := r.Get(ctx, req.NamespacedName, dc)
 	if err != nil {
 		logger.Error(err, "Failed to get DataConnector")
@@ -91,5 +91,5 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 // SetupWithManager sets up the controller with the Controller Manager.
 func (r *DataConnectorReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return attachCoreConnector(r, &natunApi.DataConnector{}, true, mgr)
+	return attachCoreConnector(r, &raptorApi.DataConnector{}, true, mgr)
 }

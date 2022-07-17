@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package parquet
 import (
 	"context"
 	"fmt"
-	"github.com/raptor-ml/natun/api"
-	manifests "github.com/raptor-ml/natun/api/v1alpha1"
+	"github.com/raptor-ml/raptor/api"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/xitongsys/parquet-go/source"
 	"github.com/xitongsys/parquet-go/writer"
 	"sync"
@@ -72,7 +72,7 @@ func (bw *baseParquet) getWriter(ctx context.Context, fqn string, alive bool) (*
 		}
 		pw.PageSize = 1 * 1024 * 1024       // 100M
 		pw.RowGroupSize = 256 * 1024 * 1024 // 256M
-		createdBy := "natun-historian version latest"
+		createdBy := "raptor-historian version latest"
 		pw.Footer.CreatedBy = &createdBy
 		bw.writers[fqn] = &parquetWriter{
 			ParquetWriter: pw,

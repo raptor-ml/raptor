@@ -4,7 +4,7 @@ metadata:
   name: historian
   namespace: system
   labels:
-    app.kubernetes.io/part-of: natun
+    app.kubernetes.io/part-of: raptor
 spec:
   selector:
     matchLabels:

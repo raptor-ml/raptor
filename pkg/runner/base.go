@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package runner
 import (
 	"context"
 	"fmt"
-	"github.com/raptor-ml/natun/api"
-	natunApi "github.com/raptor-ml/natun/api/v1alpha1"
+	"github.com/raptor-ml/raptor/api"
+	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,12 +29,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-const runtimeImg = "ghcr.io/raptor-ml/natun-runtime"
+const runtimeImg = "ghcr.io/raptor-ml/raptor-runtime"
 
 var distrolessNoRootUser int64 = 65532
 
 type Base interface {
-	Reconcile(ctx context.Context, md api.ReconcileRequest, conn *natunApi.DataConnector) error
+	Reconcile(ctx context.Context, md api.ReconcileRequest, conn *raptorApi.DataConnector) error
 }
 type BaseRunner struct {
 	Image           string
@@ -164,6 +164,6 @@ func containerWithDefaults(container corev1.Container) corev1.Container {
 	return container
 }
 
-func deploymentName(conn *natunApi.DataConnector) string {
-	return fmt.Sprintf("natun-conn-%s", conn.Name)
+func deploymentName(conn *raptorApi.DataConnector) string {
+	return fmt.Sprintf("raptor-conn-%s", conn.Name)
 }

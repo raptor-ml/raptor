@@ -1,12 +1,12 @@
 syntax = "proto3";
 
-package natun.core.v1alpha1;
+package raptor.core.v1alpha1;
 
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 
-option go_package = "github.com/raptor-ml/natun/core/v1alpha1;coreV1alpha1";
+option go_package = "github.com/raptor-ml/raptor/core/v1alpha1;coreV1alpha1";
 
 message Scalar {
     oneof value {

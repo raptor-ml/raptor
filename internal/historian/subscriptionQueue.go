@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package historian
 import (
 	"context"
 	"github.com/go-logr/logr"
-	"github.com/raptor-ml/natun/api"
+	"github.com/raptor-ml/raptor/api"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"time"
 )

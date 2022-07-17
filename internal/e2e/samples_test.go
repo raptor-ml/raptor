@@ -2,7 +2,7 @@
 // +build e2e
 
 /*
- * Copyright (c) 2022 Natun.
+ * Copyright (c) 2022 Raptor.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ package e2e
 
 import (
 	"context"
-	manifests "github.com/raptor-ml/natun/api/v1alpha1"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"os"
 	"sigs.k8s.io/e2e-framework/pkg/envfuncs"
 	"testing"

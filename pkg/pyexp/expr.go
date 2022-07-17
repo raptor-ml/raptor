@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import (
 	"github.com/qri-io/starlib/hash"
 	"github.com/qri-io/starlib/html"
 	"github.com/qri-io/starlib/re"
-	"github.com/raptor-ml/natun/api"
+	"github.com/raptor-ml/raptor/api"
 	sJson "go.starlark.net/lib/json"
 	sMath "go.starlark.net/lib/math"
 	sTime "go.starlark.net/lib/time"
@@ -107,7 +107,7 @@ func New(program string, fqn string) (Runtime, error) {
 	altHandler = strings.ReplaceAll(altHandler, "-", "_")
 	d.handler = programHandler(f, altHandler)
 	if d.handler == "" {
-		return nil, fmt.Errorf("`%s` func or `%s` has not declared and is required by the Natun spec", HandlerFuncName, altHandler)
+		return nil, fmt.Errorf("`%s` func or `%s` has not declared and is required by the Raptor spec", HandlerFuncName, altHandler)
 	}
 
 	d.program = p

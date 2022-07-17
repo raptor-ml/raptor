@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/raptor-ml/natun/api"
-	"github.com/raptor-ml/natun/pkg/plugins"
-	"github.com/raptor-ml/natun/pkg/querybuilder"
+	"github.com/raptor-ml/raptor/api"
+	"github.com/raptor-ml/raptor/pkg/plugins"
+	"github.com/raptor-ml/raptor/pkg/querybuilder"
 	sf "github.com/snowflakedb/gosnowflake"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"

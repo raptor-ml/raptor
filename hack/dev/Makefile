@@ -14,10 +14,10 @@ ifneq ($(origin PROD),undefined)
 endif
 
 ifeq ($(ENV),prod)
-  CONTEXT ?= gke_natun-test_europe-west3-a_natun-test
+  CONTEXT ?= gke_raptor-test_europe-west3-a_raptor-test
   $(info $(shell tput setaf 1)-+-+ PROD MODE -+-+$(shell tput sgr0))
 else
-  CONTEXT ?= kind-natun
+  CONTEXT ?= kind-raptor
   $(info $(shell tput setaf 2)+-+- DEV MODE +-+-$(shell tput sgr0))
 endif
 KUBECTL = kubectl --context='${CONTEXT}'
@@ -50,7 +50,7 @@ help: ## Display this help.
 ##@ Setup local cluster
 
 .PHONY: new-local-cluster
-new-local-cluster: delete-local-cluster create-local-cluster setup-local-cluster setup-redis rollout-natun  ## Recreate and setup local cluster with Natun
+new-local-cluster: delete-local-cluster create-local-cluster setup-local-cluster setup-redis rollout-raptor  ## Recreate and setup local cluster with Raptor
 
 .PHONY: create-local-cluster
 create-local-cluster: ## Create a Kind cluster
@@ -59,7 +59,7 @@ ifeq ($(ENV),prod)
 else
 	kind create cluster --config config/kind-cluster.yaml
 	@echo Cluster and node created, waiting for them to be Ready...
-	$(KUBECTL) wait --for=condition=Ready nodes/natun-control-plane --timeout=600s
+	$(KUBECTL) wait --for=condition=Ready nodes/raptor-control-plane --timeout=600s
 	$(KUBECTL) config use-context ${CONTEXT}
 endif
 
@@ -101,25 +101,25 @@ delete-local-cluster: ## Delete local kind cluster
 
 .PHONY: delete-cluster-unsafe
 _unsafe_delete-cluster:
-	@kind delete cluster --name natun
+	@kind delete cluster --name raptor
 
-##@ Deployment - Natun
+##@ Deployment - Raptor
 
-.PHONY: rollout-natun
-rollout-natun: setup-redis ## build & deploy operator to cluster
+.PHONY: rollout-raptor
+rollout-raptor: setup-redis ## build & deploy operator to cluster
 	$(MAKE) -C ${PROJECT_DIR} docker-build kind-load ENV=${ENV}
-	$(MAKE) deploy-natun
+	$(MAKE) deploy-raptor
 
-.PHONY: deploy-natun
-deploy-natun: setup-redis ## deploy operator to cluster
+.PHONY: deploy-raptor
+deploy-raptor: setup-redis ## deploy operator to cluster
 	$(MAKE) -C ${PROJECT_DIR} deploy ENV=${ENV}
 	$(KUBECTL) apply -f config/providers-creds.yaml
-	$(KUBECTL) --namespace natun-system patch deployment natun-controller-core --patch-file config/natun-core-patch.yaml
-	$(KUBECTL) --namespace natun-system patch deployment natun-historian --patch-file config/natun-historian-patch.yaml
-	$(KUBECTL) --namespace natun-system scale deployment natun-controller-core --replicas 0
-	$(KUBECTL) --namespace natun-system scale deployment natun-historian --replicas 0
-	$(KUBECTL) --namespace natun-system scale deployment natun-controller-core --replicas 2
-	$(KUBECTL) --namespace natun-system scale deployment natun-historian --replicas 1
+	$(KUBECTL) --namespace raptor-system patch deployment raptor-controller-core --patch-file config/raptor-core-patch.yaml
+	$(KUBECTL) --namespace raptor-system patch deployment raptor-historian --patch-file config/raptor-historian-patch.yaml
+	$(KUBECTL) --namespace raptor-system scale deployment raptor-controller-core --replicas 0
+	$(KUBECTL) --namespace raptor-system scale deployment raptor-historian --replicas 0
+	$(KUBECTL) --namespace raptor-system scale deployment raptor-controller-core --replicas 2
+	$(KUBECTL) --namespace raptor-system scale deployment raptor-historian --replicas 1
 
 ## TOOLS
 KUSTOMIZE ?= $(LOCALBIN)/kustomize

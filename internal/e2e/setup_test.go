@@ -2,7 +2,7 @@
 // +build e2e
 
 /*
- * Copyright (c) 2022 Natun.
+ * Copyright (c) 2022 Raptor.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +41,11 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/raptor-ml/natun/internal/plugins"
+	_ "github.com/raptor-ml/raptor/internal/plugins"
 )
 
 type redisContextKey string
-type natunContextKey string
+type raptorContextKey string
 type extraCfgContextKey int
 
 type extraCfg struct {
@@ -131,7 +131,7 @@ func SetupCore(name, kindClusterName, imgBasename, buildTag string, args []strin
 		args = append(args, "--usage-reporting=false")
 
 		// namespace will be created via the kustomize scripts
-		ns := envconf.RandomName(fmt.Sprintf("%s-natun-core", name), 32)
+		ns := envconf.RandomName(fmt.Sprintf("%s-raptor-core", name), 32)
 
 		// Create redis
 		redisName := fmt.Sprintf("%s-redis", name)
@@ -174,7 +174,7 @@ func SetupCore(name, kindClusterName, imgBasename, buildTag string, args []strin
 			ctx,
 			rdr,
 			decoder.CreateHandler(r),
-			MutateNatunKustomize(ns, coreImg, historianImg, args...),
+			MutateRaptorKustomize(ns, coreImg, historianImg, args...),
 		)
 		if err != nil {
 			return ctx, fmt.Errorf("failed to install Core: %w", err)
@@ -182,7 +182,7 @@ func SetupCore(name, kindClusterName, imgBasename, buildTag string, args []strin
 
 		dep := &appsv1.Deployment{
 			ObjectMeta: v1.ObjectMeta{
-				Name:      "natun-controller-core",
+				Name:      "raptor-controller-core",
 				Namespace: ns,
 			},
 		}
@@ -193,23 +193,23 @@ func SetupCore(name, kindClusterName, imgBasename, buildTag string, args []strin
 			return ctx, fmt.Errorf("failed to wait for Core to be ready: %w", err)
 		}
 
-		return context.WithValue(ctx, natunContextKey(name), ns), nil
+		return context.WithValue(ctx, raptorContextKey(name), ns), nil
 	}
 }
 
-// MutateNatunKustomize is an optional parameter to decoding functions that will patch objects with the given namespace name
-func MutateNatunKustomize(ns string, coreImg string, historianImg string, args ...string) decoder.DecodeOption {
+// MutateRaptorKustomize is an optional parameter to decoding functions that will patch objects with the given namespace name
+func MutateRaptorKustomize(ns string, coreImg string, historianImg string, args ...string) decoder.DecodeOption {
 	return decoder.MutateOption(func(obj k8s.Object) error {
 		// rename namespace
 		obj.SetNamespace(ns)
-		if obj.GetObjectKind().GroupVersionKind().Kind == "Namespace" && obj.GetName() == "natun-system" {
+		if obj.GetObjectKind().GroupVersionKind().Kind == "Namespace" && obj.GetName() == "raptor-system" {
 			obj.SetName(ns)
 			return nil
 		}
 		if obj.GetObjectKind().GroupVersionKind().Kind == "ClusterRoleBinding" {
 			crb := obj.(*rbacv1.ClusterRoleBinding)
 			for i, ref := range crb.Subjects {
-				if ref.Kind == "ServiceAccount" && ref.Namespace == "natun-system" {
+				if ref.Kind == "ServiceAccount" && ref.Namespace == "raptor-system" {
 					crb.Subjects[i].Namespace = ns
 				}
 			}
@@ -217,7 +217,7 @@ func MutateNatunKustomize(ns string, coreImg string, historianImg string, args .
 		if obj.GetObjectKind().GroupVersionKind().Kind == "RoleBinding" {
 			crb := obj.(*rbacv1.RoleBinding)
 			for i, ref := range crb.Subjects {
-				if ref.Kind == "ServiceAccount" && ref.Namespace == "natun-system" {
+				if ref.Kind == "ServiceAccount" && ref.Namespace == "raptor-system" {
 					crb.Subjects[i].Namespace = ns
 				}
 			}
@@ -225,7 +225,7 @@ func MutateNatunKustomize(ns string, coreImg string, historianImg string, args .
 		if obj.GetObjectKind().GroupVersionKind().Kind == "MutatingWebhookConfiguration" {
 			mwc := obj.(*admissionregistrationv1.MutatingWebhookConfiguration)
 			for i, rule := range mwc.Webhooks {
-				if rule.ClientConfig.Service.Namespace == "natun-system" {
+				if rule.ClientConfig.Service.Namespace == "raptor-system" {
 					mwc.Webhooks[i].ClientConfig.Service.Namespace = ns
 				}
 			}
@@ -233,7 +233,7 @@ func MutateNatunKustomize(ns string, coreImg string, historianImg string, args .
 		if obj.GetObjectKind().GroupVersionKind().Kind == "ValidatingWebhookConfiguration" {
 			vwc := obj.(*admissionregistrationv1.ValidatingWebhookConfiguration)
 			for i, rule := range vwc.Webhooks {
-				if rule.ClientConfig.Service.Namespace == "natun-system" {
+				if rule.ClientConfig.Service.Namespace == "raptor-system" {
 					vwc.Webhooks[i].ClientConfig.Service.Namespace = ns
 				}
 			}
@@ -241,7 +241,7 @@ func MutateNatunKustomize(ns string, coreImg string, historianImg string, args .
 
 		if obj.GetObjectKind().GroupVersionKind().Kind == "Deployment" {
 			dep := obj.(*appsv1.Deployment)
-			if dep.GetName() == "natun-controller-core" {
+			if dep.GetName() == "raptor-controller-core" {
 				for i, c := range dep.Spec.Template.Spec.Containers {
 					if c.Name == "core" {
 						dep.Spec.Template.Spec.Containers[i].Image = coreImg
@@ -249,7 +249,7 @@ func MutateNatunKustomize(ns string, coreImg string, historianImg string, args .
 					}
 				}
 			}
-			if dep.GetName() == "natun-historian" {
+			if dep.GetName() == "raptor-historian" {
 				for i, c := range dep.Spec.Template.Spec.Containers {
 					if c.Name == "historian" {
 						dep.Spec.Template.Spec.Containers[i].Image = coreImg
@@ -268,7 +268,7 @@ func DestroyCore(name string) env.Func {
 		redisNs := ctx.Value(redisContextKey(fmt.Sprintf("%s-redis", name))).(v1.ObjectMeta)
 		ctx, err := envfuncs.DeleteNamespace(redisNs.Namespace)(ctx, cfg)
 
-		ns := ctx.Value(natunContextKey(name)).(string)
+		ns := ctx.Value(raptorContextKey(name)).(string)
 		ctx, err = envfuncs.DeleteNamespace(ns)(ctx, cfg)
 		if err != nil {
 			return ctx, fmt.Errorf("failed to delete Core namespace: %w", err)

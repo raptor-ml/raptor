@@ -1,4 +1,4 @@
-{{- /*gotype: github.com/raptor-ml/natun/internal/querybuilder.featureQuery */ -}}
+{{- /*gotype: github.com/raptor-ml/raptor/internal/querybuilder.featureQuery */ -}}
 {{- /***
   # Windowed feature
   --------------------------

@@ -19,7 +19,7 @@ spec:
             - name: AWS_REGION
               value: eu-west-1
             - name: S3_BUCKET
-              value: natun-test
+              value: raptor-test
             - name: SNOWFLAKE_URI
               valueFrom:
                 secretKeyRef:

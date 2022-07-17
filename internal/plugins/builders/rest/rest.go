@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import (
 	"github.com/die-net/lrucache"
 	"github.com/gregjones/httpcache"
 	"github.com/hashicorp/go-retryablehttp"
-	"github.com/raptor-ml/natun/api"
-	"github.com/raptor-ml/natun/pkg/plugins"
-	"github.com/raptor-ml/natun/pkg/pyexp"
+	"github.com/raptor-ml/raptor/api"
+	"github.com/raptor-ml/raptor/pkg/plugins"
+	"github.com/raptor-ml/raptor/pkg/pyexp"
 	"io"
 	"net/http"
 	"strings"

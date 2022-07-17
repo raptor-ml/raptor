@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package setup
 
 import (
 	"flag"
-	"github.com/raptor-ml/natun/pkg/plugins"
+	"github.com/raptor-ml/raptor/pkg/plugins"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -40,7 +40,7 @@ func InitConfig() {
 	pflag.String("accessor-http-prefix", "/api", "The the http accessor path prefix.")
 	pflag.String("accessor-service", "", "The the accessor service URL (that points the this application).")
 	pflag.Bool("production", true, "Set as production")
-	pflag.Bool("usage-reporting", true, "Allow us to anonymously report usage statistics to improve Natun 🪄")
+	pflag.Bool("usage-reporting", true, "Allow us to anonymously report usage statistics to improve Raptor 🪄")
 	pflag.String("usage-reporting-uid", "", "Usage reporting Unique Identifier. "+
 		"You can use this to set a unique identifier for your cluster.")
 	pflag.String("state-provider", "redis", "The state provider.")

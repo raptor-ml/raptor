@@ -29,8 +29,8 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # This variable is used to construct full image tags for bundle and catalog images.
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
-# ghcr.io/raptor-ml/natun-bundle:$VERSION and ghcr.io/raptor-ml/natun-catalog:$VERSION.
-IMAGE_BASE ?= ghcr.io/raptor-ml/natun
+# ghcr.io/raptor-ml/raptor-bundle:$VERSION and ghcr.io/raptor-ml/raptor-catalog:$VERSION.
+IMAGE_BASE ?= ghcr.io/raptor-ml/raptor
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
@@ -59,10 +59,10 @@ ifneq ($(origin PROD),undefined)
 endif
 
 ifeq ($(ENV),prod)
-  CONTEXT ?= gke_natun-test_europe-west3-a_natun-test
+  CONTEXT ?= gke_raptor-test_europe-west3-a_raptor-test
   $(info $(shell tput setaf 1)-+-+ PROD MODE -+-+$(shell tput sgr0))
 else
-  CONTEXT ?= kind-natun
+  CONTEXT ?= kind-raptor
   $(info $(shell tput setaf 2)+-+- DEV MODE +-+-$(shell tput sgr0))
 endif
 KUBECTL = kubectl --context='${CONTEXT}'
@@ -146,9 +146,9 @@ test-e2e: docker-build ## Run integration tests.
 STREAMING_RUNTIME_VERSION ?=$(VERSION)
 STREAMING_VERSION ?= latest
 LDFLAGS ?= -s -w
-LDFLAGS += -X github.com/raptor-ml/natun/internal/version.Version=$(VERSION)
-LDFLAGS += -X github.com/raptor-ml/natun/internal/plugins/builders/streaming.runtimeVer=$(STREAMING_RUNTIME_VERSION)
-LDFLAGS += -X github.com/raptor-ml/natun/internal/plugins/builders/streaming.runnerImg=ghcr.io/raptor-ml/streaming-runner:$(STREAMING_VERSION)
+LDFLAGS += -X github.com/raptor-ml/raptor/internal/version.Version=$(VERSION)
+LDFLAGS += -X github.com/raptor-ml/raptor/internal/plugins/builders/streaming.runtimeVer=$(STREAMING_RUNTIME_VERSION)
+LDFLAGS += -X github.com/raptor-ml/raptor/internal/plugins/builders/streaming.runnerImg=ghcr.io/raptor-ml/streaming-runner:$(STREAMING_VERSION)
 
 .PHONY: build
 build: generate ## Build core binary.
@@ -158,7 +158,7 @@ build: generate ## Build core binary.
 
 .PHONY: run
 run: manifests generate fmt lint ## Run a controller from your host.
-	go run ./cmd/natun/*
+	go run ./cmd/raptor/*
 
 .PHONY: docker-build
 docker-build: build ## Build docker images.
@@ -178,9 +178,9 @@ endif
 
 .PHONY: kind-load
 kind-load: ## Load docker images into kind.
-	kind load docker-image --name natun ${CORE_IMG_BASE}:${VERSION}
-	kind load docker-image --name natun ${HISTORIAN_IMG_BASE}:${VERSION}
-	kind load docker-image --name natun ${RUNTIME_IMG_BASE}:${VERSION}
+	kind load docker-image --name raptor ${CORE_IMG_BASE}:${VERSION}
+	kind load docker-image --name raptor ${HISTORIAN_IMG_BASE}:${VERSION}
+	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}
 
 ##@ Deployment
 

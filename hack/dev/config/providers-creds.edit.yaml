@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: providers-creds
-  namespace: natun-system
+  namespace: raptor-system
 data:
   AWS_ACCESS_KEY: ""
   AWS_SECRET_KEY: ""

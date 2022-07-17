@@ -4,8 +4,8 @@ layout:
 plugins:
   manifests.sdk.operatorframework.io/v2: { }
   scorecard.sdk.operatorframework.io/v2: { }
-projectName: natun
-repo: github.com/raptor-ml/natun
+projectName: raptor
+repo: github.com/raptor-ml/raptor
 resources:
   - api:
       crdVersion: v1
@@ -14,7 +14,7 @@ resources:
     domain: raptor.ml
     group: k8s
     kind: Feature
-    path: github.com/raptor-ml/natun/api/v1alpha1
+    path: github.com/raptor-ml/raptor/api/v1alpha1
     version: v1alpha1
     webhooks:
       validation: true
@@ -26,7 +26,7 @@ resources:
     domain: raptor.ml
     group: k8s
     kind: DataConnector
-    path: github.com/raptor-ml/natun/api/v1alpha1
+    path: github.com/raptor-ml/raptor/api/v1alpha1
     version: v1alpha1
   - api:
       crdVersion: v1
@@ -34,6 +34,6 @@ resources:
     domain: raptor.ml
     group: k8s
     kind: FeatureSet
-    path: github.com/raptor-ml/natun/api/v1alpha1
+    path: github.com/raptor-ml/raptor/api/v1alpha1
     version: v1alpha1
 version: "3"

@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package sdk
 
 import (
 	"fmt"
-	"github.com/raptor-ml/natun/api"
-	coreApi "go.buf.build/natun/api-go/natun/core/natun/core/v1alpha1"
+	"github.com/raptor-ml/raptor/api"
+	coreApi "go.buf.build/raptor/api-go/raptor/core/raptor/core/v1alpha1"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"reflect"

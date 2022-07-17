@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/raptor-ml/natun/api"
-	natunApi "github.com/raptor-ml/natun/api/v1alpha1"
-	"github.com/raptor-ml/natun/internal/engine"
-	"github.com/raptor-ml/natun/pkg/plugins"
+	"github.com/raptor-ml/raptor/api"
+	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
+	"github.com/raptor-ml/raptor/internal/engine"
+	"github.com/raptor-ml/raptor/pkg/plugins"
 	"k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -40,9 +40,9 @@ import (
 )
 
 const FeatureWebhookValidatePath = "/validate-k8s-raptor-ml-v1alpha1-feature"
-const FeatureWebhookValidateName = "natun-validating-webhook-configuration"
+const FeatureWebhookValidateName = "raptor-validating-webhook-configuration"
 const FeatureWebhookMutatePath = "/mutate-k8s-raptor-ml-v1alpha1-feature"
-const FeatureWebhookMutateName = "natun-mutating-webhook-configuration"
+const FeatureWebhookMutateName = "raptor-mutating-webhook-configuration"
 
 func SetupFeatureWebhook(mgr ctrl.Manager, updatesAllowed bool) {
 	impl := &webhook{
@@ -50,12 +50,12 @@ func SetupFeatureWebhook(mgr ctrl.Manager, updatesAllowed bool) {
 		client:         mgr.GetClient(),
 		logger:         mgr.GetLogger().WithName("feature-webhook"),
 	}
-	wh := admission.WithCustomValidator(&natunApi.Feature{}, impl)
+	wh := admission.WithCustomValidator(&raptorApi.Feature{}, impl)
 	wh.Handler = &admissionWrapper{Handler: wh.Handler}
 
 	mgr.GetWebhookServer().Register(FeatureWebhookValidatePath, wh)
 
-	wh = admission.WithCustomDefaulter(&natunApi.Feature{}, impl)
+	wh = admission.WithCustomDefaulter(&raptorApi.Feature{}, impl)
 	wh.Handler = &admissionWrapper{Handler: wh.Handler}
 	mgr.GetWebhookServer().Register(FeatureWebhookMutatePath, wh)
 }
@@ -86,7 +86,7 @@ func (h *admissionWrapper) Handle(ctx context.Context, req admission.Request) ad
 }
 
 func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
-	f := obj.(*natunApi.Feature)
+	f := obj.(*raptorApi.Feature)
 	wh.logger.Info("defaulting", "name", f.GetName())
 
 	if f.Spec.DataConnector != nil && f.Spec.DataConnector.Namespace == "" {
@@ -94,7 +94,7 @@ func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
 	}
 	if f.Spec.Builder.Kind == "" {
 		if f.Spec.Builder.Raw != nil && len(f.Spec.Builder.Raw) > 0 {
-			builderType := &natunApi.FeatureBuilderKind{}
+			builderType := &raptorApi.FeatureBuilderKind{}
 			err := json.Unmarshal(f.Spec.Builder.Raw, builderType)
 			if err != nil {
 				return fmt.Errorf("failed to unmarshal builder type: %w", err)
@@ -103,7 +103,7 @@ func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
 		}
 		if f.Spec.Builder.Kind == "" && f.Spec.DataConnector != nil {
 			if ar, ok := ctx.Value(admissionRequestContextKey).(admission.Request); ok && ar.DryRun == nil || ok && !*ar.DryRun {
-				dc := natunApi.DataConnector{}
+				dc := raptorApi.DataConnector{}
 				err := wh.client.Get(ctx, f.Spec.DataConnector.ObjectKey(), &dc)
 				if apierrors.IsNotFound(err) {
 					return fmt.Errorf("data connector %s/%s not found", f.Spec.DataConnector.Namespace, f.Spec.DataConnector.Name)
@@ -145,7 +145,7 @@ func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (wh *webhook) ValidateCreate(ctx context.Context, obj runtime.Object) error {
-	f := obj.(*natunApi.Feature)
+	f := obj.(*raptorApi.Feature)
 	wh.logger.Info("validate create", "name", f.Name)
 
 	return wh.Validate(ctx, f)
@@ -153,8 +153,8 @@ func (wh *webhook) ValidateCreate(ctx context.Context, obj runtime.Object) error
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (wh *webhook) ValidateUpdate(ctx context.Context, oldObject, newObj runtime.Object) error {
-	f := newObj.(*natunApi.Feature)
-	old := oldObject.(*natunApi.Feature)
+	f := newObj.(*raptorApi.Feature)
+	old := oldObject.(*raptorApi.Feature)
 	wh.logger.Info("validate update", "name", f.GetName())
 	if !equality.Semantic.DeepEqual(old.Spec, f.Spec) && !wh.updatesAllowed {
 		return fmt.Errorf("features are immutable in production")
@@ -163,12 +163,12 @@ func (wh *webhook) ValidateUpdate(ctx context.Context, oldObject, newObj runtime
 	return wh.Validate(ctx, f)
 }
 
-func (wh *webhook) Validate(ctx context.Context, f *natunApi.Feature) error {
+func (wh *webhook) Validate(ctx context.Context, f *raptorApi.Feature) error {
 	dummyEngine := engine.Dummy{}
 
 	if f.Spec.DataConnector != nil {
 		if ar, ok := ctx.Value(admissionRequestContextKey).(admission.Request); ok && ar.DryRun == nil || ok && !*ar.DryRun {
-			dc := natunApi.DataConnector{}
+			dc := raptorApi.DataConnector{}
 			err := wh.client.Get(ctx, f.Spec.DataConnector.ObjectKey(), &dc)
 			if apierrors.IsNotFound(err) {
 				return fmt.Errorf("data connector %s/%s not found", f.Spec.DataConnector.Namespace, f.Spec.DataConnector.Name)
@@ -190,7 +190,7 @@ func (wh *webhook) Validate(ctx context.Context, f *natunApi.Feature) error {
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
 func (wh *webhook) ValidateDelete(_ context.Context, obj runtime.Object) error {
-	f := obj.(*natunApi.Feature)
+	f := obj.(*raptorApi.Feature)
 	wh.logger.Info("validate delete", "name", f.GetName())
 
 	// DISABLED. To enable deletion validation, change the above annotation's verbs to "verbs=create;update;delete"

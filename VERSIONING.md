@@ -1,4 +1,4 @@
-# Versioning and Releasing for Natun
+# Versioning and Releasing for Raptor
 
 We (mostly) follow the [common Kubebuilder versioning guidelines][guidelines], and use the corresponding tooling and PR
 process described there.

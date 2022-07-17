@@ -1,5 +1,5 @@
 /*
-Copyright 2022 Natun.
+Copyright (c) 2022 Raptor.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ package operator
 import (
 	"context"
 	"fmt"
-	"github.com/raptor-ml/natun/api"
-	natunApi "github.com/raptor-ml/natun/api/v1alpha1"
-	"github.com/raptor-ml/natun/pkg/plugins"
+	"github.com/raptor-ml/raptor/api"
+	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
+	"github.com/raptor-ml/raptor/pkg/plugins"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"time"
 
@@ -54,7 +54,7 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	logger := log.FromContext(ctx)
 
 	// Fetch the Feature definition from the Kubernetes API.
-	conn := &natunApi.DataConnector{}
+	conn := &raptorApi.DataConnector{}
 	err := r.Get(ctx, req.NamespacedName, conn)
 	if err != nil {
 		logger.Error(err, "Failed to get DataConnector")
@@ -110,7 +110,7 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	return ctrl.Result{}, nil
 }
 
-func (r *DataConnectorReconciler) reconcileRequest(conn *natunApi.DataConnector) api.ReconcileRequest {
+func (r *DataConnectorReconciler) reconcileRequest(conn *raptorApi.DataConnector) api.ReconcileRequest {
 	return api.ReconcileRequest{
 		DataConnector: conn,
 		Client:        r.Client,
@@ -122,7 +122,7 @@ func (r *DataConnectorReconciler) reconcileRequest(conn *natunApi.DataConnector)
 // SetupWithManager sets up the controller with the Controller Manager.
 func (r *DataConnectorReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&natunApi.DataConnector{}).
+		For(&raptorApi.DataConnector{}).
 		Owns(&appsv1.Deployment{}).
 		Complete(r)
 }

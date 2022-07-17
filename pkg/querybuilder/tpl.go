@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Natun.
+ * Copyright (c) 2022 Raptor.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import (
 	"context"
 	"embed"
 	"fmt"
-	"github.com/raptor-ml/natun/api"
-	manifests "github.com/raptor-ml/natun/api/v1alpha1"
+	"github.com/raptor-ml/raptor/api"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"strings"
 	"text/template"
 	"time"
