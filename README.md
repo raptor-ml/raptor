@@ -68,25 +68,22 @@ And what about the engineers? Well, it's finally taking away this "burden"  from
 * **Pluggable**<br/>
   Raptor is highly-pluggable. Technically, you can even bring your own feature store implementation.
 * **Kubernetes Native and Standards**<br/>
-  Raptor is implementing by-design functionalities of Kubernetes such as leader-election, scaling, health, auto-recovery,
+  Raptor is implementing by-design functionalities of Kubernetes such as leader-election, scaling, health,
+  auto-recovery,
   monitoring and logging.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 💡 How does it work?
 
-Raptor is extending Kubernetes to serve Raptor-compatible features in a production-grade manner.
-It's implementing the "Kubernetes Way," which advocates for writing the desired state and allows you to
-**focus on writing** the business logic.
+Raptor introduces a new way to describe feature transformations by describing them as functions composed of declarative(
+via Python's decorators) and imperative(function code) parts. This way, we can instruct the "Natun Core" to implement
+the "declarative part" and optimize your production code.
 
-Raptor takes care of the engineering concerns of implementing the "desired state" by managing and
-controlling Kubernetes-native resources such as deployments to connect your production data-sources and to run your
-business logic at scale.
-
-![High-level design](.github/high-level-diagram.png)
-
-Behind the scenes, Raptor is attaching the proper building block to implement the "production behavior" of your use-case
-(i.e., streaming, REST API, gRPC, expression, etc.).
+Behind the scene, Raptor Core is extending Kubernetes with the ability to process your features in a "production manner"
+. It takes care of the engineering concerns by managing and controlling Kubernetes-native resources such as deployments
+to connect your production data sources and run your business logic at scale. Allowing you to **focus on the business
+logic**.
 
 You can read more about Raptor's architecture in [the docs][docs-url].
 
@@ -104,7 +101,7 @@ This way, in most of the use-cases, you can iterate and play with your data.
 **Raptor installation is not required for training purposes**.
 You only need to install Raptor *when deploying to production* (or staging).
 
-Because Raptor
+Learn more about production installation at [the docs][docs-url].
 
 #### Prerequisites
 
@@ -120,7 +117,8 @@ Because Raptor
 
 ### Installation
 
-The easiest way to install Raptor is to use the [OperatorHub Installation method](https://operatorhub.io/operator/raptor).
+The easiest way to install Raptor is to use
+the [OperatorHub Installation method](https://operatorhub.io/operator/raptor).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -177,7 +175,8 @@ apiVersion: k8s.raptor.ml/v1alpha1
 - [ ] Seldon Integration
 - [ ] Scheduler builder
 
-See the [open issues](https://github.com/raptor-ml/raptor/issues) for a full list of proposed features (and known issues)
+See the [open issues](https://github.com/raptor-ml/raptor/issues) for a full list of proposed features (and known
+issues)
 .
 
 <p align="right">(<a href="#top">back to top</a>)</p>
