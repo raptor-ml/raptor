@@ -125,7 +125,7 @@ func (rp *rest) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler 
 		if err != nil {
 			return val, err
 		}
-		req.WithContext(ctx)
+		req = req.WithContext(ctx)
 		req.Header = rp.headers
 
 		resp, err := rp.client.Do(req)

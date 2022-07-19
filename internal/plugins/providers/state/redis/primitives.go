@@ -82,7 +82,7 @@ func (s *state) getPrimitive(ctx context.Context, md api.Metadata, entityID stri
 	return &api.Value{
 		Value:     val,
 		Timestamp: *ts,
-		Fresh:     time.Now().Sub(*ts) < md.Freshness,
+		Fresh:     time.Since(*ts) < md.Freshness,
 	}, nil
 }
 func (s *state) Update(ctx context.Context, md api.Metadata, entityID string, value any, ts time.Time) error {
@@ -98,7 +98,7 @@ func (s *state) Set(ctx context.Context, md api.Metadata, entityID string, value
 	if md.ValidWindow() {
 		return s.WindowAdd(ctx, md, entityID, value, ts)
 	}
-	if time.Now().Sub(ts) > md.Staleness {
+	if time.Since(ts) > md.Staleness {
 		return fmt.Errorf("timestamp %s is too old", ts)
 	}
 	key := primitiveKey(md.FQN, entityID)
@@ -127,7 +127,7 @@ func (s *state) Append(ctx context.Context, md api.Metadata, entityID string, va
 	if md.ValidWindow() {
 		return fmt.Errorf("cannot append a windowed feature")
 	}
-	if time.Now().Sub(ts) > md.Staleness {
+	if time.Since(ts) > md.Staleness {
 		return fmt.Errorf("timestamp %s is too old", ts)
 	}
 	if md.Primitive.Scalar() {
@@ -151,7 +151,7 @@ func (s *state) Incr(ctx context.Context, md api.Metadata, entityID string, valu
 	if md.ValidWindow() {
 		return fmt.Errorf("cannot increment to a windowed feature")
 	}
-	if time.Now().Sub(ts) > md.Staleness {
+	if time.Since(ts) > md.Staleness {
 		return fmt.Errorf("timestamp %s is too old", ts)
 	}
 	if !md.Primitive.Scalar() {

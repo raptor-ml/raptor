@@ -4,7 +4,4 @@ run:
 
 linters:
   disable:
-    - gosimple
-    - staticcheck
-    - stylecheck
     - unused
