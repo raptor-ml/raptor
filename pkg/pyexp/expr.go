@@ -43,7 +43,8 @@ func init() {
 	starlark.Universe["struct"] = starlark.NewBuiltin("struct", starlarkstruct.Make)
 
 	// Clone the time module, and override the now function
-	tm := &(*sTime.Module)
+	tm := new(starlarkstruct.Module)
+	*tm = *sTime.Module
 	tm.Members["now"] = starlark.NewBuiltin("now", now)
 	starlark.Universe["time"] = tm
 
