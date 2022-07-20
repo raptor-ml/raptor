@@ -1,0 +1,224 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: ""
+    capabilities: Basic Install
+    categories: AI/Machine Learning
+    containerImage: controller:latest
+    createdAt: "2022-06-30T00:00:00Z"
+    description: Serverless Feature Engineering for Production
+    repository: https://github.com/raptor-ml/raptor
+    support: Raptor
+  name: raptor.v0.0.0
+  namespace: raptor-system
+spec:
+  apiservicedefinitions: { }
+  customresourcedefinitions:
+    owned:
+      - description: DataConnector is the Schema for the dataconnectors API
+        displayName: DataConnector
+        kind: DataConnector
+        name: dataconnectors.k8s.raptor.ml
+        resources:
+          - kind: Deployment
+            name: raptor-conn-<name>
+            version: v1
+        specDescriptors:
+          - description: Config of the DataConnector
+            displayName: Config
+            path: config
+          - description: Configuration value from secret
+            displayName: Secret Key Ref
+            path: config[0].secretKeyRef
+            x-descriptors:
+              - urn:alm:descriptor:io.kubernetes:Secret
+          - description: Kind of the DataConnector
+            displayName: Connector Kind
+            path: kind
+          - description: Replicas defines the number of desired pods. This is a pointer
+              to distinguish between explicit zero and not specified. Defaults to 1.
+            displayName: Replicas
+            path: replicas
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:podCount
+          - description: "Resources defines the required resources for a single container(underlying
+          implementation) of this DataConnector. Notice that this is not applicable
+          for every DataConnector, but only for those who implement an External Runner.
+          \n More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/"
+            displayName: Resources
+            path: resources
+            x-descriptors:
+              - urn:alm:descriptor:com.tectonic.ui:resourceRequirements
+        statusDescriptors:
+          - description: Features includes a list of references for the Feature that uses
+              this DataConnector
+            displayName: Features
+            path: features
+          - displayName: Replicas
+            path: replicas
+        version: v1alpha1
+      - description: Feature is the Schema for the features API
+        displayName: ML Feature
+        kind: Feature
+        name: features.k8s.raptor.ml
+        resources:
+          - kind: Deployment
+            name: raptor-controller-core
+            version: v1
+        specDescriptors:
+          - description: 'Aggr defines an aggregation on top of the underlying feature-value.
+          Aggregations will be calculated on time-of-request. Users can specify here
+          multiple functions to calculate the aggregation. Valid values: - `count`
+          - `min` - `mix` - `sum`` - `mean` (alias for `avg`) - `avg`'
+            displayName: Aggregations
+            path: aggr
+          - description: Builder defines a building-block to use to build the feature-value
+            displayName: Builder
+            path: builder
+          - description: DataConnector is a reference for the DataConnector that this
+              Feature is associated with
+            displayName: Data Connector
+            path: connector
+          - description: Name is unique within a namespace to reference a resource.
+            displayName: Resource's Name
+            path: connector.name
+          - description: Namespace defines the space within which the resource name must
+              be unique.
+            displayName: Resource's Namespace
+            path: connector.namespace
+          - description: Freshness defines the age of a feature-value(time since the value
+              has set) to consider as *fresh*. Fresh values doesn't require re-ingestion
+            displayName: Freshness
+            path: freshness
+          - description: 'Primitive defines the type of the underlying feature-value that
+          a Feature should respond with Valid values are: - `int` - `float` - `string`
+          - `timestamp - `[]int` - `[]float` - `[]string` - `[]timestamp` - `headless`'
+            displayName: Primitive Type
+            path: primitive
+          - description: Staleness defines the age of a feature-value(time since the value
+              has set) to consider as *stale*. Stale values are not fit for usage, therefore
+              will not be returned and will REQUIRE re-ingestion.
+            displayName: Staleness
+            path: staleness
+          - description: Timeout defines the maximum ingestion time allowed to calculate
+              the feature value.
+            displayName: Timeout
+            path: timeout
+        statusDescriptors:
+          - description: FQN is the Fully Qualified Name for the Feature
+            displayName: FQN
+            path: fqn
+        version: v1alpha1
+      - description: FeatureSet is the Schema for the featuresets API
+        displayName: ML FeatureSet
+        kind: FeatureSet
+        name: featuresets.k8s.raptor.ml
+        resources:
+          - kind: Deployment
+            name: raptor-controller-core
+            version: v1
+        specDescriptors:
+          - description: Features is the list of feature FQNs that are enabled for a given
+              feature set
+            displayName: Features
+            path: features
+          - description: KeyFeature is the feature FQN that is used to align the rest
+              of the features with it timestamp. If this is unset, the first feature in
+              the list will be used.
+            displayName: Key Feature FQN
+            path: keyFeature
+          - description: Timeout defines the maximum ingestion time allowed to calculate
+              the feature value.
+            displayName: Timeout
+            path: timeout
+        statusDescriptors:
+          - description: FQN is the Fully Qualified Name for the FeatureSet
+            displayName: FQN
+            path: fqn
+        version: v1alpha1
+  description: |
+    # Serverless Feature Engineering for Production
+    RaptorML is a serverless framework that allows data-scientists to deploy ML Features to production without the hassle of the engineering overhead.
+    
+    Data Scientists can *focus* on the business logic, and the Raptor Kubernetes Operator take care of the engineering overhead
+    (like caching, authentication, scale, etc).
+    
+    For more information, please visit [Raptor's docs](https://raptor.ml).
+    
+    ## Prerequisites
+    - Kubernetes v1.18+
+    - Redis server - to store the production data
+    - A supported historical storage provider - currently support Snowflake and AWS S3
+    
+    ## How to install Raptor:
+    Please create a `Subscription` resource with the dependencies configured. I.e:
+    ```yaml
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: raptor-providers-creds
+      namespace: raptor-system
+    data:
+      REDIS: "my-redis.default.svc.cluster.local"
+      AWS_ACCESS_KEY: ""
+      AWS_SECRET_KEY: ""
+      SNOWFLAKE_URI: <user>:<pass>@<account-id>/<db>/<schema>?warehouse=<warehouse-name>
+    ---
+    apiVersion: operators.coreos.com/v1alpha1
+    kind: Subscription
+    metadata:
+      name: raptor
+    spec:
+      package: raptor
+      channel: alpha
+      config:
+        env:
+          - name: HISTORICAL_WRITER_PROVIDER
+            value: "snowflake"
+        envFrom:
+          - secretRef:
+              name: raptor-providers-credentials
+    ```
+    
+    >> Notice: the example above creates a `Secret` resource inside the `raptor-system` namespace. Make sure to create it if it doesn't exist.
+  displayName: Raptor
+  icon:
+    - base64data: PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjE5MzMuNTgxIC01MDEuMDM5IDM1MCAzNTAiIHdpZHRoPSI0NjYuNjY3IiBoZWlnaHQ9IjQ2Ni42NjciIHhtbG5zOnY9Imh0dHBzOi8vdmVjdGEuaW8vbmFubyI+PGRlZnM+PGNsaXBQYXRoIGlkPSJBIj48cGF0aCBkPSJNMTkzMy41ODEtNTAxLjAzOWgzNTB2MzUwaC0zNTB6Ii8+PC9jbGlwUGF0aD48L2RlZnM+PGcgY2xpcC1wYXRoPSJ1cmwoI0EpIj48cGF0aCBkPSJNMjE1MS4xNjgtMjEwLjI4MWMuOSAyLjUyNSA0LjA1NSA5LjMyMiAxMi4zMTUgOS4zMzQgMCAuMDAzIDMuMzI3LjAwMyA5Ljk4MiAwaDkuOTgxYzkuOTY0IDAgMTIuMzQ1LTkuNDIgMTIuNTA0LTkuODc0IDYuMTQxLTE3LjQ5NSAyMi44MTMtMzAuMDUyIDQyLjM5NS0zMC4wNTIgMjQuNzkgMCA0NC45MTcgMjAuMTI2IDQ0LjkxNyA0NC45MTdzLTIwLjEyNyA0NC45MTctNDQuOTE3IDQ0LjkxN2MtMTkuNDM2IDAtMzYuMDA1LTEyLjM3MS00Mi4yNTYtMjkuNjYyLS4xNzYtLjQ4Ni0yLjc0MS0xMC4yNS0xMi42NDMtMTAuMjY1IDAtLjAwMi0zLjMyNy0uMDAyLTkuOTgxIDBoLTkuOTgyYy04LjQwNiAwLTExLjQxNSA2LjcwNS0xMi4yMzcgOS4wODVhMTguMTUgMTguMTUgMCAwIDEtLjI0OC43MjRjLS4wMTIuMDQ2LS4wMTYuMDU3LS4wMTkuMDY1LTYuMTQgMTcuNDk1LTIyLjgxMyAzMC4wNTMtNDIuMzk0IDMwLjA1My0xOS40ODQgMC0zNi4wODgtMTIuNDMzLTQyLjI5Ni0yOS43OTVhMjMuNjEgMjMuNjEgMCAwIDEtLjI4OC0uNzk4Yy0uOS0yLjUyNS00LjA1NS05LjMyMi0xMi4zMTUtOS4zMzQgMC0uMDAyLTMuMzI3LS4wMDItOS45ODEgMGgtOS45ODJjLTkuOTY0IDAtMTIuMzQ0IDkuNDItMTIuNTA0IDkuODc0LTYuMTQxIDE3LjQ5NS0yMi44MTMgMzAuMDUzLTQyLjM5NSAzMC4wNTNhNDQuNzMgNDQuNzMgMCAwIDEtMTYuOTU1LTMuMzE2Yy01LjQ3NS0yLjE5MS0xMC42MDUtNS41MDEtMTUuMDM2LTkuOTMyLTE3LjUyOS0xNy41My0xNy41MjktNDUuOTkzIDAtNjMuNTIzIDEzLjA3Ny0xMy4wNzYgMzIuMjM4LTE2LjM5OCA0OC40MDUtOS45NjVhNDQuOSA0NC45IDAgMCAxIDMuODkxIDEuNzQ5YzIuODM4IDEuMjAxIDkuMjkgMy4wNDggMTQuNzI1LTIuMzQxbDYuNzQyLTYuNzQyYzcuMDQ2LTcuMDQ2IDIuMDY5LTE1LjM4OSAxLjg2LTE1LjgyMy04LjAyOC0xNi43MTMtNS4xMTktMzcuMzgyIDguNzI4LTUxLjIyOC4wMTktLjAyLjAzOS0uMDM5LjA1OS0uMDU5bC4wNTgtLjA1OWMxMy43NDMtMTMuNzQzIDM0LjIwNy0xNi43MTIgNTAuODUzLTguOTA1LjQ2Ny4yMTggOS4xODYgNS4zMDkgMTYuMTk4LTEuNjgyLjAwMi4wMDIgMi4xMTktMi4xMTQgNi4zNDktNi4zNDh2LS4wMDFsNy4wNTgtNy4wNThjNy4wNDYtNy4wNDYgMi4wNjgtMTUuMzg4IDEuODU5LTE1LjgyMi04LjAyOC0xNi43MTMtNS4xMTgtMzcuMzgyIDguNzI4LTUxLjIyOS4wMi0uMDE5LjAzOS0uMDM5LjA1OS0uMDU4bC4wNTktLjA1OWMxMy43NDItMTMuNzQ0IDM0LjIwNy0xNi43MTIgNTAuODUzLTguOTA2LjQ2Ni4yMTkgOS4xNjEgNS4yOTUgMTYuMTY4LTEuNjUybDYuNzQyLTYuNzQxYzQuODg4LTQuODg5IDMuOTg5LTEwLjQwMiAyLjkxLTEzLjQ2NS0xLjE4OS0yLjEyMS0yLjIxMS00LjM0OC0zLjA0OC02LjY2My0uMTc2LS40ODYtMi43NDEtMTAuMjUtMTIuNjQzLTEwLjI2NSAwLS4wMDItMy4zMjctLjAwMi05Ljk4MSAwdi05Ljk4MWg5Ljk4MWM5Ljk2NCAwIDEyLjM0NS05LjQyIDEyLjUwNC05Ljg3NCA2LjE0MS0xNy40OTUgMjIuODEzLTMwLjA1MiA0Mi4zOTUtMzAuMDUyYTQ0Ljc0IDQ0Ljc0IDAgMCAxIDE2Ljk1NSAzLjMxNWM1LjQ3NiAyLjE5MSAxMC42MDUgNS41MDIgMTUuMDM3IDkuOTMzIDE3LjUyOCAxNy41MjkgMTcuNTI4IDQ1Ljk5MyAwIDYzLjUyMi0xMy4wNzggMTMuMDc3LTMyLjIzOCAxNi4zOTgtNDguNDA2IDkuOTY1YTQ0LjMgNDQuMyAwIDAgMS0zLjg5MS0xLjc0OWMtMi44MzgtMS4yMDEtOS4yODktMy4wNDgtMTQuNzI1IDIuMzQybC02Ljc0MiA2Ljc0MWMtNy4wNDYgNy4wNDYtMi4wNjggMTUuMzg5LTEuODYgMTUuODIzIDguMDI5IDE2LjcxMyA1LjExOSAzNy4zODItOC43MjggNTEuMjI4LS4wMTkuMDItLjAzOS4wNC0uMDU4LjA1OWwtLjA1OS4wNTljLTEzLjc0MyAxMy43NDQtMzQuMjA3IDE2LjcxMi01MC44NTMgOC45MDUtLjQ2Ny0uMjE4LTkuMTg2LTUuMzA5LTE2LjE5OCAxLjY4Mi0uMDAyLS4wMDItMi4xMTggMi4xMTUtNi4zNDkgNi4zNDloMGwtNy4wNTggNy4wNThjLTcuMDQ2IDcuMDQ2LTIuMDY4IDE1LjM4OC0xLjg1OSAxNS44MjMgOC4wMjggMTYuNzEzIDUuMTE4IDM3LjM4Mi04LjcyOCA1MS4yMjhsLS4wNTkuMDU5LS4wNTkuMDU4Yy0xMy43NDIgMTMuNzQ0LTM0LjIwNiAxNi43MTMtNTAuODUzIDguOTA2LS40NjYtLjIxOS05LjE2MS01LjI5NS0xNi4xNjggMS42NTJsLTYuNzQxIDYuNzQyYy00Ljg4OSA0Ljg4OC0zLjk4OSAxMC40MDEtMi45MTEgMTMuNDY0IDEuMTg5IDIuMTIxIDIuMjExIDQuMzQ4IDMuMDQ4IDYuNjYzLjE3Ni40ODYgMi43NDEgMTAuMjUgMTIuNjQzIDEwLjI2NSAwIC4wMDMgMy4zMjcuMDAzIDkuOTgyIDBoOS45ODFjOC40MDcgMCAxMS40MTUtNi43MDUgMTIuMjM3LTkuMDg0LjA3OC0uMjQ0LjE2LS40ODUuMjQ4LS43MjUgNi4xMi0xNy41MyAyMi44MDgtMzAuMTE3IDQyLjQxNC0zMC4xMTcgMTkuNDM2IDAgMzYuMDA0IDEyLjM3MSA0Mi4yNTYgMjkuNjYxYTIuNjIgMi42MiAwIDAgMSAuMDQuMTM0Yy4xMDEuMjYyLjE5NC41My4yODcuNzk3aDB6bS04NS4xNjctMjMxLjUxN2MtLjktMi41MjUtNC4wNTUtOS4zMjItMTIuMzE1LTkuMzM0IDAtLjAwMi0zLjMyNy0uMDAyLTkuOTgxIDB2LTkuOTgxaDkuOTgxYzguNDA3IDAgMTEuNDE1LTYuNzA1IDEyLjIzNy05LjA4NC4wNzgtLjI0NC4xNi0uNDg1LjI0OC0uNzI1LjAxMi0uMDQ2LjAxNi0uMDU3LjAxOS0uMDY1IDYuMTQxLTE3LjQ5NSAyMi44MTMtMzAuMDUyIDQyLjM5NS0zMC4wNTIgMTkuNDg0IDAgMzYuMDg3IDEyLjQzMyA0Mi4yOTUgMjkuNzk1LjEwMi4yNjIuMTk1LjUzLjI4OC43OTcuOSAyLjUyNSA0LjA1NSA5LjMyMiAxMi4zMTUgOS4zMzQgMCAuMDAzIDMuMzI3LjAwMyA5Ljk4MiAwdjkuOTgxaC05Ljk4MmMtOC40MDYgMC0xMS40MTUgNi43MDUtMTIuMjM3IDkuMDg1YTE4LjE1IDE4LjE1IDAgMCAxLS4yNDguNzI0Yy02LjExOSAxNy41My0yMi44MDggMzAuMTE4LTQyLjQxMyAzMC4xMTgtMTkuNDM2IDAtMzYuMDA1LTEyLjM3MS00Mi4yNTYtMjkuNjYyYTIuMTIgMi4xMiAwIDAgMS0uMDQtLjEzMyAyMy42MSAyMy42MSAwIDAgMS0uMjg4LS43OThoMHptLTQ0LjkyMS0yOS41OGMuMTc2LjQ4NiAyLjc0MSAxMC4yNSAxMi42NDMgMTAuMjY1IDAgLjAwMyAzLjMyNy4wMDMgOS45ODIgMHY5Ljk4MWgtOS45ODJjLTkuOTY0IDAtMTIuMzQ0IDkuNDItMTIuNTA0IDkuODc0LTYuMTQxIDE3LjQ5NS0yMi44MTMgMzAuMDUzLTQyLjM5NSAzMC4wNTMtMjQuNzkgMC00NC45MTctMjAuMTI3LTQ0LjkxNy00NC45MTdzMjAuMTI3LTQ0LjkxNyA0NC45MTctNDQuOTE3YzE5LjQzNiAwIDM2LjAwNSAxMi4zNzEgNDIuMjU2IDI5LjY2MWgweiIgZmlsbD0iI2FhM2VhMyIvPjxwYXRoIGQ9Ik0yMTIyLjM0My0yNDguNzUyYy0xMy43NDQtMTMuNzQzLTE2LjcxMi0zNC4yMDctOC45MDYtNTAuODU0LjIxOS0uNDY3IDUuMzA5LTkuMTg2LTEuNjgyLTE2LjE5OC4wMDItLjAwMS0yLjExNC0yLjExOC02LjM0OC02LjM0OGgwbC03LjA1OC03LjA1OGMtNy4wNDYtNy4wNDYtMTUuMzg5LTIuMDY4LTE1LjgyMy0xLjg2LTE2LjcxMyA4LjAyOS0zNy4zODIgNS4xMTktNTEuMjI4LTguNzI4LS4wMi0uMDE5LS4wMzktLjAzOS0uMDU5LS4wNThsLS4wNTktLjA1OWMtMTMuNzQzLTEzLjc0My0xNi43MTItMzQuMjA3LTguOTA1LTUwLjg1My4yMTgtLjQ2NiA1LjI5NS05LjE2MS0xLjY1Mi0xNi4xNjhsLTYuNzQyLTYuNzQyYy00Ljg4OC00Ljg4OC0xMC40MDItMy45ODktMTMuNDY0LTIuOTEtMi4xMjEgMS4xODktNC4zNDggMi4yMTEtNi42NjMgMy4wNDgtLjQ4Ni4xNzYtMTAuMjUgMi43NDEtMTAuMjY1IDEyLjY0MmE0MTUxLjk2IDQxNTEuOTYgMCAwIDAgMCA5Ljk4MnY5Ljk4MmMwIDguNDA2IDYuNzA1IDExLjQxNSA5LjA4NCAxMi4yMzcuMjQ0LjA3OC40ODUuMTYuNzI1LjI0OCAxNy41MjkgNi4xMTkgMzAuMTE3IDIyLjgwNyAzMC4xMTcgNDIuNDEzIDAgMTkuNDM2LTEyLjM3MSAzNi4wMDUtMjkuNjYxIDQyLjI1NmEyLjYyIDIuNjIgMCAwIDEtLjEzNC4wNGMtLjI2Mi4xMDItLjUzLjE5NS0uNzk3LjI4OC0yLjUyNi45LTkuMzIyIDQuMDU1LTkuMzM0IDEyLjMxNWE0MTUwLjg1IDQxNTAuODUgMCAwIDAgMCA5Ljk4MXY5Ljk4MmMwIDkuOTYzIDkuNDIgMTIuMzQ0IDkuODc0IDEyLjUwNCAxNy40OTQgNi4xNCAzMC4wNTIgMjIuODEzIDMwLjA1MiA0Mi4zOTQgMCAyNC43OTEtMjAuMTI3IDQ0LjkxNy00NC45MTcgNDQuOTE3cy00NC45MTctMjAuMTI2LTQ0LjkxNy00NC45MTdjMC0xOS40MzYgMTIuMzcxLTM2LjAwNCAyOS42NjEtNDIuMjU1LjQ4Ni0uMTc2IDEwLjI1LTIuNzQxIDEwLjI2NS0xMi42NDMuMDAzIDAgLjAwMy0zLjMyNyAwLTkuOTgydi05Ljk4MWMwLTguNDA3LTYuNzA0LTExLjQxNS05LjA4NC0xMi4yMzgtLjI0My0uMDc3LS40ODUtLjE1OS0uNzI1LS4yNDdhLjY0LjY0IDAgMCAxLS4wNjQtLjAxOWMtMTcuNDk1LTYuMTQxLTMwLjA1My0yMi44MTMtMzAuMDUzLTQyLjM5NSAwLTE5LjQ4NCAxMi40MzMtMzYuMDg3IDI5Ljc5NS00Mi4yOTYuMjYzLS4xMDIuNTMtLjE5NC43OTgtLjI4NyAyLjUyNS0uOSA5LjMyMS00LjA1NiA5LjMzMy0xMi4zMTVhNDE1MS45NiA0MTUxLjk2IDAgMCAwIDAtOS45ODJ2LTkuOTgyYzAtOS45NjMtOS40MTktMTIuMzQ0LTkuODczLTEyLjUwMy0xNy40OTUtNi4xNDEtMzAuMDUzLTIyLjgxMy0zMC4wNTMtNDIuMzk1IDAtNS45OTggMS4xNzgtMTEuNzIzIDMuMzE2LTE2Ljk1NSAyLjE5LTUuNDc2IDUuNTAxLTEwLjYwNiA5LjkzMi0xNS4wMzcgMTcuNTMtMTcuNTI4IDQ1Ljk5My0xNy41MjggNjMuNTIzIDAgMTMuMDc2IDEzLjA3NyAxNi4zOTggMzIuMjM4IDkuOTY1IDQ4LjQwNmE0NC45IDQ0LjkgMCAwIDEtMS43NDkgMy44OTFjLTEuMjAxIDIuODM3LTMuMDQ4IDkuMjg5IDIuMzQxIDE0LjcyNGw2Ljc0MiA2Ljc0M2M3LjA0NiA3LjA0NiAxNS4zODggMi4wNjggMTUuODIzIDEuODU5IDE2LjcxMy04LjAyOCAzNy4zODItNS4xMTggNTEuMjI4IDguNzI4bC4wNTkuMDU5Yy4wMTkuMDIuMDM5LjAzOS4wNTguMDU5IDEzLjc0NCAxMy43NDIgMTYuNzEzIDM0LjIwNyA4LjkwNiA1MC44NTMtLjIxOS40NjctNS4zMDkgOS4xODYgMS42ODIgMTYuMTk4LS4wMDIuMDAyIDIuMTE0IDIuMTE4IDYuMzQ4IDYuMzQ5di0uMDAxbDcuMDU4IDcuMDU4YzcuMDQ2IDcuMDQ2IDE1LjM4OSAyLjA2OSAxNS44MjMgMS44NiAxNi43MTMtOC4wMjggMzcuMzgyLTUuMTE5IDUxLjIyOCA4LjcyOGExLjY0IDEuNjQgMCAwIDEgLjA1OS4wNTljLjAyLjAxOS4wMzkuMDM5LjA1OS4wNTggMTMuNzQ0IDEzLjc0MyAxNi43MTIgMzQuMjA3IDguOTA1IDUwLjg1My0uMjE4LjQ2Ny01LjI5NSA5LjE2MSAxLjY1MiAxNi4xNjlsNi43NDIgNi43NDFjNC44ODkgNC44ODkgMTAuNDAyIDMuOTg5IDEzLjQ2NSAyLjkxMSAyLjEyLTEuMTkgNC4zNDctMi4yMTEgNi42NjItMy4wNDguNDg2LS4xNzYgMTAuMjUtMi43NDEgMTAuMjY1LTEyLjY0My4wMDMgMCAuMDAzLTMuMzI3IDAtOS45ODJ2LTkuOTgxYzAtOC40MDctNi43MDQtMTEuNDE1LTkuMDg0LTEyLjIzOC0uMjQzLS4wNzctLjQ4NS0uMTU5LS43MjUtLjI0Ny0xNy41MjktNi4xMi0zMC4xMTctMjIuODA4LTMwLjExNy00Mi40MTQgMC0xOS40MzYgMTIuMzcxLTM2LjAwNCAyOS42NjEtNDIuMjU2YTIuNjIgMi42MiAwIDAgMSAuMTM0LS4wNGMuMjYzLS4xMDIuNTMtLjE5NC43OTgtLjI4NyAyLjUyNS0uOSA5LjMyMS00LjA1NiA5LjMzMy0xMi4zMTVhNDE1MS45NiA0MTUxLjk2IDAgMCAwIDAtOS45ODJ2LTkuOTgyYzAtOS45NjMtOS40MTktMTIuMzQ0LTkuODczLTEyLjUwMy0xNy40OTUtNi4xNDEtMzAuMDUzLTIyLjgxMy0zMC4wNTMtNDIuMzk1IDAtMjQuNzkgMjAuMTI3LTQ0LjkxNyA0NC45MTctNDQuOTE3czQ0LjkxNyAyMC4xMjcgNDQuOTE3IDQ0LjkxN2MwIDE5LjQzNi0xMi4zNzEgMzYuMDA0LTI5LjY2MSA0Mi4yNTYtLjQ4Ni4xNzYtMTAuMjUgMi43NDEtMTAuMjY1IDEyLjY0MmE0MTUxLjk2IDQxNTEuOTYgMCAwIDAgMCA5Ljk4MnY5Ljk4MmMwIDguNDA2IDYuNzA0IDExLjQxNSA5LjA4NCAxMi4yMzcuMjQ0LjA3OC40ODUuMTYuNzI1LjI0OGEuODQuODQgMCAwIDEgLjA2NS4wMThjMTcuNDk0IDYuMTQxIDMwLjA1MiAyMi44MTMgMzAuMDUyIDQyLjM5NSAwIDE5LjQ4NC0xMi40MzMgMzYuMDg4LTI5Ljc5NSA0Mi4yOTYtLjI2Mi4xMDItLjUzLjE5NS0uNzk3LjI4OC0yLjUyNi45LTkuMzIyIDQuMDU1LTkuMzM0IDEyLjMxNWE0MTUwLjg1IDQxNTAuODUgMCAwIDAgMCA5Ljk4MXY5Ljk4MmMwIDkuOTYzIDkuNDE5IDEyLjM0NCA5Ljg3NCAxMi41MDQgMTcuNDk0IDYuMTQgMzAuMDUyIDIyLjgxMyAzMC4wNTIgNDIuMzk0YTQ0Ljc1IDQ0Ljc1IDAgMCAxLTMuMzE1IDE2Ljk1NmMtMi4xOTEgNS40NzUtNS41MDIgMTAuNjA1LTkuOTMzIDE1LjAzNi0xNy41MjkgMTcuNTI5LTQ1Ljk5MyAxNy41MjktNjMuNTIzIDAtMTMuMDc2LTEzLjA3Ny0xNi4zOTctMzIuMjM4LTkuOTY1LTQ4LjQwNWE0NC45IDQ0LjkgMCAwIDEgMS43NDktMy44OTFjMS4yMDItMi44MzggMy4wNDktOS4yOS0yLjM0MS0xNC43MjVsLTYuNzQyLTYuNzQzYy03LjA0Ni03LjA0Ni0xNS4zODgtMi4wNjgtMTUuODIyLTEuODU5LTE2LjcxMyA4LjAyOC0zNy4zODIgNS4xMTgtNTEuMjI5LTguNzI4LS4wMTktLjAyLS4wMzktLjAzOS0uMDU4LS4wNTlzLS4wNC0uMDM5LS4wNTktLjA1OGgweiIgZmlsbD0iIzc4NGFhZSIvPjwvZz48L3N2Zz4=
+      mediatype: image/svg+xml
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+    - supported: false
+      type: OwnNamespace
+    - supported: false
+      type: SingleNamespace
+    - supported: false
+      type: MultiNamespace
+    - supported: true
+      type: AllNamespaces
+  keywords:
+    - raptor
+    - feature engineering
+    - feature store
+    - kubeflow
+    - serverless
+    - platform
+    - machine learning
+    - ML
+    - DS
+    - data science
+  links:
+    - name: Raptor
+      url: https://raptor.ml
+  maintainers:
+    - email: almog.baku@gmail.com
+      name: Almog Baku
+  maturity: alpha
+  minKubeVersion: 1.18.0
+  provider:
+    name: Raptor
+    url: https://raptor.ml
+  version: 0.0.0

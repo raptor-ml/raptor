@@ -1,0 +1,16 @@
+apiVersion: k8s.raptor.ml/v1alpha1
+kind: Feature
+metadata:
+  name: user-city
+spec:
+  primitive: string
+  freshness: 720h #30 days
+  staleness: 2160h #90 days
+  builder:
+    kind: rest
+    url: https://jsonplaceholder.typicode.com/users/{entity_id}/
+    method: GET
+    body: ~
+    pyexp: |
+      def handler(**req):
+        return req["payload"]["address"]["city"]

@@ -1,0 +1,148 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        default: alpha
+        description: What type of release is this?
+        required: true
+        type: choice
+        options:
+          - alpha
+          - beta
+          - rc
+          - stable
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Prerelease prep
+        id: prerelease
+        run: |
+          if [ "${{ github.event.inputs.release_type }}" == "stable" ]; then
+            echo "::set-output name=version_format::v\${major}.\${minor}.\${patch}"
+            echo "::set-output name=prerelease::false"
+          else
+            echo "::set-output name=prerelease::true"
+            echo "::set-output name=version_format::v\${major}.\${minor}.\${patch}-${{ github.event.inputs.release_type }}\${increment}"
+          fi
+        shell: bash
+      - name: Calculate Semver
+        uses: paulhatch/semantic-version@v5.0.0-alpha
+        id: version
+        with:
+          # The prefix to use to identify tags
+          tag_prefix: "v"
+          major_pattern: "/^(:warning:|⚠/).*/"
+          # Same as above except indicating a minor change, supports regular expressions wrapped with '/'
+          minor_pattern: "/^(:sparkles:|✨).*/"
+          # A string to determine the format of the version output
+          version_format: "${{ steps.prerelease.outputs.version_format }}"
+      - name: Setup Go environment
+        uses: actions/setup-go@v3
+        with:
+          go-version: '^1.18'
+      - name: Build project
+        run: |
+          make generate bundle installer build \
+            VERSION=${{ steps.version.outputs.version }} \
+            BUNDLE_VERSION=${{ steps.version.outputs.version_tag }} \
+            CHANNELS=${{ github.event.inputs.release_type }} \
+            ENV=prod
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata - Core
+        id: meta_core
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-core
+          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
+      - name: Extract metadata - Historian
+        id: meta_historian
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-historian
+          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
+      - name: Extract metadata - Bundle
+        id: meta_bundle
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-bundle
+          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
+      - name: Extract metadata - Runtime
+        id: meta_runtime
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-runtime
+          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
+      - name: Build & Push - Historian
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: hack/release.Dockerfile
+          target: historian
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_historian.outputs.tags }}
+          labels: ${{ steps.meta_historian.outputs.labels }}
+      - name: Build & Push - Core
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: hack/release.Dockerfile
+          target: core
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_core.outputs.tags }}
+          labels: ${{ steps.meta_core.outputs.labels }}
+      - name: Build & Push - Runtime
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: hack/release.Dockerfile
+          target: runtime
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_runtime.outputs.tags }}
+          labels: ${{ steps.meta_runtime.outputs.labels }}
+      - name: Build & Push - Bundle
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: bundle.Dockerfile
+          target: bundle
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta_bundle.outputs.tags }}
+          labels: ${{ steps.meta_bundle.outputs.labels }}
+      - name: Tag
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ steps.version.outputs.version }}',
+              sha: context.sha
+            })
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          files: |
+            installer.sh
+          prerelease: ${{ steps.prerelease.outputs.prerelease }}
+          name: Version ${{ steps.version.outputs.version }}

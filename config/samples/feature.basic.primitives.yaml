@@ -1,0 +1,140 @@
+apiVersion: k8s.raptor.ml/v1alpha1
+kind: Feature
+metadata:
+  name: primitive-string
+  namespace: default
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+spec:
+  primitive: "string"
+  freshness: 10s
+  staleness: 5m
+  builder:
+    kind: expression
+    pyexp: |
+      def handler(**req):
+        return "hello"
+---
+apiVersion: k8s.raptor.ml/v1alpha1
+kind: Feature
+metadata:
+  name: primitive-int
+  namespace: default
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+spec:
+  primitive: "int"
+  freshness: 10s
+  staleness: 5m
+  builder:
+    kind: expression
+    pyexp: |
+      def handler(**req):
+        return 1
+---
+apiVersion: k8s.raptor.ml/v1alpha1
+kind: Feature
+metadata:
+  name: primitive-float
+  namespace: default
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+spec:
+  primitive: "float"
+  freshness: 10s
+  staleness: 5m
+  builder:
+    kind: expression
+    pyexp: |
+      def handler(**req):
+        return 1.1
+---
+apiVersion: k8s.raptor.ml/v1alpha1
+kind: Feature
+metadata:
+  name: primitive-timestamp
+  namespace: default
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+spec:
+  primitive: "timestamp"
+  freshness: 10s
+  staleness: 5m
+  builder:
+    kind: expression
+    pyexp: |
+      def handler(**req):
+        return time.now()
+---
+apiVersion: k8s.raptor.ml/v1alpha1
+kind: Feature
+metadata:
+  name: primitive-array-strings
+  namespace: default
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+spec:
+  primitive: "[]string"
+  freshness: 10s
+  staleness: 5m
+  builder:
+    kind: expression
+    pyexp: |
+      def handler(**req):
+        return [
+          "a",
+          "b",
+          "c",
+        ]
+---
+apiVersion: k8s.raptor.ml/v1alpha1
+kind: Feature
+metadata:
+  name: primitive-array-ints
+  namespace: default
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+spec:
+  primitive: "[]int"
+  freshness: 10s
+  staleness: 5m
+  builder:
+    kind: expression
+    pyexp: |
+      def handler(**req):
+        return [1,2,3]
+---
+apiVersion: k8s.raptor.ml/v1alpha1
+kind: Feature
+metadata:
+  name: primitive-array-floats
+  namespace: default
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+spec:
+  primitive: "[]float"
+  freshness: 10s
+  staleness: 5m
+  builder:
+    kind: expression
+    pyexp: |
+      def handler(**req):
+        return [1.4,2.0,3.2]
+---
+apiVersion: k8s.raptor.ml/v1alpha1
+kind: Feature
+metadata:
+  name: primitive-array-timestamps
+  namespace: default
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+spec:
+  primitive: "[]timestamp"
+  freshness: 10s
+  staleness: 5m
+  builder:
+    kind: expression
+    pyexp: |
+      def handler(**req):
+        now = time.now()
+        return [now, time.from_timestamp(now.unix+1), time.from_timestamp(now.unix+2)]

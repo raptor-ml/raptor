@@ -1,0 +1,17 @@
+resources:
+  - historian.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+images:
+  - name: historian
+    newName: ghcr.io/raptor-ml/raptor-historian
+    newTag: latest
+
+replicas:
+  - count: 1
+    name: historian
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization

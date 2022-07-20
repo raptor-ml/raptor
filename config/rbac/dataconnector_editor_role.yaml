@@ -1,0 +1,24 @@
+# permissions for end users to edit dataconnectors.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: dataconnector-editor-role
+rules:
+  - apiGroups:
+      - k8s.raptor.ml
+    resources:
+      - dataconnectors
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - k8s.raptor.ml
+    resources:
+      - dataconnectors/status
+    verbs:
+      - get

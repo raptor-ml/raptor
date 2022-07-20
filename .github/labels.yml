@@ -1,0 +1,48 @@
+- color: d73a4a
+  description: Something isn't working
+  name: bug
+- color: 0075ca
+  description: Improvements or additions to documentation
+  name: documentation
+- color: cfd3d7
+  description: This issue or pull request already exists
+  name: duplicate
+- color: a2eeef
+  description: New feature or request
+  name: enhancement
+- color: 7057ff
+  description: Good for newcomers
+  name: good first issue
+- color: 008672
+  description: Extra attention is needed
+  name: help wanted
+- color: e4e669
+  description: This doesn't seem right
+  name: invalid
+- color: d876e3
+  description: Further information is requested
+  name: question
+- color: ffffff
+  description: This will not be worked on
+  name: wontfix
+- color: 6e5494
+  description: Related to the Runtime-sidecar
+  name: component/runtime-sidecar
+- color: 8e5494
+  description: Related to the Streaming runner
+  name: component/streaming
+- color: 589fa3
+  description: Related to the LabSDK
+  name: component/labsdk
+- color: 7e5494
+  description: Related to the Historian
+  name: component/historian
+- color: 29b5e8
+  description: Related to the Snowflake provider
+  name: provider/snowflake
+- color: ff9900
+  description: Related to the AWS provider
+  name: provider/aws
+- color: 7A0C00
+  description: Related to the Redis provider
+  name: provider/redis

@@ -1,0 +1,12 @@
+apiVersion: k8s.raptor.ml/v1alpha1
+kind: Feature
+metadata:
+  name: hello-world
+spec:
+  primitive: string
+  freshness: 1h
+  staleness: 2h
+  builder:
+    pyexp: |-
+      def handler(**req):
+         return "Hello world " + req["entity_id"]

@@ -1,0 +1,54 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: mutating-webhook-configuration
+webhooks:
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: webhook-service
+        namespace: system
+        path: /mutate-k8s-raptor-ml-v1alpha1-feature
+    failurePolicy: Fail
+    name: vfeature.kb.io
+    rules:
+      - apiGroups:
+          - k8s.raptor.ml
+        apiVersions:
+          - v1alpha1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - features
+    sideEffects: NoneOnDryRun
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: validating-webhook-configuration
+webhooks:
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: webhook-service
+        namespace: system
+        path: /validate-k8s-raptor-ml-v1alpha1-feature
+    failurePolicy: Fail
+    name: vfeature.kb.io
+    rules:
+      - apiGroups:
+          - k8s.raptor.ml
+        apiVersions:
+          - v1alpha1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - features
+    sideEffects: NoneOnDryRun

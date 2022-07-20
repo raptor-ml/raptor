@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package raptor.runtime.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/raptor-ml/raptor/core/v1alpha1;coreV1alpha1";
+
+// +++ Read methods +++
+
+message ExecutePyExpRequest {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    string program_hash = 3 [(validate.rules).string.len = 64];
+    optional string entity_id = 4;
+    google.protobuf.Any data = 5 [(validate.rules).any = {
+        required: true,
+        in: ["type.googleapis.com/pb.CloudEvent"]
+    }];
+}
+message ExecutePyExpResponse {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+}
+message LoadPyExpProgramRequest {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    string program = 3;
+}
+message LoadPyExpProgramResponse {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    string program_hash = 3;
+}
+message RegisterSchemaRequest {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    string schema = 2 [(validate.rules).string.uri = true];
+}
+message RegisterSchemaResponse {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+}
+
+// +++ Service +++
+service RuntimeService {
+    rpc LoadPyExpProgram (LoadPyExpProgramRequest) returns (LoadPyExpProgramResponse) {
+        option (google.api.http) = {
+            post: "/pyexp"
+            body: "*"
+        };
+    }
+    rpc RegisterSchema (RegisterSchemaRequest) returns (RegisterSchemaResponse) {
+        option (google.api.http) = {
+            post: "/schema"
+            body: "*"
+        };
+    }
+    rpc ExecutePyExp (ExecutePyExpRequest) returns (ExecutePyExpResponse) {
+        option (google.api.http) = {
+            post: "/pyexp/{program_hash}"
+            body: "*"
+        };
+    }
+}

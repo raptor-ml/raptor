@@ -1,0 +1,9 @@
+apiVersion: k8s.raptor.ml/v1alpha1
+kind: FeatureSet
+metadata:
+  name: featureset-basic
+spec:
+  timeout: 2s
+  features:
+    - hello-world
+    - simple-aggr

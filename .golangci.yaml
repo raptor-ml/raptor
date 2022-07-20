@@ -1,0 +1,7 @@
+run:
+  tests: false
+  timeout: 5m
+
+linters:
+  disable:
+    - unused

@@ -1,0 +1,29 @@
+spec:
+  template:
+    spec:
+      containers:
+        - name: historian
+          args:
+            - -r=redis-standalone.default:6379
+          env:
+            - name: AWS_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: providers-creds
+                  key: AWS_ACCESS_KEY
+            - name: AWS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: providers-creds
+                  key: AWS_SECRET_KEY
+            - name: AWS_REGION
+              value: eu-west-1
+            - name: S3_BUCKET
+              value: raptor-test
+            - name: SNOWFLAKE_URI
+              valueFrom:
+                secretKeyRef:
+                  name: providers-creds
+                  key: SNOWFLAKE_URI
+            - name: HISTORICAL_WRITER_PROVIDER
+              value: s3-parquet

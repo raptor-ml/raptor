@@ -1,0 +1,26 @@
+apiVersion: k8s.raptor.ml/v1alpha1
+kind: Feature
+metadata:
+  name: simple-aggr
+  namespace: default #production
+  labels:
+    app: massivedynamic
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+    a8r.io/description: "Demonstration of a simple aggr function"
+spec:
+  primitive: int
+  freshness: 10s
+  staleness: 1m
+  aggr:
+    - sum
+    - count
+    - min
+    - max
+    - avg
+  builder:
+    kind: expression
+    pyexp: |
+      def handler(**req):
+        print("Setting a windowed feature from the pyexp")
+        update_feature(req["feature_fqn"], req["entity_id"], 1)
