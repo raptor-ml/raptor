@@ -1,19 +1,19 @@
 resources:
-- core.yaml
-- service.yaml
-- webhook-server-cert.yaml
+  - core.yaml
+  - service.yaml
+  - webhook-server-cert.yaml
 
 generatorOptions:
   disableNameSuffixHash: true
 
 images:
-- name: controller
-  newName: ghcr.io/raptor-ml/raptor-core
-  newTag: latest
+  - name: controller
+    newName: ghcr.io/raptor-ml/raptor-core
+    newTag: latest
 
 replicas:
-- count: 3
-  name: controller-core
+  - count: 3
+    name: controller-core
 
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization

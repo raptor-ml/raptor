@@ -20,34 +20,34 @@ spec:
       securityContext:
         runAsNonRoot: true
       containers:
-      - name: historian
-        command:
-        - /historian
-        image: historian:latest
-        imagePullPolicy: IfNotPresent
-        securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8081
-          initialDelaySeconds: 15
-          periodSeconds: 20
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 8081
-          initialDelaySeconds: 5
-          periodSeconds: 10
-        # TODO(user): Configure the resources accordingly based on the project requirements.
-        # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-        resources:
-          limits:
-            cpu: 500m
-            memory: 1024Mi
-          requests:
-            cpu: 100m
-            memory: 200Mi
+        - name: historian
+          command:
+            - /historian
+          image: historian:latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          # TODO(user): Configure the resources accordingly based on the project requirements.
+          # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1024Mi
+            requests:
+              cpu: 100m
+              memory: 200Mi
       serviceAccountName: controller-core
       terminationGracePeriodSeconds: 10

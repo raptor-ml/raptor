@@ -17,9 +17,9 @@ This document describes how to contribute to the project.
 1. Fork the desired repo, develop and test your code changes.
 1. Submit a pull request.
 
-## How to build Raptor locally
+## How to build RaptorML locally
 
-Note that, by building Raptor from the source code we are allowed to test the changes made locally.
+Note that, by building RaptorML from the source code we are allowed to test the changes made locally.
 
 1. Run the following command to clone your fork of the project locally
 
@@ -27,7 +27,7 @@ Note that, by building Raptor from the source code we are allowed to test the ch
 $ git clone git@github.com:<user>/raptor.git
 ```
 
-2. Run the command `make -C hack/dev new-local-cluster` to create a new local cluster with Raptor installed.
+2. Run the command `make -C hack/dev new-local-cluster` to create a new local cluster with RaptorML installed.
 
 ## What to do before submitting a pull request
 
@@ -92,7 +92,7 @@ mgr.AddMetricsExtraHandler("/debug/pprof/trace", http.HandlerFunc(pprof.Trace))
 
 ## Code of conduct
 
-Participation in the Raptor community is governed by the [Kubernetes Code of Conduct](CODE_OF_CONDUCT.md).
+Participation in the RaptorML community is governed by the [Kubernetes Code of Conduct](CODE_OF_CONDUCT.md).
 
 [golangci]:https://github.com/golangci/golangci-lint
 

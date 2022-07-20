@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022 Raptor.
+Copyright (c) 2022 RaptorML authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ func main() {
 	zl := logger()
 	logger := zapr.NewLogger(zl)
 
-	logger.WithName("setup").WithValues("version", version.Version).Info("Initializing Raptor Runtime...")
+	logger.WithName("setup").WithValues("version", version.Version).Info("Initializing RaptorML Runtime...")
 
 	// Creating Engine
 	cc, err := grpc.Dial(

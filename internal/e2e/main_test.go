@@ -2,7 +2,7 @@
 // +build e2e
 
 /*
- * Copyright (c) 2022 Raptor.
+ * Copyright (c) 2022 RaptorML authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

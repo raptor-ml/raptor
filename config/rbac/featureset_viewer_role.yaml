@@ -4,17 +4,17 @@ kind: ClusterRole
 metadata:
   name: featureset-viewer-role
 rules:
-- apiGroups:
-  - k8s.raptor.ml
-  resources:
-  - featuresets
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - k8s.raptor.ml
-  resources:
-  - featuresets/status
-  verbs:
-  - get
+  - apiGroups:
+      - k8s.raptor.ml
+    resources:
+      - featuresets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - k8s.raptor.ml
+    resources:
+      - featuresets/status
+    verbs:
+      - get

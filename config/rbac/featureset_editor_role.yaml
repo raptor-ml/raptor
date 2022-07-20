@@ -4,21 +4,21 @@ kind: ClusterRole
 metadata:
   name: featureset-editor-role
 rules:
-- apiGroups:
-  - k8s.raptor.ml
-  resources:
-  - featuresets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - k8s.raptor.ml
-  resources:
-  - featuresets/status
-  verbs:
-  - get
+  - apiGroups:
+      - k8s.raptor.ml
+    resources:
+      - featuresets
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - k8s.raptor.ml
+    resources:
+      - featuresets/status
+    verbs:
+      - get

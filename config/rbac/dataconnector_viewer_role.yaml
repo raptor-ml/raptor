@@ -4,17 +4,17 @@ kind: ClusterRole
 metadata:
   name: dataconnector-viewer-role
 rules:
-- apiGroups:
-  - k8s.raptor.ml
-  resources:
-  - dataconnectors
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - k8s.raptor.ml
-  resources:
-  - dataconnectors/status
-  verbs:
-  - get
+  - apiGroups:
+      - k8s.raptor.ml
+    resources:
+      - dataconnectors
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - k8s.raptor.ml
+    resources:
+      - dataconnectors/status
+    verbs:
+      - get

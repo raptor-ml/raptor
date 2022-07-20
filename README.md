@@ -13,14 +13,14 @@
 <br />
 <div align="center">
   <a href="https://github.com/raptor-ml/raptor">
-    <img src=".github/logo.svg" alt="Raptor - Production-ready feature engineering" width="300">
+    <img src=".github/logo.svg" alt="RaptorML - Production-ready feature engineering" width="300">
   </a>
 
 <h3 align="center">Serverless feature engineering - from notebook to production</h3>
 
   <p align="center">
     Build production-ready ML features, directly from your notebook, without being a software engineer. <br />
-    Focus on <strong>data science</strong>, Raptor will take care of the engineering overhead.
+    Focus on <strong>data science</strong>, RaptorML will take care of the engineering overhead.
     <br />
     <br />
     <a href="https://raptor.ml"><strong>Explore the docs »</strong></a>
@@ -34,7 +34,7 @@
   </p>
 </div>
 
-[![Raptor Screen Shot][product-screenshot]][docs-url]
+[![RaptorML Screen Shot][product-screenshot]][docs-url]
 
 ## 🧐 What is Raptor?
 
@@ -89,7 +89,7 @@ You can read more about Raptor's architecture in [the docs][docs-url].
 
 ## ⚡️ Quick start
 
-The LabSDK is the quickest and most popular way to develop Raptor compatible features.
+The LabSDK is the quickest and most popular way to develop RaptorML compatible features.
 
 [![Colab][colab-button]][colab-url]
 
@@ -137,7 +137,7 @@ def hello_world(**req: RaptorRequest):
     return "hello " + req["entity_id"] + "!"
 ```
 
-### Option 2: Raptor compatible Feature (the Kubernetes native way)
+### Option 2: RaptorML compatible Feature (the Kubernetes native way)
 
 The code below, is actually the results of Option 1 above 🤪
 But in case you've decided to not use the LabSDK, you can write a Feature Definition like this:

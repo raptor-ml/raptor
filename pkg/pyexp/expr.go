@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2022 Raptor.
+Copyright (c) 2022 RaptorML authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -108,7 +108,7 @@ func New(program string, fqn string) (Runtime, error) {
 	altHandler = strings.ReplaceAll(altHandler, "-", "_")
 	d.handler = programHandler(f, altHandler)
 	if d.handler == "" {
-		return nil, fmt.Errorf("`%s` func or `%s` has not declared and is required by the Raptor spec", HandlerFuncName, altHandler)
+		return nil, fmt.Errorf("`%s` func or `%s` has not declared and is required by the RaptorML spec", HandlerFuncName, altHandler)
 	}
 
 	d.program = p

@@ -32,4 +32,4 @@ body:
     id: version
     attributes:
       label: Version
-      description: The version of Raptor you are using.
+      description: The version of RaptorML you are using.
