@@ -38,23 +38,22 @@
 
 ## 🧐 What is Raptor?
 
-With Raptor, Data Scientists can write ML Features that can work in production directly in your notebook and deploy
-them to production on their own (yes! without going through the engineering team). **It's like writing Lambda for
-Feature Engineering.**
-
-After developing your ML features, deploy them to your Kubernetes, and the Raptor extension will take care of the
-production concerns (such as scale, high availability, authentication, caching, monitoring, etc.)
+With Raptor, data scientists can stop waiting for others to build production-ready version of their work. Instead,
+slightly
+tweak your Python code and write your features' code in a notebook. Then, export the features to Kubernetes, and
+RaptorML will take care of the production and engineering concerns (such as scale, high availability, authentication,
+caching, monitoring, etc.)
 
 [![Colab][colab-button]][colab-url]
 
 ### 😍 Why people *love* Raptor?
 
-* **Data Scientists** love Raptor because it's easy to use and make a use of their work.
-  No more excuses from the engineering team!
+* **Data Scientists** love Raptor because it's _easy to use_ and let them make _impact_ with their work _swiftly_.
+  No more excuses from other teams!
 * **DevOps teams** love Raptor because it's **built on top of Kubernetes**, leveraging their standard stack, and it's
   *ridiculously* easy to deploy and manage (because of Kubernetes, duh?).
 
-And what about the engineers? Well, it's finally taking away this "burden"  from them.
+And what about the engineers? Well, it's finally taking away this "burden" from them.
 
 ### ⭐️ Features
 
@@ -63,14 +62,13 @@ And what about the engineers? Well, it's finally taking away this "burden"  from
 * **Real-Time / On-demand feature calculation**<br/>
   Raptor is optimizing features to be calculated at the time of the request.
 * **Caching and storing**<br/>
-  Raptor is utilizing an integrated Feature-Store to cache the calculation results and take snapshots of the data
-  to cold storage for historical purposes (such as re-training).
+  Raptor is utilizing an integrated "Reversed Feature-Store" to cache the calculation results and take snapshots of the
+  data to cold storage for historical purposes (such as re-training).
 * **Pluggable**<br/>
-  Raptor is highly-pluggable. Technically, you can even bring your own feature store implementation.
+  Raptor is highly-pluggable. You can even bring your own storage implementation.
 * **Kubernetes Native and Standards**<br/>
   Raptor is implementing by-design functionalities of Kubernetes such as leader-election, scaling, health,
-  auto-recovery,
-  monitoring and logging.
+  auto-recovery, monitoring and logging.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -109,7 +107,7 @@ Learn more about production installation at [the docs][docs-url].
 
    (You can use [Kind](https://kind.sigs.k8s.io/) to install Raptor locally)
 2. `kubectl` installed and configured to your cluster.
-3. Redis server
+3. Redis server (> 2.8.9)
 
    ⚠️ *Tip: You can also use a managed Redis solution such as [AWS ElasticCache](https://aws.amazon.com/elasticache/)
    or [GCP Memorystore](https://cloud.google.com/memorystore), or via
@@ -124,12 +122,17 @@ the [OperatorHub Installation method](https://operatorhub.io/operator/raptor).
 
 ## 🌍 "Hello World" feature
 
-We know, you played with [the quick starter][colab-url] already.. But let's paste here some "hello world" code
+We know, you played with [the quick starter][colab-url] already, but let's paste here some "hello world" code
 for the lazy bastard out there 👹
 
 _For more examples, please refer to the [Documentation][docs-url]_
 
-### Option 1: Using LabSDK
+### Hello world using the LabSDK
+
+The following code will create a feature that will return `Hello <name>!` when called, where <name> is the `entity_id`
+passed as an argument via the `**kwargs` parameter.
+
+```python
 
 ```python
 @raptor.register(str, freshness="1m", staleness="15m")
@@ -137,26 +140,19 @@ def hello_world(**req: RaptorRequest):
     return "hello " + req["entity_id"] + "!"
 ```
 
-### Option 2: RaptorML compatible Feature (the Kubernetes native way)
-
-The code below, is actually the results of Option 1 above 🤪
-But in case you've decided to not use the LabSDK, you can write a Feature Definition like this:
-
-```yaml
-apiVersion: k8s.raptor.ml/v1alpha1
-    kind: Feature
-    metadata:
-        name: hello_world
-    spec:
-        primitive: string
-        freshness: 1m
-        staleness: 15m
-        builder:
-            kind: expression
-    pyexp: |
-        def hello_world(**req):
-            return 'hello ' + req['entity_id']) + '!'
+To train our data with it, we can "replay" the feature with the following code:
+```python
+import pandas as pd
+df = pd.DataFrame({"entity_id": ["John", "Jane", "Joe"]})
+hello_world.replay(df)
 ```
+
+To export the feature to Kubernetes, we can use the `manifest()` method:
+```python
+print(hello_world.manifest())
+```
+
+Then, we can deploy the generated manifest to the cluster using [`kubectl`](https://kubernetes.io/docs/reference/kubectl/) or with our CI/CD.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -243,7 +239,7 @@ Distributed under the Apache2 License. Read the `LICENSE` file for more informat
 
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat&logo=linkedin&colorB=555
 
-[linkedin-url]: https://linkedin.com/in/raptor-ml
+[linkedin-url]: https://linkedin.com/company/raptor-ml
 
 [go-report-card-shield]: https://goreportcard.com/badge/github.com/raptor-ml/raptor
 
