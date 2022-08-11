@@ -75,7 +75,7 @@ And what about the engineers? Well, it's finally taking away this "burden" from 
 ## 💡 How does it work?
 
 Raptor introduces a new way to describe feature transformations by describing them as functions composed of declarative(
-via Python's decorators) and imperative(function code) parts. This way, we can instruct the "Natun Core" to implement
+via Python's decorators) and imperative(function code) parts. This way, we can instruct the "Raptor Core" to implement
 the "declarative part" and optimize your production code.
 
 Behind the scene, Raptor Core is extending Kubernetes with the ability to process your features in a "production manner"
