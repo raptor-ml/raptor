@@ -74,20 +74,20 @@ And what about the engineers? Well, it's finally taking away this "burden" from 
 
 ## 💡 How does it work?
 
-Raptor introduces a new way to describe feature transformations by describing them as functions composed of declarative(
-via Python's decorators) and imperative(function code) parts. This way, we can instruct the "Raptor Core" to implement
-the "declarative part" and optimize your production code.
+Raptor allows you to write your ML features in a way that can be translated for production purposes.
+It let you describe the features as functions that composed of declarative(via Python's decorators) and imperative(
+function code) parts. This way, we can instruct the "Raptor Core" to implement the "declarative part" and optimize the
+implementation for production.
 
-Behind the scene, Raptor Core is extending Kubernetes with the ability to process your features in a "production manner"
-. It takes care of the engineering concerns by managing and controlling Kubernetes-native resources such as deployments
-to connect your production data sources and run your business logic at scale. Allowing you to **focus on the business
-logic**.
+After deploying these feature definitions, Raptor Core(the server-side part) is extending Kubernetes with the ability to
+implement them. It takes care of the engineering concerns by managing and controlling Kubernetes-native resources such
+as deployments to connect your production data sources and run your business logic at scale.
 
 You can read more about Raptor's architecture in [the docs][docs-url].
 
 ## ⚡️ Quick start
 
-The LabSDK is the quickest and most popular way to develop RaptorML compatible features.
+Raptor's LabSDK is the quickest and most popular way to develop RaptorML compatible features.
 
 [![Colab][colab-button]][colab-url]
 
@@ -133,26 +133,28 @@ The following code will create a feature that will return `Hello <name>!` when c
 passed as an argument via the `**kwargs` parameter.
 
 ```python
-
-```python
 @raptor.register(str, freshness="1m", staleness="15m")
 def hello_world(**req: RaptorRequest):
     return "hello " + req["entity_id"] + "!"
 ```
 
 To train our data with it, we can "replay" the feature with the following code:
+
 ```python
 import pandas as pd
+
 df = pd.DataFrame({"entity_id": ["John", "Jane", "Joe"]})
 hello_world.replay(df)
 ```
 
 To export the feature to Kubernetes, we can use the `manifest()` method:
+
 ```python
 print(hello_world.manifest())
 ```
 
-Then, we can deploy the generated manifest to the cluster using [`kubectl`](https://kubernetes.io/docs/reference/kubectl/) or with our CI/CD.
+Then, we can deploy the generated manifest to the cluster
+using [`kubectl`](https://kubernetes.io/docs/reference/kubectl/) or with our CI/CD.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
