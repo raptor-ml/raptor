@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.17.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.14
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.5
-	github.com/cert-manager/cert-manager v1.9.1
+	github.com/cert-manager/cert-manager v1.9.0-beta.1.0.20220826121419-62d08c2e6026
 	github.com/cloudevents/sdk-go/binding/format/protobuf/v2 v2.10.1
 	github.com/cloudevents/sdk-go/v2 v2.11.0
 	github.com/die-net/lrucache v0.0.0-20220628165024-20a71bc65bf1
