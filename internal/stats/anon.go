@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
-	"io/ioutil"
 	coreV1 "k8s.io/api/core/v1"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -38,7 +37,7 @@ func getInClusterNamespace() (string, error) {
 	}
 
 	// Load the namespace file and return its content
-	namespace, err := ioutil.ReadFile(inClusterNamespacePath)
+	namespace, err := os.ReadFile(inClusterNamespacePath)
 	if err != nil {
 		return "", fmt.Errorf("error reading namespace file: %w", err)
 	}
