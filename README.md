@@ -53,8 +53,6 @@ caching, monitoring, etc.)
 * **DevOps teams** love Raptor because it's **built on top of Kubernetes**, leveraging their standard stack, and it's
   *ridiculously* easy to deploy and manage (because of Kubernetes, duh?).
 
-And what about the engineers? Well, it's finally taking away this "burden" from them.
-
 ### ⭐️ Features
 
 * **Same code for both training and production**<br/>
@@ -75,11 +73,13 @@ And what about the engineers? Well, it's finally taking away this "burden" from 
 ## 💡 How does it work?
 
 Raptor allows you to write your ML features in a way that can be translated for production purposes.
-It let you describe the features as functions that composed of declarative(via Python's decorators) and imperative(
-function code) parts. This way, we can instruct the "Raptor Core" to implement the "declarative part" and optimize the
-implementation for production.
+Features in Raptor are composed a declarative part(via Python's decorators) and a function code. This way, we can
+instruct the "Raptor Core" to implement the "declarative part" and optimize the implementation for production.
 
-After deploying these feature definitions, Raptor Core(the server-side part) is extending Kubernetes with the ability to
+![Features are composed from a declarative part and a function code][feature-py-def]
+
+After you are satisfied with the results, you can "export" these definitions to Kubernetes and deploy them using
+standard tools; Once deployed, Raptor Core(the server-side part) is extending Kubernetes with the ability to
 implement them. It takes care of the engineering concerns by managing and controlling Kubernetes-native resources such
 as deployments to connect your production data sources and run your business logic at scale.
 
@@ -254,3 +254,5 @@ Distributed under the Apache2 License. Read the `LICENSE` file for more informat
 [colab-url]: https://colab.research.google.com/github/raptor-ml/docs/blob/master/docs/guides/getting-started-with-labsdk.ipynb
 
 [docs-url]: https://raptor.ml/
+
+[feature-py-def]: .github/feature-py-def.png
