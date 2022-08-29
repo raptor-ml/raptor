@@ -1,0 +1,8 @@
+.idea
+*.cpython*
+build/
+dist/
+bin/
+raptor/pyexp/
+*.egg-info/
+.DS_Store
