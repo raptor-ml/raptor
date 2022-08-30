@@ -48,6 +48,7 @@ func InitConfig() {
 	pflag.Bool("disable-cert-management", false, "Setting this flag will disable the automatically "+
 		"certificate binding to the K8s API webhooks.")
 	pflag.Bool("no-webhooks", false, "Setting this flag will disable the K8s API webhook.")
+	pflag.String("system-namespace", "", "The Raptor System namespace.")
 
 	zapOpts := zap.Options{}
 	zapOpts.BindFlags(flag.CommandLine)

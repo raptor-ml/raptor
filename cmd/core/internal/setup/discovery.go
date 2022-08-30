@@ -18,6 +18,7 @@ package setup
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"os"
 )
 
@@ -27,6 +28,11 @@ var inClusterNamespace = ""
 
 func getInClusterNamespace() (string, error) {
 	if inClusterNamespace != "" {
+		return inClusterNamespace, nil
+	}
+
+	if viper.GetString("system-namespace") != "" {
+		inClusterNamespace = viper.GetString("system-namespace")
 		return inClusterNamespace, nil
 	}
 
