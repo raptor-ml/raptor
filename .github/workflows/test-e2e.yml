@@ -7,8 +7,8 @@ on:
 
 jobs:
 
-  e2e:
-    name: e2e-test
+  test-e2e:
+    name: test-e2e
     runs-on: ubuntu-latest
     # Pull requests from the same repository won't trigger this checks as they were already triggered by the push
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
@@ -46,7 +46,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          go test ./internal/e2e/... -tags e2e --build-tag=$(git rev-parse --short HEAD) -json -v 2>&1 | tee /tmp/gotest.log | gotestfmt
+          go test ./internal/e2e/... -tags e2e --build-tag=$(git rev-parse --short HEAD) -json -v 3 2>&1 | tee /tmp/gotest.log | gotestfmt
       - name: Upload test log
         uses: actions/upload-artifact@v2
         if: always()

@@ -46,8 +46,9 @@ func TestCRDSetup(t *testing.T) {
 				t.Errorf("failed to create resources client: %s", err)
 				t.Fail()
 			}
+			r = r.WithNamespace(namespace)
+
 			manifests.AddToScheme(r.GetScheme())
-			r.WithNamespace(namespace)
 			err = DecodeEachFileWithFiler(
 				ctx, os.DirFS("../../config/samples/"), FilterKustomize,
 				decoder.CreateHandler(r),
