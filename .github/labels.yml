@@ -31,8 +31,12 @@
   description: Further information is requested
 
 - name: wontfix
-  color: ffffff
+  color: d4b4c2
   description: This will not be worked on
+
+- name: stale
+  color: a0a2a3
+  description: This issue is stale
 
 - name: component/runtime-sidecar
   color: 6e5494
