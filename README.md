@@ -3,6 +3,7 @@
 [![Go Report Card][go-report-card-shield]][go-report-card-url]
 [![Go Reference][godoc-shield]][godoc-url]
 [![E2E Tests][e2e-tests-shield]][e2e-tests-url]
+[![CII Best Practices][best-practices-shield]][best-practices-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
@@ -208,47 +209,40 @@ Distributed under the Apache2 License. Read the `LICENSE` file for more informat
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 [godoc-shield]: https://pkg.go.dev/badge/github.com/raptor-ml/raptor.svg
-
 [godoc-url]: https://pkg.go.dev/github.com/raptor-ml/raptor
 
 [contributors-shield]: https://img.shields.io/github/contributors/raptor-ml/raptor.svg?style=flat
-
 [contributors-url]: https://github.com/raptor-ml/raptor/graphs/contributors
 
 [forks-shield]: https://img.shields.io/github/forks/raptor-ml/raptor.svg?style=flat
-
 [forks-url]: https://github.com/raptor-ml/raptor/network/members
 
 [stars-shield]: https://img.shields.io/github/stars/raptor-ml/raptor.svg?style=flat
-
 [stars-url]: https://github.com/raptor-ml/raptor/stargazers
 
 [issues-shield]: https://img.shields.io/github/issues/raptor-ml/raptor.svg?style=flat
-
 [issues-url]: https://github.com/raptor-ml/raptor/issues
 
 [e2e-tests-shield]: https://img.shields.io/github/workflow/status/raptor-ml/raptor/Integration%20Tests?label=Tests
-
 [e2e-tests-url]: https://github.com/raptor-ml/raptor/actions/workflows/e2e-test.yml
 
 [license-shield]: https://img.shields.io/github/license/raptor-ml/raptor.svg?style=flat
-
 [license-url]: https://github.com/raptor-ml/raptor/blob/master/LICENSE.txt
 
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat&logo=linkedin&colorB=555
-
 [linkedin-url]: https://linkedin.com/company/raptor-ml
 
 [go-report-card-shield]: https://goreportcard.com/badge/github.com/raptor-ml/raptor
-
 [go-report-card-url]: https://goreportcard.com/report/github.com/raptor-ml/raptor
 
-[product-screenshot]: .github/demo.svg
+[best-practices-shield]: https://bestpractices.coreinfrastructure.org/projects/6406/badge
+[best-practices-url]: https://bestpractices.coreinfrastructure.org/projects/6406
 
 [colab-button]: https://img.shields.io/badge/-Getting%20started%20with%20Colab-blue?style=for-the-badge&logo=googlecolab
-
 [colab-url]: https://colab.research.google.com/github/raptor-ml/docs/blob/master/docs/guides/getting-started-with-labsdk.ipynb
 
 [docs-url]: https://raptor.ml/
+
+[product-screenshot]: .github/demo.svg
 
 [feature-py-def]: .github/feature-py-def.png
