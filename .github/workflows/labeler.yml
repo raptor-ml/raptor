@@ -1,0 +1,35 @@
+name: "Pull Request Triage"
+on:
+  - pull_request_target
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  triage:
+    name: "Triage Pull Request"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/labeler@v4
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+      - uses: codelytv/pr-size-labeler@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          xs_label: 'size/xs'
+          xs_max_size: '15'
+          s_label: 'size/s'
+          s_max_size: '100'
+          m_label: 'size/m'
+          m_max_size: '500'
+          l_label: 'size/l'
+          l_max_size: '100'
+          xl_label: 'size/xl'
+          fail_if_xxl: 'false'
+          message_if_xxl: >
+            This PR exceeds the recommended size of 1000 lines.
+            Please make sure you are NOT addressing multiple issues with one PR.
+            Note this PR might be rejected due to its size.
+          github_api_url: 'api.github.com'
+          files_to_ignore: ''

@@ -1,48 +1,79 @@
-- color: d73a4a
+- name: bug
+  color: d73a4a
   description: Something isn't working
-  name: bug
-- color: 0075ca
+
+- name: documentation
+  color: 0075ca
   description: Improvements or additions to documentation
-  name: documentation
-- color: cfd3d7
+
+- name: duplicate
+  color: cfd3d7
   description: This issue or pull request already exists
-  name: duplicate
-- color: a2eeef
+
+- name: enhancement
+  color: a2eeef
   description: New feature or request
-  name: enhancement
-- color: 7057ff
+
+- name: good first issue
+  color: 7057ff
   description: Good for newcomers
-  name: good first issue
-- color: 008672
+
+- name: help wanted
+  color: 008672
   description: Extra attention is needed
-  name: help wanted
-- color: e4e669
+
+- name: invalid
+  color: e4e669
   description: This doesn't seem right
-  name: invalid
-- color: d876e3
+
+- name: question
+  color: d876e3
   description: Further information is requested
-  name: question
-- color: ffffff
+
+- name: wontfix
+  color: ffffff
   description: This will not be worked on
-  name: wontfix
-- color: 6e5494
+
+- name: component/runtime-sidecar
+  color: 6e5494
   description: Related to the Runtime-sidecar
-  name: component/runtime-sidecar
-- color: 8e5494
+
+- name: component/streaming
+  color: 8e5494
   description: Related to the Streaming runner
-  name: component/streaming
-- color: 589fa3
+
+- name: component/labsdk
+  color: 589fa3
   description: Related to the LabSDK
-  name: component/labsdk
-- color: 7e5494
+
+- name: component/historian
+  color: 7e5494
   description: Related to the Historian
-  name: component/historian
-- color: 29b5e8
+
+- name: provider/snowflake
+  color: 29b5e8
   description: Related to the Snowflake provider
-  name: provider/snowflake
-- color: ff9900
+
+- name: provider/aws
+  color: ff9900
   description: Related to the AWS provider
-  name: provider/aws
-- color: 7A0C00
+
+- name: provider/redis
+  color: 7A0C00
   description: Related to the Redis provider
-  name: provider/redis
+
+- name: size/xs
+  color: 5eeb34
+  description: This PR introduce an extra small change
+- name: size/s
+  color: 37c3e6
+  description: This PR introduce a small change
+- name: size/m
+  color: 3468eb
+  description: This PR introduce a medium change
+- name: size/l
+  color: d12de0
+  description: This PR introduce a large change
+- name: size/xl
+  color: ed268a
+  description: This PR introduce an extra large change
