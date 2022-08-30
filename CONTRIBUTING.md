@@ -18,6 +18,7 @@ This document describes how to contribute to the project.
 1. Submit a pull request.
 
 ## How to build RaptorML locally
+
 Note that, by building RaptorML from the source code we are allowed to test the changes made locally.
 
 1. Run the following command to clone your fork of the project locally
@@ -30,12 +31,13 @@ Note that, by building RaptorML from the source code we are allowed to test the 
     ```
     make build
     ```
-    It's also possible to build the docker images locally using the following command:
+   It's also possible to build the docker images locally using the following command:
     ```
     make docker-build
     ```
 
 ## Set up a KiND cluster
+
 Run following the command to create a new local cluster with RaptorML installed:
 
 ```
@@ -43,6 +45,7 @@ make -C hack/dev new-local-cluster
 ```
 
 This will create a new local cluster with the following components:
+
 - Metrics server
 - Ngnix Ingress Controller (exposed to host on ports 80 & 443)
 - Redis Operator + Redis Cluster (exposed to host on port 6379)
@@ -55,6 +58,7 @@ make -C hack/dev help
 ```
 
 ## Development: running from local environment
+
 Sometimes, it's useful to run RaptorML from a local environment for development and debugging purposes.
 
 1. We need to [set up a local environment first](#set-up-a-kind-cluster).
@@ -111,6 +115,15 @@ You can also use the equivalent emoji directly 🙃.
 Individual commits should not be tagged separately, but will generally be assumed to match the PR. For instance, if you
 have a bugfix in with a breaking change, it's generally encouraged to submit the bugfix separately, but if you must put
 them in one PR, mark the commit separately.
+
+## Contributing major changes
+
+Contributing major changes such as new features or refactoring are always welcome! That being said, they require an
+extra care for us to be able to review them before merging them. To do this, we need you to:
+
+1. Explain in details the proposed change, including the motivation, the proposed solution, and the architecture(when applicable).
+2. Provide at least one example of how to use the proposed change (when applicable; i.e new feature).
+3. Write a test for the proposed change (e2e / unit test).
 
 ## Where the CI Tests are configured
 
