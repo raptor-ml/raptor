@@ -12,14 +12,15 @@ spec:
   primitive: int
   freshness: 10s
   staleness: 1m
-  aggr:
-    - sum
-    - count
-    - min
-    - max
-    - avg
   builder:
     kind: expression
+    aggr_granularity: 10s
+    aggr:
+      - sum
+      - count
+      - min
+      - max
+      - avg
     pyexp: |
       def handler(**req):
         print("Setting a windowed feature from the pyexp")

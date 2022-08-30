@@ -19,7 +19,9 @@ package streaming
 import (
 	"fmt"
 	"github.com/raptor-ml/raptor/api"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/raptor-ml/raptor/pkg/plugins"
+	"github.com/raptor-ml/raptor/pkg/pyexp"
 	"github.com/raptor-ml/raptor/pkg/runner"
 )
 
@@ -47,12 +49,12 @@ func init() {
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
-func FeatureApply(metadata api.Metadata, _ []byte, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
-	if metadata.DataConnector == "" {
+func FeatureApply(md api.Metadata, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
+	if md.DataConnector == "" {
 		return fmt.Errorf("data connector must be set for `%s` builder", name)
 	}
 
-	dc, err := engine.GetDataConnector(metadata.DataConnector)
+	dc, err := engine.GetDataConnector(md.DataConnector)
 	if err != nil {
 		return fmt.Errorf("failed to get data connector: %v", err)
 	}
@@ -60,5 +62,16 @@ func FeatureApply(metadata api.Metadata, _ []byte, api api.FeatureAbstractAPI, e
 	if dc.Kind != name {
 		return fmt.Errorf("data connector must be of type `%s`. got `%s`", name, dc.Kind)
 	}
+
+	if builder.PyExp == "" {
+		return fmt.Errorf("expression is empty")
+	}
+
+	// make sure the expression is valid
+	_, err = pyexp.New(builder.PyExp, md.FQN)
+	if err != nil {
+		return fmt.Errorf("failed to create expression runtime: %w", err)
+	}
+
 	return nil
 }

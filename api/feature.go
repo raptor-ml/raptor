@@ -18,7 +18,6 @@ package api
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -92,12 +91,15 @@ func MetadataFromManifest(in *manifests.Feature) (*Metadata, error) {
 	if primitive == PrimitiveTypeUnknown {
 		return nil, fmt.Errorf("%w: %s", ErrUnsupportedPrimitiveError, in.Spec.Primitive)
 	}
-	aggr, err := StringsToWindowFns(aggrsToStrings(in.Spec.Aggr))
+	aggr, err := StringsToWindowFns(aggrsToStrings(in.Spec.Builder.Aggr))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse aggregation functions: %w", err)
 	}
 	if len(aggr) > 0 && primitive != PrimitiveTypeInteger && primitive != PrimitiveTypeFloat {
 		return nil, fmt.Errorf("%w with Aggregation: %s", ErrUnsupportedPrimitiveError, in.Spec.Primitive)
+	}
+	if in.Spec.Builder.AggrGranularity.Milliseconds() > 0 && len(aggr) > 0 {
+		in.Spec.Freshness = in.Spec.Builder.AggrGranularity
 	}
 
 	md := &Metadata{
@@ -111,15 +113,6 @@ func MetadataFromManifest(in *manifests.Feature) (*Metadata, error) {
 	}
 	if in.Spec.DataConnector != nil {
 		md.DataConnector = in.Spec.DataConnector.FQN()
-	}
-
-	if md.Builder == "" && in.Spec.Builder.Raw != nil && len(in.Spec.Builder.Raw) > 0 {
-		builderType := &manifests.FeatureBuilderKind{}
-		err := json.Unmarshal(in.Spec.Builder.Raw, builderType)
-		if err != nil || builderType.Kind == "" {
-			return nil, fmt.Errorf("failed to unmarshal builder type: %w", err)
-		}
-		md.Builder = strings.ToLower(builderType.Kind)
 	}
 	if md.Builder == "" {
 		//Todo auto-detect builder

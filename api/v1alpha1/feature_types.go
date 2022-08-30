@@ -19,8 +19,8 @@ package v1alpha1
 // Important: Run "make" to regenerate code after modifying this file
 
 import (
+	"encoding/json"
 	"fmt"
-	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -64,6 +64,24 @@ type FeatureSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Timeout"
 	Timeout metav1.Duration `json:"timeout"`
 
+	// DataConnector is a reference for the DataConnector that this Feature is associated with
+	// +optional
+	// +nullable
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Data Connector"
+	DataConnector *ResourceReference `json:"connector,omitempty"`
+
+	// Builder defines a building-block to use to build the feature-value
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Builder"
+	Builder FeatureBuilder `json:"builder"`
+}
+
+// FeatureBuilder defines a building-block to use to build the feature-value
+type FeatureBuilder struct {
+	// Kind defines the type of Builder to use to build the feature-value.
+	// The kind is usually auto-detected from the connector, but can be overridden.
+	// +optional
+	Kind string `json:"kind"`
+
 	// Aggr defines an aggregation on top of the underlying feature-value. Aggregations will be calculated on time-of-request.
 	// Users can specify here multiple functions to calculate the aggregation.
 	// Valid values:
@@ -78,32 +96,21 @@ type FeatureSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Aggregations"
 	Aggr []AggrType `json:"aggr"`
 
-	// DataConnector is a reference for the DataConnector that this Feature is associated with
+	// AggrGranularity defines the granularity of the aggregation.
 	// +optional
 	// +nullable
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Data Connector"
-	DataConnector *ResourceReference `json:"connector,omitempty"`
+	AggrGranularity metav1.Duration `json:"aggr_granularity"`
 
-	// Builder defines a building-block to use to build the feature-value
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Builder"
-	Builder FeatureBuilder `json:"builder"`
-}
-
-// FeatureBuilderKind select the building-block to use to build the feature-value
-type FeatureBuilderKind struct {
-	// Kind defines the type of Builder to use to build the feature-value.
+	// PyExp defines a Python expression to use to build the feature-value.
 	// +optional
-	Kind string `json:"kind"`
-}
-
-// FeatureBuilder defines a building-block to use to build the feature-value
-type FeatureBuilder struct {
-	FeatureBuilderKind `json:",inline"`
+	// +nullable
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Python Expression"
+	PyExp string `json:"pyexp"`
 
 	// Embedded custom configuration of the Builder to use to build the feature-value.
 	// +kubebuilder:pruning:PreserveUnknownFields
 	// +kubebuilder:validation:Schemaless
-	apiextensions.JSON `json:",inline"`
+	Raw json.RawMessage `json:",inline"`
 }
 
 // FeatureStatus defines the observed state of Feature
