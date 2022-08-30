@@ -288,10 +288,6 @@ metadata:
   primitive: {_fmt(f['options'], 'primitive')}
   freshness: {_fmt(f['options'], 'freshness')}
   staleness: {_fmt(f['options'], 'staleness')}"""
-    if 'aggr' in f['options']:
-        t += "\n  aggr:"
-        for a in f['options']['aggr']:
-            t += "\n    - " + a.value
     if 'timeout' in f['options']:
         t += f"\n  timeout: {_fmt(f['options'], 'timeout')}"
     if 'connector' in f['options']:
@@ -300,10 +296,15 @@ metadata:
             t += f"\n    namespace: {_fmt(f['options']['connector'], 'namespace')}"
     t += "\n  builder:"
     if 'builder' in f['options']:
-        t += f"\n    kind: {_fmt(f['options']['builder'], 'kind')}"
-        if f['options']['builder']['options'] is not None:
+        if 'kind' in f['options']['builder']:
+            t += f"\n    kind: {_fmt(f['options']['builder'], 'kind')}"
+        if 'options' in ['builder']['options']:
             for k, v in f['options']['builder']['options']:
                 t += f"    {k}: {_fmt(v)}\n"
+    if 'aggr' in f['options']:
+        t += "\n    aggr:"
+        for a in f['options']['aggr']:
+            t += "\n      - " + a.value
     t += "\n    pyexp: |"
     for line in f['src'].code.split('\n'):
         t += "\n      " + line

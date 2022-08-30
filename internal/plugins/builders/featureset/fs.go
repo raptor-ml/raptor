@@ -32,9 +32,9 @@ func init() {
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
-func FeatureApply(md api.Metadata, builderSpec []byte, faapi api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
+func FeatureApply(md api.Metadata, builder manifests.FeatureBuilder, faapi api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
 	spec := manifests.FeatureSetSpec{}
-	err := json.Unmarshal(builderSpec, &spec)
+	err := json.Unmarshal(builder.Raw, &spec)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal expression spec: %w", err)
 	}

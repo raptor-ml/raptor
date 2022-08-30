@@ -25,6 +25,7 @@ import (
 	"github.com/gregjones/httpcache"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/raptor-ml/raptor/api"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/raptor-ml/raptor/pkg/plugins"
 	"github.com/raptor-ml/raptor/pkg/pyexp"
 	"io"
@@ -47,23 +48,21 @@ type Spec struct {
 	Body string `json:"body"`
 	//+optional
 	Headers http.Header `json:"headers"`
-	// +kubebuilder:validation:Required
-	Expression string `json:"pyexp"`
 }
 
 var httpMemoryCache = lrucache.New(500<<(10*2), 60*15) // 500MB; 15min
 
-func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
+func FeatureApply(md api.Metadata, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
 	spec := &Spec{}
-	err := json.Unmarshal(builderSpec, spec)
+	err := json.Unmarshal(builder.Raw, spec)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal expression spec: %w", err)
 	}
 
-	if spec.Expression == "" {
+	if builder.PyExp == "" {
 		return fmt.Errorf("expression is empty")
 	}
-	runtime, err := pyexp.New(spec.Expression, md.FQN)
+	runtime, err := pyexp.New(builder.PyExp, md.FQN)
 	if err != nil {
 		return fmt.Errorf("failed to create expression runtime: %w", err)
 	}

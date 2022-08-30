@@ -37,7 +37,7 @@ func FeatureWithEngine(e api.EngineWithConnector, in *manifests.Feature) (*Featu
 	}
 
 	if p := plugins.FeatureAppliers.Get(ft.Builder); p != nil {
-		err := p(ft.Metadata, in.Spec.Builder.Raw, &ft, e)
+		err := p(ft.Metadata, in.Spec.Builder, &ft, e)
 		if err != nil {
 			return nil, err
 		}

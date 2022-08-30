@@ -23,7 +23,6 @@ package operator
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/raptor-ml/raptor/api"
@@ -36,7 +35,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-	"strings"
 )
 
 const FeatureWebhookValidatePath = "/validate-k8s-raptor-ml-v1alpha1-feature"
@@ -93,14 +91,6 @@ func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
 		f.Spec.DataConnector.Namespace = f.GetNamespace()
 	}
 	if f.Spec.Builder.Kind == "" {
-		if f.Spec.Builder.Raw != nil && len(f.Spec.Builder.Raw) > 0 {
-			builderType := &raptorApi.FeatureBuilderKind{}
-			err := json.Unmarshal(f.Spec.Builder.Raw, builderType)
-			if err != nil {
-				return fmt.Errorf("failed to unmarshal builder type: %w", err)
-			}
-			f.Spec.Builder.Kind = strings.ToLower(builderType.Kind)
-		}
 		if f.Spec.Builder.Kind == "" && f.Spec.DataConnector != nil {
 			if ar, ok := ctx.Value(admissionRequestContextKey).(admission.Request); ok && ar.DryRun == nil || ok && !*ar.DryRun {
 				dc := raptorApi.DataConnector{}
@@ -127,16 +117,8 @@ func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
 			f.Spec.Builder.Kind = api.ExpressionBuilder
 		}
 
-		//encode the json back with the default builder
-		j := make(map[string]any)
-		err := json.Unmarshal(f.Spec.Builder.Raw, &j)
-		if err != nil {
-			return fmt.Errorf("failed to unmarshal builder: %w", err)
-		}
-		j["kind"] = f.Spec.Builder.Kind
-		f.Spec.Builder.Raw, err = json.Marshal(j)
-		if err != nil {
-			return fmt.Errorf("failed to marshal builder: %w", err)
+		if f.Spec.Builder.AggrGranularity.Milliseconds() > 0 && len(f.Spec.Builder.Aggr) > 0 {
+			f.Spec.Freshness = f.Spec.Builder.AggrGranularity
 		}
 	}
 

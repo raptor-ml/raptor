@@ -12,12 +12,12 @@ spec:
   primitive: int
   freshness: 10s
   staleness: 1m
-  aggr:
-    - sum
-    - count
   connector:
     name: clicks
   builder:
+    aggr:
+      - sum
+      - count
     schema: https://raw.githubusercontent.com/raptor-ml/massivedynamic-protos/master/click.proto#Click
     pyexp: |
       def handler(**req):

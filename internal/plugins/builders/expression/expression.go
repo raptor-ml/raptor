@@ -18,9 +18,9 @@ package expression
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/raptor-ml/raptor/api"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/raptor-ml/raptor/pkg/plugins"
 	"github.com/raptor-ml/raptor/pkg/pyexp"
 )
@@ -30,24 +30,12 @@ func init() {
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
-// ExprSpec is the specification of the expression plugin.
-type ExprSpec struct {
-	// +kubebuilder:validation:Required
-	Expression string `json:"pyexp"`
-}
-
-func FeatureApply(md api.Metadata, builderSpec []byte, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
-	spec := &ExprSpec{}
-	err := json.Unmarshal(builderSpec, spec)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal expression spec: %w", err)
+func FeatureApply(md api.Metadata, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
+	if builder.PyExp == "" {
+		return fmt.Errorf("pyexp is empty")
 	}
 
-	if spec.Expression == "" {
-		return fmt.Errorf("expression is empty")
-	}
-
-	runtime, err := pyexp.New(spec.Expression, md.FQN)
+	runtime, err := pyexp.New(builder.PyExp, md.FQN)
 	if err != nil {
 		return fmt.Errorf("failed to create expression runtime: %w", err)
 	}
