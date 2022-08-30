@@ -33,9 +33,9 @@ import (
 	"sigs.k8s.io/e2e-framework/pkg/features"
 )
 
-func TestCRDSetup(t *testing.T) {
+func TestSamples(t *testing.T) {
 	namespace := "samples"
-	feature := features.New("Install the samples").
+	feature := features.New("Install the sample features").
 		Setup(FeatureEnvFn(envfuncs.CreateNamespace(namespace))).
 		Teardown(FeatureEnvFn(envfuncs.DeleteNamespace(namespace))).
 		Setup(FeatureEnvFn(SetupCoreFromCtx(namespace))).
@@ -45,11 +45,18 @@ func TestCRDSetup(t *testing.T) {
 			if err != nil {
 				t.Errorf("failed to create resources client: %s", err)
 				t.Fail()
+				return ctx
 			}
 			r = r.WithNamespace(namespace)
 
-			manifests.AddToScheme(r.GetScheme())
-			err = DecodeEachFileWithFiler(
+			err = manifests.AddToScheme(r.GetScheme())
+			if err != nil {
+				t.Errorf("failed to add manifests to scheme: %s", err)
+				t.Fail()
+				return ctx
+			}
+
+			err = DecodeEachFileWithFilter(
 				ctx, os.DirFS("../../config/samples/"), FilterKustomize,
 				decoder.CreateHandler(r),
 				decoder.MutateNamespace(namespace),
@@ -57,6 +64,7 @@ func TestCRDSetup(t *testing.T) {
 			if err != nil {
 				t.Errorf("failed to decode samples: %s", err)
 				t.Fail()
+				return ctx
 			}
 			return ctx
 		}).
@@ -65,6 +73,7 @@ func TestCRDSetup(t *testing.T) {
 			if err != nil {
 				t.Errorf("failed to create resources client: %s", err)
 				t.Fail()
+				return ctx
 			}
 
 			r.WithNamespace(namespace)
@@ -72,6 +81,7 @@ func TestCRDSetup(t *testing.T) {
 			if err != nil {
 				t.Errorf("failed to add manifests to scheme: %s", err)
 				t.Fail()
+				return ctx
 			}
 
 			ct := &manifests.Feature{}
