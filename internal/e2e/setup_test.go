@@ -252,7 +252,7 @@ func MutateRaptorKustomize(ns string, coreImg string, historianImg string, args 
 			if dep.GetName() == "raptor-historian" {
 				for i, c := range dep.Spec.Template.Spec.Containers {
 					if c.Name == "historian" {
-						dep.Spec.Template.Spec.Containers[i].Image = coreImg
+						dep.Spec.Template.Spec.Containers[i].Image = historianImg
 						dep.Spec.Template.Spec.Containers[i].Args = append(c.Args, args...)
 					}
 				}
@@ -282,7 +282,7 @@ type filerFunc func(string) bool
 func FilterKustomize(f string) bool {
 	return !(f == "kustomization.yaml" || f == "kustomization.yml")
 }
-func DecodeEachFileWithFiler(ctx context.Context, fsys fs.FS, ff filerFunc, handlerFn decoder.HandlerFunc, options ...decoder.DecodeOption) error {
+func DecodeEachFileWithFilter(ctx context.Context, fsys fs.FS, ff filerFunc, handlerFn decoder.HandlerFunc, options ...decoder.DecodeOption) error {
 	files, err := fs.Glob(fsys, "*")
 	if err != nil {
 		return err
