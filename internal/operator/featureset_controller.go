@@ -64,6 +64,6 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 // SetupWithManager sets up the controller with the Controller Manager.
 func (r *FeatureSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&raptorApi.Feature{}).
+		For(&raptorApi.FeatureSet{}).
 		Complete(r)
 }
