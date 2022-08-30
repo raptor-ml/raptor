@@ -18,16 +18,54 @@ This document describes how to contribute to the project.
 1. Submit a pull request.
 
 ## How to build RaptorML locally
-
 Note that, by building RaptorML from the source code we are allowed to test the changes made locally.
 
 1. Run the following command to clone your fork of the project locally
 
+    ```
+    $ git clone git@github.com:<user>/raptor.git
+    ```
+2. Build the project locally
+
+    ```
+    make build
+    ```
+    It's also possible to build the docker images locally using the following command:
+    ```
+    make docker-build
+    ```
+
+## Set up a KiND cluster
+Run following the command to create a new local cluster with RaptorML installed:
+
 ```
-$ git clone git@github.com:<user>/raptor.git
+make -C hack/dev new-local-cluster
 ```
 
-2. Run the command `make -C hack/dev new-local-cluster` to create a new local cluster with RaptorML installed.
+This will create a new local cluster with the following components:
+- Metrics server
+- Ngnix Ingress Controller (exposed to host on ports 80 & 443)
+- Redis Operator + Redis Cluster (exposed to host on port 6379)
+- Raptor Core + Raptor Historian
+
+See more utilities using the following commands:
+
+```
+make -C hack/dev help
+```
+
+## Development: running from local environment
+Sometimes, it's useful to run RaptorML from a local environment for development and debugging purposes.
+
+1. We need to [set up a local environment first](#set-up-a-kind-cluster).
+2. Disable the cluster's controllers and webhooks:
+    ```
+   make -C hack/dev scale-0
+    ```
+3. Compile & Run the application (you can use your favorite IDE to compile and debug):
+    ```
+   go run cmd/raptor/main.go --system-namespace raptor-system --no-webhooks -r :6379
+    ```
 
 ## What to do before submitting a pull request
 
