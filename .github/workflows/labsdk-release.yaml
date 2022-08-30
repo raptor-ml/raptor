@@ -180,7 +180,7 @@ jobs:
       - name: Release on GitHub
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ needs.version.outputs.version }}
+          tag_name: LabSDK-${{ needs.version.outputs.version }}
           files: dist/*
           body: Released to https://pypi.org/project/raptor-labsdk/${{ needs.version.outputs.version }}/
           prerelease: ${{ needs.version.outputs.prerelease }}
