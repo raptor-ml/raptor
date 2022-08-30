@@ -1,9 +1,9 @@
 VERSION ?= $(shell git rev-parse --short HEAD)
 
-PROJECT_DIR ?= $(shell dirname $(shell dirname $(shell pwd))) # equal to ../../
+PROJECT_DIR ?= $(shell echo $(shell dirname $(shell dirname $(shell pwd))) | xargs)# equal to ../../
 
 ## Location to install dependencies to
-LOCALBIN ?= $(shell echo $(PROJECT_DIR)|xargs)/bin
+LOCALBIN ?= $(shell echo $(PROJECT_DIR))/bin
 $(LOCALBIN): ## Ensure that the directory exists
 	mkdir -p $(LOCALBIN)
 
@@ -114,12 +114,29 @@ rollout-raptor: setup-redis ## build & deploy operator to cluster
 deploy-raptor: setup-redis ## deploy operator to cluster
 	$(MAKE) -C ${PROJECT_DIR} deploy ENV=${ENV}
 	$(KUBECTL) apply -f config/providers-creds.yaml
+	$(MAKE) scale-0
 	$(KUBECTL) --namespace raptor-system patch deployment raptor-controller-core --patch-file config/raptor-core-patch.yaml
 	$(KUBECTL) --namespace raptor-system patch deployment raptor-historian --patch-file config/raptor-historian-patch.yaml
+	$(MAKE) scale-normal
+
+scale-0: remove-webhooks ## Scale down to zero the number of replicas of the operator
 	$(KUBECTL) --namespace raptor-system scale deployment raptor-controller-core --replicas 0
 	$(KUBECTL) --namespace raptor-system scale deployment raptor-historian --replicas 0
+scale-normal: install-webhooks ## Scale back to normal the number of replicas of the operator
 	$(KUBECTL) --namespace raptor-system scale deployment raptor-controller-core --replicas 2
 	$(KUBECTL) --namespace raptor-system scale deployment raptor-historian --replicas 1
+
+install-samples: ## Install samples
+	$(KUBECTL) --namespace default apply -k ${PROJECT_DIR}/config/samples/
+
+remove-webhooks: ## Remove webhooks
+	$(KUBECTL) --namespace raptor-system delete validatingwebhookconfiguration raptor-validating-webhook-configuration
+	$(KUBECTL) --namespace raptor-system delete mutatingwebhookconfiguration raptor-mutating-webhook-configuration
+
+install-webhooks: ## Install webhooks
+	cd ${PROJECT_DIR}/config/webhooks/ && $(KUSTOMIZE) edit set nameprefix raptor-
+	$(KUBECTL) --namespace raptor-system apply -k ${PROJECT_DIR}/config/webhooks/
+	cd ${PROJECT_DIR}/config/webhooks/ && $(KUSTOMIZE) edit set nameprefix ""
 
 ## TOOLS
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
