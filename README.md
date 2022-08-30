@@ -53,7 +53,7 @@ caching, monitoring, etc.)
 * **DevOps teams** love Raptor because it's **built on top of Kubernetes**, leveraging their standard stack, and it's
   *ridiculously* easy to deploy and manage (because of Kubernetes, duh?).
 
-### ⭐️ Features
+### ⭐️ Key Features
 
 * **Same code for both training and production**<br/>
   You can run the same Raptor compatible features in training and production and prevent the *training serving skew*.
@@ -64,9 +64,9 @@ caching, monitoring, etc.)
   data to cold storage for historical purposes (such as re-training).
 * **Pluggable**<br/>
   Raptor is highly-pluggable. You can even bring your own storage implementation.
-* **Kubernetes Native and Standards**<br/>
-  Raptor is implementing by-design functionalities of Kubernetes such as leader-election, scaling, health,
-  auto-recovery, monitoring and logging.
+* **Kubernetes Native and Best-practices Standards**<br/>
+  Raptor is implementing by-design best-practices functionalities of Kubernetes solutions such as leader-election,
+  scaling, health, auto-recovery, monitoring, logging, and more.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -108,10 +108,6 @@ Learn more about production installation at [the docs][docs-url].
    (You can use [Kind](https://kind.sigs.k8s.io/) to install Raptor locally)
 2. `kubectl` installed and configured to your cluster.
 3. Redis server (> 2.8.9)
-
-   ⚠️ *Tip: You can also use a managed Redis solution such as [AWS ElasticCache](https://aws.amazon.com/elasticache/)
-   or [GCP Memorystore](https://cloud.google.com/memorystore), or via
-   the [K8s Redis Operator](https://operatorhub.io/operator/redis-operator)*
 
 ### Installation
 
