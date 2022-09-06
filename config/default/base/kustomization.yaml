@@ -8,10 +8,10 @@ namespace: raptor-system
 namePrefix: raptor-
 
 resources:
-  - ../../rbac
-  - ../../core
-  - ../../historian
-  - ../../webhook
+- ../../rbac
+- ../../core
+- ../../historian
+- ../../webhook
 # [PROMETHEUS] To enable prometheus monitor, uncomment all sections with 'PROMETHEUS'.
 #- ../prometheus
 
@@ -19,5 +19,5 @@ patchesStrategicMerge:
   # Protect the /metrics endpoint by putting it behind auth.
   # If you want your controller-manager to expose the /metrics
   # endpoint w/o any authn/z, please comment the following line.
-  - core_auth_proxy_patch.yaml
-  - historian_auth_proxy_patch.yaml
+- core_auth_proxy_patch.yaml
+- historian_auth_proxy_patch.yaml

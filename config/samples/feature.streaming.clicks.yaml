@@ -6,8 +6,8 @@ metadata:
   labels:
     app: massivedynamic
   annotations:
-    a8r.io/owner: "@AlmogBaku"
-    a8r.io/description: "Demonstration of a simple aggr function"
+    a8r.io/owner: '@AlmogBaku'
+    a8r.io/description: Demonstration of a simple aggr function
 spec:
   primitive: int
   freshness: 10s
@@ -16,8 +16,8 @@ spec:
     name: clicks
   builder:
     aggr:
-      - sum
-      - count
+    - sum
+    - count
     schema: https://raw.githubusercontent.com/raptor-ml/massivedynamic-protos/master/click.proto#Click
     pyexp: |
       def handler(**req):

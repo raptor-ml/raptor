@@ -5,13 +5,13 @@ metadata:
 spec:
   kind: streaming
   config:
-    - name: kind
-      value: kafka
-    - name: brokers
-      value: :9093
-    - name: topics
-      value: clickstream
-    - name: consumer_group
-      value: clicks-consumer-group
-    - name: tls_disable
-      value: "true"
+  - name: kind
+    value: kafka
+  - name: brokers
+    value: :9093
+  - name: topics
+    value: clickstream
+  - name: consumer_group
+    value: clicks-consumer-group
+  - name: tls_disable
+    value: 'true'

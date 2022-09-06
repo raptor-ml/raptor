@@ -7,13 +7,13 @@ metadata:
     app: core
 spec:
   ports:
-    - name: http
-      port: 60000
-      protocol: TCP
-      targetPort: http
-    - name: grpc
-      port: 60001
-      protocol: TCP
-      targetPort: grpc
+  - name: http
+    port: 60000
+    protocol: TCP
+    targetPort: http
+  - name: grpc
+    port: 60001
+    protocol: TCP
+    targetPort: grpc
   selector:
     control-plane: controller-core

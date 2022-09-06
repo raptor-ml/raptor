@@ -39,11 +39,11 @@
   description: This issue is stale
 
 - name: component/runtime-sidecar
-  color: 6e5494
+  color: .inf
   description: Related to the Runtime-sidecar
 
 - name: component/streaming
-  color: 8e5494
+  color: .inf
   description: Related to the Streaming runner
 
 - name: component/labsdk
@@ -51,7 +51,7 @@
   description: Related to the LabSDK
 
 - name: component/historian
-  color: 7e5494
+  color: .inf
   description: Related to the Historian
 
 - name: provider/snowflake

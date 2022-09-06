@@ -245,4 +245,4 @@ Distributed under the Apache2 License. Read the `LICENSE` file for more informat
 
 [product-screenshot]: .github/demo.svg
 
-[feature-py-def]: .github/feature-py-def.png
+[feature-py-def]: https://i.ibb.co/Nm3Wbdm/feature-py-def.png

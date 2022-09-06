@@ -33,6 +33,7 @@ const SyncPeriod = 5 * time.Minute
 const DeadRequestMarker = "*dead*"
 
 // Although this is done at compile time, we want to make sure nobody messed with the numbers inappropriately
+//
 //goland:noinspection GoBoolExpressions
 func init() {
 	if api.DeadGracePeriod < (SyncPeriod - (30 * time.Second)) {

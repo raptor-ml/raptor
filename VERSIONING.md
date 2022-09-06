@@ -8,4 +8,3 @@ process described there.
 ## Compatibility
 
 Note that we generally do not support older release branches, except in extreme circumstances.
-

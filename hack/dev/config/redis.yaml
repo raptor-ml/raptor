@@ -51,7 +51,7 @@ spec:
     volumeClaimTemplate:
       spec:
         # storageClassName: standard
-        accessModes: [ "ReadWriteOnce" ]
+        accessModes: [ReadWriteOnce]
         resources:
           requests:
             storage: 1Gi
@@ -74,11 +74,11 @@ metadata:
   namespace: default
 spec:
   ports:
-    - name: redis-client
-      port: 6379
-      protocol: TCP
-      targetPort: 6379
-      nodePort: 32094
+  - name: redis-client
+    port: 6379
+    protocol: TCP
+    targetPort: 6379
+    nodePort: 32094
   selector:
     app: redis-standalone
     redis_setup_type: standalone

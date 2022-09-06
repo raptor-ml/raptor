@@ -1,12 +1,11 @@
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  creationTimestamp: null
+  creationTimestamp:
   name: core-role
 rules:
 - apiGroups:
-  - ""
+  - ''
   resources:
   - namespaces
   verbs:
@@ -14,7 +13,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - ""
+  - ''
   resources:
   - nodes
   verbs:
@@ -22,7 +21,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - ""
+  - ''
   resources:
   - secrets
   verbs:
@@ -33,7 +32,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - ""
+  - ''
   resources:
   - services
   verbs:

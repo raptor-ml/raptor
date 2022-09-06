@@ -1,12 +1,13 @@
+---
 apiVersion: k8s.raptor.ml/v1alpha1
 kind: Feature
 metadata:
   name: primitive-string
   namespace: default
   annotations:
-    a8r.io/owner: "@AlmogBaku"
+    a8r.io/owner: '@AlmogBaku'
 spec:
-  primitive: "string"
+  primitive: string
   freshness: 10s
   staleness: 5m
   builder:
@@ -21,9 +22,9 @@ metadata:
   name: primitive-int
   namespace: default
   annotations:
-    a8r.io/owner: "@AlmogBaku"
+    a8r.io/owner: '@AlmogBaku'
 spec:
-  primitive: "int"
+  primitive: int
   freshness: 10s
   staleness: 5m
   builder:
@@ -38,9 +39,9 @@ metadata:
   name: primitive-float
   namespace: default
   annotations:
-    a8r.io/owner: "@AlmogBaku"
+    a8r.io/owner: '@AlmogBaku'
 spec:
-  primitive: "float"
+  primitive: float
   freshness: 10s
   staleness: 5m
   builder:
@@ -55,9 +56,9 @@ metadata:
   name: primitive-timestamp
   namespace: default
   annotations:
-    a8r.io/owner: "@AlmogBaku"
+    a8r.io/owner: '@AlmogBaku'
 spec:
-  primitive: "timestamp"
+  primitive: timestamp
   freshness: 10s
   staleness: 5m
   builder:
@@ -72,9 +73,9 @@ metadata:
   name: primitive-array-strings
   namespace: default
   annotations:
-    a8r.io/owner: "@AlmogBaku"
+    a8r.io/owner: '@AlmogBaku'
 spec:
-  primitive: "[]string"
+  primitive: '[]string'
   freshness: 10s
   staleness: 5m
   builder:
@@ -93,9 +94,9 @@ metadata:
   name: primitive-array-ints
   namespace: default
   annotations:
-    a8r.io/owner: "@AlmogBaku"
+    a8r.io/owner: '@AlmogBaku'
 spec:
-  primitive: "[]int"
+  primitive: '[]int'
   freshness: 10s
   staleness: 5m
   builder:
@@ -110,9 +111,9 @@ metadata:
   name: primitive-array-floats
   namespace: default
   annotations:
-    a8r.io/owner: "@AlmogBaku"
+    a8r.io/owner: '@AlmogBaku'
 spec:
-  primitive: "[]float"
+  primitive: '[]float'
   freshness: 10s
   staleness: 5m
   builder:
@@ -127,9 +128,9 @@ metadata:
   name: primitive-array-timestamps
   namespace: default
   annotations:
-    a8r.io/owner: "@AlmogBaku"
+    a8r.io/owner: '@AlmogBaku'
 spec:
-  primitive: "[]timestamp"
+  primitive: '[]timestamp'
   freshness: 10s
   staleness: 5m
   builder:

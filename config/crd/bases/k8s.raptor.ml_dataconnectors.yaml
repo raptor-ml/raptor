@@ -1,10 +1,9 @@
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.9.2
-  creationTimestamp: null
+  creationTimestamp:
   name: dataconnectors.k8s.raptor.ml
 spec:
   group: k8s.raptor.ml
@@ -25,14 +24,10 @@ spec:
         description: DataConnector is the Schema for the dataconnectors API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -51,16 +46,13 @@ spec:
                       description: Configuration value from secret
                       properties:
                         key:
-                          description: The key of the secret to select from.  Must
-                            be a valid secret key.
+                          description: The key of the secret to select from.  Must be a valid secret key.
                           type: string
                         name:
-                          description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                            TODO: Add other useful fields. apiVersion, kind, uid?'
+                          description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?'
                           type: string
                         optional:
-                          description: Specify whether the Secret or its key must
-                            be defined
+                          description: Specify whether the Secret or its key must be defined
                           type: boolean
                       required:
                       - key
@@ -77,16 +69,11 @@ spec:
                 description: Kind of the DataConnector
                 type: string
               replicas:
-                description: Replicas defines the number of desired pods. This is
-                  a pointer to distinguish between explicit zero and not specified.
-                  Defaults to 1.
+                description: Replicas defines the number of desired pods. This is a pointer to distinguish between explicit zero and not specified. Defaults to 1.
                 format: int32
                 type: integer
               resources:
-                description: "Resources defines the required resources for a single
-                  container(underlying implementation) of this DataConnector. Notice
-                  that this is not applicable for every DataConnector, but only for
-                  those who implement an External Runner. \n More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/"
+                description: "Resources defines the required resources for a single container(underlying implementation) of this DataConnector. Notice that this is not applicable for every DataConnector, but only for those who implement an External Runner. \n More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/"
                 properties:
                   limits:
                     additionalProperties:
@@ -95,8 +82,7 @@ spec:
                       - type: string
                       pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                       x-kubernetes-int-or-string: true
-                    description: 'Limits describes the maximum amount of compute resources
-                      allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                    description: 'Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                     type: object
                   requests:
                     additionalProperties:
@@ -105,10 +91,7 @@ spec:
                       - type: string
                       pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                       x-kubernetes-int-or-string: true
-                    description: 'Requests describes the minimum amount of compute
-                      resources required. If Requests is omitted for a container,
-                      it defaults to Limits if that is explicitly specified, otherwise
-                      to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                    description: 'Requests describes the minimum amount of compute resources required. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                     type: object
                 type: object
             required:
@@ -119,19 +102,15 @@ spec:
             description: DataConnectorStatus defines the observed state of DataConnector
             properties:
               features:
-                description: Features includes a list of references for the Feature
-                  that uses this DataConnector
+                description: Features includes a list of references for the Feature that uses this DataConnector
                 items:
-                  description: ResourceReference represents a resource reference.
-                    It has enough information to retrieve resource in any namespace.
+                  description: ResourceReference represents a resource reference. It has enough information to retrieve resource in any namespace.
                   properties:
                     name:
-                      description: Name is unique within a namespace to reference
-                        a resource.
+                      description: Name is unique within a namespace to reference a resource.
                       type: string
                     namespace:
-                      description: Namespace defines the space within which the resource
-                        name must be unique.
+                      description: Namespace defines the space within which the resource name must be unique.
                       type: string
                   type: object
                   x-kubernetes-map-type: atomic

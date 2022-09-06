@@ -1,12 +1,12 @@
 version: v1
 name: buf.build/raptor/core
 deps:
-  - buf.build/googleapis/googleapis
-  - buf.build/envoyproxy/protoc-gen-validate
+- buf.build/googleapis/googleapis
+- buf.build/envoyproxy/protoc-gen-validate
 lint:
   use:
-    - DEFAULT
-    - PACKAGE_NO_IMPORT_CYCLE
+  - DEFAULT
+  - PACKAGE_NO_IMPORT_CYCLE
 breaking:
   use:
-    - FILE
+  - FILE

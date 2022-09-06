@@ -1,21 +1,21 @@
 component/historian:
-  - cmd/historian/*
-  - internal/historian/*
-  - internal/plugins/providers/historical/*
-  - plg/querybuilder/*
+- cmd/historian/*
+- internal/historian/*
+- internal/plugins/providers/historical/*
+- plg/querybuilder/*
 
 component/runtime-sidecar:
-  - cmd/runtime/*
-  - internal/runtime/*
-  - internal/programregistry/*
-  - pkg/protoregistry/*
+- cmd/runtime/*
+- internal/runtime/*
+- internal/programregistry/*
+- pkg/protoregistry/*
 
 component/labsdk:
-  - labsdk/*
+- labsdk/*
 
 provider/redis:
-  - internal/plugins/providers/state/redis/*
+- internal/plugins/providers/state/redis/*
 provider/snowflake:
-  - internal/plugins/providers/historical/snowflake/*
+- internal/plugins/providers/historical/snowflake/*
 provider/aws:
-  - internal/plugins/providers/historical/parquet/s3/*
+- internal/plugins/providers/historical/parquet/s3/*

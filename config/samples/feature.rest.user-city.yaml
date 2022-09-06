@@ -10,7 +10,7 @@ spec:
     kind: rest
     url: https://jsonplaceholder.typicode.com/users/{entity_id}/
     method: GET
-    body: ~
+    body:
     pyexp: |
       def handler(**req):
         return req["payload"]["address"]["city"]

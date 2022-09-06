@@ -9,10 +9,10 @@ on:
         required: true
         type: choice
         options:
-          - a
-          - b
-          - rc
-          - stable
+        - a
+        - b
+        - rc
+        - stable
 
 jobs:
   version:
@@ -21,40 +21,40 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       prerelease: ${{ steps.prerelease.outputs.prerelease }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Prerelease prep
-        id: prerelease
-        run: |
-          if [ "${{ github.event.inputs.release_type }}" == "stable" ]; then
-            echo "::set-output name=version_format::v\${major}.\${minor}.\${patch}"
-            echo "::set-output name=prerelease::false"
-          else
-            echo "::set-output name=prerelease::true"
-            echo "::set-output name=version_format::v\${major}.\${minor}.\${patch}${{ github.event.inputs.release_type }}\${increment}"
-          fi
-        shell: bash
-      - name: Calculate Semver
-        uses: paulhatch/semantic-version@v5.0.0-alpha
-        id: version
-        with:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Prerelease prep
+      id: prerelease
+      run: |
+        if [ "${{ github.event.inputs.release_type }}" == "stable" ]; then
+          echo "::set-output name=version_format::v\${major}.\${minor}.\${patch}"
+          echo "::set-output name=prerelease::false"
+        else
+          echo "::set-output name=prerelease::true"
+          echo "::set-output name=version_format::v\${major}.\${minor}.\${patch}${{ github.event.inputs.release_type }}\${increment}"
+        fi
+      shell: bash
+    - name: Calculate Semver
+      uses: paulhatch/semantic-version@v5.0.0-alpha
+      id: version
+      with:
           # The prefix to use to identify tags
-          tag_prefix: "v"
-          major_pattern: "/^(:warning:|⚠/).*/"
+        tag_prefix: v
+        major_pattern: /^(:warning:|⚠/).*/
           # Same as above except indicating a minor change, supports regular expressions wrapped with '/'
-          minor_pattern: "/^(:sparkles:|✨).*/"
+        minor_pattern: /^(:sparkles:|✨).*/
           # A string to determine the format of the version output
-          version_format: "${{ steps.prerelease.outputs.version_format }}"
-      - name: Override the version for the dist code
-        working-directory: ./labsdk/
-        run: |
-          sed -i "s/^version *= *.*/version = '${{ steps.version.outputs.version }}'/" setup.py
+        version_format: ${{ steps.prerelease.outputs.version_format }}
+    - name: Override the version for the dist code
+      working-directory: ./labsdk/
+      run: |
+        sed -i "s/^version *= *.*/version = '${{ steps.version.outputs.version }}'/" setup.py
 
   build_wheels:
-    needs: [ version ]
-    name: "${{ needs.version.outputs.version }}: cp${{ matrix.python }}-${{ matrix.platform_id }}"
+    needs: [version]
+    name: '${{ needs.version.outputs.version }}: cp${{ matrix.python }}-${{ matrix.platform_id }}'
     runs-on: ${{ matrix.os }}
     strategy:
       # Ensure that a wheel builder finishes even if another fails
@@ -62,127 +62,127 @@ jobs:
       matrix:
         include:
           # Window 64 bit
-          - { "os": "windows-latest", "python": 37, "platform_id": "win_amd64", arch: "AMD64" }
-          - { "os": "windows-latest", "python": 38, "platform_id": "win_amd64", arch: "AMD64" }
-          - { "os": "windows-latest", "python": 39, "platform_id": "win_amd64", arch: "AMD64" }
-          - { "os": "windows-latest", "python": 310, "platform_id": "win_amd64", arch: "AMD64" }
+        - {os: windows-latest, python: 37, platform_id: win_amd64, arch: AMD64}
+        - {os: windows-latest, python: 38, platform_id: win_amd64, arch: AMD64}
+        - {os: windows-latest, python: 39, platform_id: win_amd64, arch: AMD64}
+        - {os: windows-latest, python: 310, platform_id: win_amd64, arch: AMD64}
 
           # Linux 64 bit #aarch64=arm64 i686=386
-          - { "os": "ubuntu-latest", "python": 37, "platform_id": "manylinux_x86_64", arch: "x86_64" }
-          - { "os": "ubuntu-latest", "python": 37, "platform_id": "manylinux_aarch64", arch: "aarch64" }
-          - { "os": "ubuntu-latest", "python": 38, "platform_id": "manylinux_x86_64", arch: "x86_64" }
-          - { "os": "ubuntu-latest", "python": 38, "platform_id": "manylinux_aarch64", arch: "aarch64" }
-          - { "os": "ubuntu-latest", "python": 39, "platform_id": "manylinux_x86_64", arch: "x86_64" }
-          - { "os": "ubuntu-latest", "python": 39, "platform_id": "manylinux_aarch64", arch: "aarch64" }
-          - { "os": "ubuntu-latest", "python": 310, "platform_id": "manylinux_x86_64", arch: "x86_64" }
-          - { "os": "ubuntu-latest", "python": 310, "platform_id": "manylinux_aarch64", arch: "aarch64" }
+        - {os: ubuntu-latest, python: 37, platform_id: manylinux_x86_64, arch: x86_64}
+        - {os: ubuntu-latest, python: 37, platform_id: manylinux_aarch64, arch: aarch64}
+        - {os: ubuntu-latest, python: 38, platform_id: manylinux_x86_64, arch: x86_64}
+        - {os: ubuntu-latest, python: 38, platform_id: manylinux_aarch64, arch: aarch64}
+        - {os: ubuntu-latest, python: 39, platform_id: manylinux_x86_64, arch: x86_64}
+        - {os: ubuntu-latest, python: 39, platform_id: manylinux_aarch64, arch: aarch64}
+        - {os: ubuntu-latest, python: 310, platform_id: manylinux_x86_64, arch: x86_64}
+        - {os: ubuntu-latest, python: 310, platform_id: manylinux_aarch64, arch: aarch64}
 
           # MacOS
-          - { "os": "macos-latest", "python": 37, "platform_id": "macosx_x86_64", arch: "x86_64" }
-          - { "os": "macos-latest", "python": 38, "platform_id": "macosx_x86_64", arch: "x86_64" }
-          - { "os": "macos-latest", "python": 38, "platform_id": "macosx_arm64", arch: "arm64" }
-          - { "os": "macos-latest", "python": 39, "platform_id": "macosx_x86_64", arch: "x86_64" }
-          - { "os": "macos-latest", "python": 39, "platform_id": "macosx_arm64", arch: "arm64" }
-          - { "os": "macos-latest", "python": 310, "platform_id": "macosx_x86_64", arch: "x86_64" }
-          - { "os": "macos-latest", "python": 310, "platform_id": "macosx_arm64", arch: "arm64" }
+        - {os: macos-latest, python: 37, platform_id: macosx_x86_64, arch: x86_64}
+        - {os: macos-latest, python: 38, platform_id: macosx_x86_64, arch: x86_64}
+        - {os: macos-latest, python: 38, platform_id: macosx_arm64, arch: arm64}
+        - {os: macos-latest, python: 39, platform_id: macosx_x86_64, arch: x86_64}
+        - {os: macos-latest, python: 39, platform_id: macosx_arm64, arch: arm64}
+        - {os: macos-latest, python: 310, platform_id: macosx_x86_64, arch: x86_64}
+        - {os: macos-latest, python: 310, platform_id: macosx_arm64, arch: arm64}
     steps:
-      - name: Setup Go environment
-        if: runner.os != 'Linux'
-        uses: actions/setup-go@v3
-        with:
-          go-version: '^1.18'
+    - name: Setup Go environment
+      if: runner.os != 'Linux'
+      uses: actions/setup-go@v3
+      with:
+        go-version: ^1.18
 
-      - name: Clone the code
-        uses: actions/checkout@v3
+    - name: Clone the code
+      uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v3
+    - uses: actions/setup-python@v3
 
-      - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.6.0
+    - name: Install cibuildwheel
+      run: python -m pip install cibuildwheel==2.6.0
 
-      - name: Set up QEMU
-        if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v1
-        with:
-          platforms: all
+    - name: Set up QEMU
+      if: runner.os == 'Linux'
+      uses: docker/setup-qemu-action@v1
+      with:
+        platforms: all
 
-      - name: Windows- Install unix compatibility utility
-        if: runner.os == 'Windows'
-        uses: cygwin/cygwin-install-action@master
-        with:
-          packages: mingw64-x86_64-gcc-core
+    - name: Windows- Install unix compatibility utility
+      if: runner.os == 'Windows'
+      uses: cygwin/cygwin-install-action@master
+      with:
+        packages: mingw64-x86_64-gcc-core
 
-      - name: Windows- Fix GCC
-        if: runner.os == 'Windows'
-        run: cp C:\cygwin\bin\x86_64-w64-mingw32-gcc.exe C:\cygwin\bin\gcc.exe
+    - name: Windows- Fix GCC
+      if: runner.os == 'Windows'
+      run: cp C:\cygwin\bin\x86_64-w64-mingw32-gcc.exe C:\cygwin\bin\gcc.exe
 
-      - name: Set base64 flags
-        if: runner.os != 'macOS'
-        id: base64_flags
-        run: echo "::set-output name=flags::-w0"
-      - name: Encode platform data
-        id: platform_data
-        run: |
-          echo "::set-output name=data::$(echo '${{ toJSON(matrix) }}' | base64 ${{steps.base64_flags.outputs.flags}})"
+    - name: Set base64 flags
+      if: runner.os != 'macOS'
+      id: base64_flags
+      run: echo "::set-output name=flags::-w0"
+    - name: Encode platform data
+      id: platform_data
+      run: |
+        echo "::set-output name=data::$(echo '${{ toJSON(matrix) }}' | base64 ${{steps.base64_flags.outputs.flags}})"
 
-      - name: Build wheels
-        run: python -m cibuildwheel --output-dir wheelhouse labsdk
-        env:
-          CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform_id }}
-          CIBW_ARCHS: ${{ matrix.arch }}
+    - name: Build wheels
+      run: python -m cibuildwheel --output-dir wheelhouse labsdk
+      env:
+        CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform_id }}
+        CIBW_ARCHS: ${{ matrix.arch }}
 
-          CIBW_BEFORE_ALL_LINUX: curl -L https://git.io/vQhTU | bash -s -- --version 1.18.3
-          CIBW_ENVIRONMENT: BUILD_MATRIX="${{ steps.platform_data.outputs.data }}" BUILD_VERSION="${{ needs.version.outputs.version }}"
-          CIBW_ENVIRONMENT_LINUX: BUILD_MATRIX="${{ steps.platform_data.outputs.data }}" BUILD_VERSION="${{ needs.version.outputs.version }}" PATH=$PATH:/$HOME/.go/bin
-          CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path labsdk/raptor/pyexp -w {dest_dir} {wheel}"
+        CIBW_BEFORE_ALL_LINUX: curl -L https://git.io/vQhTU | bash -s -- --version 1.18.3
+        CIBW_ENVIRONMENT: BUILD_MATRIX="${{ steps.platform_data.outputs.data }}" BUILD_VERSION="${{ needs.version.outputs.version }}"
+        CIBW_ENVIRONMENT_LINUX: BUILD_MATRIX="${{ steps.platform_data.outputs.data }}" BUILD_VERSION="${{ needs.version.outputs.version }}" PATH=$PATH:/$HOME/.go/bin
+        CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
+        CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path labsdk/raptor/pyexp -w {dest_dir} {wheel}
 
-          CIBW_MANYLINUX_X86_64_IMAGE: 'manylinux_2_24'
-          CIBW_MANYLINUX_AARCH64_IMAGE: 'manylinux_2_24'
-          CIBW_MANYLINUX_I686_IMAGE: 'manylinux_2_24'
+        CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
+        CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_24
+        CIBW_MANYLINUX_I686_IMAGE: manylinux_2_24
 
-          CIBW_BUILD_VERBOSITY: 1
+        CIBW_BUILD_VERBOSITY: 1
 
-      - uses: actions/upload-artifact@v2
-        with:
-          path: ./wheelhouse/*.whl
+    - uses: actions/upload-artifact@v2
+      with:
+        path: ./wheelhouse/*.whl
   make_sdist:
-    needs: [ version ]
+    needs: [version]
     name: Make SDist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-      - name: Build SDist
-        working-directory: ./labsdk/
-        env:
-          BUILD_VERSION: "${{ needs.version.outputs.version }}"
-        run: pipx run build --sdist
+    - name: Build SDist
+      working-directory: ./labsdk/
+      env:
+        BUILD_VERSION: ${{ needs.version.outputs.version }}
+      run: pipx run build --sdist
 
-      - uses: actions/upload-artifact@v2
-        with:
-          path: ./labsdk/dist/*.tar.gz
+    - uses: actions/upload-artifact@v2
+      with:
+        path: ./labsdk/dist/*.tar.gz
   release:
-    name: "Release and publish the version"
-    needs: [ version, build_wheels, make_sdist ]
+    name: Release and publish the version
+    needs: [version, build_wheels, make_sdist]
     runs-on: ubuntu-latest
     steps:
-      - name: "Fetch the artifacts"
-        uses: actions/download-artifact@v2
-        with:
-          name: artifact
-          path: dist
-      - name: "Publish to PyPi"
-        uses: pypa/gh-action-pypi-publish@v1.5.0
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}
-      - name: Release on GitHub
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: LabSDK-${{ needs.version.outputs.version }}
-          files: dist/*
-          body: Released to https://pypi.org/project/raptor-labsdk/${{ needs.version.outputs.version }}/
-          prerelease: ${{ needs.version.outputs.prerelease }}
-          name: LabSDK - Version ${{ needs.version.outputs.version }}
-          generate_release_notes: true
+    - name: Fetch the artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: artifact
+        path: dist
+    - name: Publish to PyPi
+      uses: pypa/gh-action-pypi-publish@v1.5.0
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_TOKEN }}
+    - name: Release on GitHub
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: LabSDK-${{ needs.version.outputs.version }}
+        files: dist/*
+        body: Released to https://pypi.org/project/raptor-labsdk/${{ needs.version.outputs.version }}/
+        prerelease: ${{ needs.version.outputs.prerelease }}
+        name: LabSDK - Version ${{ needs.version.outputs.version }}
+        generate_release_notes: true

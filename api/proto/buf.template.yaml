@@ -1,24 +1,24 @@
 version: v1
 plugins:
-  - owner: library
-    name: go
-    opt: paths=source_relative
-  - owner: library
-    name: go-grpc
-    opt:
-      - paths=source_relative
-      - require_unimplemented_servers=false
-  - owner: grpc-ecosystem
-    name: grpc-gateway
-    opt:
-      - paths=source_relative
-      - generate_unbound_methods=true
-  - owner: grpc-ecosystem
-    name: openapiv2
-    opt:
-      - generate_unbound_methods=true
-  - owner: jirkad
-    name: protoc-gen-validate
-    opt:
-      - paths=source_relative
-      - lang=go
+- owner: library
+  name: go
+  opt: paths=source_relative
+- owner: library
+  name: go-grpc
+  opt:
+  - paths=source_relative
+  - require_unimplemented_servers=false
+- owner: grpc-ecosystem
+  name: grpc-gateway
+  opt:
+  - paths=source_relative
+  - generate_unbound_methods=true
+- owner: grpc-ecosystem
+  name: openapiv2
+  opt:
+  - generate_unbound_methods=true
+- owner: jirkad
+  name: protoc-gen-validate
+  opt:
+  - paths=source_relative
+  - lang=go

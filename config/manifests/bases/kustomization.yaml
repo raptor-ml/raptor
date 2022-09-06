@@ -1,5 +1,5 @@
 resources:
-  - raptor.clusterserviceversion.yaml
+- raptor.clusterserviceversion.yaml
 
 commonAnnotations:
   containerImage: ghcr.io/raptor-ml/raptor-core:latest

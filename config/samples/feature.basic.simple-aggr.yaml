@@ -6,8 +6,8 @@ metadata:
   labels:
     app: massivedynamic
   annotations:
-    a8r.io/owner: "@AlmogBaku"
-    a8r.io/description: "Demonstration of a simple aggr function"
+    a8r.io/owner: '@AlmogBaku'
+    a8r.io/description: Demonstration of a simple aggr function
 spec:
   primitive: int
   freshness: 10s
@@ -16,11 +16,11 @@ spec:
     kind: expression
     aggr_granularity: 10s
     aggr:
-      - sum
-      - count
-      - min
-      - max
-      - avg
+    - sum
+    - count
+    - min
+    - max
+    - avg
     pyexp: |
       def handler(**req):
         print("Setting a windowed feature from the pyexp")

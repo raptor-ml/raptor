@@ -14,11 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-MANIFESTS=$(sed '1,/^__MANIFESTS__/d' $0)
+MANIFESTS=$(sed '1,/^__MANIFESTS__/d' "$0")
 
 CONFIG_CORE_ARGS=""
 function config_core_args() {
-  read -p "Enter Core configuration arguments: " CONFIG_CORE_ARGS
+  read -rp "Enter Core configuration arguments: " CONFIG_CORE_ARGS
   if [ -z "$CONFIG_CORE_ARGS" ]; then
     echo ""
     echo -e "\033[0;31mYou must specify Core configuration arguments\033[0m"
@@ -32,7 +32,7 @@ echo ""
 HISTORIAN_REPLICAS=1
 CONFIG_HISTORIAN_ARGS=""
 function config_historian_args() {
-  read -p "Enter Historian configuration arguments (write --disable to disable the historian): " CONFIG_HISTORIAN_ARGS
+  read -rp "Enter Historian configuration arguments (write --disable to disable the historian): " CONFIG_HISTORIAN_ARGS
   if [ -z "$CONFIG_HISTORIAN_ARGS" ]; then
     echo ""
     echo -e "\033[0;31mYou must specify Historian configuration arguments\033[0m"
@@ -49,7 +49,7 @@ config_historian_args
 echo "Historian Configuration arguments: $CONFIG_HISTORIAN_ARGS"
 echo ""
 
-read -p "Are you sure you want to install using context \`$(kubectl config current-context)\`? [y/N] " -n 1 -r
+read -rp "Are you sure you want to install using context \`$(kubectl config current-context)\`? [y/N] " -n 1 -r
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
   echo "Aborting."
   exit 1
@@ -59,7 +59,7 @@ echo ""
 echo -e "\033[1;34mInstalling manifests...\033[0m"
 
 function manifests() {
-    echo ${MANIFESTS} | base64 -d | sed "s/\$installer_core_args\\$/${CONFIG_CORE_ARGS}/g" | sed "s/replicas: -123/replicas: ${HISTORIAN_REPLICAS}/g" | sed "s/\$installer_historian_args\\$/${CONFIG_HISTORIAN_ARGS}/g"
+  echo "${MANIFESTS}" | base64 -d | sed "s/\$installer_core_args\\$/${CONFIG_CORE_ARGS}/g" | sed "s/replicas: -123/replicas: ${HISTORIAN_REPLICAS}/g" | sed "s/\$installer_historian_args\\$/${CONFIG_HISTORIAN_ARGS}/g"
 }
 manifests | kubectl apply -f -
 

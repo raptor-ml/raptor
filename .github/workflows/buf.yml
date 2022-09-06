@@ -2,35 +2,35 @@ name: Buf
 on:
   push:
     paths:
-      - api/proto/
+    - api/proto/
   pull_request:
     paths:
-      - api/proto/
+    - api/proto/
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: bufbuild/buf-setup-action@v1
-      - uses: bufbuild/buf-lint-action@v1
-        with:
-          input: proto
-      - uses: bufbuild/buf-breaking-action@v1
-        with:
-          input: proto
-      - name: Pushing to BSR
-        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: bufbuild/buf-push-action@v1
-        with:
-          buf_token: ${{ secrets.BUF_BSR_TOKEN }}
-          input: proto
-      - name: Report failure
-        if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: actions-cool/issues-helper@v3
-        with:
-          actions: 'create-issue'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: 🐛 Protobuf broken in ${{ github.sha }}
-          body: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          labels: bug
+    - uses: actions/checkout@v3
+    - uses: bufbuild/buf-setup-action@v1
+    - uses: bufbuild/buf-lint-action@v1
+      with:
+        input: proto
+    - uses: bufbuild/buf-breaking-action@v1
+      with:
+        input: proto
+    - name: Pushing to BSR
+      if: success() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+      uses: bufbuild/buf-push-action@v1
+      with:
+        buf_token: ${{ secrets.BUF_BSR_TOKEN }}
+        input: proto
+    - name: Report failure
+      if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+      uses: actions-cool/issues-helper@v3
+      with:
+        actions: create-issue
+        token: ${{ secrets.GITHUB_TOKEN }}
+        title: 🐛 Protobuf broken in ${{ github.sha }}
+        body: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        labels: bug

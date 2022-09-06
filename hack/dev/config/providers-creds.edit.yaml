@@ -5,6 +5,6 @@ metadata:
   name: providers-creds
   namespace: raptor-system
 data:
-  AWS_ACCESS_KEY: ""
-  AWS_SECRET_KEY: ""
+  AWS_ACCESS_KEY: ''
+  AWS_SECRET_KEY: ''
   SNOWFLAKE_URI: <user>:<pass>@<account-id>/<db>/<schema>?warehouse=<warehouse-name>
