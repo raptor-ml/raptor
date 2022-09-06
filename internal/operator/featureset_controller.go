@@ -21,6 +21,7 @@ package operator
 
 import (
 	"context"
+
 	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"

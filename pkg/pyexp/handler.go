@@ -18,13 +18,14 @@ package pyexp
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/sourcegraph/starlight/convert"
 	"go.starlark.net/lib/proto"
 	sTime "go.starlark.net/lib/time"
 	"go.starlark.net/resolve"
 	"go.starlark.net/starlark"
 	"go.starlark.net/syntax"
-	"time"
 )
 
 // HandlerFuncName is the name of the function that the use need to implement to handle the request.

@@ -18,6 +18,8 @@ package setup
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/raptor-ml/raptor/api"
 	"github.com/raptor-ml/raptor/internal/accessor"
 	"github.com/raptor-ml/raptor/internal/engine"
@@ -27,7 +29,6 @@ import (
 	"github.com/raptor-ml/raptor/internal/stats"
 	"github.com/raptor-ml/raptor/pkg/plugins"
 	"github.com/spf13/viper"
-	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )

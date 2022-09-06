@@ -21,6 +21,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/die-net/lrucache"
 	"github.com/gregjones/httpcache"
 	"github.com/hashicorp/go-retryablehttp"
@@ -28,10 +33,6 @@ import (
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/raptor-ml/raptor/pkg/plugins"
 	"github.com/raptor-ml/raptor/pkg/pyexp"
-	"io"
-	"net/http"
-	"strings"
-	"time"
 )
 
 func init() {

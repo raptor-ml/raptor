@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/raptor-ml/raptor/api"
 	"github.com/raptor-ml/raptor/pkg/plugins"
@@ -30,6 +31,7 @@ func init() {
 	plugins.CollectNotifierFactories.Register(pluginName, NotifierFactory[api.CollectNotification])
 	plugins.WriteNotifierFactories.Register(pluginName, NotifierFactory[api.WriteNotification])
 }
+
 func NotifierFactory[T api.Notification](viper *viper.Viper) (api.Notifier[T], error) {
 	rc, err := redisClient(viper)
 	if err != nil {

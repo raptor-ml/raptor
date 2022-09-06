@@ -19,8 +19,9 @@ package querybuilder
 import (
 	"bytes"
 	"fmt"
-	"github.com/raptor-ml/raptor/api"
 	"text/template"
+
+	"github.com/raptor-ml/raptor/api"
 )
 
 func (qb *queryBuilder) Feature(ft api.Metadata) (string, error) {

@@ -72,6 +72,7 @@ func (pt PrimitiveType) Scalar() bool {
 		return true
 	}
 }
+
 func (pt PrimitiveType) Singular() PrimitiveType {
 	switch pt {
 	case PrimitiveTypeTimestampList:
@@ -86,6 +87,7 @@ func (pt PrimitiveType) Singular() PrimitiveType {
 		return pt
 	}
 }
+
 func (pt PrimitiveType) Plural() PrimitiveType {
 	switch pt {
 	case PrimitiveTypeTimestamp:
@@ -100,6 +102,7 @@ func (pt PrimitiveType) Plural() PrimitiveType {
 		return pt
 	}
 }
+
 func (pt PrimitiveType) String() string {
 	switch pt {
 	case PrimitiveTypeString:
@@ -124,6 +127,7 @@ func (pt PrimitiveType) String() string {
 		return "(unknown)"
 	}
 }
+
 func (pt PrimitiveType) Interface() any {
 	if !pt.Scalar() {
 		return reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(pt.Singular().Interface())), 0, 0).Interface()

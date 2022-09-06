@@ -19,9 +19,10 @@ package historian
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/jellydator/ttlcache/v3"
 	"github.com/raptor-ml/raptor/api"
-	"strings"
 )
 
 func (h *historian) Collector() LeaderRunnableFunc {
@@ -144,6 +145,7 @@ func contains(s []string, i string) bool {
 func deadBucketKey(fqn, bucket, eid string) string {
 	return fmt.Sprintf("%s/%s:%s", fqn, bucket, eid)
 }
+
 func fromDeadBucketKey(k string) (fqn string, bucket string, eid string) {
 	firstSep := strings.Index(k, "/")
 	lastColon := strings.LastIndex(k, ":")

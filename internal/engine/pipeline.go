@@ -18,14 +18,17 @@ package engine
 
 import (
 	"context"
+
 	"github.com/raptor-ml/raptor/api"
 )
 
-type Middlewares []api.Middleware
-type Pipeline struct {
-	Middlewares
-	api.Metadata
-}
+type (
+	Middlewares []api.Middleware
+	Pipeline    struct {
+		Middlewares
+		api.Metadata
+	}
+)
 
 func (p Pipeline) Apply(ctx context.Context, entityID string, first api.Value) (api.Value, error) {
 	if len(p.Middlewares) == 0 {

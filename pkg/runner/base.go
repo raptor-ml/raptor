@@ -19,6 +19,7 @@ package runner
 import (
 	"context"
 	"fmt"
+
 	"github.com/raptor-ml/raptor/api"
 	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -60,6 +61,7 @@ func (r BaseRunner) Reconciler() (api.DataConnectorReconcile, error) {
 	}
 	return r.reconcile, nil
 }
+
 func (r BaseRunner) reconcile(ctx context.Context, req api.ReconcileRequest) (bool, error) {
 	logger := log.FromContext(ctx)
 
@@ -122,7 +124,8 @@ func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.Reconcil
 			Command: append(r.Command, []string{
 				"--dataconnector-resource", req.DataConnector.Name,
 				"--dataconnector-namespace", req.DataConnector.Namespace,
-				"--runtime-grpc-addr", ":60005"}...),
+				"--runtime-grpc-addr", ":60005",
+			}...),
 			Resources: corev1.ResourceRequirements{
 				Limits: req.DataConnector.Spec.Resources.Limits,
 			},

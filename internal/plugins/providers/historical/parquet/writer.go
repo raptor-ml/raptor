@@ -19,19 +19,22 @@ package parquet
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	"github.com/raptor-ml/raptor/api"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/xitongsys/parquet-go/source"
 	"github.com/xitongsys/parquet-go/writer"
-	"sync"
 )
 
-type SourceFactory func(ctx context.Context, fqn string, alive bool) (source.ParquetFile, error)
-type baseParquet struct {
-	newParquetFile SourceFactory
-	np             int64
-	writers        map[string]*parquetWriter
-}
+type (
+	SourceFactory func(ctx context.Context, fqn string, alive bool) (source.ParquetFile, error)
+	baseParquet   struct {
+		newParquetFile SourceFactory
+		np             int64
+		writers        map[string]*parquetWriter
+	}
+)
 
 func BaseParquet(np int64, newParquetFile SourceFactory) api.HistoricalWriter {
 	return &baseParquet{
@@ -81,6 +84,7 @@ func (bw *baseParquet) getWriter(ctx context.Context, fqn string, alive bool) (*
 	}
 	return bw.writers[fqn], nil
 }
+
 func (bw *baseParquet) Flush(_ context.Context, fqn string) error {
 	err := bw.flush(fqn)
 	if err != nil {
@@ -92,6 +96,7 @@ func (bw *baseParquet) Flush(_ context.Context, fqn string) error {
 	}
 	return nil
 }
+
 func (bw *baseParquet) flush(key string) error {
 	if pw, ok := bw.writers[key]; ok {
 		pw.Lock()

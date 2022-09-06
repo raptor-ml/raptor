@@ -19,6 +19,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+
 	"github.com/go-logr/zapr"
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcZap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
@@ -38,11 +44,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/credentials/local"
 	"google.golang.org/grpc/reflection"
-	"net"
-	"os"
-	"os/signal"
-	"strings"
-	"syscall"
 )
 
 func main() {
@@ -115,6 +116,7 @@ func main() {
 
 	must(server.Serve(l))
 }
+
 func logger() *zap.Logger {
 	var l *zap.Logger
 	var err error

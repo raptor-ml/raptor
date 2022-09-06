@@ -19,6 +19,7 @@ package sdk
 import (
 	"context"
 	"errors"
+
 	"github.com/raptor-ml/raptor/api"
 	coreApi "go.buf.build/raptor/api-go/raptor/core/raptor/core/v1alpha1"
 	"google.golang.org/grpc/codes"
@@ -51,6 +52,7 @@ func (s *serviceServer) Metadata(ctx context.Context, req *coreApi.MetadataReque
 		Metadata: ToAPIMetadata(md),
 	}, nil
 }
+
 func (s *serviceServer) Get(ctx context.Context, req *coreApi.GetRequest) (*coreApi.GetResponse, error) {
 	resp, md, err := s.engine.Get(ctx, req.GetFqn(), req.GetEntityId())
 	if err != nil {
@@ -100,6 +102,7 @@ func (s *serviceServer) Set(ctx context.Context, req *coreApi.SetRequest) (*core
 		Timestamp: timestamppb.Now(),
 	}, nil
 }
+
 func (s *serviceServer) Append(ctx context.Context, req *coreApi.AppendRequest) (*coreApi.AppendResponse, error) {
 	err := s.engine.Append(ctx, req.GetFqn(), req.GetEntityId(), fromScalar(req.Value), req.Timestamp.AsTime())
 	if err != nil {
@@ -113,6 +116,7 @@ func (s *serviceServer) Append(ctx context.Context, req *coreApi.AppendRequest) 
 		Timestamp: timestamppb.Now(),
 	}, nil
 }
+
 func (s *serviceServer) Incr(ctx context.Context, req *coreApi.IncrRequest) (*coreApi.IncrResponse, error) {
 	err := s.engine.Incr(ctx, req.GetFqn(), req.GetEntityId(), fromScalar(req.Value), req.Timestamp.AsTime())
 	if err != nil {
@@ -126,6 +130,7 @@ func (s *serviceServer) Incr(ctx context.Context, req *coreApi.IncrRequest) (*co
 		Timestamp: timestamppb.Now(),
 	}, nil
 }
+
 func (s *serviceServer) Update(ctx context.Context, req *coreApi.UpdateRequest) (*coreApi.UpdateResponse, error) {
 	err := s.engine.Update(ctx, req.GetFqn(), req.GetEntityId(), FromValue(req.Value), req.Timestamp.AsTime())
 	if err != nil {

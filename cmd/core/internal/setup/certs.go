@@ -25,6 +25,11 @@ package setup
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"os"
+	"reflect"
+	"time"
+
 	certApi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	"github.com/go-logr/logr"
@@ -38,13 +43,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"net/http"
-	"os"
-	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"time"
 )
 
 func Certs(mgr manager.Manager, certsReady chan struct{}) {
@@ -156,7 +157,8 @@ func certManagerRunnable(client client.Client, scheme *runtime.Scheme, ns string
 				cert.Spec.SecretName = secretName
 				cert.Spec.DNSNames = []string{
 					dnsName(ns),
-					fmt.Sprintf("%s.cluster.local", dnsName(ns))}
+					fmt.Sprintf("%s.cluster.local", dnsName(ns)),
+				}
 				return nil
 			})
 			if err != nil {
@@ -252,6 +254,7 @@ type certsEnsurer struct {
 func (ce *certsEnsurer) NeedLeaderElection() bool {
 	return false
 }
+
 func (ce *certsEnsurer) Start(_ context.Context) error {
 	checkFn := func() (bool, error) {
 		select {

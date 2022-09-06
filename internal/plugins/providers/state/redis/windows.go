@@ -20,13 +20,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/go-redis/redis/v8"
-	"github.com/raptor-ml/raptor/api"
 	"math"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/raptor-ml/raptor/api"
 )
 
 const MaxScanCount = 1000
@@ -34,6 +35,7 @@ const MaxScanCount = 1000
 func windowKey(FQN string, bucketName string, entityID string) string {
 	return fmt.Sprintf("%s/%s:%s", FQN, bucketName, entityID)
 }
+
 func fromWindowKey(k string) (fqn string, bucketName string, entityID string) {
 	firstSep := strings.Index(k, "/")
 	lastColon := strings.LastIndex(k, ":")
@@ -158,6 +160,7 @@ func (s *state) windowBuckets(ctx context.Context, buckets []api.RawBucket) (api
 		}
 	}
 }
+
 func (s *state) WindowBuckets(ctx context.Context, md api.Metadata, entityID string, bucketNames []string) (api.RawBuckets, error) {
 	var buckets api.RawBuckets
 	for _, b := range bucketNames {

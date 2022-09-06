@@ -18,6 +18,7 @@ package engine
 
 import (
 	"fmt"
+
 	"github.com/raptor-ml/raptor/api"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/raptor-ml/raptor/internal/stats"
@@ -82,10 +83,12 @@ func (e *engine) BindDataConnector(md api.DataConnector) error {
 	e.dataConnectors.Store(md.FQN, md)
 	return nil
 }
+
 func (e *engine) UnbindDataConnector(FQN string) error {
 	e.dataConnectors.Delete(FQN)
 	return nil
 }
+
 func (e *engine) HasDataConnector(FQN string) bool {
 	_, ok := e.dataConnectors.Load(FQN)
 	return ok

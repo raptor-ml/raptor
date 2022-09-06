@@ -19,6 +19,14 @@ package protoregistry
 import (
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"path"
+	"strings"
+	"time"
+
 	"github.com/die-net/lrucache"
 	"github.com/google/uuid"
 	"github.com/gregjones/httpcache"
@@ -28,13 +36,6 @@ import (
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
-	"io"
-	"net/http"
-	"net/url"
-	"os"
-	"path"
-	"strings"
-	"time"
 )
 
 // ErrAlreadyRegistered is returned when a descriptor is already registered.

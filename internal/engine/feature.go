@@ -18,10 +18,11 @@ package engine
 
 import (
 	"context"
-	"github.com/go-logr/logr"
-	"github.com/raptor-ml/raptor/api"
 	"sort"
 	"time"
+
+	"github.com/go-logr/logr"
+	"github.com/raptor-ml/raptor/api"
 )
 
 // Feature is a Core's feature abstraction.
@@ -77,11 +78,13 @@ func (f *Feature) Context(ctx context.Context, logger logr.Logger) (context.Cont
 	return ctx, cancel
 }
 
-type mws []mw
-type mw struct {
-	fn       api.Middleware
-	priority int
-}
+type (
+	mws []mw
+	mw  struct {
+		fn       api.Middleware
+		priority int
+	}
+)
 
 func (mws *mws) Sort() mws {
 	sort.SliceStable(*mws, func(i, j int) bool {
@@ -89,6 +92,7 @@ func (mws *mws) Sort() mws {
 	})
 	return *mws
 }
+
 func (mws *mws) Middlewares() Middlewares {
 	var fns []api.Middleware
 	for _, mw := range mws.Sort() {

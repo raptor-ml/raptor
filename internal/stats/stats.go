@@ -69,27 +69,35 @@ func init() {
 		metadataReqs,
 	)
 }
+
 func IncNumberOfFeatures() {
 	numOfFeatures.Inc()
 }
+
 func DecNumberOfFeatures() {
 	numOfFeatures.Dec()
 }
+
 func IncrFeatureGets() {
 	featureGets.Inc()
 }
+
 func IncrFeatureSets() {
 	featureSets.Inc()
 }
+
 func IncrFeatureUpdates() {
 	featureUpdates.Inc()
 }
+
 func IncrFeatureAppends() {
 	featureAppends.Inc()
 }
+
 func IncrFeatureIncrements() {
 	featureIncrements.Inc()
 }
+
 func IncrMetadataReqs() {
 	metadataReqs.Inc()
 }

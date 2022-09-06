@@ -20,10 +20,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/go-redis/redis/v8"
-	"github.com/raptor-ml/raptor/api"
 	"reflect"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/raptor-ml/raptor/api"
 )
 
 func primitiveKey(fqn string, entityID string) string {
@@ -85,6 +86,7 @@ func (s *state) getPrimitive(ctx context.Context, md api.Metadata, entityID stri
 		Fresh:     time.Since(*ts) < md.Freshness,
 	}, nil
 }
+
 func (s *state) Update(ctx context.Context, md api.Metadata, entityID string, value any, ts time.Time) error {
 	if md.ValidWindow() {
 		return s.WindowAdd(ctx, md, entityID, value, ts)
@@ -94,6 +96,7 @@ func (s *state) Update(ctx context.Context, md api.Metadata, entityID string, va
 	}
 	return s.Append(ctx, md, entityID, value, ts)
 }
+
 func (s *state) Set(ctx context.Context, md api.Metadata, entityID string, value any, ts time.Time) error {
 	if md.ValidWindow() {
 		return s.WindowAdd(ctx, md, entityID, value, ts)
@@ -123,6 +126,7 @@ func (s *state) Set(ctx context.Context, md api.Metadata, entityID string, value
 	_, err := tx.Exec(ctx)
 	return err
 }
+
 func (s *state) Append(ctx context.Context, md api.Metadata, entityID string, value any, ts time.Time) error {
 	if md.ValidWindow() {
 		return fmt.Errorf("cannot append a windowed feature")

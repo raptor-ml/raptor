@@ -20,14 +20,15 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/raptor-ml/raptor/api"
 	"github.com/raptor-ml/raptor/pkg/plugins"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"strconv"
-	"strings"
-	"time"
 )
 
 const pluginName = "redis"
@@ -88,6 +89,7 @@ func StateFactory(viper *viper.Viper) (api.State, error) {
 
 	return &state{rc}, nil
 }
+
 func BindConfig(set *pflag.FlagSet) error {
 	set.StringArrayP("redis", "r", []string{}, "Redis servers")
 	set.String("redis-user", "", "Redis username")
@@ -108,10 +110,12 @@ func setTimestamp(ctx context.Context, tx redis.Cmdable, key string, ts time.Tim
 	}
 	return luaMax.Run(ctx, tx, []string{key}, ts.UnixMicro(), dur)
 }
+
 func setTimestampExpireAt(ctx context.Context, tx redis.Cmdable, key string, ts time.Time, xat time.Time) *redis.Cmd {
 	key = fmt.Sprintf("%s:ts", key)
 	return luaMaxExpAt.Run(ctx, tx, []string{key}, ts.UnixMicro(), xat.UnixMilli())
 }
+
 func getTimestamp(ctx context.Context, tx redis.Cmdable, key string) (*time.Time, error) {
 	s, err := tx.Get(ctx, fmt.Sprintf("%s:ts", key)).Result()
 	if err != nil {

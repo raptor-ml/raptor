@@ -19,14 +19,15 @@ package sdk
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/raptor-ml/raptor/api"
 	coreApi "go.buf.build/raptor/api-go/raptor/core/raptor/core/v1alpha1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"strings"
-	"time"
 )
 
 type grpcEngine struct {
@@ -54,6 +55,7 @@ func (e *grpcEngine) Metadata(ctx context.Context, fqn string) (api.Metadata, er
 	}
 	return FromAPIMetadata(resp.Metadata), nil
 }
+
 func (e *grpcEngine) Get(ctx context.Context, fqn string, entityID string) (api.Value, api.Metadata, error) {
 	req := coreApi.GetRequest{
 		Uuid:     uuid.NewString(),
@@ -75,6 +77,7 @@ func (e *grpcEngine) Get(ctx context.Context, fqn string, entityID string) (api.
 	ret.Fresh = resp.Value.Fresh
 	return ret, FromAPIMetadata(resp.Metadata), nil
 }
+
 func (e *grpcEngine) Set(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
 	req := coreApi.SetRequest{
 		Uuid:      uuid.NewString(),
@@ -92,6 +95,7 @@ func (e *grpcEngine) Set(ctx context.Context, fqn string, entityID string, val a
 	}
 	return nil
 }
+
 func (e *grpcEngine) Append(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
 	req := coreApi.AppendRequest{
 		Uuid:      uuid.NewString(),
@@ -109,6 +113,7 @@ func (e *grpcEngine) Append(ctx context.Context, fqn string, entityID string, va
 	}
 	return nil
 }
+
 func (e *grpcEngine) Incr(ctx context.Context, fqn string, entityID string, by any, ts time.Time) error {
 	req := coreApi.IncrRequest{
 		Uuid:      uuid.NewString(),
@@ -126,6 +131,7 @@ func (e *grpcEngine) Incr(ctx context.Context, fqn string, entityID string, by a
 	}
 	return nil
 }
+
 func (e *grpcEngine) Update(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
 	req := coreApi.UpdateRequest{
 		Uuid:      uuid.NewString(),

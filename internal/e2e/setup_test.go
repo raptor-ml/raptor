@@ -21,8 +21,12 @@ package e2e
 import (
 	"context"
 	"fmt"
-	"github.com/vladimirvivien/gexe"
 	"io/fs"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/vladimirvivien/gexe"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -37,16 +41,15 @@ import (
 	"sigs.k8s.io/e2e-framework/pkg/envfuncs"
 	"sigs.k8s.io/e2e-framework/pkg/features"
 	"sigs.k8s.io/e2e-framework/third_party/helm"
-	"strings"
-	"testing"
-	"time"
 
 	_ "github.com/raptor-ml/raptor/internal/plugins"
 )
 
-type redisContextKey string
-type raptorContextKey string
-type extraCfgContextKey int
+type (
+	redisContextKey    string
+	raptorContextKey   string
+	extraCfgContextKey int
+)
 
 type extraCfg struct {
 	buildTag    string
@@ -59,6 +62,7 @@ func SetupCfg(c extraCfg) env.Func {
 		return context.WithValue(ctx, extraCfgContextKey(1), c), nil
 	}
 }
+
 func getExtraCfg(ctx context.Context) extraCfg {
 	return ctx.Value(extraCfgContextKey(1)).(extraCfg)
 }
@@ -126,6 +130,7 @@ func SetupCoreFromCtx(name string, args ...string) env.Func {
 		return SetupCore(name, c.clusterName, c.imgBasename, c.buildTag, args)(ctx, cfg)
 	}
 }
+
 func SetupCore(name, kindClusterName, imgBasename, buildTag string, args []string) env.Func {
 	return func(ctx context.Context, cfg *envconf.Config) (context.Context, error) {
 		args = append(args, "--usage-reporting=false")
@@ -263,6 +268,7 @@ func MutateRaptorKustomize(ns string, coreImg string, historianImg string, args 
 		return nil
 	})
 }
+
 func DestroyCore(name string) env.Func {
 	return func(ctx context.Context, cfg *envconf.Config) (context.Context, error) {
 		redisNs := ctx.Value(redisContextKey(fmt.Sprintf("%s-redis", name))).(v1.ObjectMeta)
@@ -282,6 +288,7 @@ type filerFunc func(string) bool
 func FilterKustomize(f string) bool {
 	return !(f == "kustomization.yaml" || f == "kustomization.yml")
 }
+
 func DecodeEachFileWithFilter(ctx context.Context, fsys fs.FS, ff filerFunc, handlerFn decoder.HandlerFunc, options ...decoder.DecodeOption) error {
 	files, err := fs.Glob(fsys, "*")
 	if err != nil {

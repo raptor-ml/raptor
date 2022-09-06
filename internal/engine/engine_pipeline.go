@@ -19,8 +19,9 @@ package engine
 import (
 	"context"
 	"fmt"
-	"github.com/raptor-ml/raptor/api"
 	"time"
+
+	"github.com/raptor-ml/raptor/api"
 )
 
 func (e *engine) getValueMiddleware() api.Middleware {
@@ -111,6 +112,7 @@ func (e *engine) readPipeline(f *Feature) Pipeline {
 		Metadata:    f.Metadata,
 	}
 }
+
 func (e *engine) writePipeline(f *Feature, method api.StateMethod) Pipeline {
 	return Pipeline{
 		Middlewares: append(append(f.preSet.Middlewares(), e.setMiddleware(method)), f.postSet.Middlewares()...),

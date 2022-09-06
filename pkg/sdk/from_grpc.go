@@ -43,6 +43,7 @@ func FromAPIPrimitive(p coreApi.Primitive) api.PrimitiveType {
 		return api.PrimitiveTypeTimestampList
 	}
 }
+
 func FromAPIAggrFunc(f coreApi.AggrFn) api.WindowFn {
 	switch f {
 	default:
@@ -59,6 +60,7 @@ func FromAPIAggrFunc(f coreApi.AggrFn) api.WindowFn {
 		return api.WindowFnCount
 	}
 }
+
 func FromAPIAggrFuncs(fs []coreApi.AggrFn) []api.WindowFn {
 	var wfs []api.WindowFn
 	for _, f := range fs {
@@ -66,6 +68,7 @@ func FromAPIAggrFuncs(fs []coreApi.AggrFn) []api.WindowFn {
 	}
 	return wfs
 }
+
 func FromAPIMetadata(m *coreApi.Metadata) api.Metadata {
 	return api.Metadata{
 		FQN:           m.Fqn,

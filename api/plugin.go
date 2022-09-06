@@ -18,6 +18,7 @@ package api
 
 import (
 	"context"
+
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -56,7 +57,10 @@ type StateFactory func(viper *viper.Viper) (State, error)
 
 // NotifierFactory is the interface to be implemented by plugins that implements Notifier.
 type NotifierFactory[T Notification] func(viper *viper.Viper) (Notifier[T], error)
-type CollectNotifierFactory NotifierFactory[CollectNotification]
-type WriteNotifierFactory NotifierFactory[WriteNotification]
+
+type (
+	CollectNotifierFactory NotifierFactory[CollectNotification]
+	WriteNotifierFactory   NotifierFactory[WriteNotification]
+)
 
 type HistoricalWriterFactory func(viper *viper.Viper) (HistoricalWriter, error)

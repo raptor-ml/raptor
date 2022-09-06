@@ -19,10 +19,11 @@ package historian
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	"github.com/go-logr/logr"
 	"github.com/raptor-ml/raptor/api"
 	"k8s.io/client-go/util/workqueue"
-	"sync"
 )
 
 func newQueue[T api.Notification](logger logr.Logger, fn HandleFn[T]) queue[T] {
@@ -60,6 +61,7 @@ func (b *queue[T]) Runnable(workers int) func(ctx context.Context) error {
 		return nil
 	}
 }
+
 func (b *queue[T]) processNextItem(ctx context.Context, stopOnDrained bool) bool {
 	select {
 	case <-ctx.Done():

@@ -20,6 +20,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
+	"strings"
+
 	ceProto "github.com/cloudevents/sdk-go/binding/format/protobuf/v2"
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/cloudevents/sdk-go/v2/types"
@@ -33,8 +36,6 @@ import (
 	"go.starlark.net/starlark"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"net/url"
-	"strings"
 )
 
 type runtime struct {
@@ -62,6 +63,7 @@ func (r *runtime) LoadPyExpProgram(_ context.Context, req *pbRuntime.LoadPyExpPr
 		ProgramHash: hash,
 	}, nil
 }
+
 func (r *runtime) RegisterSchema(_ context.Context, req *pbRuntime.RegisterSchemaRequest) (*pbRuntime.RegisterSchemaResponse, error) {
 	_, err := protoregistry.Register(req.GetSchema())
 	if err != nil && !errors.Is(err, protoregistry.ErrAlreadyRegistered) {
@@ -71,6 +73,7 @@ func (r *runtime) RegisterSchema(_ context.Context, req *pbRuntime.RegisterSchem
 		Uuid: req.GetUuid(),
 	}, nil
 }
+
 func (r *runtime) ExecutePyExp(ctx context.Context, req *pbRuntime.ExecutePyExpRequest) (*pbRuntime.ExecutePyExpResponse, error) {
 	programRuntime, err := r.programs.Get(req.GetProgramHash())
 	if err != nil {

@@ -18,6 +18,7 @@ package plugins
 
 import (
 	"fmt"
+
 	"github.com/raptor-ml/raptor/api"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -25,13 +26,15 @@ import (
 
 // # Available plugins
 
-var FeatureAppliers = make(registry[api.FeatureApply])
-var DataConnectorReconciler = make(registry[api.DataConnectorReconcile])
-var Configurers = make(registry[api.BindConfig])
-var StateFactories = make(registry[api.StateFactory])
-var CollectNotifierFactories = make(registry[api.CollectNotifierFactory])
-var WriteNotifierFactories = make(registry[api.WriteNotifierFactory])
-var HistoricalWriterFactories = make(registry[api.HistoricalWriterFactory])
+var (
+	FeatureAppliers           = make(registry[api.FeatureApply])
+	DataConnectorReconciler   = make(registry[api.DataConnectorReconcile])
+	Configurers               = make(registry[api.BindConfig])
+	StateFactories            = make(registry[api.StateFactory])
+	CollectNotifierFactories  = make(registry[api.CollectNotifierFactory])
+	WriteNotifierFactories    = make(registry[api.WriteNotifierFactory])
+	HistoricalWriterFactories = make(registry[api.HistoricalWriterFactory])
+)
 
 // # Plugin Registry
 

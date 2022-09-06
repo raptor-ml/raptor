@@ -18,9 +18,10 @@ package setup
 
 import (
 	"fmt"
-	"golang.org/x/sync/errgroup"
 	"net/http"
 	"os"
+
+	"golang.org/x/sync/errgroup"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 )
@@ -40,9 +41,7 @@ func HealthCheck(r *http.Request) error {
 	return g.Wait()
 }
 
-var (
-	setupLog = ctrl.Log.WithName("setup")
-)
+var setupLog = ctrl.Log.WithName("setup")
 
 func OrFail(err error, message string, keyAndValues ...any) {
 	if err != nil {

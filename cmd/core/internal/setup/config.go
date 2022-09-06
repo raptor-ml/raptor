@@ -18,12 +18,13 @@ package setup
 
 import (
 	"flag"
+	"strings"
+
 	"github.com/raptor-ml/raptor/pkg/plugins"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-	"strings"
 )
 
 var updatesAllowed = false

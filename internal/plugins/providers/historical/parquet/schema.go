@@ -17,9 +17,10 @@ limitations under the License.
 package parquet
 
 import (
+	"time"
+
 	"github.com/raptor-ml/raptor/api"
 	"github.com/xitongsys/parquet-go/types"
-	"time"
 )
 
 type HistoricalRecord struct {

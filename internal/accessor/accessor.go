@@ -19,6 +19,9 @@ package accessor
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
+
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -32,8 +35,6 @@ import (
 	coreApi "go.buf.build/raptor/api-go/raptor/core/raptor/core/v1alpha1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"net"
-	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 )
 

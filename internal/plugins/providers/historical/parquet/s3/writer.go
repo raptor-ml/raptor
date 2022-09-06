@@ -19,6 +19,8 @@ package s3
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
@@ -30,7 +32,6 @@ import (
 	"github.com/spf13/viper"
 	"github.com/xitongsys/parquet-go-source/s3v2"
 	"github.com/xitongsys/parquet-go/source"
-	"time"
 )
 
 const pluginName = "s3-parquet"
@@ -83,6 +84,7 @@ func HistoricalWriterFactory(viper *viper.Viper) (api.HistoricalWriter, error) {
 
 	return parquet.BaseParquet(4, factory), nil
 }
+
 func sourceFactory(client s3v2.S3API, bucket string, basedir string) parquet.SourceFactory {
 	return func(ctx context.Context, fqn string, alive bool) (source.ParquetFile, error) {
 		if basedir[len(basedir)-1] != '/' {

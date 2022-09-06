@@ -20,14 +20,17 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"time"
+
 	"github.com/jellydator/ttlcache/v3"
 	"github.com/raptor-ml/raptor/api"
 	"github.com/raptor-ml/raptor/pkg/pyexp"
-	"time"
 )
 
-var ErrAlreadyRegistered = fmt.Errorf("already registered")
-var ErrNotFound = fmt.Errorf("not found")
+var (
+	ErrAlreadyRegistered = fmt.Errorf("already registered")
+	ErrNotFound          = fmt.Errorf("not found")
+)
 
 // Registry is a registry of PyExp.
 // The PyExp Registry is a cache of PyExp Programs

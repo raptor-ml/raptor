@@ -24,6 +24,7 @@ package operator
 import (
 	"context"
 	"fmt"
+
 	"github.com/go-logr/logr"
 	"github.com/raptor-ml/raptor/api"
 	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
@@ -37,10 +38,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
-const FeatureWebhookValidatePath = "/validate-k8s-raptor-ml-v1alpha1-feature"
-const FeatureWebhookValidateName = "raptor-validating-webhook-configuration"
-const FeatureWebhookMutatePath = "/mutate-k8s-raptor-ml-v1alpha1-feature"
-const FeatureWebhookMutateName = "raptor-mutating-webhook-configuration"
+const (
+	FeatureWebhookValidatePath = "/validate-k8s-raptor-ml-v1alpha1-feature"
+	FeatureWebhookValidateName = "raptor-validating-webhook-configuration"
+	FeatureWebhookMutatePath   = "/mutate-k8s-raptor-ml-v1alpha1-feature"
+	FeatureWebhookMutateName   = "raptor-mutating-webhook-configuration"
+)
 
 func SetupFeatureWebhook(mgr ctrl.Manager, updatesAllowed bool) {
 	impl := &webhook{
@@ -78,6 +81,7 @@ func (h *admissionWrapper) InjectDecoder(d *admission.Decoder) error {
 	}
 	return nil
 }
+
 func (h *admissionWrapper) Handle(ctx context.Context, req admission.Request) admission.Response {
 	ctx = context.WithValue(ctx, admissionRequestContextKey, req)
 	return h.Handler.Handle(ctx, req)

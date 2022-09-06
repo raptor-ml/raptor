@@ -20,11 +20,12 @@ import (
 	"context"
 	"embed"
 	"fmt"
-	"github.com/raptor-ml/raptor/api"
-	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/raptor-ml/raptor/api"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 )
 
 //go:embed *.tmpl.sql

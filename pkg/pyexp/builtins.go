@@ -18,12 +18,13 @@ package pyexp
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/raptor-ml/raptor/api"
 	"github.com/sourcegraph/starlight/convert"
 	sTime "go.starlark.net/lib/time"
 	"go.starlark.net/starlark"
-	"strings"
-	"time"
 )
 
 type BasicOp struct {
@@ -39,7 +40,7 @@ func (r *runtime) basicOp(op BasicOp) (starlark.Value, error) {
 	if op.valueField == "" {
 		op.valueField = "value"
 	}
-	var ts = sTime.Time(nowf(op.thread))
+	ts := sTime.Time(nowf(op.thread))
 	var fqn, entityID string
 	var val any
 	err := starlark.UnpackArgs(op.builtin.Name(), op.args, op.kwargs, "fqn", &fqn, "entity_id", &entityID, op.valueField, &val, "timestamp?", &ts)
@@ -77,6 +78,7 @@ func (r *runtime) SetFeature(t *starlark.Thread, b *starlark.Builtin, args starl
 		kwargs:  kwargs,
 	})
 }
+
 func (r *runtime) Update(t *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
 	return r.basicOp(BasicOp{
 		op:      InstructionOpUpdate,
@@ -86,6 +88,7 @@ func (r *runtime) Update(t *starlark.Thread, b *starlark.Builtin, args starlark.
 		kwargs:  kwargs,
 	})
 }
+
 func (r *runtime) Incr(t *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
 	return r.basicOp(BasicOp{
 		op:         InstructionOpIncr,
@@ -105,7 +108,6 @@ func (r *runtime) AppendFeature(t *starlark.Thread, b *starlark.Builtin, args st
 		args:    args,
 		kwargs:  kwargs,
 	})
-
 }
 
 type discoveredDependencies map[string]struct{}

@@ -20,9 +20,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/raptor-ml/raptor/api"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
-	"time"
 )
 
 type featureSetQuery struct {

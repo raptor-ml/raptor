@@ -18,8 +18,9 @@ package dryengine
 
 import (
 	"context"
-	"github.com/raptor-ml/raptor/api"
 	"time"
+
+	"github.com/raptor-ml/raptor/api"
 )
 
 type ValueMeta struct {
@@ -74,6 +75,7 @@ func New(data DependenciesData, discoveryMode bool) DryEngine {
 func (d *dry) Metadata(_ context.Context, FQN string) (api.Metadata, error) {
 	return api.Metadata{}, nil
 }
+
 func (d *dry) Get(_ context.Context, FQN string, entityID string) (api.Value, api.Metadata, error) {
 	if d.discovery {
 		d.discovered[FQN] = struct{}{}
@@ -86,6 +88,7 @@ func (d *dry) Get(_ context.Context, FQN string, entityID string) (api.Value, ap
 	}
 	return api.Value{}, api.Metadata{}, api.ErrFeatureNotFound
 }
+
 func (d *dry) Set(_ context.Context, FQN string, entityID string, val any, ts time.Time) error {
 	d.instructions = append(d.instructions, Instruction{
 		Operation: InstructionOpSet,
@@ -96,6 +99,7 @@ func (d *dry) Set(_ context.Context, FQN string, entityID string, val any, ts ti
 	})
 	return nil
 }
+
 func (d *dry) Append(_ context.Context, FQN string, entityID string, val any, ts time.Time) error {
 	d.instructions = append(d.instructions, Instruction{
 		Operation: InstructionOpAppend,
@@ -106,6 +110,7 @@ func (d *dry) Append(_ context.Context, FQN string, entityID string, val any, ts
 	})
 	return nil
 }
+
 func (d *dry) Incr(_ context.Context, FQN string, entityID string, by any, ts time.Time) error {
 	d.instructions = append(d.instructions, Instruction{
 		Operation: InstructionOpIncr,
@@ -116,6 +121,7 @@ func (d *dry) Incr(_ context.Context, FQN string, entityID string, by any, ts ti
 	})
 	return nil
 }
+
 func (d *dry) Update(_ context.Context, FQN string, entityID string, val any, ts time.Time) error {
 	d.instructions = append(d.instructions, Instruction{
 		Operation: InstructionOpUpdate,
@@ -126,9 +132,11 @@ func (d *dry) Update(_ context.Context, FQN string, entityID string, val any, ts
 	})
 	return nil
 }
+
 func (d *dry) Instructions() []Instruction {
 	return d.instructions
 }
+
 func (d *dry) Dependencies() []string {
 	discovered := make([]string, 0, len(d.discovered))
 	for k := range d.discovered {

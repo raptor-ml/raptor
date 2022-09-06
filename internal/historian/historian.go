@@ -20,17 +20,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/go-logr/logr"
 	"github.com/jellydator/ttlcache/v3"
 	"github.com/raptor-ml/raptor/api"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sync"
-	"time"
 )
 
-const SyncPeriod = 5 * time.Minute
-const DeadRequestMarker = "*dead*"
+const (
+	SyncPeriod        = 5 * time.Minute
+	DeadRequestMarker = "*dead*"
+)
 
 // Although this is done at compile time, we want to make sure nobody messed with the numbers inappropriately
 //
@@ -139,6 +142,7 @@ func (h *historian) HasFeature(fqn string) bool {
 	_, ok := h.metadata.Load(fqn)
 	return ok
 }
+
 func (h *historian) Metadata(ctx context.Context, FQN string) (api.Metadata, error) {
 	md, ok := h.metadata.Load(FQN)
 	if !ok {

@@ -18,12 +18,13 @@ package sdk
 
 import (
 	"fmt"
+	"reflect"
+	"time"
+
 	"github.com/raptor-ml/raptor/api"
 	coreApi "go.buf.build/raptor/api-go/raptor/core/raptor/core/v1alpha1"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"reflect"
-	"time"
 )
 
 func ToAPIScalar(val any) *coreApi.Scalar {
@@ -42,6 +43,7 @@ func ToAPIScalar(val any) *coreApi.Scalar {
 		panic(fmt.Sprintf("unsupported type - is it scalar? (%v)", primitive.Scalar()))
 	}
 }
+
 func ToAPIValue(val any) *coreApi.Value {
 	if val == nil {
 		return nil
@@ -90,6 +92,7 @@ func ToAPIPrimitive(p api.PrimitiveType) coreApi.Primitive {
 		return coreApi.Primitive_PRIMITIVE_TIMESTAMP_LIST
 	}
 }
+
 func ToAPIAggrFn(f api.WindowFn) coreApi.AggrFn {
 	switch f {
 	default:
@@ -106,6 +109,7 @@ func ToAPIAggrFn(f api.WindowFn) coreApi.AggrFn {
 		return coreApi.AggrFn_AGGR_FN_MAX
 	}
 }
+
 func ToAPIAggrFns(fs []api.WindowFn) []coreApi.AggrFn {
 	ret := make([]coreApi.AggrFn, len(fs))
 	for i, f := range fs {

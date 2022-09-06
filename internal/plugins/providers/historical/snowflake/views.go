@@ -19,11 +19,12 @@ package snowflake
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/raptor-ml/raptor/api"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/raptor-ml/raptor/pkg/querybuilder"
 	sf "github.com/snowflakedb/gosnowflake"
-	"time"
 )
 
 func (sw *snowflakeWriter) BindFeature(md *api.Metadata, fs *manifests.FeatureSetSpec, getter api.MetadataGetter) error {
@@ -89,6 +90,7 @@ func subtractDuration(d time.Duration, field string) string {
 	}
 	return fmt.Sprintf("DATEADD('%s', %d, %s)", unit, v, field)
 }
+
 func castFeature(ft api.Metadata) string {
 	if ft.ValidWindow() {
 		return "OBJECT"

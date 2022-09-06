@@ -20,11 +20,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"sync"
+
 	"github.com/raptor-ml/raptor/api"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/raptor-ml/raptor/pkg/plugins"
-	"strings"
-	"sync"
 )
 
 func init() {
@@ -43,7 +44,7 @@ func FeatureApply(md api.Metadata, builder manifests.FeatureBuilder, faapi api.F
 		return fmt.Errorf("featureset must have at least 2 features")
 	}
 
-	//normalize features
+	// normalize features
 	for i, f := range spec.Features {
 		ns := md.FQN[strings.Index(md.FQN, ".")+1:]
 		spec.Features[i] = api.NormalizeFQN(f, ns)

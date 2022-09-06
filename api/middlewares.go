@@ -18,11 +18,14 @@ package api
 
 import (
 	"context"
+
 	"github.com/go-logr/logr"
 )
 
-type Middleware func(next MiddlewareHandler) MiddlewareHandler
-type MiddlewareHandler func(ctx context.Context, md Metadata, entityID string, val Value) (Value, error)
+type (
+	Middleware        func(next MiddlewareHandler) MiddlewareHandler
+	MiddlewareHandler func(ctx context.Context, md Metadata, entityID string, val Value) (Value, error)
+)
 
 // FeatureAbstractAPI is the interface that plugins can use to modify the Core's feature abstraction on creation time
 type FeatureAbstractAPI interface {
@@ -61,6 +64,7 @@ func LoggerFromContext(ctx context.Context) logr.Logger {
 	}
 	return logr.Logger{}
 }
+
 func WindowFnFromContext(ctx context.Context) (WindowFn, error) {
 	if ctx == nil {
 		return WindowFnUnknown, ErrInvalidPipelineContext
@@ -72,6 +76,7 @@ func WindowFnFromContext(ctx context.Context) (WindowFn, error) {
 
 	return WindowFnUnknown, ErrInvalidPipelineContext
 }
+
 func ContextWithWindowFn(ctx context.Context, fn WindowFn) context.Context {
 	ctx = context.WithValue(ctx, ContextKeyWindowFn, fn)
 	return ctx

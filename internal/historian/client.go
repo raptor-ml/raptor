@@ -19,6 +19,7 @@ package historian
 import (
 	"context"
 	"fmt"
+
 	"github.com/go-logr/logr"
 	"github.com/raptor-ml/raptor/api"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -91,6 +92,7 @@ func (c *client) AddWriteNotification(fqn, entityID, bucket string, value *api.V
 func (c *client) CollectNotifier() NoLeaderRunnableFunc {
 	return c.pendingCollects.Runnable(c.CollectNotificationWorkers)
 }
+
 func (c *client) WriteNotifier() NoLeaderRunnableFunc {
 	return c.pendingWrite.Runnable(c.WriteNotificationWorkers)
 }

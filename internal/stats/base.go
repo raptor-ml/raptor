@@ -23,6 +23,10 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus"
@@ -32,11 +36,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
-	"net/http"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
-	"time"
 )
 
 const (

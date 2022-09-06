@@ -20,12 +20,13 @@ import (
 	"context"
 	goerrors "errors"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/go-logr/logr"
 	"github.com/raptor-ml/raptor/api"
 	"github.com/raptor-ml/raptor/internal/historian"
 	"github.com/raptor-ml/raptor/internal/stats"
-	"sync"
-	"time"
 )
 
 type engine struct {
@@ -53,18 +54,22 @@ func (e *engine) Append(ctx context.Context, fqn string, entityID string, val an
 	defer stats.IncrFeatureAppends()
 	return e.write(ctx, fqn, entityID, val, ts, api.StateMethodAppend)
 }
+
 func (e *engine) Incr(ctx context.Context, fqn string, entityID string, by any, ts time.Time) error {
 	defer stats.IncrFeatureIncrements()
 	return e.write(ctx, fqn, entityID, by, ts, api.StateMethodIncr)
 }
+
 func (e *engine) Set(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
 	defer stats.IncrFeatureSets()
 	return e.write(ctx, fqn, entityID, val, ts, api.StateMethodSet)
 }
+
 func (e *engine) Update(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
 	defer stats.IncrFeatureUpdates()
 	return e.write(ctx, fqn, entityID, val, ts, api.StateMethodUpdate)
 }
+
 func (e *engine) write(ctx context.Context, fqn string, entityID string, val any, ts time.Time, method api.StateMethod) error {
 	f, ctx, cancel, err := e.featureForRequest(ctx, fqn)
 	if err != nil {
@@ -106,6 +111,7 @@ func (e *engine) Metadata(ctx context.Context, fqn string) (api.Metadata, error)
 
 	return f.Metadata, nil
 }
+
 func (e *engine) featureForRequest(ctx context.Context, fqn string) (*Feature, context.Context, context.CancelFunc, error) {
 	fqn, fn := api.FQNToRealFQN(fqn)
 	if f, ok := e.features.Load(fqn); ok {

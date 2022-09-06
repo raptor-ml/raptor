@@ -25,11 +25,12 @@ package operator
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/raptor-ml/raptor/api"
 	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/raptor-ml/raptor/pkg/plugins"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"

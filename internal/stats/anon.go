@@ -19,9 +19,10 @@ package stats
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/google/uuid"
 	coreV1 "k8s.io/api/core/v1"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

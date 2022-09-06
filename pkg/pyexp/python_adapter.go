@@ -19,10 +19,11 @@ package pyexp
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-logr/logr/funcr"
-	"github.com/raptor-ml/raptor/api"
 	"reflect"
 	"time"
+
+	"github.com/go-logr/logr/funcr"
+	"github.com/raptor-ml/raptor/api"
 )
 
 type PyVal struct {
@@ -86,6 +87,7 @@ func PyTime(str string, layout string) (time.Time, error) {
 	}
 	return time.Parse(layout, str)
 }
+
 func PyTimeRFC3339(t time.Time) string {
 	return t.Format(time.RFC3339)
 }

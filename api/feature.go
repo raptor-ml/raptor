@@ -19,14 +19,17 @@ package api
 import (
 	"context"
 	"fmt"
-	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"time"
+
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const FeatureSetBuilder = "featureset"
-const ExpressionBuilder = "expression"
+const (
+	FeatureSetBuilder = "featureset"
+	ExpressionBuilder = "expression"
+)
 
 // DataConnector is a parsed abstracted representation of a manifests.DataConnector
 type DataConnector struct {
@@ -77,6 +80,7 @@ func (md Metadata) ValidWindow() bool {
 	}
 	return true
 }
+
 func aggrsToStrings(a []manifests.AggrType) []string {
 	var res []string
 	for _, v := range a {
@@ -115,7 +119,7 @@ func MetadataFromManifest(in *manifests.Feature) (*Metadata, error) {
 		md.DataConnector = in.Spec.DataConnector.FQN()
 	}
 	if md.Builder == "" {
-		//Todo auto-detect builder
+		// Todo auto-detect builder
 		md.Builder = ExpressionBuilder
 	}
 

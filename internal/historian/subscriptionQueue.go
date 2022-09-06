@@ -18,14 +18,17 @@ package historian
 
 import (
 	"context"
+	"time"
+
 	"github.com/go-logr/logr"
 	"github.com/raptor-ml/raptor/api"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"time"
 )
 
-type HandleFn[T api.Notification] func(ctx context.Context, notification T) error
-type FinalizerFunc func(ctx context.Context)
+type (
+	HandleFn[T api.Notification] func(ctx context.Context, notification T) error
+	FinalizerFunc                func(ctx context.Context)
+)
 
 type subscriptionQueue[T api.Notification] struct {
 	queue     queue[T]

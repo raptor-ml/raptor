@@ -18,9 +18,10 @@ package historian
 
 import (
 	"context"
-	"github.com/raptor-ml/raptor/api"
 	"sync/atomic"
 	"time"
+
+	"github.com/raptor-ml/raptor/api"
 )
 
 func (h *historian) dispatchWrite(ctx context.Context, ntf api.WriteNotification) error {

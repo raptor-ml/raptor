@@ -21,17 +21,16 @@ package e2e
 
 import (
 	"flag"
-	"k8s.io/klog/v2"
 	"os"
+	"testing"
+
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/e2e-framework/pkg/env"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/envfuncs"
-	"testing"
 )
 
-var (
-	testEnv env.Environment
-)
+var testEnv env.Environment
 
 func TestMain(m *testing.M) {
 	buildTag := flag.String("build-tag", "", "The docker image tag that used when testing")

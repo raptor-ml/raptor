@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -120,6 +121,7 @@ type DataConnector struct {
 func (in *DataConnector) FQN() string {
 	return fmt.Sprintf("%s.%s", in.GetName(), in.GetNamespace())
 }
+
 func (in *DataConnector) ResourceReference() ResourceReference {
 	return ResourceReference{
 		Namespace: in.GetNamespace(),

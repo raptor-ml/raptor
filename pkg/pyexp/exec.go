@@ -20,24 +20,27 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/go-logr/logr"
 	"github.com/raptor-ml/raptor/api"
 	"go.starlark.net/starlark"
-	"sync"
-	"time"
 )
 
 const localKeyDependencyGetter = "dependency_getter"
 
-type DependencyGetter func(FQN string, entityID string, timestamp time.Time) (api.Value, error)
-type ExecRequest struct {
-	Headers          map[string][]string
-	Payload          any
-	EntityID         string
-	Timestamp        time.Time
-	Logger           logr.Logger
-	DependencyGetter DependencyGetter
-}
+type (
+	DependencyGetter func(FQN string, entityID string, timestamp time.Time) (api.Value, error)
+	ExecRequest      struct {
+		Headers          map[string][]string
+		Payload          any
+		EntityID         string
+		Timestamp        time.Time
+		Logger           logr.Logger
+		DependencyGetter DependencyGetter
+	}
+)
 
 type InstructionOp int
 
@@ -118,6 +121,7 @@ func (r *runtime) Exec(req ExecRequest) (*ExecResponse, error) {
 		Instructions: thread.Local(localKeyInstructions).(*InstructionsBag).Instructions,
 	}, nil
 }
+
 func (r *runtime) DiscoverDependencies() ([]string, error) {
 	_, thread, err := r.exec(ExecRequest{}, true)
 	if err != nil {

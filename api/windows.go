@@ -87,6 +87,7 @@ func StringsToWindowFns(fns []string) ([]WindowFn, error) {
 
 	return windowFns, nil
 }
+
 func StringToWindowFn(s string) WindowFn {
 	switch strings.ToLower(s) {
 	case "sum":

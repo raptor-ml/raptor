@@ -21,18 +21,21 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"net/url"
+	"strings"
+
 	"github.com/raptor-ml/raptor/api"
 	"github.com/raptor-ml/raptor/pkg/plugins"
 	"github.com/raptor-ml/raptor/pkg/querybuilder"
 	sf "github.com/snowflakedb/gosnowflake"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"net/url"
-	"strings"
 )
 
-const pluginName = "snowflake"
-const featuresTable = "HISTORICAL_FEATURES"
+const (
+	pluginName    = "snowflake"
+	featuresTable = "HISTORICAL_FEATURES"
+)
 
 func init() {
 	plugins.Configurers.Register(pluginName, BindConfig)

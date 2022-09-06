@@ -21,10 +21,11 @@ package e2e
 
 import (
 	"context"
-	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"os"
-	"sigs.k8s.io/e2e-framework/pkg/envfuncs"
 	"testing"
+
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
+	"sigs.k8s.io/e2e-framework/pkg/envfuncs"
 
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/e2e-framework/klient/decoder"
