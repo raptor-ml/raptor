@@ -82,7 +82,7 @@ func (md Metadata) ValidWindow() bool {
 }
 
 func aggrsToStrings(a []manifests.AggrType) []string {
-	var res []string
+	res := make([]string, 0, len(a))
 	for _, v := range a {
 		res = append(res, string(v))
 	}

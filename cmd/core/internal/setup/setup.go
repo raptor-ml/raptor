@@ -48,8 +48,9 @@ func OrFail(err error, message string, keyAndValues ...any) {
 		if setupLog.GetSink() == nil {
 			_, _ = fmt.Fprint(os.Stderr, append([]any{"error", err, "message", message}, keyAndValues...)...)
 		} else {
-			setupLog.Error(err, message, keyAndValues...)
+			setupLog.Error(err, message, keyAndValues...) //nolint:logrlint // assume even number of logger arguments
 		}
-		os.Exit(1)
+		// panic call all defered closers before existing (as opposed to os.Exit)
+		panic(fmt.Errorf("%v: %w", message, err))
 	}
 }

@@ -50,12 +50,20 @@ type accessor struct {
 }
 
 func New(e api.FeatureManager, logger logr.Logger) Accessor {
+	engine, ok := e.(api.Engine)
+	if !ok {
+		panic("e FeatureManager is not Engine")
+	}
 	svc := &accessor{
-		sdkServer: sdk.NewServiceServer(e.(api.Engine)),
+		sdkServer: sdk.NewServiceServer(engine),
 		logger:    logger,
 	}
 
-	zapLogger := svc.logger.GetSink().(zapr.Underlier).GetUnderlying()
+	zapUnderlier, ok := svc.logger.GetSink().(zapr.Underlier)
+	if !ok {
+		panic("logr.LogSync does not implement Underlier interface")
+	}
+	zapLogger := zapUnderlier.GetUnderlying()
 
 	grpcMetrics := grpcPrometheus.NewServerMetrics()
 	metrics.Registry.MustRegister(grpcMetrics)

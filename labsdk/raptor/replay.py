@@ -234,7 +234,7 @@ def __replay_map(spec, rt: pyexp.Runtime, timestamp_field: str, headers_field: s
             for i in res.Instructions:
                 inst = pyexp.Instruction(handle=i)
                 replay_instructions.__exec_instruction(inst)
-            return json.loads(pyexp.JsonAny(res, "Value"))
+            return json.loads(pyexp.JSONAny(res, "Value"))
         except RuntimeError as e:
             raise types.WrapException(e, spec)
         except Exception as err:

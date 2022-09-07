@@ -80,7 +80,7 @@ func StringsToWindowFns(fns []string) ([]WindowFn, error) {
 	}
 
 	// Unique
-	var windowFns []WindowFn
+	windowFns := make([]WindowFn, 0, len(windowFnsMap))
 	for f := range windowFnsMap {
 		windowFns = append(windowFns, f)
 	}

@@ -18,6 +18,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
@@ -48,7 +49,11 @@ type LowLevelValue interface {
 
 // ToLowLevelValue returns the low level value of the feature
 func ToLowLevelValue[T LowLevelValue](v any) T {
-	return v.(T)
+	val, ok := v.(T)
+	if !ok {
+		panic(fmt.Errorf("failed to convert %v to %T", v, val))
+	}
+	return val
 }
 
 // State is a feature state management layer

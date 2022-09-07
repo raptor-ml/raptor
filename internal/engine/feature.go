@@ -86,15 +86,15 @@ type (
 	}
 )
 
-func (mws *mws) Sort() mws {
-	sort.SliceStable(*mws, func(i, j int) bool {
-		return (*mws)[i].priority < (*mws)[j].priority
+func (mws mws) Sort() mws {
+	sort.SliceStable(mws, func(i, j int) bool {
+		return (mws)[i].priority < (mws)[j].priority
 	})
-	return *mws
+	return mws
 }
 
-func (mws *mws) Middlewares() Middlewares {
-	var fns []api.Middleware
+func (mws mws) Middlewares() Middlewares {
+	fns := make([]api.Middleware, 0, len(mws))
 	for _, mw := range mws.Sort() {
 		fns = append(fns, mw.fn)
 	}

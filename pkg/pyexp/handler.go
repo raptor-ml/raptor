@@ -49,17 +49,17 @@ func programHandler(file *syntax.File, altHandler string) string {
 }
 
 // Parse and convert return value. Can be a single value, or a tuple of value, timestamp, entity_id
-func parseHandlerResults(returnedValue starlark.Value, thread *starlark.Thread) (val any, ts time.Time, entityID string, err error) {
-	ts = nowf(thread)
+func parseHandlerResults(returnedValue starlark.Value, thread *starlark.Thread) (any, time.Time, string, error) {
+	ts := nowf(thread)
 
 	if returnedValue == starlark.None {
-		return
+		return nil, ts, "", nil
 	}
 	switch retVals := returnedValue.(type) {
 	case starlark.Tuple:
-		val, err = starToGo(retVals[0])
+		val, err := starToGo(retVals[0])
 		if err != nil {
-			return
+			return val, ts, "", err
 		}
 
 		// Second item is timestamp (RFC3339)
@@ -67,33 +67,31 @@ func parseHandlerResults(returnedValue starlark.Value, thread *starlark.Thread) 
 			if t, ok := retVals[1].(starlark.String); ok {
 				ts, err = time.Parse(time.RFC3339, string(t))
 				if err != nil {
-					err = fmt.Errorf("returned timestamp(%v) was not PyExp's Time or RFC3339", t)
-					return
+					err = fmt.Errorf("returned timestamp(%v) was not PyExp's Time or RFC3339: %w", t, err)
+					return val, ts, "", err
 				}
 			} else if t, ok := retVals[1].(sTime.Time); ok {
 				ts = time.Time(t)
 			} else {
 				err = fmt.Errorf("program returned a tuple with an invalid timestamp: %v", retVals[1])
-				return
+				return val, ts, "", err
 			}
 		}
 
 		// Third param is entityID and must be a string
 		if retVals.Len() > 2 {
 			var ok bool
-			entityID, ok = convert.FromValue(retVals[2]).(string)
+			entityID, ok := convert.FromValue(retVals[2]).(string)
 			if !ok {
 				err = fmt.Errorf("program returned a non string value as entity_id (third return tuple item)")
-				return
 			}
+			return val, ts, entityID, err
 		}
+		return val, ts, "", err
 	default:
-		val, err = starToGo(returnedValue)
-		if err != nil {
-			return
-		}
+		val, err := starToGo(returnedValue)
+		return val, ts, "", err
 	}
-	return
 }
 
 func recursiveToValue(input any) (out starlark.Value, err error) {
@@ -143,7 +141,7 @@ func protoToMap(p *proto.Message) (starlark.Value, error) {
 	for _, a := range p.AttrNames() {
 		vv, err := p.Attr(a)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get attribute %v: %v", a, err)
+			return nil, fmt.Errorf("failed to get attribute %v: %w", a, err)
 		}
 		if f, ok := vv.(*proto.Message); ok {
 			vv, err = recursiveToValue(f)

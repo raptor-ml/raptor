@@ -48,7 +48,7 @@ def _exec_append(inst):
     ts = pd.to_datetime(pyexp.PyTimeRFC3339(inst.Timestamp))
     o = {
         "entity_id": inst.EntityID,
-        "value": [pyexp.JsonAny(inst, "Value")],
+        "value": [pyexp.JSONAny(inst, "Value")],
         "timestamp": ts,
         "fqn": inst.FQN,
     }
@@ -68,7 +68,7 @@ def _exec_incr(inst):
     ts = pd.to_datetime(pyexp.PyTimeRFC3339(inst.Timestamp))
     o = {
         "entity_id": inst.EntityID,
-        "value": pyexp.JsonAny(inst, "Value"),
+        "value": pyexp.JSONAny(inst, "Value"),
         "timestamp": ts,
         "fqn": inst.FQN,
     }
@@ -112,7 +112,7 @@ def _exec_set(inst: pyexp.Instruction):
     ts = pd.to_datetime(pyexp.PyTimeRFC3339(inst.Timestamp))
     local_state.store_feature_values(pandas.DataFrame.from_records([{
         "entity_id": inst.EntityID,
-        "value": pyexp.JsonAny(inst, "Value"),
+        "value": pyexp.JSONAny(inst, "Value"),
         "timestamp": ts,
         "fqn": inst.FQN,
     }]))

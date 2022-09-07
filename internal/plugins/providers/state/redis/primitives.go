@@ -121,7 +121,9 @@ func (s *state) Set(ctx context.Context, md api.Metadata, entityID string, value
 			tx.PExpire(ctx, key, md.Staleness)
 		}
 	}
-	setTimestamp(ctx, tx, key, ts, md.Staleness)
+	if err := setTimestamp(ctx, tx, key, ts, md.Staleness).Err(); err != nil {
+		return err
+	}
 
 	_, err := tx.Exec(ctx)
 	return err
@@ -145,7 +147,9 @@ func (s *state) Append(ctx context.Context, md api.Metadata, entityID string, va
 	if md.Staleness > 0 {
 		tx.PExpire(ctx, key, md.Staleness)
 	}
-	setTimestamp(ctx, tx, key, ts, md.Staleness)
+	if err := setTimestamp(ctx, tx, key, ts, md.Staleness).Err(); err != nil {
+		return err
+	}
 
 	_, err := tx.Exec(ctx)
 	return err
@@ -176,7 +180,9 @@ func (s *state) Incr(ctx context.Context, md api.Metadata, entityID string, valu
 	if md.Staleness > 0 {
 		tx.PExpire(ctx, key, md.Staleness)
 	}
-	setTimestamp(ctx, tx, key, ts, md.Staleness)
+	if err := setTimestamp(ctx, tx, key, ts, md.Staleness).Err(); err != nil {
+		return err
+	}
 
 	_, err := tx.Exec(ctx)
 	return err

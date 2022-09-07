@@ -73,7 +73,7 @@ func (fs *featureset) preGetMiddleware(next api.MiddlewareHandler) api.Middlewar
 				defer wg.Done()
 				val, _, err := fs.engine.Get(ctx, fqn, entityID)
 				if err != nil {
-					logger.Error(err, "failed to get feature %s", fqn)
+					logger.Error(err, "failed to get feature", "feature", fqn)
 					return
 				}
 				results[fqn] = val

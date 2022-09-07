@@ -55,7 +55,10 @@ func (r *runtime) basicOp(op BasicOp) (starlark.Value, error) {
 		return nil, err
 	}
 
-	ib := op.thread.Local(localKeyInstructions).(*InstructionsBag)
+	ib, ok := op.thread.Local(localKeyInstructions).(*InstructionsBag)
+	if !ok {
+		return nil, fmt.Errorf("failed to cast %v to *InstructionsBag", localKeyInstructions)
+	}
 	ib.Lock()
 	defer ib.Unlock()
 	ib.Instructions = append(ib.Instructions, Instruction{
@@ -141,7 +144,10 @@ func (r *runtime) GetFeature(t *starlark.Thread, b *starlark.Builtin, args starl
 		}
 	}
 
-	getter := t.Local(localKeyDependencyGetter).(DependencyGetter)
+	getter, ok := t.Local(localKeyDependencyGetter).(DependencyGetter)
+	if !ok {
+		return nil, fmt.Errorf("couldn't cast feature type")
+	}
 	val, err := getter(fqn, entityID, nowf(t))
 	if err != nil {
 		return nil, fmt.Errorf("couldn't get feature value: %w", err)

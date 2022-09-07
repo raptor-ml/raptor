@@ -62,7 +62,7 @@ func FromAPIAggrFunc(f coreApi.AggrFn) api.WindowFn {
 }
 
 func FromAPIAggrFuncs(fs []coreApi.AggrFn) []api.WindowFn {
-	var wfs []api.WindowFn
+	wfs := make([]api.WindowFn, 0, len(fs))
 	for _, f := range fs {
 		wfs = append(wfs, FromAPIAggrFunc(f))
 	}

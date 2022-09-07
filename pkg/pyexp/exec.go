@@ -114,11 +114,15 @@ func (r *runtime) Exec(req ExecRequest) (*ExecResponse, error) {
 		return nil, fmt.Errorf("this program must return an entity_id along with the value")
 	}
 
+	ib, ok := thread.Local(localKeyInstructions).(*InstructionsBag)
+	if !ok {
+		return nil, fmt.Errorf("failed to cast %v to *InstructionsBag", localKeyInstructions)
+	}
 	return &ExecResponse{
 		Value:        ret,
 		Timestamp:    ts,
 		EntityID:     eid,
-		Instructions: thread.Local(localKeyInstructions).(*InstructionsBag).Instructions,
+		Instructions: ib.Instructions,
 	}, nil
 }
 
@@ -127,7 +131,10 @@ func (r *runtime) DiscoverDependencies() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	dd := thread.Local(localKeyDiscoverDependencies).(discoveredDependencies)
+	dd, ok := thread.Local(localKeyDiscoverDependencies).(discoveredDependencies)
+	if !ok {
+		return nil, fmt.Errorf("failed to cast %v to map[string]struct{}", localKeyDiscoverDependencies)
+	}
 	deps := make([]string, 0, len(dd))
 	for k := range dd {
 		deps = append(deps, k)

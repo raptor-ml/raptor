@@ -32,11 +32,11 @@ import (
 
 const MaxScanCount = 1000
 
-func windowKey(FQN string, bucketName string, entityID string) string {
-	return fmt.Sprintf("%s/%s:%s", FQN, bucketName, entityID)
+func windowKey(fqn, bucketName, entityID string) string {
+	return fmt.Sprintf("%s/%s:%s", fqn, bucketName, entityID)
 }
 
-func fromWindowKey(k string) (fqn string, bucketName string, entityID string) {
+func fromWindowKey(k string) (fqn, bucketName, entityID string) {
 	firstSep := strings.Index(k, "/")
 	lastColon := strings.LastIndex(k, ":")
 	return k[:firstSep], k[firstSep+1 : lastColon], k[lastColon+1:]
@@ -141,7 +141,7 @@ func (s *state) windowBuckets(ctx context.Context, buckets []api.RawBucket) (api
 			}
 		}(cRes, wg, b)
 	}
-	go func(group *sync.WaitGroup) {
+	go func(wg *sync.WaitGroup) {
 		wg.Wait()
 		close(cRes)
 	}(wg)
@@ -252,7 +252,9 @@ func (s *state) WindowAdd(ctx context.Context, md api.Metadata, entityID string,
 		}
 	}
 	exp := api.BucketDeadTime(bucket, md.Freshness, md.Staleness)
-	setTimestampExpireAt(ctx, tx, key, ts, exp)
+	if err := setTimestampExpireAt(ctx, tx, key, ts, exp).Err(); err != nil {
+		return err
+	}
 	tx.PExpireAt(ctx, key, exp)
 
 	_, err := tx.Exec(ctx)

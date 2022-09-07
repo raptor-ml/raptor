@@ -146,7 +146,7 @@ func deadBucketKey(fqn, bucket, eid string) string {
 	return fmt.Sprintf("%s/%s:%s", fqn, bucket, eid)
 }
 
-func fromDeadBucketKey(k string) (fqn string, bucket string, eid string) {
+func fromDeadBucketKey(k string) (fqn, bucket, eid string) {
 	firstSep := strings.Index(k, "/")
 	lastColon := strings.LastIndex(k, ":")
 	return k[:firstSep], k[firstSep+1 : lastColon], k[lastColon+1:]

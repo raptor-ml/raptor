@@ -163,7 +163,7 @@ func ScalarString(val any) string {
 
 func ScalarFromString(val string, scalar PrimitiveType) (any, error) {
 	if !scalar.Scalar() {
-		return nil, fmt.Errorf("%s is not a scalar type", scalar)
+		return nil, fmt.Errorf("%v is not a scalar type", scalar)
 	}
 	switch scalar {
 	case PrimitiveTypeInteger:
@@ -185,16 +185,17 @@ func ScalarFromString(val string, scalar PrimitiveType) (any, error) {
 
 // TypeDetect detects the PrimitiveType of the value.
 func TypeDetect(t any) PrimitiveType {
-	reflectType := reflect.TypeOf(t)
-	if reflectType == reflect.TypeOf([]any{}) {
-		for _, v := range t.([]any) {
-			if reflect.TypeOf(v) != reflect.TypeOf(t.([]any)[0]) {
+	switch val := t.(type) {
+	case []any:
+		for _, v := range val {
+			if reflect.TypeOf(v) != reflect.TypeOf(val[0]) {
 				return PrimitiveTypeUnknown
 			}
 		}
-		return TypeDetect(t.([]any)[0]).Plural()
+		return TypeDetect(val[0]).Plural()
+	default:
+		return StringToPrimitiveType(reflect.TypeOf(val).String())
 	}
-	return StringToPrimitiveType(reflectType.String())
 }
 
 func NormalizeAny(t any) (any, error) {

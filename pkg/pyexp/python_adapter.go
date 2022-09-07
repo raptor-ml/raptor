@@ -37,8 +37,8 @@ type PyDepGetter func(FQN string, entityID string, timestamp string, val *PyVal)
 func PyExecReq(jsonPayload string, p PyDepGetter) (ExecRequest, error) {
 	dg := func(FQN string, entityID string, timestamp time.Time) (api.Value, error) {
 		pv := PyVal{}
-		if err := p(FQN, entityID, timestamp.Format(time.RFC3339), &pv); err != "" {
-			return api.Value{}, fmt.Errorf("%v", err)
+		if errMsg := p(FQN, entityID, timestamp.Format(time.RFC3339), &pv); errMsg != "" {
+			return api.Value{}, fmt.Errorf("%v", errMsg)
 		}
 
 		ret := api.Value{
@@ -69,7 +69,7 @@ func PyExecReq(jsonPayload string, p PyDepGetter) (ExecRequest, error) {
 	return ret, nil
 }
 
-func JsonAny(o any, field string) string {
+func JSONAny(o any, field string) string {
 	v := reflect.ValueOf(o)
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()

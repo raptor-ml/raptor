@@ -148,7 +148,11 @@ func (h *historian) Metadata(ctx context.Context, FQN string) (api.Metadata, err
 	if !ok {
 		return api.Metadata{}, api.ErrFeatureNotFound
 	}
-	return md.(api.Metadata), nil
+	m, ok := md.(api.Metadata)
+	if !ok {
+		return api.Metadata{}, api.ErrUnsupportedPrimitiveError
+	}
+	return m, nil
 }
 
 func timeTillNextBucket(bucketSize time.Duration) time.Duration {

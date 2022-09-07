@@ -17,6 +17,7 @@ limitations under the License.
 package protoregistry
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -87,10 +88,15 @@ func SchemaToFDs(schema string) ([]*desc.FileDescriptor, string, error) {
 		}
 		filename = u.Host + u.Path
 
-		resp, err := getClient().Get(schema)
+		req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, schema, http.NoBody)
+		if err != nil {
+			return nil, "", fmt.Errorf("unable to request schema from url(%s): %w", schema, err)
+		}
+		resp, err := getClient().Do(req)
 		if err != nil {
 			return nil, "", fmt.Errorf("unable to fetch schema from url(%s): %w", schema, err)
 		}
+		defer resp.Body.Close()
 
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
 			return nil, "", fmt.Errorf("unable to fetch schema from url(%s), got status %d", schema, resp.StatusCode)

@@ -28,19 +28,27 @@ import (
 )
 
 func ToAPIScalar(val any) *coreApi.Scalar {
-	primitive := api.TypeDetect(val)
-
-	switch primitive {
-	case api.PrimitiveTypeString:
-		return &coreApi.Scalar{Value: &coreApi.Scalar_StringValue{StringValue: val.(string)}}
-	case api.PrimitiveTypeInteger:
-		return &coreApi.Scalar{Value: &coreApi.Scalar_IntValue{IntValue: int32(val.(int))}}
-	case api.PrimitiveTypeFloat:
-		return &coreApi.Scalar{Value: &coreApi.Scalar_FloatValue{FloatValue: val.(float64)}}
-	case api.PrimitiveTypeTimestamp:
-		return &coreApi.Scalar{Value: &coreApi.Scalar_TimestampValue{TimestampValue: timestamppb.New(val.(time.Time))}}
+	switch primitive := val.(type) {
+	case string:
+		return &coreApi.Scalar{Value: &coreApi.Scalar_StringValue{StringValue: primitive}}
+	case int32:
+		return &coreApi.Scalar{Value: &coreApi.Scalar_IntValue{IntValue: primitive}}
+	case int:
+		return &coreApi.Scalar{Value: &coreApi.Scalar_IntValue{IntValue: int32(primitive)}}
+	case int8:
+		return &coreApi.Scalar{Value: &coreApi.Scalar_IntValue{IntValue: int32(primitive)}}
+	case int16:
+		return &coreApi.Scalar{Value: &coreApi.Scalar_IntValue{IntValue: int32(primitive)}}
+	case int64:
+		return &coreApi.Scalar{Value: &coreApi.Scalar_IntValue{IntValue: int32(primitive)}}
+	case float64:
+		return &coreApi.Scalar{Value: &coreApi.Scalar_FloatValue{FloatValue: primitive}}
+	case float32:
+		return &coreApi.Scalar{Value: &coreApi.Scalar_FloatValue{FloatValue: float64(primitive)}}
+	case time.Time:
+		return &coreApi.Scalar{Value: &coreApi.Scalar_TimestampValue{TimestampValue: timestamppb.New(primitive)}}
 	default:
-		panic(fmt.Sprintf("unsupported type - is it scalar? (%v)", primitive.Scalar()))
+		panic(fmt.Sprintf("unsupported type - is it scalar? (%v)", api.TypeDetect(primitive).Scalar()))
 	}
 }
 

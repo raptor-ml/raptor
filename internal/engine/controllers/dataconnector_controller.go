@@ -79,7 +79,7 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	dci, err := api.DataConnectorFromManifest(ctx, dc, r.Reader)
 	if err != nil {
-		logger.Error(err, "Failed to get DataConnector: %w", err)
+		logger.Error(err, "Failed to get DataConnector")
 		return ctrl.Result{}, err
 	}
 

@@ -99,5 +99,9 @@ func (e *engine) GetDataConnector(fqn string) (api.DataConnector, error) {
 	if !ok {
 		return api.DataConnector{}, fmt.Errorf("DataConnector %s not found", fqn)
 	}
-	return md.(api.DataConnector), nil
+	m, ok := md.(api.DataConnector)
+	if !ok {
+		return api.DataConnector{}, fmt.Errorf("feature %s failed to cast to DataConnector", fqn)
+	}
+	return m, nil
 }

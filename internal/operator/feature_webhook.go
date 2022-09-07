@@ -88,7 +88,10 @@ func (h *admissionWrapper) Handle(ctx context.Context, req admission.Request) ad
 }
 
 func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
-	f := obj.(*raptorApi.Feature)
+	f, ok := obj.(*raptorApi.Feature)
+	if !ok {
+		panic("obj is not *raptorApi.Feature")
+	}
 	wh.logger.Info("defaulting", "name", f.GetName())
 
 	if f.Spec.DataConnector != nil && f.Spec.DataConnector.Namespace == "" {
@@ -131,7 +134,10 @@ func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (wh *webhook) ValidateCreate(ctx context.Context, obj runtime.Object) error {
-	f := obj.(*raptorApi.Feature)
+	f, ok := obj.(*raptorApi.Feature)
+	if !ok {
+		panic("obj is not *raptorApi.Feature")
+	}
 	wh.logger.Info("validate create", "name", f.Name)
 
 	return wh.Validate(ctx, f)
@@ -139,8 +145,14 @@ func (wh *webhook) ValidateCreate(ctx context.Context, obj runtime.Object) error
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (wh *webhook) ValidateUpdate(ctx context.Context, oldObject, newObj runtime.Object) error {
-	f := newObj.(*raptorApi.Feature)
-	old := oldObject.(*raptorApi.Feature)
+	f, ok := newObj.(*raptorApi.Feature)
+	if !ok {
+		return fmt.Errorf("new feature failed to cast")
+	}
+	old, ok := oldObject.(*raptorApi.Feature)
+	if !ok {
+		return fmt.Errorf("old feature failed to cast")
+	}
 	wh.logger.Info("validate update", "name", f.GetName())
 	if !equality.Semantic.DeepEqual(old.Spec, f.Spec) && !wh.updatesAllowed {
 		return fmt.Errorf("features are immutable in production")
@@ -176,7 +188,10 @@ func (wh *webhook) Validate(ctx context.Context, f *raptorApi.Feature) error {
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
 func (wh *webhook) ValidateDelete(_ context.Context, obj runtime.Object) error {
-	f := obj.(*raptorApi.Feature)
+	f, ok := obj.(*raptorApi.Feature)
+	if !ok {
+		panic("obj is not *raptorApi.Feature")
+	}
 	wh.logger.Info("validate delete", "name", f.GetName())
 
 	// DISABLED. To enable deletion validation, change the above annotation's verbs to "verbs=create;update;delete"
