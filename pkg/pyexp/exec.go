@@ -91,7 +91,7 @@ const localKeyInstructions = "engine.instructions"
 func (r *runtime) Exec(req ExecRequest) (*ExecResponse, error) {
 	v, thread, err := r.exec(req, false)
 	if err != nil {
-		evalErr := &starlark.EvalError{}
+		evalErr := new(starlark.EvalError)
 		if ok := errors.As(err, &evalErr); ok {
 			req.Logger.WithValues("backtrace", evalErr.Backtrace()).Error(evalErr, "execution failed")
 			return nil, fmt.Errorf(evalErr.Backtrace())
@@ -162,7 +162,7 @@ func (r *runtime) exec(req ExecRequest, discoveryMode bool) (starlark.Value, *st
 		Print: func(_ *starlark.Thread, msg string) { req.Logger.WithName("program").Info(msg) },
 	}
 	thread.SetLocal(localKeyNow, req.Timestamp)
-	thread.SetLocal(localKeyInstructions, &InstructionsBag{})
+	thread.SetLocal(localKeyInstructions, new(InstructionsBag))
 	if discoveryMode {
 		thread.SetLocal(localKeyDiscoverDependencies, make(discoveredDependencies))
 	} else {

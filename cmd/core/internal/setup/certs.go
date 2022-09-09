@@ -137,7 +137,7 @@ func certManagerRunnable(client client.Client, scheme *runtime.Scheme, ns string
 			}}
 
 			_, err := ctrl.CreateOrUpdate(ctx, client, issuer, func() error {
-				issuer.Spec.SelfSigned = &certApi.SelfSignedIssuer{}
+				issuer.Spec.SelfSigned = new(certApi.SelfSignedIssuer)
 				return nil
 			})
 			if err != nil {
@@ -177,7 +177,7 @@ func certManagerRunnable(client client.Client, scheme *runtime.Scheme, ns string
 			g.Go(func() error {
 				logger.Info("Injecting certificate", "webhook", wh.Name)
 
-				resource := &unstructured.Unstructured{}
+				resource := new(unstructured.Unstructured)
 				switch wh.Type {
 				case rotator.Mutating:
 					resource.SetGroupVersionKind(schema.GroupVersionKind{Group: "admissionregistration.k8s.io", Version: "v1", Kind: "MutatingWebhookConfiguration"})

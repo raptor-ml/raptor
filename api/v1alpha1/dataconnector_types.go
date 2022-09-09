@@ -139,5 +139,5 @@ type DataConnectorList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&DataConnector{}, &DataConnectorList{})
+	SchemeBuilder.Register(new(DataConnector), new(DataConnectorList))
 }

@@ -63,7 +63,7 @@ type featureset struct {
 func (fs *featureset) preGetMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
 	return func(ctx context.Context, md api.Metadata, entityID string, val api.Value) (api.Value, error) {
 		logger := api.LoggerFromContext(ctx)
-		wg := &sync.WaitGroup{}
+		wg := new(sync.WaitGroup)
 		wg.Add(len(fs.features))
 
 		ret := api.Value{}

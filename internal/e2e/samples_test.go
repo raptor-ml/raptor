@@ -84,7 +84,7 @@ func TestSamples(t *testing.T) {
 				return ctx
 			}
 
-			ct := &manifests.Feature{}
+			ct := new(manifests.Feature)
 			err = r.Get(ctx, "hello-world", namespace, ct)
 			if err != nil {
 				t.Errorf("failed to get hello-world: %s", err)

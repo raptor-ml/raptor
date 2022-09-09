@@ -51,12 +51,12 @@ func SetupFeatureWebhook(mgr ctrl.Manager, updatesAllowed bool) {
 		client:         mgr.GetClient(),
 		logger:         mgr.GetLogger().WithName("feature-webhook"),
 	}
-	wh := admission.WithCustomValidator(&raptorApi.Feature{}, impl)
+	wh := admission.WithCustomValidator(new(raptorApi.Feature), impl)
 	wh.Handler = &admissionWrapper{Handler: wh.Handler}
 
 	mgr.GetWebhookServer().Register(FeatureWebhookValidatePath, wh)
 
-	wh = admission.WithCustomDefaulter(&raptorApi.Feature{}, impl)
+	wh = admission.WithCustomDefaulter(new(raptorApi.Feature), impl)
 	wh.Handler = &admissionWrapper{Handler: wh.Handler}
 	mgr.GetWebhookServer().Register(FeatureWebhookMutatePath, wh)
 }

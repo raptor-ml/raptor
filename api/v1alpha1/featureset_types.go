@@ -79,5 +79,5 @@ type FeatureSetList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&FeatureSet{}, &FeatureSetList{})
+	SchemeBuilder.Register(new(FeatureSet), new(FeatureSetList))
 }

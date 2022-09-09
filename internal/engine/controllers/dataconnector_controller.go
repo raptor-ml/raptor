@@ -48,7 +48,7 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	logger := log.FromContext(ctx)
 
 	// Fetch the DataConnector definition from the Kubernetes API.
-	dc := &raptorApi.DataConnector{}
+	dc := new(raptorApi.DataConnector)
 	err := r.Get(ctx, req.NamespacedName, dc)
 	if err != nil {
 		logger.Error(err, "Failed to get DataConnector")
@@ -92,5 +92,5 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 // SetupWithManager sets up the controller with the Controller Manager.
 func (r *DataConnectorReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return attachCoreConnector(r, &raptorApi.DataConnector{}, true, mgr)
+	return attachCoreConnector(r, new(raptorApi.DataConnector), true, mgr)
 }

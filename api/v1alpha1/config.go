@@ -62,7 +62,7 @@ func stringToURLHookFunc(f reflect.Type, t reflect.Type, data interface{}) (inte
 	if f.Kind() != reflect.String {
 		return data, nil
 	}
-	if t != reflect.TypeOf(&url.URL{}) {
+	if t != reflect.TypeOf(new(url.URL)) {
 		return data, nil
 	}
 
@@ -89,7 +89,7 @@ func (in *DataConnector) ParseConfig(ctx context.Context, rdr client.Reader) (Pa
 		}
 		cv := cv // https://golang.org/doc/faq#closures_and_goroutines
 		g.Go(func() error {
-			secret := &corev1.Secret{}
+			secret := new(corev1.Secret)
 			err := rdr.Get(ctx, client.ObjectKey{
 				Namespace: in.GetNamespace(),
 				Name:      cv.SecretKeyRef.Name,

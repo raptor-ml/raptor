@@ -45,7 +45,7 @@ func fromWindowKey(k string) (fqn, bucketName, entityID string) {
 func (s *state) DeadWindowBuckets(ctx context.Context, md api.Metadata, ignore api.RawBuckets) (api.RawBuckets, error) {
 	bucketNames := api.DeadWindowBuckets(md.Staleness, md.Freshness)
 
-	wg := &sync.WaitGroup{}
+	wg := new(sync.WaitGroup)
 	wg.Add(len(bucketNames))
 
 	cRes := make(chan string)
@@ -107,7 +107,7 @@ func ignoreKey(ignore api.RawBuckets, key string) bool {
 }
 
 func (s *state) windowBuckets(ctx context.Context, buckets []api.RawBucket) (api.RawBuckets, error) {
-	wg := &sync.WaitGroup{}
+	wg := new(sync.WaitGroup)
 	wg.Add(len(buckets))
 
 	cRes := make(chan api.RawBucket)

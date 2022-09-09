@@ -47,7 +47,7 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	logger := log.FromContext(ctx)
 
 	// Fetch the FeatureSet definition from the Kubernetes API.
-	fs := &raptorApi.FeatureSet{}
+	fs := new(raptorApi.FeatureSet)
 	err := r.Get(ctx, req.NamespacedName, fs)
 	if err != nil {
 		logger.Error(err, "Failed to get FeatureSet")
@@ -108,5 +108,5 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 // SetupWithManager sets up the controller with the Controller Manager.
 func (r *FeatureSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return attachCoreConnector(r, &raptorApi.FeatureSet{}, true, mgr)
+	return attachCoreConnector(r, new(raptorApi.FeatureSet), true, mgr)
 }

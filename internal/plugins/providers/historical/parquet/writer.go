@@ -79,7 +79,7 @@ func (bw *baseParquet) getWriter(ctx context.Context, fqn string, alive bool) (*
 		pw.Footer.CreatedBy = &createdBy
 		bw.writers[fqn] = &parquetWriter{
 			ParquetWriter: pw,
-			Mutex:         &sync.Mutex{},
+			Mutex:         new(sync.Mutex),
 		}
 	}
 	return bw.writers[fqn], nil

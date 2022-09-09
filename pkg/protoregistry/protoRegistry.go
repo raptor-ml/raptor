@@ -67,7 +67,7 @@ var httpMemoryCache = lrucache.New(100<<(10*2), 60*15)
 // getClient returns a http.Client that configured for retrying and caching with a maximum timeout of 5s.
 func getClient() *http.Client {
 	tr := httpcache.NewTransport(httpMemoryCache)
-	tr.Transport = &retryablehttp.RoundTripper{}
+	tr.Transport = new(retryablehttp.RoundTripper)
 	return &http.Client{
 		Transport: httpcache.NewTransport(httpMemoryCache),
 		Timeout:   5 * time.Second,

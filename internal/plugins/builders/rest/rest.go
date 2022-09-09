@@ -54,7 +54,7 @@ type Spec struct {
 var httpMemoryCache = lrucache.New(500<<(10*2), 60*15) // 500MB; 15min
 
 func FeatureApply(md api.Metadata, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
-	spec := &Spec{}
+	spec := new(Spec)
 	err := json.Unmarshal(builder.Raw, spec)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal expression spec: %w", err)
@@ -74,7 +74,7 @@ func FeatureApply(md api.Metadata, builder manifests.FeatureBuilder, api api.Fea
 	}
 
 	tr := httpcache.NewTransport(httpMemoryCache)
-	tr.Transport = &retryablehttp.RoundTripper{}
+	tr.Transport = new(retryablehttp.RoundTripper)
 
 	r := rest{
 		engine:  engine,

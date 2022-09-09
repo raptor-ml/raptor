@@ -106,7 +106,7 @@ func (h *historian) BindFeature(in *manifests.Feature) error {
 
 	var fs *manifests.FeatureSetSpec
 	if md.Builder == api.FeatureSetBuilder {
-		fs = &manifests.FeatureSetSpec{}
+		fs = new(manifests.FeatureSetSpec)
 		err := json.Unmarshal(in.Spec.Builder.Raw, fs)
 		if err != nil {
 			return fmt.Errorf("failed to parse featureset builder spec: %w", err)
