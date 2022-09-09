@@ -93,6 +93,7 @@ func (e *engine) cachePostGetMiddleware(f *Feature) api.Middleware {
 			}
 
 			ctx2 := context.WithValue(context.Background(), api.ContextKeyLogger, api.LoggerFromContext(ctx))
+			//nolint:contextcheck // should finish after response
 			go func(ctx context.Context, entityID string, val api.Value) {
 				_, err := e.writePipeline(f, api.StateMethodSet).Apply(ctx, entityID, val)
 				if err != nil {

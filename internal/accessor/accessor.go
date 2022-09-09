@@ -123,7 +123,7 @@ func (a *accessor) HTTP(addr string, prefix string) NoLeaderRunnableFunc {
 		srv := http.Server{Handler: mux, Addr: addr}
 		go func() {
 			<-ctx.Done()
-			_ = srv.Shutdown(context.TODO())
+			_ = srv.Shutdown(ctx)
 		}()
 		return srv.ListenAndServe()
 	}

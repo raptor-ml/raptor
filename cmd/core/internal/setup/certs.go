@@ -124,7 +124,7 @@ func certManagerRunnable(client client.Client, scheme *runtime.Scheme, ns string
 			return fmt.Errorf("unable to add cert-manager api to scheme: %w", err)
 		}
 
-		g, ctx := errgroup.WithContext(context.Background())
+		g, ctx := errgroup.WithContext(ctx)
 
 		g.Go(func() error {
 			logger := logger.WithName("setup")

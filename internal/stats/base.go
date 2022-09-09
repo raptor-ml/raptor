@@ -114,7 +114,7 @@ func Run(cfg *rest.Config, kc client.Client, usageReporting bool, logger logr.Lo
 			} else {
 				pr.Grouping("anon_id", getAnonID(kc))
 			}
-			if err := pr.Push(); err != nil {
+			if err := pr.PushContext(ctx); err != nil {
 				logger.V(-1).Info("failed to push metrics to usage server", "err", err)
 			}
 		}, pushPeriod)
