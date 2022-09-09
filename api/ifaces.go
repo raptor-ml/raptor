@@ -27,14 +27,14 @@ import (
 // Engine is the main engine of the Core
 // It is responsible for the low-level operation for the features against the feature store
 type Engine interface {
-	Metadata(ctx context.Context, FQN string) (Metadata, error)
-	Get(ctx context.Context, FQN string, entityID string) (Value, Metadata, error)
-	Set(ctx context.Context, FQN string, entityID string, val any, ts time.Time) error
-	Append(ctx context.Context, FQN string, entityID string, val any, ts time.Time) error
-	Incr(ctx context.Context, FQN string, entityID string, by any, ts time.Time) error
-	Update(ctx context.Context, FQN string, entityID string, val any, ts time.Time) error
+	Metadata(ctx context.Context, fqn string) (Metadata, error)
+	Get(ctx context.Context, fqn string, entityID string) (Value, Metadata, error)
+	Set(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error
+	Append(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error
+	Incr(ctx context.Context, fqn string, entityID string, by any, ts time.Time) error
+	Update(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error
 }
-type MetadataGetter func(ctx context.Context, FQN string) (Metadata, error)
+type MetadataGetter func(ctx context.Context, fqn string) (Metadata, error)
 
 // Logger is a simple interface that returns a Logr.Logger
 type Logger interface {
@@ -45,21 +45,21 @@ type Logger interface {
 // It is responsible for managing features as well as operating on them
 type FeatureManager interface {
 	BindFeature(in *manifests.Feature) error
-	UnbindFeature(FQN string) error
-	HasFeature(FQN string) bool
+	UnbindFeature(fqn string) error
+	HasFeature(fqn string) bool
 }
 
 // DataConnectorManager is managing DataConnector(s) within Core
 // It is responsible for maintaining the DataConnector(s) in an internal store
 type DataConnectorManager interface {
 	BindDataConnector(md DataConnector) error
-	UnbindDataConnector(FQN string) error
-	HasDataConnector(FQN string) bool
+	UnbindDataConnector(fqn string) error
+	HasDataConnector(fqn string) bool
 }
 
 // DataConnectorGetter is a simple interface that returns a DataConnector
 type DataConnectorGetter interface {
-	GetDataConnector(FQN string) (DataConnector, error)
+	GetDataConnector(fqn string) (DataConnector, error)
 }
 
 // EngineWithConnector is an Engine that has a DataConnector

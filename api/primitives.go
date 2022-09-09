@@ -199,17 +199,16 @@ func TypeDetect(t any) PrimitiveType {
 }
 
 func NormalizeAny(t any) (any, error) {
-	switch v := t.(type) {
-	case []any:
-		if len(v) == 0 {
-			return nil, nil
-		}
-
-		ret := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(v[0])), len(v), len(v))
-		for i, v2 := range v {
-			ret.Index(i).Set(reflect.ValueOf(v2))
-		}
-		t = ret.Interface()
+	v, ok := t.([]any)
+	if !ok {
+		return t, nil
 	}
-	return t, nil
+	if len(v) == 0 {
+		return nil, nil
+	}
+	ret := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(v[0])), len(v), len(v))
+	for i, v2 := range v {
+		ret.Index(i).Set(reflect.ValueOf(v2))
+	}
+	return ret.Interface(), nil
 }

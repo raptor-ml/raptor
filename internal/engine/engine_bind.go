@@ -84,13 +84,13 @@ func (e *engine) BindDataConnector(md api.DataConnector) error {
 	return nil
 }
 
-func (e *engine) UnbindDataConnector(FQN string) error {
-	e.dataConnectors.Delete(FQN)
+func (e *engine) UnbindDataConnector(fqn string) error {
+	e.dataConnectors.Delete(fqn)
 	return nil
 }
 
-func (e *engine) HasDataConnector(FQN string) bool {
-	_, ok := e.dataConnectors.Load(FQN)
+func (e *engine) HasDataConnector(fqn string) bool {
+	_, ok := e.dataConnectors.Load(fqn)
 	return ok
 }
 

@@ -32,12 +32,12 @@ type PyVal struct {
 	Fresh     bool      `json:"fresh"`
 }
 
-type PyDepGetter func(FQN string, entityID string, timestamp string, val *PyVal) string
+type PyDepGetter func(fqn string, entityID string, timestamp string, val *PyVal) string
 
 func PyExecReq(jsonPayload string, p PyDepGetter) (ExecRequest, error) {
-	dg := func(FQN string, entityID string, timestamp time.Time) (api.Value, error) {
+	dg := func(fqn string, entityID string, timestamp time.Time) (api.Value, error) {
 		pv := PyVal{}
-		if errMsg := p(FQN, entityID, timestamp.Format(time.RFC3339), &pv); errMsg != "" {
+		if errMsg := p(fqn, entityID, timestamp.Format(time.RFC3339), &pv); errMsg != "" {
 			return api.Value{}, fmt.Errorf("%v", errMsg)
 		}
 

@@ -31,7 +31,7 @@ import (
 const localKeyDependencyGetter = "dependency_getter"
 
 type (
-	DependencyGetter func(FQN string, entityID string, timestamp time.Time) (api.Value, error)
+	DependencyGetter func(fqn string, entityID string, timestamp time.Time) (api.Value, error)
 	ExecRequest      struct {
 		Headers          map[string][]string
 		Payload          any
@@ -187,8 +187,8 @@ func (r *runtime) exec(req ExecRequest, discoveryMode bool) (starlark.Value, *st
 }
 
 func (r *runtime) ExecWithEngine(ctx context.Context, req ExecRequest, e api.Engine) (*ExecResponse, error) {
-	req.DependencyGetter = func(FQN string, entityID string, timestamp time.Time) (api.Value, error) {
-		v, _, err := e.Get(ctx, FQN, entityID)
+	req.DependencyGetter = func(fqn string, entityID string, timestamp time.Time) (api.Value, error) {
+		v, _, err := e.Get(ctx, fqn, entityID)
 		return v, err
 	}
 	ret, err := r.Exec(req)

@@ -143,8 +143,8 @@ func (h *historian) HasFeature(fqn string) bool {
 	return ok
 }
 
-func (h *historian) Metadata(ctx context.Context, FQN string) (api.Metadata, error) {
-	md, ok := h.metadata.Load(FQN)
+func (h *historian) Metadata(ctx context.Context, fqn string) (api.Metadata, error) {
+	md, ok := h.metadata.Load(fqn)
 	if !ok {
 		return api.Metadata{}, api.ErrFeatureNotFound
 	}
