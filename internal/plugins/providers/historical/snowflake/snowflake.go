@@ -101,7 +101,7 @@ func (sw *snowflakeWriter) Commit(ctx context.Context, wn api.WriteNotification)
 		alive = &wn.ActiveBucket
 
 		wrm := api.ToLowLevelValue[api.WindowResultMap](wn.Value.Value)
-		v := make(map[string]float64)
+		v := make(map[string]float64, len(wrm))
 		for k, vv := range wrm {
 			v[k.String()] = vv
 		}

@@ -40,7 +40,7 @@ func BaseParquet(np int64, newParquetFile SourceFactory) api.HistoricalWriter {
 	return &baseParquet{
 		newParquetFile: newParquetFile,
 		np:             np,
-		writers:        make(map[string]*parquetWriter),
+		writers:        make(map[string]*parquetWriter, np),
 	}
 }
 

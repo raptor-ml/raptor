@@ -67,7 +67,7 @@ func (fs *featureset) preGetMiddleware(next api.MiddlewareHandler) api.Middlewar
 		wg.Add(len(fs.features))
 
 		ret := api.Value{}
-		results := make(map[string]api.Value)
+		results := make(map[string]api.Value, len(fs.features))
 		for _, fqn := range fs.features {
 			go func(fqn string, wg *sync.WaitGroup) {
 				defer wg.Done()

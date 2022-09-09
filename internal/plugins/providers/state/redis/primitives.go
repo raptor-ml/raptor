@@ -62,8 +62,8 @@ func (s *state) getPrimitive(ctx context.Context, md api.Metadata, entityID stri
 			return nil, err
 		}
 	} else {
-		var ret []any
 		res, err := s.client.LRange(ctx, key, 0, -1).Result()
+		ret := make([]any, 0, len(res))
 		if err != nil {
 			return nil, err
 		}
@@ -112,9 +112,11 @@ func (s *state) Set(ctx context.Context, md api.Metadata, entityID string, value
 		tx.Set(ctx, key, api.ScalarString(value), md.Staleness)
 	} else {
 		tx.Del(ctx, key)
-		var kv []any
-		for i := 0; i < reflect.ValueOf(value).Len(); i++ {
-			kv = append(kv, reflect.ValueOf(value).Index(i).Interface())
+		reflectedSlice := reflect.ValueOf(value)
+		reflectedLen := reflectedSlice.Len()
+		kv := make([]any, 0, reflectedLen)
+		for i := 0; i < reflectedLen; i++ {
+			kv = append(kv, reflectedSlice.Index(i).Interface())
 		}
 		tx.RPush(ctx, key, kv...)
 		if md.Staleness > 0 {

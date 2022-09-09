@@ -95,8 +95,9 @@ func (h *historian) dispatchCollectWithWindow(ctx context.Context, notification 
 }
 
 func (h *historian) dispatchCollectDead(ctx context.Context, md api.Metadata) error {
-	var ignore api.RawBuckets
-	for k := range h.handledBuckets.Items() {
+	items := h.handledBuckets.Items()
+	ignore := make(api.RawBuckets, 0, len(items))
+	for k := range items {
 		if strings.HasPrefix(k, fmt.Sprintf("%s/", md.FQN)) {
 			fqn, bucket, eid := fromDeadBucketKey(k)
 			ignore = append(ignore, api.RawBucket{

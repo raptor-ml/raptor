@@ -72,7 +72,7 @@ func stringToURLHookFunc(f reflect.Type, t reflect.Type, data interface{}) (inte
 
 // ParseConfig parses the config, and extracts the secrets, into a map of key-value pairs
 func (in *DataConnector) ParseConfig(ctx context.Context, rdr client.Reader) (ParsedConfig, error) {
-	cfg := make(ParsedConfig)
+	cfg := make(ParsedConfig, 1+len(in.Spec.Config))
 	cfg["_fqn"] = fmt.Sprintf("%s.%s", in.GetName(), in.GetNamespace())
 
 	g, ctx := errgroup.WithContext(ctx)

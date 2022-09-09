@@ -71,7 +71,7 @@ func (s *state) DeadWindowBuckets(ctx context.Context, md api.Metadata, ignore a
 		close(cRes)
 	}(wg)
 
-	var buckets []api.RawBucket
+	buckets := make([]api.RawBucket, 0, len(bucketNames))
 loop:
 	for {
 		select {
@@ -125,7 +125,7 @@ func (s *state) windowBuckets(ctx context.Context, buckets []api.RawBucket) (api
 				return
 			}
 
-			rm := make(api.WindowResultMap)
+			rm := make(api.WindowResultMap, len(res))
 			for k, v := range res {
 				vv, err := strconv.ParseFloat(v, 64)
 				if err != nil {
@@ -146,7 +146,7 @@ func (s *state) windowBuckets(ctx context.Context, buckets []api.RawBucket) (api
 		close(cRes)
 	}(wg)
 
-	var res api.RawBuckets
+	res := make(api.RawBuckets, 0, len(buckets))
 	for {
 		select {
 		case err := <-cErr:
@@ -162,7 +162,7 @@ func (s *state) windowBuckets(ctx context.Context, buckets []api.RawBucket) (api
 }
 
 func (s *state) WindowBuckets(ctx context.Context, md api.Metadata, entityID string, bucketNames []string) (api.RawBuckets, error) {
-	var buckets api.RawBuckets
+	buckets := make(api.RawBuckets, 0, len(bucketNames))
 	for _, b := range bucketNames {
 		buckets = append(buckets, api.RawBucket{
 			FQN:      md.FQN,
@@ -185,7 +185,7 @@ func (s *state) getWindow(ctx context.Context, md api.Metadata, entityID string)
 	}
 
 	var avg bool
-	ret := make(api.WindowResultMap)
+	ret := make(api.WindowResultMap, len(buckets)*len(md.Aggr))
 	for _, b := range buckets {
 		for _, fn := range md.Aggr {
 			switch fn {

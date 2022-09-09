@@ -70,7 +70,7 @@ func (w WindowFn) String() string {
 }
 
 func StringsToWindowFns(fns []string) ([]WindowFn, error) {
-	windowFnsMap := make(map[WindowFn]bool)
+	windowFnsMap := make(map[WindowFn]bool, len(fns))
 	for _, fn := range fns {
 		f := StringToWindowFn(fn)
 		if f == WindowFnUnknown {

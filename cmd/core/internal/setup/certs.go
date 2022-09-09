@@ -196,14 +196,15 @@ func certManagerRunnable(client client.Client, scheme *runtime.Scheme, ns string
 					return err
 				}
 
-				annots := make(map[string]string)
-				for v, k := range resource.GetAnnotations() {
+				annotsOriginal := resource.GetAnnotations()
+				annots := make(map[string]string, len(annotsOriginal))
+				for v, k := range annotsOriginal {
 					annots[v] = k
 				}
 				annots["cert-manager.io/inject-ca-from"] = injectName
 				annots["csi.cert-manager.io/certificate-file"] = certFileName
 
-				if !reflect.DeepEqual(resource.GetAnnotations(), annots) {
+				if !reflect.DeepEqual(annotsOriginal, annots) {
 					resource.SetAnnotations(annots)
 					err = client.Update(ctx, resource)
 					if err != nil {

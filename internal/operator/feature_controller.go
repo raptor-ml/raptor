@@ -136,7 +136,7 @@ func (r *FeatureReconciler) deleteFromConnector(ctx context.Context, feature *ra
 	if len(conn.Status.Features) == 0 {
 		return nil
 	}
-	var fts []raptorApi.ResourceReference
+	fts := make([]raptorApi.ResourceReference, 0, len(conn.Status.Features))
 	for _, f := range conn.Status.Features {
 		if f.Name != feature.Name {
 			fts = append(fts, f)

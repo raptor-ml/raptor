@@ -67,10 +67,9 @@ func ToAPIValue(val any) *coreApi.Value {
 	if primitive.Scalar() {
 		ret.Value = &coreApi.Value_ScalarValue{ScalarValue: ToAPIScalar(val)}
 	} else {
-		list := &coreApi.List{}
-		ret.Value = &coreApi.Value_ListValue{ListValue: list}
-
 		v := reflect.ValueOf(val)
+		list := &coreApi.List{Values: make([]*coreApi.Scalar, 0, v.Len())}
+		ret.Value = &coreApi.Value_ListValue{ListValue: list}
 		for i := 0; i < v.Len(); i++ {
 			list.Values = append(list.Values, ToAPIScalar(v.Index(i).Interface()))
 		}

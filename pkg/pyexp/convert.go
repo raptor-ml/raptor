@@ -65,9 +65,9 @@ func starToGo(val any) (any, error) {
 func headersToStarDict(h map[string][]string) starlark.Value {
 	headers := starlark.NewDict(len(h))
 	for k, v := range h {
-		var vls []starlark.Value
-		for _, v := range v {
-			vls = append(vls, starlark.String(v))
+		vls := make([]starlark.Value, 0, len(v))
+		for _, vl := range v {
+			vls = append(vls, starlark.String(vl))
 		}
 		_ = headers.SetKey(starlark.String(k), starlark.NewList(vls))
 	}

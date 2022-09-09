@@ -51,7 +51,7 @@ func BindConfig(set *pflag.FlagSet) error {
 }
 
 func HistoricalWriterFactory(viper *viper.Viper) (api.HistoricalWriter, error) {
-	var opts []func(*config.LoadOptions) error
+	opts := make([]func(*config.LoadOptions) error, 0, 2)
 	if viper.GetString("aws-access-key") != "" && viper.GetString("aws-secret-key") != "" {
 		opts = append(opts, config.WithCredentialsProvider(credentials.StaticCredentialsProvider{
 			Value: aws.Credentials{
