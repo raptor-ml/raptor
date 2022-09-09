@@ -88,7 +88,7 @@ func (n *notifier[T]) Subscribe(ctx context.Context) (<-chan T, error) {
 			}
 			c <- notification
 		}
-		fmt.Println("subscription closed")
+		fmt.Println("subscription closed") //nolint:forbidigo // TODO replace with logging to logger
 		close(c)
 	}()
 

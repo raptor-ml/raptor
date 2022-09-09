@@ -132,7 +132,7 @@ func logger() *zap.Logger {
 
 func must(err error) {
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err) //nolint:forbidigo // called before logger exists
 		// panic call all defered closers before existing (as opposed to os.Exit)
 		panic(err)
 	}

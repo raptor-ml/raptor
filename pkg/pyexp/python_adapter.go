@@ -55,7 +55,7 @@ func PyExecReq(jsonPayload string, p PyDepGetter) (ExecRequest, error) {
 	}
 
 	logger := funcr.New(func(prefix, args string) {
-		fmt.Println(prefix, args)
+		fmt.Println(prefix, args) //nolint:forbidigo // logger implementation
 	}, funcr.Options{})
 
 	ret := ExecRequest{

@@ -24,7 +24,7 @@ linters:
   # - exhaustive
   # - exhaustruct
   - exportloopref
-  # - forbidigo
+  - forbidigo
   - forcetypeassert
   # - funlen
   # - gci
