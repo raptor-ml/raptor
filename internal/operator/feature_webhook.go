@@ -103,7 +103,7 @@ func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
 				dc := raptorApi.DataConnector{}
 				err := wh.client.Get(ctx, f.Spec.DataConnector.ObjectKey(), &dc)
 				if apierrors.IsNotFound(err) {
-					return fmt.Errorf("data connector %s/%s not found", f.Spec.DataConnector.Namespace, f.Spec.DataConnector.Name)
+					return fmt.Errorf("data connector %s/%s not found: %w", f.Spec.DataConnector.Namespace, f.Spec.DataConnector.Name, err)
 				}
 				if err != nil {
 					return fmt.Errorf("failed to get data connector: %w", err)
@@ -169,7 +169,7 @@ func (wh *webhook) Validate(ctx context.Context, f *raptorApi.Feature) error {
 			dc := raptorApi.DataConnector{}
 			err := wh.client.Get(ctx, f.Spec.DataConnector.ObjectKey(), &dc)
 			if apierrors.IsNotFound(err) {
-				return fmt.Errorf("data connector %s/%s not found", f.Spec.DataConnector.Namespace, f.Spec.DataConnector.Name)
+				return fmt.Errorf("data connector %s/%s not found: %w", f.Spec.DataConnector.Namespace, f.Spec.DataConnector.Name, err)
 			}
 			if err != nil {
 				return fmt.Errorf("failed to get data connector: %w", err)

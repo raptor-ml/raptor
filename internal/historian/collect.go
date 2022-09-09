@@ -44,7 +44,7 @@ func (h *historian) Collector() LeaderRunnableFunc {
 func (h *historian) dispatchCollect(ctx context.Context, notification api.CollectNotification) error {
 	md, err := h.Metadata(ctx, notification.FQN)
 	if err != nil {
-		return fmt.Errorf("failed to get metadata for %s", notification.FQN)
+		return fmt.Errorf("failed to get metadata for %s: %w", notification.FQN, err)
 	}
 
 	if md.ValidWindow() {

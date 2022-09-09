@@ -32,7 +32,7 @@ func getInClusterNamespace() (string, error) {
 	// Check whether the namespace file exists.
 	// If not, we are not running in cluster so can't guess the namespace.
 	if _, err := os.Stat(inClusterNamespacePath); os.IsNotExist(err) {
-		return "", fmt.Errorf("not running in-cluster, please specify accessor-service")
+		return "", fmt.Errorf("not running in-cluster, please specify accessor-service: %w", err)
 	} else if err != nil {
 		return "", fmt.Errorf("error checking namespace file: %w", err)
 	}
