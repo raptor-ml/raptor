@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path"
 	"reflect"
 	"time"
 
@@ -106,8 +107,11 @@ var webhooks = []rotator.WebhookInfo{
 	},
 }
 
-func dnsName(ns string) string {
-	return fmt.Sprintf("%s.%s.svc", serviceName, ns)
+func dnsNames(ns string) []string {
+	const suffix = ".cluster.local"
+	localCluster := fmt.Sprintf(serviceName+".%s.svc"+suffix, ns)
+	commonName := localCluster[:len(localCluster)-len(suffix)]
+	return []string{commonName, localCluster}
 }
 
 func certManagerRunnable(client client.Client, scheme *runtime.Scheme, ns string, isReady chan struct{}) manager.RunnableFunc {
@@ -149,16 +153,13 @@ func certManagerRunnable(client client.Client, scheme *runtime.Scheme, ns string
 				Namespace: ns,
 			}}
 			_, err = ctrl.CreateOrUpdate(ctx, client, cert, func() error {
-				cert.Spec.CommonName = dnsName(ns)
+				cert.Spec.DNSNames = dnsNames(ns)
+				cert.Spec.CommonName = cert.Spec.DNSNames[0]
 				cert.Spec.IssuerRef = cmmeta.ObjectReference{
 					Name: caName,
 					Kind: certApi.IssuerKind,
 				}
 				cert.Spec.SecretName = secretName
-				cert.Spec.DNSNames = []string{
-					dnsName(ns),
-					fmt.Sprintf("%s.cluster.local", dnsName(ns)),
-				}
 				return nil
 			})
 			if err != nil {
@@ -169,7 +170,7 @@ func certManagerRunnable(client client.Client, scheme *runtime.Scheme, ns string
 		})
 
 		// Inject the CA certificate
-		injectName := fmt.Sprintf("%s/%s", ns, certName)
+		injectName := path.Join(ns, certName)
 
 		for _, wh := range webhooks {
 			wh := wh // https://golang.org/doc/faq#closures_and_goroutines
@@ -238,7 +239,7 @@ func certsWithCertsController(mgr manager.Manager, ns string, certsReady chan st
 		CertDir:                certDir,
 		CAName:                 caName,
 		CAOrganization:         caOrganization,
-		DNSName:                dnsName(ns),
+		DNSName:                dnsNames(ns)[0],
 		IsReady:                certsReady,
 		RestartOnSecretRefresh: true,
 		Webhooks:               webhooks,
@@ -263,12 +264,15 @@ func (ce *certsEnsurer) Start(_ context.Context) error {
 			return true, nil
 		default:
 		}
-		certFile := certDir + "/" + certFileName
+		certFile := path.Join(certDir, certFileName)
 		_, err := os.Stat(certFile)
 		if err == nil {
 			return true, nil
 		}
-		return false, nil
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err // in case of real error like permissions
 	}
 	if err := wait.ExponentialBackoff(wait.Backoff{
 		Duration: 1 * time.Second,
