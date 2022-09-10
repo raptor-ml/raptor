@@ -122,6 +122,8 @@ deploy-raptor: setup-redis ## deploy operator to cluster
 scale-0: remove-webhooks ## Scale down to zero the number of replicas of the operator
 	$(KUBECTL) --namespace raptor-system scale deployment raptor-controller-core --replicas 0
 	$(KUBECTL) --namespace raptor-system scale deployment raptor-historian --replicas 0
+scale-core-1: install-webhooks ## Scale core to 1
+	$(KUBECTL) --namespace raptor-system scale deployment raptor-controller-core --replicas 1
 scale-normal: install-webhooks ## Scale back to normal the number of replicas of the operator
 	$(KUBECTL) --namespace raptor-system scale deployment raptor-controller-core --replicas 2
 	$(KUBECTL) --namespace raptor-system scale deployment raptor-historian --replicas 1
