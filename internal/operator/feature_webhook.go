@@ -18,8 +18,8 @@ package operator
 
 // These are referring tho the values in FeatureWebhookValidatePath and FeatureWebhookMutatePath
 // They are package-level markers, and should be as a standalone comment block
-// +kubebuilder:webhook:path=/mutate-k8s-raptor-ml-v1alpha1-feature,mutating=true,failurePolicy=fail,sideEffects=NoneOnDryRun,groups=k8s.raptor.ml,resources=features,verbs=create;update,versions=v1alpha1,name=vfeature.kb.io,admissionReviewVersions=v1
-// +kubebuilder:webhook:path=/validate-k8s-raptor-ml-v1alpha1-feature,mutating=false,failurePolicy=fail,sideEffects=NoneOnDryRun,groups=k8s.raptor.ml,resources=features,verbs=create;update,versions=v1alpha1,name=vfeature.kb.io,admissionReviewVersions=v1
+// +kubebuilder:webhook:path=/mutate-k8s-raptor-ml-v1alpha1-feature,mutating=true,failurePolicy=fail,sideEffects=NoneOnDryRun,groups=k8s.raptor.ml,resources=features,verbs=create;update,versions=v1alpha1,name=mutate-feature.k8s.raptor.ml,admissionReviewVersions=v1
+// +kubebuilder:webhook:path=/validate-k8s-raptor-ml-v1alpha1-feature,mutating=false,failurePolicy=fail,sideEffects=NoneOnDryRun,groups=k8s.raptor.ml,resources=features,verbs=create;update,versions=v1alpha1,name=validate-feature.k8s.raptor.ml,admissionReviewVersions=v1
 
 import (
 	"context"
