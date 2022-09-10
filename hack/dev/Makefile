@@ -134,9 +134,9 @@ remove-webhooks: ## Remove webhooks
 	$(KUBECTL) --namespace raptor-system delete mutatingwebhookconfiguration raptor-mutating-webhook-configuration
 
 install-webhooks: ## Install webhooks
-	cd ${PROJECT_DIR}/config/webhooks/ && $(KUSTOMIZE) edit set nameprefix raptor-
-	$(KUBECTL) --namespace raptor-system apply -k ${PROJECT_DIR}/config/webhooks/
-	cd ${PROJECT_DIR}/config/webhooks/ && $(KUSTOMIZE) edit set nameprefix ""
+	cd ${PROJECT_DIR}/config/webhook/ && $(KUSTOMIZE) edit set nameprefix raptor- && $(KUSTOMIZE) edit set namespace raptor-system
+	$(KUBECTL) --namespace raptor-system apply -k ${PROJECT_DIR}/config/webhook/
+	cd ${PROJECT_DIR}/config/webhook/ && $(KUSTOMIZE) edit set nameprefix "" && $(KUSTOMIZE) edit set namespace ""
 
 ## TOOLS
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
