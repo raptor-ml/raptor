@@ -63,6 +63,7 @@ func Certs(mgr manager.Manager, certsReady chan struct{}) {
 
 	upstreamReady := make(chan struct{})
 	err := mgr.Add(&certsEnsurer{
+		client:        mgr.GetClient(),
 		isReady:       certsReady,
 		upstreamReady: upstreamReady,
 		logger:        mgr.GetLogger().WithName("certs-ensurer"),
@@ -103,6 +104,24 @@ var webhooks = []rotator.WebhookInfo{
 		Type: rotator.Mutating,
 		Name: opctrl.FeatureWebhookMutateName,
 	},
+}
+
+func whToUnstructured(wh rotator.WebhookInfo) (*unstructured.Unstructured, error) {
+	resource := &unstructured.Unstructured{}
+	switch wh.Type {
+	case rotator.Mutating:
+		resource.SetGroupVersionKind(schema.GroupVersionKind{Group: "admissionregistration.k8s.io", Version: "v1", Kind: "MutatingWebhookConfiguration"})
+	case rotator.Validating:
+		resource.SetGroupVersionKind(schema.GroupVersionKind{Group: "admissionregistration.k8s.io", Version: "v1", Kind: "ValidatingWebhookConfiguration"})
+	case rotator.APIService:
+		resource.SetGroupVersionKind(schema.GroupVersionKind{Group: "apiregistration.k8s.io", Version: "v1", Kind: "APIService"})
+	case rotator.CRDConversion:
+		resource.SetGroupVersionKind(schema.GroupVersionKind{Group: "apiextensions.k8s.io", Version: "v1", Kind: "CustomResourceDefinition"})
+	default:
+		return nil, fmt.Errorf("unknown webhook type: %o", wh.Type)
+	}
+	resource.SetName(wh.Name)
+	return resource, nil
 }
 
 func dnsName(ns string) string {
@@ -174,22 +193,12 @@ func certManagerRunnable(client client.Client, scheme *runtime.Scheme, ns string
 			g.Go(func() error {
 				logger.Info("Injecting certificate", "webhook", wh.Name)
 
-				resource := &unstructured.Unstructured{}
-				switch wh.Type {
-				case rotator.Mutating:
-					resource.SetGroupVersionKind(schema.GroupVersionKind{Group: "admissionregistration.k8s.io", Version: "v1", Kind: "MutatingWebhookConfiguration"})
-				case rotator.Validating:
-					resource.SetGroupVersionKind(schema.GroupVersionKind{Group: "admissionregistration.k8s.io", Version: "v1", Kind: "ValidatingWebhookConfiguration"})
-				case rotator.APIService:
-					resource.SetGroupVersionKind(schema.GroupVersionKind{Group: "apiregistration.k8s.io", Version: "v1", Kind: "APIService"})
-				case rotator.CRDConversion:
-					resource.SetGroupVersionKind(schema.GroupVersionKind{Group: "apiextensions.k8s.io", Version: "v1", Kind: "CustomResourceDefinition"})
-				default:
-					return fmt.Errorf("unknown webhook type: %o", wh.Type)
+				resource, err := whToUnstructured(wh)
+				if err != nil {
+					return err
 				}
 
-				err := client.Get(ctx, types.NamespacedName{Name: wh.Name}, resource)
-				if err != nil {
+				if err := client.Get(ctx, types.NamespacedName{Name: wh.Name}, resource); err != nil {
 					logger.Error(err, "Failed to get resource", "webhook", wh.Name)
 					return err
 				}
@@ -243,7 +252,9 @@ func certsWithCertsController(mgr manager.Manager, ns string, certsReady chan st
 	OrFail(err, "unable to set up cert rotation")
 }
 
+// The certs ensurer help us to ensure in non-leaders that the certificates are ready
 type certsEnsurer struct {
+	client        client.Client
 	isReady       chan struct{}
 	upstreamReady chan struct{}
 	logger        logr.Logger
@@ -252,7 +263,8 @@ type certsEnsurer struct {
 func (ce *certsEnsurer) NeedLeaderElection() bool {
 	return false
 }
-func (ce *certsEnsurer) Start(_ context.Context) error {
+func (ce *certsEnsurer) Start(ctx context.Context) error {
+	// Wait for certs to be ready
 	checkFn := func() (bool, error) {
 		select {
 		case <-ce.upstreamReady:
@@ -275,7 +287,64 @@ func (ce *certsEnsurer) Start(_ context.Context) error {
 		ce.logger.Error(err, "max retries for checking certs existence")
 		return fmt.Errorf("max retries for checking certs existence: %w", err)
 	}
-	ce.logger.Info(fmt.Sprintf("certs are ready in %s", certDir))
+	ce.logger.Info(fmt.Sprintf("Certs are ready in %s", certDir))
+
+	// Wait for CA to be injected
+	checkFn = func() (bool, error) {
+		select {
+		case <-ce.upstreamReady:
+			return true, nil
+		default:
+		}
+
+		for _, wh := range webhooks {
+			resource, err := whToUnstructured(wh)
+			if err != nil {
+				return false, fmt.Errorf("failed to convert webhook to unstructured: %w", err)
+			}
+
+			if err := ce.client.Get(ctx, types.NamespacedName{Name: wh.Name}, resource); err != nil {
+				ce.logger.Error(err, "Failed to get resource", "webhook", wh.Name)
+				return false, fmt.Errorf("failed to get resource %s: %w", wh.Name, err)
+			}
+
+			switch wh.Type {
+			case rotator.Validating, rotator.Mutating:
+				whks, found, err := unstructured.NestedSlice(resource.Object, "webhooks")
+				if err != nil || !found {
+					return false, fmt.Errorf("failed to get webhooks: %w", err)
+				}
+				for _, w := range whks {
+					whk := w.(map[string]interface{})
+					_, found, err := unstructured.NestedString(w.(map[string]interface{}), "clientConfig", "caBundle")
+					if err != nil || !found {
+						return false, fmt.Errorf("failed to get caBundle for webhook %s(%v): %w", wh.Name, whk["name"], err)
+					}
+				}
+			case rotator.CRDConversion:
+				_, found, err := unstructured.NestedString(resource.Object, "spec", "conversion", "webhookClientConfig", "caBundle")
+				if err != nil || !found {
+					return false, fmt.Errorf("failed to get caBundle from webhook %s: %w", wh.Name, err)
+				}
+			case rotator.APIService:
+				_, found, err := unstructured.NestedString(resource.Object, "spec", "caBundle")
+				if err != nil || !found {
+					return false, fmt.Errorf("failed to get caBundle from webhook %s: %w", wh.Name, err)
+				}
+			}
+		}
+		return true, nil
+	}
+	if err := wait.ExponentialBackoff(wait.Backoff{
+		Duration: 1 * time.Second,
+		Factor:   2,
+		Jitter:   1,
+		Steps:    10,
+	}, checkFn); err != nil {
+		ce.logger.Error(err, "max retries for checking CA Injection")
+		return fmt.Errorf("max retries for checking CA Injection: %w", err)
+	}
+	ce.logger.Info("CA injected")
 	close(ce.isReady)
 	return nil
 }
