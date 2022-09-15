@@ -1,6 +1,11 @@
 name: "Pull Request Triage"
 on:
-  - pull_request_target
+  # NB: using `pull_request_target` runs this in the context of
+  # the base repository, so it has permission to upload to the checks API.
+  # This means changes won't kick in to this file until merged onto the
+  # main branch.
+  pull_request_target:
+    types: [ opened, edited, reopened, synchronize ]
 
 permissions:
   contents: read
@@ -32,3 +37,8 @@ jobs:
             Please make sure you are NOT addressing multiple issues with one PR.
             Note this PR might be rejected due to its size.
           files_to_ignore: ''
+      - name: PR Contents verification
+        id: verifier
+        uses: kubernetes-sigs/kubebuilder-release-tools@v0.1.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}

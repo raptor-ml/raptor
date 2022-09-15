@@ -1,12 +1,12 @@
-name: OSS Licenses Check
+name: Licenses Check
 
 on:
   push: ~
   pull_request: ~
 
 jobs:
-  allowed-licenses:
-    name: Check for allowed licenses
+  licenses:
+    name: Check valid licenses
     runs-on: ubuntu-latest
     # Pull requests from the same repository won't trigger this checks as they were already triggered by the push
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
@@ -20,8 +20,13 @@ jobs:
       - name: Install google/go-licenses
         run: go install github.com/google/go-licenses@master
         shell: bash
-      - name: Check for licenses
+      - name: Check for allowed licenses
         run: ./hack/licenses-check-allowed.sh
+        shell: bash
+      - name: Check for license header
+        env:
+          GITHUB: true
+        run: ./hack/check-headers-for-license.sh
         shell: bash
       - name: Report failure
         if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/master'
@@ -29,6 +34,6 @@ jobs:
         with:
           actions: 'create-issue'
           token: ${{ secrets.GITHUB_TOKEN }}
-          title: 🛑 Disallowed licence for ${{ github.sha }}
+          title: 🛑 Licences issue for ${{ github.sha }}
           body: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           labels: bug
