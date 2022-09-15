@@ -2,10 +2,10 @@ name: Buf
 on:
   push:
     paths:
-      - api/proto/
+      - api/proto/**
   pull_request:
     paths:
-      - api/proto/
+      - api/proto/**
 
 jobs:
   build:

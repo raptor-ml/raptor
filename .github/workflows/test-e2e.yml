@@ -2,8 +2,18 @@ name: Integration Tests
 
 # Trigger the workflow on pull requests and direct pushes to any branch
 on:
-  push: ~
-  pull_request: ~
+  push:
+    paths-ignore:
+      - '.github/**'
+      - 'hack/**'
+      - 'labsdk/**'
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '.github/**'
+      - 'hack/**'
+      - 'labsdk/**'
+      - '**.md'
 
 jobs:
 
