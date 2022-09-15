@@ -281,10 +281,10 @@ def __feature_manifest(f):
 kind: Feature
 metadata:
   name: {_k8s_name(f['options']['name'])}
-  namespace: {f['options']['namespace']}"""
+  namespace: {f['options']['namespace']}\n"""
     if _fmt(f['options'], 'desc') != "~":
-        t += f"""\n  annotations:\n    a8r.io/description: "{_fmt(f['options'], 'desc')}"""""
-    t += f"""\nspec:
+        t += f"""  annotations:\n    a8r.io/description: "{_fmt(f['options'], 'desc')}"\n"""
+    t += f"""spec:
   primitive: {_fmt(f['options'], 'primitive')}
   freshness: {_fmt(f['options'], 'freshness')}
   staleness: {_fmt(f['options'], 'staleness')}"""
