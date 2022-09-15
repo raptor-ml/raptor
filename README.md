@@ -224,7 +224,7 @@ Distributed under the Apache2 License. Read the `LICENSE` file for more informat
 [issues-url]: https://github.com/raptor-ml/raptor/issues
 
 [e2e-tests-shield]: https://img.shields.io/github/workflow/status/raptor-ml/raptor/Integration%20Tests?label=Tests
-[e2e-tests-url]: https://github.com/raptor-ml/raptor/actions/workflows/e2e-test.yml
+[e2e-tests-url]: https://github.com/raptor-ml/raptor/actions/workflows/test-e2e.yml
 
 [license-shield]: https://img.shields.io/github/license/raptor-ml/raptor.svg?style=flat
 [license-url]: https://github.com/raptor-ml/raptor/blob/master/LICENSE.txt
