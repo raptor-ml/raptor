@@ -270,7 +270,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     include_package_data=True,
-    install_requires=['pandas', 'astunparse'],
+    install_requires=['pandas', 'astunparse', 'typing-extensions'],
 
     ext_modules=[
         setuptools.Extension('raptor.pyexp', ["github.com/raptor-ml/raptor/pkg/pyexp"])
