@@ -298,7 +298,7 @@ metadata:
     if 'builder' in f['options']:
         if 'kind' in f['options']['builder']:
             t += f"\n    kind: {_fmt(f['options']['builder'], 'kind')}"
-        if 'options' in ['builder']['options']:
+        if 'options' in f['options']['builder'] and f['options']['builder']['options'] is not None:
             for k, v in f['options']['builder']['options']:
                 t += f"    {k}: {_fmt(v)}\n"
     if 'aggr' in f['options']:
