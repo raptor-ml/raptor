@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Raptor.
+# Copyright (c) 2022 RaptorML authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
 import pandas
 import pandas as pd
 
-from . import durpy, local_state
+from . import local_state
+from .types import Primitive
 from .pyexp import pyexp
 
 
@@ -23,7 +24,7 @@ def _inst_spec(fqn):
     spec = local_state.spec_by_fqn(fqn)
     if spec is None:
         raise ValueError(f"Unknown FQN {fqn}")
-    if "aggr" in spec["options"]:
+    if spec.aggr is not None:
         raise Exception("Aggregation is not supported for Replay's effects at the moment")
     return spec
 
@@ -41,7 +42,7 @@ def __exec_instruction(inst: pyexp.Instruction):
 
 def _exec_append(inst):
     spec = _inst_spec(inst.FQN)
-    if not spec["options"]["primitive"].startswith("[]"):
+    if spec.primitive.is_scalar():
         raise Exception("Append is not supported for scalars")
     df = _get_recent(inst)
 
@@ -60,8 +61,7 @@ def _exec_append(inst):
 
 def _exec_incr(inst):
     spec = _inst_spec(inst.FQN)
-    primitive = spec["options"]["primitive"]
-    if not primitive in ["int", "float"]:
+    if spec.primitive not in [Primitive.Integer, Primitive.Float]:
         raise Exception("Incr is only supported for numbers")
 
     df = _get_recent(inst)
@@ -77,7 +77,7 @@ def _exec_incr(inst):
             o["value"] = 0
 
         val = float(df["value"]) + float(o["value"])
-        if primitive == "int":
+        if spec.primitive == "int":
             val = int(val)
         o["value"] = val
 
@@ -91,9 +91,8 @@ def _get_recent(inst):
     df = local_state.__feature_values
     df = df.loc[(df["fqn"] == inst.FQN) & (df["entity_id"] == inst.EntityID) & (df["timestamp"] <= ts)]
 
-    staleness = durpy.from_str(spec["options"]["staleness"])
-    if staleness.total_seconds() > 0:
-        df = df.loc[(df["timestamp"] >= ts - staleness)]
+    if spec.staleness.total_seconds() > 0:
+        df = df.loc[(df["timestamp"] >= ts - spec.staleness)]
 
     df = df.sort_values(by=["timestamp"], ascending=False).head(1)
     if df.empty:
@@ -103,7 +102,7 @@ def _get_recent(inst):
 
 def _exec_update(inst):
     spec = _inst_spec(inst.FQN)
-    if spec["options"]["primitive"].startswith("[]"):
+    if not spec.primitive.is_scalar():
         return _exec_append(inst)
     pass
 

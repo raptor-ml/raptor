@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Raptor.
+# Copyright (c) 2022 RaptorML authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@ import types as pytypes
 import pandas as pd
 from pandas.tseries.frequencies import to_offset
 
-from . import durpy, local_state, replay_instructions, types
+from . import local_state, replay_instructions
 from .pyexp import pyexp, go
+from .types import FeatureSpec, Primitive, WrapException, FeatureSetSpec
 
 
 def __detect_ts_field(df) -> str:
@@ -68,13 +69,11 @@ def __detect_entity_id(df) -> str:
         return None
 
 
-def new_replay(spec):
+def new_replay(spec: FeatureSpec):
     def _replay(df: pd.DataFrame, timestamp_field: str = None, headers_field: str = None, entity_id_field: str = None,
                 store_locally=True):
 
         df = df.copy()
-        if spec["kind"] != "feature":
-            raise Exception("Not a Feature")
 
         if timestamp_field is None:
             timestamp_field = __detect_ts_field(df)
@@ -92,39 +91,38 @@ def new_replay(spec):
         if headers_field is None:
             headers_field = __detect_headers_field(df)
 
-        rt = pyexp.New(spec["src"].code, spec["fqn"])
+        rt = pyexp.New(spec.program.code, spec.fqn())
 
         df["__raptor.ret__"] = df.apply(__replay_map(spec, rt, timestamp_field, headers_field, entity_id_field), axis=1)
         df = df.dropna(subset=['__raptor.ret__'])
 
         # flip dataframe to feature_value df
-        feature_values = df.filter([entity_id_field, "__raptor.ret__", timestamp_field], axis=1) \
-            .rename(columns={
+        feature_values = df.filter([entity_id_field, "__raptor.ret__", timestamp_field], axis=1).rename(columns={
             entity_id_field: "entity_id",
             "__raptor.ret__": "value",
             timestamp_field: "timestamp",
         })
 
-        if "aggr" not in spec["options"]:
-            feature_values.insert(0, "fqn", spec["fqn"])
+        if spec.aggr is None:
+            feature_values.insert(0, "fqn", spec.fqn())
             if store_locally:
                 local_state.store_feature_values(feature_values)
                 fv = local_state.feature_values()
-                return fv.loc[fv["fqn"] == spec["fqn"]]
+                return fv.loc[fv["fqn"] == spec.freshness]
             return feature_values
 
         # aggregations
         feature_values = feature_values.set_index('timestamp')
-        win = to_offset(durpy.from_str(spec["options"]["staleness"]))
+        win = to_offset(spec.staleness)
         fields = []
 
         val_field = "value"
-        if spec["options"]["primitive"] == "string":
+        if spec.primitive == Primitive.String:
             feature_values["f_value"] = feature_values["value"].factorize()[0]
             val_field = "f_value"
 
-        for aggr in spec["options"]["aggr"]:
-            f = f'{spec["fqn"]}[{aggr.value}]'
+        for aggr in spec.aggr.funcs:
+            f = f'{spec.fqn()}[{aggr.value}]'
 
             feature_values[f] = aggr.apply(feature_values.groupby(["entity_id"]).rolling(win)[val_field]). \
                 reset_index(0, drop=True)
@@ -140,7 +138,7 @@ def new_replay(spec):
         if store_locally:
             local_state.store_feature_values(feature_values)
             fv = local_state.feature_values()
-            return fv.loc[fv["fqn"] == spec["fqn"]]
+            return fv.loc[fv["fqn"] == spec.fqn()]
         return feature_values
 
     def replay(df: pd.DataFrame, timestamp_field: str = None, headers_field: str = None, entity_id_field: str = None,
@@ -164,7 +162,7 @@ def new_replay(spec):
                                        tb_frame=back_frame,
                                        tb_lasti=back_frame.f_lasti,
                                        tb_lineno=back_frame.f_lineno)
-            raise Exception(f"{spec['src_name']}: {str(e)}").with_traceback(tb)
+            raise Exception(f"{spec.program.name}: {str(e)}").with_traceback(tb)
 
     return replay
 
@@ -172,17 +170,13 @@ def new_replay(spec):
 def __dependency_getter(fqn, eid, ts, val):
     try:
         spec = local_state.spec_by_fqn(fqn)
-        if spec is None:
-            raise Exception(f"feature `{fqn}` is not registered locally")
-
         ts = pd.to_datetime(ts)
 
         df = local_state.__feature_values
         df = df.loc[(df["fqn"] == fqn) & (df["entity_id"] == eid) & (df["timestamp"] <= ts)]
 
-        staleness = durpy.from_str(spec["options"]["staleness"])
-        if staleness.total_seconds() > 0:
-            df = df.loc[(df["timestamp"] >= ts - staleness)]
+        if spec.staleness.total_seconds() > 0:
+            df = df.loc[(df["timestamp"] >= ts - spec.staleness)]
 
         df = df.sort_values(by=["timestamp"], ascending=False).head(1)
         if df.empty:
@@ -195,9 +189,8 @@ def __dependency_getter(fqn, eid, ts, val):
         v.Timestamp = pyexp.PyTime(res["timestamp"].isoformat("T"), "")
         v.Fresh = True
 
-        freshness = durpy.from_str(spec["options"]["freshness"])
-        if freshness.total_seconds() > 0:
-            v.Fresh = res["timestamp"] >= ts - freshness
+        if spec.freshness.total_seconds() > 0:
+            v.Fresh = res["timestamp"] >= ts - spec.freshness
 
     except Exception as e:
         """return error"""
@@ -206,7 +199,8 @@ def __dependency_getter(fqn, eid, ts, val):
     return str.encode("")
 
 
-def __replay_map(spec, rt: pyexp.Runtime, timestamp_field: str, headers_field: str = None, entity_id_field: str = None):
+def __replay_map(spec: FeatureSpec, rt: pyexp.Runtime, timestamp_field: str, headers_field: str = None,
+                 entity_id_field: str = None):
     def map(row: pd.Series):
         ts = row[timestamp_field]
         # row = row.drop(timestamp_field)
@@ -236,7 +230,7 @@ def __replay_map(spec, rt: pyexp.Runtime, timestamp_field: str, headers_field: s
                 replay_instructions.__exec_instruction(inst)
             return json.loads(pyexp.JsonAny(res, "Value"))
         except RuntimeError as e:
-            raise types.WrapException(e, spec)
+            raise WrapException(e, spec)
         except Exception as err:
             raise err
 
@@ -245,7 +239,7 @@ def __replay_map(spec, rt: pyexp.Runtime, timestamp_field: str, headers_field: s
 
 def new_historical_get(spec):
     def _historical_get(since: datetime.datetime, until: datetime.datetime):
-        if spec["kind"] != "feature_set":
+        if not isinstance(spec, FeatureSetSpec):
             raise Exception("Not a FeatureSet")
         if isinstance(since, str):
             since = pd.to_datetime(since)
@@ -260,9 +254,9 @@ def new_historical_get(spec):
         if until.tzinfo is None:
             until = until.replace(tzinfo=datetime.timezone.utc)
 
-        key_feature = spec["options"]["key_feature"]
+        key_feature = spec.key_feature
         _key_feature_spec = local_state.spec_by_fqn(key_feature)
-        features = spec["src"]
+        features = spec.features
 
         if key_feature in features:
             features.remove(key_feature)
@@ -286,16 +280,15 @@ def new_historical_get(spec):
 
         for f in features:
             f_spec = local_state.spec_by_fqn(f)
-            f_staleness = durpy.from_str(f_spec["options"]["staleness"])
 
             f_df = df.loc[df["fqn"] == f]
             f_df = f_df.rename(columns={"value": f})
             f_df = f_df.drop(columns=["fqn"])
             # f_df["start_ts"] = f_df["end_ts"] - f_staleness
 
-            if f_staleness.total_seconds() > 0:
+            if f_spec.staleness.total_seconds() > 0:
                 key_df = pd.merge_asof(key_df.sort_values("timestamp"), f_df.sort_values("timestamp"), on="timestamp",
-                                       by="entity_id", direction="nearest", tolerance=f_staleness)
+                                       by="entity_id", direction="nearest", tolerance=f_spec.staleness)
             else:
                 key_df = pd.merge_asof(key_df.sort_values("timestamp"), f_df.sort_values("timestamp"), on="timestamp",
                                        by="entity_id", direction="nearest")
@@ -318,6 +311,6 @@ def new_historical_get(spec):
                                        tb_frame=back_frame,
                                        tb_lasti=back_frame.f_lasti,
                                        tb_lineno=back_frame.f_lineno)
-            raise Exception(f"{spec['src_name']}: {str(e)}").with_traceback(tb)
+            raise Exception(f"{spec.program.name}: {str(e)}").with_traceback(tb)
 
     return historical_get

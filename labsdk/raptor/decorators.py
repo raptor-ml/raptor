@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Raptor.
+# Copyright (c) 2022 RaptorML authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,40 +12,71 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import inspect
-import re
 import types as pytypes
 
-from . import types, replay, local_state, stub
+import yaml
+
+from . import replay, local_state, stub
 from .pyexp import pyexp
+from .types import FeatureSpec, AggrSpec, ResourceReference, AggrFn, PyExpProgram, WrapException, BuilderSpec, \
+    FeatureSetSpec, normalize_fqn
 
 
-def aggr(funcs: [types.AggrFn]):
+def _wrap_decorator_err(f):
+    def wrap(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except RuntimeError as e:
+            raise WrapException(e, args[0].raptor_spec)
+        except Exception as e:
+            back_frame = e.__traceback__.tb_frame.f_back
+            tb = pytypes.TracebackType(tb_next=None,
+                                       tb_frame=back_frame,
+                                       tb_lasti=back_frame.f_lasti,
+                                       tb_lineno=back_frame.f_lineno)
+            raise Exception(f"in {args[0].__name__}: {str(e)}").with_traceback(tb)
+
+    return wrap
+
+
+@_wrap_decorator_err
+def _opts(func, options: dict):
+    if hasattr(func, "raptor_spec"):
+        raise Exception("option decorators must be before the register decorator")
+    if not hasattr(func, "__raptor_options"):
+        func.__raptor_options = {}
+
+    for k, v in options.items():
+        func.__raptor_options[k] = v
+    return func
+
+
+def aggr(funcs: [AggrFn], granularity=None):
     """
     Register aggregations for the Feature Definition.
-    :param funcs: a list of :func:`types.AggrFn`
+    :param granularity: the granularity of the aggregation (this is overriding the freshness).
+    :param funcs: a list of :func:`AggrFn`
     """
 
     def decorator(func):
         for f in funcs:
-            if f == types.AggrFn.Unknown:
+            if f == AggrFn.Unknown:
                 raise Exception("Unknown aggr function")
-        func.aggr = funcs
-        return func
+        return _opts(func, {"aggr": AggrSpec(funcs, granularity)})
 
     return decorator
 
 
-def connector(name: str, namespace: str = ""):
+def connector(name: str, namespace: str = None):
     """
     Register a DataConnector for the FeatureDefinition.
-    :param fqn: DataConnector Fully Qualified Name(*FQN*)
+    :param name: the name of the DataConnector.
+    :param namespace: the namespace of the DataConnector.
     """
 
     def decorator(func):
-        func.connector = {"name": name, "namespace": namespace}
-        return func
+        return _opts(func, {"connector": ResourceReference(name, namespace)})
 
     return decorator
 
@@ -53,13 +84,11 @@ def connector(name: str, namespace: str = ""):
 def namespace(namespace: str):
     """
     Register a namespace for the Feature Definition.
-    When the namespace is not specified, it's assumed to be "default".
     :param namespace: namespace name
     """
 
     def decorator(func):
-        func.namespace = namespace
-        return func
+        return _opts(func, {"namespace": namespace})
 
     return decorator
 
@@ -72,19 +101,24 @@ def builder(kind: str, options=None):
     :return:
     """
 
+    if options is None:
+        options = {}
+
     def decorator(func):
-        func.builder = {"kind": kind, "options": options}
-        return func
+        return _opts(func, {"builder": BuilderSpec(kind, options)})
 
     return decorator
 
 
-def _stub_feature(**req):
-    pass
+def _func_match_feature_signature(func):
+    def _stub_feature(**req):
+        pass
 
+    def _stub_feature_with_req(**req: stub.RaptorRequest):
+        pass
 
-def _stub_feature_with_req(**req: stub.RaptorRequest):
-    pass
+    sig = inspect.signature(func)
+    return sig == inspect.signature(_stub_feature) or sig == inspect.signature(_stub_feature_with_req)
 
 
 def register(primitive, freshness: str, staleness: str, options=None):
@@ -114,79 +148,53 @@ def register(primitive, freshness: str, staleness: str, options=None):
     if options is None:
         options = {}
 
-    @wrap_decorator_err
+    @_wrap_decorator_err
     def decorator(func):
-        if inspect.signature(func) != inspect.signature(_stub_feature) and inspect.signature(func) != inspect.signature(
-                _stub_feature_with_req):
+        if not _func_match_feature_signature(func):
             raise Exception(f"{func.__name__} have an invalid signature for a Feature definition")
 
-        options["freshness"] = freshness
-        options["staleness"] = staleness
+        spec = FeatureSpec()
+        spec.freshness = freshness
+        spec.staleness = staleness
+        spec.primitive = primitive
+        spec.name = func.__name__
+        spec.description = func.__doc__
 
-        if 'name' not in options and (func.__name__ == '<lambda>' or func.__name__ != 'handler'):
-            options['name'] = func.__name__
-        elif 'name' in options and options['name'] != 'handler':
-            raise Exception("Function name is required")
-
-        if 'desc' not in options and func.__doc__ is not None:
-            options['desc'] = func.__doc__
-
-        # verify primitive
-        p = primitive
-        if p == 'int' or p == int:
-            p = 'int'
-        elif p == 'float' or p == float:
-            p = 'float'
-        elif p == 'timestamp' or p == datetime:
-            p = 'timestamp'
-        elif p == 'str' or p == str:
-            p = 'string'
-        elif p == '[]str' or p == [str]:
-            p = '[]str'
-        elif p == '[]int' or p == [int]:
-            p = '[]int'
-        elif p == '[]float' or p == [float]:
-            p = '[]float'
-        elif p == '[]timestamp' or p == [datetime]:
-            p = '[]timestamp'
-        elif p == 'headless':
-            p = 'headless'
-        else:
-            raise Exception("Primitive type not supported")
-        options['primitive'] = p
+        if hasattr(func, "__raptor_options"):
+            for k, v in func.__raptor_options.items():
+                options[k] = v
 
         # append annotations
-        if hasattr(func, "builder"):
-            options["builder"] = func.builder
+        if "builder" in options:
+            spec.builder = options['builder']
 
-        if hasattr(func, "namespace"):
-            options["namespace"] = func.namespace
-        if "namespace" not in options:
-            options["namespace"] = "default"
+        if "namespace" in options:
+            spec.namespace = options['namespace']
 
-        if hasattr(func, "connector"):
-            options["connector"] = func.connector
-        if hasattr(func, "aggr"):
-            for f in func.aggr:
-                if not f.supports(options["primitive"]):
+        if "connector" in options:
+            spec.connector = options['connector']
+        if "aggr" in options:
+            for f in options['aggr'].funcs:
+                if not f.supports(spec.primitive):
                     raise Exception(
-                        f"{func.__name__} aggr function {f} not supported for primitive {options['primitive']}")
-            options["aggr"] = func.aggr
+                        f"{func.__name__} aggr function {f} not supported for primitive {spec.primitive}")
+            spec.aggr = options['aggr']
 
-        # build the spec
         # add source coded (decorators stripped)
-        src = types.PyExpProgram(func)
-        fqn = f"{options['name']}.{options['namespace']}"
-        spec = {"kind": "feature", "options": options, "src": src, "src_name": func.__name__, "fqn": fqn}
-        func.raptor_spec = spec
+        spec.program = PyExpProgram(func)
 
         # try to compile the feature
-        pyexp.New(spec["src"].code, fqn)
+        pyexp.New(spec.program.code, spec.fqn())
 
         # register
+        func.raptor_spec = spec
         func.replay = replay.new_replay(spec)
-        func.manifest = lambda: __feature_manifest(spec)
+        func.manifest = lambda: yaml.safe_dump(spec, sort_keys=False)
+        func.export = func.manifest
         local_state.register_spec(spec)
+
+        if hasattr(func, "__raptor_options"):
+            del func.__raptor_options
 
         return func
 
@@ -215,7 +223,7 @@ def feature_set(register=False, options=None):
     if options is None:
         options = {}
 
-    @wrap_decorator_err
+    @_wrap_decorator_err
     def decorator(func):
         if inspect.signature(func) != inspect.signature(lambda: []):
             raise Exception(f"{func.__name__} have an invalid signature for a FeatureSet definition")
@@ -224,108 +232,52 @@ def feature_set(register=False, options=None):
         for f in func():
             if type(f) is str:
                 local_state.spec_by_fqn(f)
-                fts.append(f)
+                fts.append(normalize_fqn(f))
             if callable(f):
                 ft = local_state.spec_by_src_name(f.__name__)
                 if ft is None:
                     raise Exception("Feature not found")
-                if "aggr" in ft["options"]:
-                    raise Exception("You must specify a FQN with AggrFn for aggregated features")
-                fts.append(ft["fqn"])
+                if ft.aggr is not None:
+                    raise Exception(
+                        "You must specify a FQN with AggrFn(i.e. `name.namespace[sum]`) for aggregated features")
+                fts.append(ft.fqn())
 
-        if "key_feature" not in options:
-            options["key_feature"] = fts[0]
+        if hasattr(func, "__raptor_options"):
+            for k, v in func.__raptor_options.items:
+                options[k] = v
 
-        if hasattr(func, "namespace"):
-            options["namespace"] = func.namespace
-        if "namespace" not in options:
-            options["namespace"] = "default"
+        spec = FeatureSetSpec()
+        spec.name = func.__name__
+        spec.description = func.__doc__
+        spec.features = fts
+
+        if "key_feature" in options:
+            spec.key_feature = options["key_feature"]
+
+        if "namespace" in options:
+            spec.namespace = options["namespace"]
 
         if "timeout" not in options:
             options["timeout"] = "5s"
 
-        if "name" not in options:
-            options["name"] = func.__name__
+        spec.timeout = options["timeout"]
+        spec.name = func.__name__
+        spec.description = func.__doc__
 
-        if "desc" not in options and func.__doc__ is not None:
-            options["desc"] = func.__doc__
-
-        fqn = f"{options['name']}.{options['namespace']}"
-        spec = {"kind": "feature_set", "options": options, "src": fts, "src_name": func.__name__, "fqn": fqn}
         func.raptor_spec = spec
         func.historical_get = replay.new_historical_get(spec)
-        func.manifest = lambda: __feature_set_manifest(spec)
+        func.manifest = lambda: yaml.safe_dump(spec, sort_keys=False)
+        func.export = func.manifest
+        local_state.register_spec(spec)
+
+        if hasattr(func, "__raptor_options"):
+            del func.__raptor_options
+
         if register:
             local_state.register_spec(spec)
         return func
 
     return decorator
-
-
-def _k8s_name(name):
-    name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-    name = re.sub('__([A-Z])', r'_\1', name)
-    name = re.sub('([a-z0-9])([A-Z])', r'\1_\2', name)
-    return name.replace("_", "-").lower()
-
-
-def __feature_manifest(f):
-    def _fmt(val, field=None):
-        if val is None:
-            return "~"
-        elif field in val:
-            return val[field]
-        return "~"
-
-    t = f"""apiVersion: k8s.raptor.ml/v1alpha1
-kind: Feature
-metadata:
-  name: {_k8s_name(f['options']['name'])}
-  namespace: {f['options']['namespace']}\n"""
-    if _fmt(f['options'], 'desc') != "~":
-        t += f"""  annotations:\n    a8r.io/description: "{_fmt(f['options'], 'desc')}"\n"""
-    t += f"""spec:
-  primitive: {_fmt(f['options'], 'primitive')}
-  freshness: {_fmt(f['options'], 'freshness')}
-  staleness: {_fmt(f['options'], 'staleness')}"""
-    if 'timeout' in f['options']:
-        t += f"\n  timeout: {_fmt(f['options'], 'timeout')}"
-    if 'connector' in f['options']:
-        t += f"\n  connector: \n    name: {_fmt(f['options']['connector'], 'name')}"
-        if 'namespace' in f['options']['connector'] and f['options']['connector']['namespace'] != "":
-            t += f"\n    namespace: {_fmt(f['options']['connector'], 'namespace')}"
-    t += "\n  builder:"
-    if 'builder' in f['options']:
-        if 'kind' in f['options']['builder']:
-            t += f"\n    kind: {_fmt(f['options']['builder'], 'kind')}"
-        if 'options' in f['options']['builder'] and f['options']['builder']['options'] is not None:
-            for k, v in f['options']['builder']['options']:
-                t += f"    {k}: {_fmt(v)}\n"
-    if 'aggr' in f['options']:
-        t += "\n    aggr:"
-        for a in f['options']['aggr']:
-            t += "\n      - " + a.value
-    t += "\n    pyexp: |"
-    for line in f['src'].code.split('\n'):
-        t += "\n      " + line
-    t += "\n"
-    return t
-
-
-def __feature_set_manifest(f):
-    nl = "\n"
-    ret = f"""apiVersion: k8s.raptor.ml/v1alpha1
-kind: FeatureSet
-metadata:
-  name: {_k8s_name(f["options"]["name"])}
-  namespace: {f["options"]["namespace"]}
-spec:
-  timeout: {f["options"]["timeout"]}
-  keyFeature: {f["options"]["key_feature"]}
-  features:\n"""
-    for ft in f["src"]:
-        ret += f"    - {ft}\n"
-    return ret
 
 
 def manifests(save_to_tmp=False):
@@ -336,13 +288,8 @@ def manifests(save_to_tmp=False):
     Otherwise, it will print the manifests.
     """
     mfts = []
-    for m in local_state.spec_registry:
-        if m["kind"] == "feature":
-            mfts.append(__feature_manifest(m))
-        elif m["kind"] == "feature_set":
-            mfts.append(__feature_set_manifest(m))
-        else:
-            raise Exception("Invalid manifest")
+    for spec in local_state.spec_registry:
+        mfts.append(yaml.safe_dump(spec, sort_keys=False))
 
     if len(mfts) == 0:
         return ""
@@ -357,20 +304,3 @@ def manifests(save_to_tmp=False):
         return file_name
     else:
         return ret
-
-
-def wrap_decorator_err(f):
-    def wrap(*args, **kwargs):
-        try:
-            return f(*args, **kwargs)
-        except RuntimeError as e:
-            raise types.WrapException(e, args[0].raptor_spec)
-        except Exception as e:
-            back_frame = e.__traceback__.tb_frame.f_back
-            tb = pytypes.TracebackType(tb_next=None,
-                                       tb_frame=back_frame,
-                                       tb_lasti=back_frame.f_lasti,
-                                       tb_lineno=back_frame.f_lineno)
-            raise Exception(f"in {args[0].__name__}: {str(e)}").with_traceback(tb)
-
-    return wrap

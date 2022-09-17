@@ -4,6 +4,8 @@
 
 import datetime
 import re
+from datetime import timedelta
+from typing import Optional
 
 _nanosecond_size = 1
 _microsecond_size = 1000 * _nanosecond_size
@@ -36,8 +38,10 @@ class DurationError(ValueError):
     """duration error"""
 
 
-def from_str(duration):
+def from_str(duration: str) -> Optional[timedelta]:
     """Parse a duration string to a datetime.timedelta"""
+    if duration is None:
+        return None
 
     # allow negative durations
     try:
@@ -71,8 +75,10 @@ def from_str(duration):
     return datetime.timedelta(microseconds=sign * microseconds)
 
 
-def to_str(delta, extended=False):
+def to_str(delta: datetime.timedelta, extended=False) -> Optional[str]:
     """Format a datetime.timedelta to a duration string"""
+    if delta is None:
+        return None
 
     total_seconds = delta.total_seconds()
     sign = "-" if total_seconds < 0 else ""

@@ -12,6 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .decorators import *
-from .types import *
-from .config import *
+# default namespace
+default_namespace = "default"
