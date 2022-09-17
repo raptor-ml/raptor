@@ -133,7 +133,7 @@ func NormalizeFQN(fqn, defaultNamespace string) string {
 
 	fn := strings.Index(fqn, "[")
 	if fn != -1 {
-		return fmt.Sprintf("%s.%s%s", fqn, defaultNamespace, fqn[fn:])
+		return fmt.Sprintf("%s.%s%s", fqn[:fn], defaultNamespace, fqn[fn:])
 	}
 	return fmt.Sprintf("%s.%s", fqn, defaultNamespace)
 }
