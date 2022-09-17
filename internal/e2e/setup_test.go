@@ -115,10 +115,33 @@ func FeatureEnvFn(fn env.Func) features.Func {
 		ctx, err := fn(ctx, cfg)
 		if err != nil {
 			t.Error(err)
-			t.Fail()
+			t.FailNow()
 		}
 		return ctx
 	}
+}
+
+func FeatureSetupCore(name string, args ...string) features.Func {
+	return func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
+		ctx, err := SetupCoreFromCtx(name, args...)(ctx, cfg)
+		if err != nil {
+			t.Error(err)
+			ns := ctx.Value(raptorContextKey(name))
+			if ns == nil {
+				t.Log("no raptor-core namespace found")
+				return ctx
+			}
+
+			ctx, err = CollectNamespaceLogs(ns.(string), -1, t.Log)(ctx, cfg)
+			if err != nil {
+				t.Error(err)
+			}
+			t.FailNow()
+			return ctx
+		}
+		return ctx
+	}
+
 }
 
 func SetupCoreFromCtx(name string, args ...string) env.Func {
@@ -128,23 +151,6 @@ func SetupCoreFromCtx(name string, args ...string) env.Func {
 	}
 }
 
-func FailedCoreLogs(name string) features.Func {
-	return func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
-		if t.Failed() {
-			ns := ctx.Value(raptorContextKey(name))
-			if ns == nil {
-				t.Log("no raptor-core namespace found")
-				return ctx
-			}
-			ctx, err := CollectNamespaceLogs(ns.(string), -1)(ctx, cfg)
-			if err != nil {
-				t.Error(err)
-			}
-			return ctx
-		}
-		return ctx
-	}
-}
 func SetupCore(name, kindClusterName, imgBasename, buildTag string, args []string) env.Func {
 	return func(ctx context.Context, cfg *envconf.Config) (context.Context, error) {
 		args = append(args, "--usage-reporting=false")
@@ -207,7 +213,7 @@ func SetupCore(name, kindClusterName, imgBasename, buildTag string, args []strin
 		}
 		err = wait.For(conditions.New(cfg.Client().Resources()).ResourceScaled(dep, func(object k8s.Object) int32 {
 			return object.(*appsv1.Deployment).Status.ReadyReplicas
-		}, 3), wait.WithTimeout(8*time.Minute))
+		}, 3), wait.WithTimeout(5*time.Minute))
 		if err != nil {
 			return ctx, fmt.Errorf("failed to wait for Core to be ready: %w", err)
 		}

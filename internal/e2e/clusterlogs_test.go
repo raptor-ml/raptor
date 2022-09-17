@@ -32,7 +32,7 @@ import (
 	"time"
 )
 
-func CollectNamespaceLogs(ns string, since time.Duration) env.Func {
+func CollectNamespaceLogs(ns string, since time.Duration, log func(...any)) env.Func {
 	return func(ctx context.Context, cfg *envconf.Config) (context.Context, error) {
 		cs, err := kubernetes.NewForConfig(cfg.Client().RESTConfig())
 		if err != nil {
@@ -81,7 +81,7 @@ func CollectNamespaceLogs(ns string, since time.Duration) env.Func {
 							return
 						}
 
-						fmt.Printf("%s/%s/%s: %s", pod.GetNamespace(), pod.GetName(), container.Name, text)
+						log(fmt.Sprintf("%s/%s/%s: %s", pod.GetNamespace(), pod.GetName(), container.Name, text))
 					}
 				}(pod, container)
 			}
