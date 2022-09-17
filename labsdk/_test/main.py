@@ -6,7 +6,7 @@ from labsdk.raptor.stub import *
 
 # getting started code
 
-@raptor.register(str, freshness='1m', staleness='10h', options={})
+@raptor.register(str, staleness='10h', freshness='1m', options={})
 @raptor.connector("emails")
 @raptor.builder("streaming")
 @raptor.aggr([raptor.AggrFn.Count])
@@ -15,7 +15,7 @@ def emails_10h(**req: RaptorRequest):
     return 1, req["timestamp"], req['payload']['account_id']
 
 
-@raptor.register(float, freshness='1m', staleness='10h', options={})
+@raptor.register(float, staleness='10h', freshness='1m', options={})
 @raptor.connector("deals")
 @raptor.builder("streaming")
 @raptor.aggr([raptor.AggrFn.Sum, raptor.AggrFn.Avg, raptor.AggrFn.Max, raptor.AggrFn.Min])
@@ -24,7 +24,7 @@ def deals_10h(**req):
     return req['payload']["amount"], req["timestamp"], req['payload']["account_id"]
 
 
-@raptor.register('headless', freshness='-1', staleness='-1', options={})
+@raptor.register('headless', staleness='-1', freshness='-1', options={})
 def emails_deals(**req):
     """emails/deal[avg] rate over 10 hours"""
     e, _ = f("emails_10h[count]", req['entity_id'])
@@ -93,7 +93,7 @@ crm_records_df = pd.DataFrame.from_records([
 ])
 
 
-@raptor.register(int, freshness='24h', staleness='8760h')
+@raptor.register(int, staleness='8760h', freshness='24h')
 @raptor.connector("crm_updates")
 @raptor.aggr([raptor.AggrFn.DistinctCount])
 def unique_deals_involvment_annualy(**req: RaptorRequest):
@@ -105,7 +105,7 @@ def unique_deals_involvment_annualy(**req: RaptorRequest):
 unique_deals_involvment_annualy.replay(crm_records_df, entity_id_field='salesman_id')
 
 
-@raptor.register(int, freshness='24h', staleness='8760h')
+@raptor.register(int, staleness='8760h', freshness='24h')
 @raptor.connector("crm_updates")
 @raptor.aggr([raptor.AggrFn.Count])
 def closed_deals_annualy(**req: RaptorRequest):
@@ -117,7 +117,7 @@ def closed_deals_annualy(**req: RaptorRequest):
 closed_deals_annualy.replay(crm_records_df, entity_id_field='salesman_id')
 
 
-@raptor.register(int, freshness='24h', staleness='8760h')
+@raptor.register(int, staleness='8760h', freshness='24h')
 def salesperson_deals_closes_rate(**req: RaptorRequest):
     udia, _ = get_feature("unique_deals_involvment_annualy[distinct_count]", req['entity_id'])
     cda, _ = get_feature("closed_deals_annualy[count]", req['entity_id'])
@@ -131,7 +131,7 @@ salesperson_deals_closes_rate.replay(crm_records_df, entity_id_field='salesman_i
 
 # other tests
 
-@raptor.register(int, freshness='1m', staleness='10m', options={})
+@raptor.register(int, staleness='10m', freshness='1m', options={})
 def simple(**req):
     age = req['payload']["age"]
     weight = req['payload']["weight"]
@@ -175,12 +175,12 @@ df = pd.DataFrame.from_records([
 df['event_at'] = pd.to_datetime(df['event_at'])
 
 
-@raptor.register(int, freshness='1m', staleness='10m', options={})
+@raptor.register(int, staleness='10m', freshness='1m', options={})
 def simple(**req):
     pass
 
 
-@raptor.register(str, freshness='10m', staleness='2h', options={})
+@raptor.register(str, staleness='2h', freshness='10m', options={})
 @raptor.aggr([raptor.AggrFn.DistinctCount])
 def unique_tasks_over_2h(**req):
     return req['payload']['subject']
@@ -189,7 +189,7 @@ def unique_tasks_over_2h(**req):
 unique_tasks_over_2h.replay(df, entity_id_field="account_id")
 
 
-@raptor.register(int, freshness='1m', staleness='30m', options={})
+@raptor.register(int, staleness='30m', freshness='1m', options={})
 @raptor.aggr([raptor.AggrFn.Sum, raptor.AggrFn.Count, raptor.AggrFn.Max])
 def commits_30m(**req):
     """sum/max/count of commits over 30 minutes"""
@@ -204,7 +204,7 @@ def commits_30m(**req):
 commits_30m.replay(df, entity_id_field="account_id")
 
 
-@raptor.register(int, freshness='1m', staleness='30m', options={})
+@raptor.register(int, staleness='30m', freshness='1m', options={})
 def commits_30m_greater_2(**req):
     res, ts = f("commits_30m[sum]", req['entity_id'])
     """sum/max/count of commits over 30 minutes"""
