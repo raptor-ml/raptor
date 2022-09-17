@@ -207,7 +207,7 @@ func SetupCore(name, kindClusterName, imgBasename, buildTag string, args []strin
 		}
 		err = wait.For(conditions.New(cfg.Client().Resources()).ResourceScaled(dep, func(object k8s.Object) int32 {
 			return object.(*appsv1.Deployment).Status.ReadyReplicas
-		}, 3), wait.WithTimeout(5*time.Minute))
+		}, 3), wait.WithTimeout(8*time.Minute))
 		if err != nil {
 			return ctx, fmt.Errorf("failed to wait for Core to be ready: %w", err)
 		}
