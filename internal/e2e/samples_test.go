@@ -39,6 +39,7 @@ func TestSamples(t *testing.T) {
 		Setup(FeatureEnvFn(envfuncs.CreateNamespace(namespace))).
 		Teardown(FeatureEnvFn(envfuncs.DeleteNamespace(namespace))).
 		Setup(FeatureEnvFn(SetupCoreFromCtx(namespace))).
+		Teardown(FailedCoreLogs(namespace)).
 		Teardown(FeatureEnvFn(DestroyCore(namespace))).
 		Setup(func(ctx context.Context, t *testing.T, c *envconf.Config) context.Context {
 			r, err := resources.New(c.Client().RESTConfig())

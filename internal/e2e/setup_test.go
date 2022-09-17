@@ -114,7 +114,8 @@ func FeatureEnvFn(fn env.Func) features.Func {
 	return func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
 		ctx, err := fn(ctx, cfg)
 		if err != nil {
-			t.Fatal(err)
+			t.Error(err)
+			t.Fail()
 		}
 		return ctx
 	}
@@ -124,6 +125,24 @@ func SetupCoreFromCtx(name string, args ...string) env.Func {
 	return func(ctx context.Context, cfg *envconf.Config) (context.Context, error) {
 		c := getExtraCfg(ctx)
 		return SetupCore(name, c.clusterName, c.imgBasename, c.buildTag, args)(ctx, cfg)
+	}
+}
+
+func FailedCoreLogs(name string) features.Func {
+	return func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
+		if t.Failed() {
+			ns := ctx.Value(raptorContextKey(name))
+			if ns == nil {
+				t.Log("no raptor-core namespace found")
+				return ctx
+			}
+			ctx, err := CollectNamespaceLogs(ns.(string), -1)(ctx, cfg)
+			if err != nil {
+				t.Error(err)
+			}
+			return ctx
+		}
+		return ctx
 	}
 }
 func SetupCore(name, kindClusterName, imgBasename, buildTag string, args []string) env.Func {
@@ -256,6 +275,8 @@ func MutateRaptorKustomize(ns string, coreImg string, historianImg string, args 
 						dep.Spec.Template.Spec.Containers[i].Args = append(c.Args, args...)
 					}
 				}
+
+				//TODO remove this once we have historian tests
 				zero := int32(0)
 				dep.Spec.Replicas = &zero
 			}
