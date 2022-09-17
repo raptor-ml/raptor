@@ -242,7 +242,9 @@ class FeatureSpec(yaml.YAMLObject):
 
     @freshness.setter
     def freshness(self, value):
-        if isinstance(value, str):
+        if value is None or value == '':
+            self._freshness = None
+        elif isinstance(value, str):
             self._freshness = durpy.from_str(value)
         elif isinstance(value, datetime.timedelta):
             self._freshness = value
@@ -258,7 +260,7 @@ class FeatureSpec(yaml.YAMLObject):
             else:
                 raise Exception("program must be a callable or a PyExpProgram")
         elif key == 'staleness' or key == 'timeout':
-            if value == '':
+            if value == '' or value is None:
                 value = None
             elif isinstance(value, str):
                 value = durpy.from_str(value)
