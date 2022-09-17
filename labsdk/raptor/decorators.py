@@ -121,7 +121,7 @@ def _func_match_feature_signature(func):
     return sig == inspect.signature(_stub_feature) or sig == inspect.signature(_stub_feature_with_req)
 
 
-def register(primitive, freshness: str, staleness: str = '', options=None):
+def register(primitive, staleness: str, freshness: str = '', options=None):
     """
     Register a Feature Definition within the LabSDK.
 
@@ -140,8 +140,8 @@ def register(primitive, freshness: str, staleness: str = '', options=None):
             return "Hello "+ req["entity_id"]
 
     :param primitive: the primitive type of the feature.
-    :param freshness: the freshness of the feature.
     :param staleness: the staleness of the feature.
+    :param freshness: the freshness of the feature.
     :param options: optional options for the feature.
     :return: a registered Feature Definition
     """
@@ -180,8 +180,10 @@ def register(primitive, freshness: str, staleness: str = '', options=None):
                         f"{func.__name__} aggr function {f} not supported for primitive {spec.primitive}")
             spec.aggr = options['aggr']
 
-        if staleness == '' and (spec.aggr is None or spec.aggr.granularity is None):
-            raise Exception(f"{func.__name__} must have a staleness or an aggregation with granularity")
+        if freshness == '' and (spec.aggr is None or spec.aggr.granularity is None):
+            raise Exception(f"{func.__name__} must have a freshness or an aggregation with granularity")
+        if staleness == '':
+            raise Exception(f"{func.__name__} must have a staleness")
 
         # add source coded (decorators stripped)
         spec.program = PyExpProgram(func)
