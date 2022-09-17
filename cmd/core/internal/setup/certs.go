@@ -336,10 +336,10 @@ func (ce *certsEnsurer) Start(ctx context.Context) error {
 		return true, nil
 	}
 	if err := wait.ExponentialBackoff(wait.Backoff{
-		Duration: 1 * time.Second,
-		Factor:   2,
+		Duration: 5 * time.Second,
+		Factor:   3,
 		Jitter:   1,
-		Steps:    10,
+		Steps:    15,
 	}, checkFn); err != nil {
 		ce.logger.Error(err, "max retries for checking CA Injection")
 		return fmt.Errorf("max retries for checking CA Injection: %w", err)
