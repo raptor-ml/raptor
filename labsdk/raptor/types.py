@@ -258,7 +258,9 @@ class FeatureSpec(yaml.YAMLObject):
             else:
                 raise Exception("program must be a callable or a PyExpProgram")
         elif key == 'staleness' or key == 'timeout':
-            if isinstance(value, str):
+            if value == '':
+                value = None
+            elif isinstance(value, str):
                 value = durpy.from_str(value)
             elif isinstance(value, datetime.timedelta):
                 value = value
