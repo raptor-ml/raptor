@@ -25,6 +25,7 @@ import yaml
 
 from . import durpy
 from .config import default_namespace
+from .yaml import RaptorDumper
 
 
 def normalize_fqn(fqn):
@@ -35,47 +36,11 @@ def normalize_fqn(fqn):
     return f"{fqn}.{default_namespace}"
 
 
-def _cleanup_none(d):
-    for k, v in list(d.items()):
-        if v is None:
-            del d[k]
-        elif isinstance(v, dict):
-            _cleanup_none(v)
-            if len(v) == 0:
-                del d[k]
-    return d
-
-
 def _k8s_name(name):
     name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     name = re.sub('__([A-Z])', r'_\1', name)
     name = re.sub('([a-z0-9])([A-Z])', r'\1_\2', name)
     return name.replace("_", "-").lower()
-
-
-# enable multiline strings
-def _str_representer(dumper, data):
-    if len(data.splitlines()) > 1:  # check for multiline string
-        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
-    return dumper.represent_scalar('tag:yaml.org,2002:str', data)
-
-
-yaml.add_representer(str, _str_representer)
-yaml.representer.SafeRepresenter.add_representer(str, _str_representer)
-
-
-# represent timedelta with go duration
-def _timedelta_representer(dumper, data):
-    if data is None:
-        return dumper.represent_none(data)
-    return dumper.represent_scalar('tag:yaml.org,2002:str', durpy.to_str(data))
-
-
-yaml.add_representer(datetime.timedelta, _timedelta_representer)
-yaml.representer.SafeRepresenter.add_representer(datetime.timedelta, _timedelta_representer)
-
-# remove tags
-yaml.emitter.Emitter.process_tag = lambda self, *args, **kw: None
 
 
 class AggrFn(Enum):
@@ -115,8 +80,7 @@ class AggrFn(Enum):
         return dumper.represent_scalar('!AggrFn', data.value)
 
 
-yaml.add_representer(AggrFn, AggrFn.to_yaml)
-yaml.SafeDumper.add_multi_representer(AggrFn, AggrFn.to_yaml)
+RaptorDumper.add_representer(AggrFn, AggrFn.to_yaml)
 
 
 class PyExpProgram:
@@ -242,11 +206,11 @@ class FeatureSpec(yaml.YAMLObject):
 
     name: str = None
     namespace: str = None
+    description: str = None
     labels: dict = {}
     annotations: dict = {}
 
     primitive: Primitive = None
-    description: str = None
     _freshness: datetime.timedelta = None
     staleness: datetime.timedelta = None
     timeout: datetime.timedelta = None
@@ -333,13 +297,10 @@ class FeatureSpec(yaml.YAMLObject):
                 "builder": data.builder.__dict__,
             }
         }
-
-        manifest = _cleanup_none(manifest)
         return dumper.represent_mapping(cls.yaml_tag, manifest, flow_style=cls.yaml_flow_style)
 
 
-yaml.add_representer(FeatureSpec, FeatureSpec.to_yaml)
-yaml.SafeDumper.add_multi_representer(FeatureSpec, FeatureSpec.to_yaml)
+RaptorDumper.add_representer(FeatureSpec, FeatureSpec.to_yaml)
 
 
 class FeatureSetSpec(yaml.YAMLObject):
@@ -347,6 +308,7 @@ class FeatureSetSpec(yaml.YAMLObject):
 
     name: str = None
     namespace: str = None
+    description: str = None
     labels: dict = {}
     annotations: dict = {}
 
@@ -389,7 +351,6 @@ class FeatureSetSpec(yaml.YAMLObject):
     @classmethod
     def to_yaml(cls, dumper: yaml.dumper.Dumper, data: 'FeatureSetSpec'):
         data.annotations['a8r.io/description'] = data.description
-
         manifest = {
             "apiVersion": "k8s.raptor.ml/v1alpha1",
             "kind": "FeatureSet",
@@ -405,13 +366,10 @@ class FeatureSetSpec(yaml.YAMLObject):
                 "keyFeature": data.key_feature,
             }
         }
-
-        manifest = _cleanup_none(manifest)
         return dumper.represent_mapping(cls.yaml_tag, manifest, flow_style=cls.yaml_flow_style)
 
 
-yaml.add_representer(FeatureSetSpec, FeatureSetSpec.to_yaml)
-yaml.SafeDumper.add_multi_representer(FeatureSetSpec, FeatureSetSpec.to_yaml)
+RaptorDumper.add_representer(FeatureSetSpec, FeatureSetSpec.to_yaml)
 
 
 def WrapException(e: Exception, spec: FeatureSpec, *args, **kwargs):

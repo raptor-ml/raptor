@@ -14,10 +14,10 @@
 
 import inspect
 import types as pytypes
-
 import yaml
 
 from . import replay, local_state, stub
+from .yaml import RaptorDumper
 from .pyexp import pyexp
 from .types import FeatureSpec, AggrSpec, ResourceReference, AggrFn, PyExpProgram, WrapException, BuilderSpec, \
     FeatureSetSpec, normalize_fqn
@@ -194,7 +194,7 @@ def register(primitive, staleness: str, freshness: str = '', options=None):
         # register
         func.raptor_spec = spec
         func.replay = replay.new_replay(spec)
-        func.manifest = lambda: yaml.safe_dump(spec, sort_keys=False)
+        func.manifest = lambda: yaml.dump(spec, sort_keys=False, Dumper=RaptorDumper)
         func.export = func.manifest
         local_state.register_spec(spec)
 
@@ -271,7 +271,7 @@ def feature_set(register=False, options=None):
 
         func.raptor_spec = spec
         func.historical_get = replay.new_historical_get(spec)
-        func.manifest = lambda: yaml.safe_dump(spec, sort_keys=False)
+        func.manifest = lambda: yaml.dump(spec, sort_keys=False, Dumper=RaptorDumper)
         func.export = func.manifest
         local_state.register_spec(spec)
 
