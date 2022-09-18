@@ -1,9 +1,13 @@
-name: Lint
+name: Go Lint
 
 # Trigger the workflow on pull requests and direct pushes to any branch
 on:
-  push: ~
-  pull_request: ~
+  push:
+    paths:
+      - '**.go'
+  pull_request:
+    paths:
+      - '**.go'
 
 jobs:
 
