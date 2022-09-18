@@ -60,6 +60,17 @@ type DryEngine interface {
 	Dependencies() []string
 }
 
+// New returns a new DryEngine.
+// The DryEngine is used to simulate the execution of a pipeline without actually
+// executing it. It is used to test the pipeline and to generate the instructions
+// that will be executed by the real engine.
+//
+// The DryEngine can be used in two modes:
+// - discovery mode: in this mode, the DryEngine will not return any values, but
+//   will instead record all the features that are requested. This is useful to
+//   discover the dependencies of a pipeline.
+// - execution mode: in this mode, the DryEngine will return the values that are
+//   requested and will register the side effect instructions. This is useful to test the pipeline.
 func New(data DependenciesData, discoveryMode bool) DryEngine {
 	if data == nil {
 		data = make(DependenciesData)
