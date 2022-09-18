@@ -54,14 +54,25 @@ def _k8s_name(name):
 
 
 # enable multiline strings
-def str_presenter(dumper, data):
+def _str_representer(dumper, data):
     if len(data.splitlines()) > 1:  # check for multiline string
         return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
     return dumper.represent_scalar('tag:yaml.org,2002:str', data)
 
 
-yaml.add_representer(str, str_presenter)
-yaml.representer.SafeRepresenter.add_representer(str, str_presenter)
+yaml.add_representer(str, _str_representer)
+yaml.representer.SafeRepresenter.add_representer(str, _str_representer)
+
+
+# represent timedelta with go duration
+def _timedelta_representer(dumper, data):
+    if data is None:
+        return dumper.represent_none(data)
+    return dumper.represent_scalar('tag:yaml.org,2002:str', durpy.to_str(data))
+
+
+yaml.add_representer(datetime.timedelta, _timedelta_representer)
+yaml.representer.SafeRepresenter.add_representer(datetime.timedelta, _timedelta_representer)
 
 # remove tags
 yaml.emitter.Emitter.process_tag = lambda self, *args, **kw: None
@@ -212,6 +223,19 @@ class AggrSpec:
         self.funcs = fns
         self.granularity = granularity
 
+    def __setattr__(self, key, value):
+        if key == 'granularity':
+            if value == '' or value is None:
+                value = None
+            elif isinstance(value, str):
+                value = durpy.from_str(value)
+            elif isinstance(value, datetime.timedelta):
+                value = value
+            else:
+                raise Exception(f"Invalid type {type(value)} for {key}")
+
+        super().__setattr__(key, value)
+
 
 class FeatureSpec(yaml.YAMLObject):
     yaml_tag = u'!FeatureSpec'
@@ -302,9 +326,9 @@ class FeatureSpec(yaml.YAMLObject):
             },
             "spec": {
                 "primitive": data.primitive.value,
-                "freshness": durpy.to_str(data.freshness),
-                "staleness": durpy.to_str(data.staleness),
-                "timeout": durpy.to_str(data.timeout),
+                "freshness": data.freshness,
+                "staleness": data.staleness,
+                "timeout": data.timeout,
                 "connector": None if data.connector is None else data.connector.__dict__,
                 "builder": data.builder.__dict__,
             }
@@ -376,7 +400,7 @@ class FeatureSetSpec(yaml.YAMLObject):
                 "annotations": data.annotations
             },
             "spec": {
-                "timeout": durpy.to_str(data.timeout),
+                "timeout": data.timeout,
                 "features": data.features,
                 "keyFeature": data.key_feature,
             }
