@@ -254,7 +254,7 @@ $(ENVTEST):
 	GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
 OSDK ?= $(LOCALBIN)/operator-sdk
-OPERATOR_SDK_VERSION=v1.21.0
+OPERATOR_SDK_VERSION=v1.23.0
 
 .PHONY: operator-sdk
 operator-sdk: $(OSDK) ## Download controller-gen locally if necessary.
@@ -356,4 +356,5 @@ apidiff: go-apidiff ## Run the go-apidiff to verify any API differences compared
 GO_APIDIFF = $(LOCALBIN)/go-apidiff
 .PHONY: go-apidiff
 go-apidiff:
-	GOBIN=$(LOCALBIN) go install github.com/joelanford/go-apidiff@latest
+	GOBIN=$(LOCALBIN) go install github.com/joelanford/go-apidiff@lates
+
