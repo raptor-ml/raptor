@@ -6,13 +6,12 @@ from labsdk.raptor.stub import *
 
 # getting started code
 
-@raptor.register(str, staleness='10h', freshness='1m', options={})
-@raptor.connector("emails")
-@raptor.builder("streaming")
-@raptor.aggr([raptor.AggrFn.Count])
+@raptor.register(int, staleness='10h')
+@raptor.connector("emails")  #<-- we are decorating our feature with our production data-connector! 😎
+@raptor.aggr([raptor.AggrFn.Count], granularity='1m')
 def emails_10h(**req: RaptorRequest):
     """email over 10 hours"""
-    return 1, req["timestamp"], req['payload']['account_id']
+    return 1
 
 
 @raptor.register(float, staleness='10h', freshness='1m', options={})
@@ -21,7 +20,7 @@ def emails_10h(**req: RaptorRequest):
 @raptor.aggr([raptor.AggrFn.Sum, raptor.AggrFn.Avg, raptor.AggrFn.Max, raptor.AggrFn.Min])
 def deals_10h(**req):
     """sum/avg/min/max of deal amount over 10 hours"""
-    return req['payload']["amount"], req["timestamp"], req['payload']["account_id"]
+    return req['payload']["amount"]
 
 
 @raptor.register('headless', staleness='-1', freshness='-1', options={})
