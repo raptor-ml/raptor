@@ -14,20 +14,20 @@ def emails_10h(**req: RaptorRequest):
     return 1
 
 
-@raptor.register(float, staleness='10h', freshness='1m', options={})
+@raptor.register(float, staleness='10h')
 @raptor.connector("deals")
 @raptor.builder("streaming")
-@raptor.aggr([raptor.AggrFn.Sum, raptor.AggrFn.Avg, raptor.AggrFn.Max, raptor.AggrFn.Min])
+@raptor.aggr([raptor.AggrFn.Sum, raptor.AggrFn.Avg, raptor.AggrFn.Max, raptor.AggrFn.Min], granularity='1m')
 def deals_10h(**req):
     """sum/avg/min/max of deal amount over 10 hours"""
     return req['payload']["amount"]
 
 
-@raptor.register('headless', staleness='-1', freshness='-1', options={})
-def emails_deals(**req):
+@raptor.register('headless', staleness='-1', freshness='-1')
+def emails_deals(**req: RaptorRequest):
     """emails/deal[avg] rate over 10 hours"""
-    e, _ = f("emails_10h[count]", req['entity_id'])
-    d, _ = f("deals_10h[avg]", req['entity_id'])
+    e, _ = get_feature("emails_10h[count]", req['entity_id'])
+    d, _ = get_feature("deals_10h[avg]", req['entity_id'])
     if e == None or d == None:
         return None
     return e / d
