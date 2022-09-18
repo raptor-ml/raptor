@@ -26,7 +26,6 @@ import (
 	"sigs.k8s.io/e2e-framework/pkg/envfuncs"
 	"testing"
 
-	"k8s.io/klog/v2"
 	"sigs.k8s.io/e2e-framework/klient/decoder"
 	"sigs.k8s.io/e2e-framework/klient/k8s/resources"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
@@ -84,14 +83,14 @@ func TestSamples(t *testing.T) {
 				return ctx
 			}
 
-			ct := &manifests.Feature{}
-			err = r.Get(ctx, "hello-world", namespace, ct)
+			cr := &manifests.Feature{}
+			err = r.Get(ctx, "hello-world", namespace, cr)
 			if err != nil {
 				t.Errorf("failed to get hello-world: %s", err)
 				t.Fail()
 			}
 
-			klog.InfoS("CR Details", "cr", ct)
+			t.Log("CR Details", "cr", cr)
 			return ctx
 		}).Feature()
 
