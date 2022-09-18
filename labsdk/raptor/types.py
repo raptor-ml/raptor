@@ -271,6 +271,7 @@ class FeatureSpec(yaml.YAMLObject):
         return f"FeatureSpec({self.fqn()})"
 
     def manifest(self):
+        """return a Kubernetes YAML manifest for this Feature definition"""
         return yaml.dump(self, sort_keys=False, Dumper=RaptorDumper)
 
     @classmethod
@@ -352,6 +353,7 @@ class FeatureSetSpec(yaml.YAMLObject):
         self._key_feature = value
 
     def manifest(self):
+        """return a Kubernetes YAML manifest for this FeatureSet definition"""
         return yaml.dump(self, sort_keys=False, Dumper=RaptorDumper)
 
     @classmethod

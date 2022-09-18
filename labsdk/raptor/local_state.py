@@ -86,6 +86,9 @@ def manifests(save_to_tmp=False, print_manifests=False):
 
     If save_to_tmp is True, it will save the manifests to a temporary file and return the path to the file.
     Otherwise, it will print the manifests.
+
+    :type save_to_tmp: if True, save the manifests to a temporary file and return the path to the file
+    :type print_manifests: if True, print the manifests
     """
     global spec_registry
 
