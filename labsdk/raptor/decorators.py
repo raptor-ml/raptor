@@ -14,10 +14,7 @@
 
 import inspect
 import types as pytypes
-import yaml
-
 from . import replay, local_state, stub
-from .yaml import RaptorDumper
 from .pyexp import pyexp
 from .types import FeatureSpec, AggrSpec, ResourceReference, AggrFn, PyExpProgram, WrapException, BuilderSpec, \
     FeatureSetSpec, normalize_fqn
@@ -194,8 +191,8 @@ def register(primitive, staleness: str, freshness: str = '', options=None):
         # register
         func.raptor_spec = spec
         func.replay = replay.new_replay(spec)
-        func.manifest = lambda: yaml.dump(spec, sort_keys=False, Dumper=RaptorDumper)
-        func.export = func.manifest
+        func.manifest = spec.manifest
+        func.export = spec.manifest
         local_state.register_spec(spec)
 
         if hasattr(func, "__raptor_options"):
@@ -271,8 +268,8 @@ def feature_set(register=False, options=None):
 
         func.raptor_spec = spec
         func.historical_get = replay.new_historical_get(spec)
-        func.manifest = lambda: yaml.dump(spec, sort_keys=False, Dumper=RaptorDumper)
-        func.export = func.manifest
+        func.manifest = spec.manifest
+        func.export = spec.manifest
         local_state.register_spec(spec)
 
         if hasattr(func, "__raptor_options"):
@@ -284,28 +281,3 @@ def feature_set(register=False, options=None):
 
     return decorator
 
-
-def manifests(save_to_tmp=False):
-    """
-    manifests will create a list of registered Raptor manifests ready to install for your kubernetes cluster
-
-    If save_to_tmp is True, it will save the manifests to a temporary file and return the path to the file.
-    Otherwise, it will print the manifests.
-    """
-    mfts = []
-    for spec in local_state.spec_registry:
-        mfts.append(yaml.safe_dump(spec, sort_keys=False))
-
-    if len(mfts) == 0:
-        return ""
-
-    ret = '---\n'.join(mfts)
-    if save_to_tmp:
-        import tempfile
-        f = tempfile.NamedTemporaryFile(mode='w+t', delete=False)
-        f.write(ret)
-        file_name = f.name
-        f.close()
-        return file_name
-    else:
-        return ret
