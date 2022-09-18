@@ -15,3 +15,4 @@
 from .decorators import *
 from .types import *
 from .config import *
+from .local_state import manifests

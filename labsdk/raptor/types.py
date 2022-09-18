@@ -270,6 +270,9 @@ class FeatureSpec(yaml.YAMLObject):
     def __repr__(self):
         return f"FeatureSpec({self.fqn()})"
 
+    def manifest(self):
+        return yaml.dump(self, sort_keys=False, Dumper=RaptorDumper)
+
     @classmethod
     def to_yaml(cls, dumper: yaml.dumper.Dumper, data: 'FeatureSpec'):
         if data.aggr is not None:
@@ -348,6 +351,9 @@ class FeatureSetSpec(yaml.YAMLObject):
     def key_feature(self, value):
         self._key_feature = value
 
+    def manifest(self):
+        return yaml.dump(self, sort_keys=False, Dumper=RaptorDumper)
+
     @classmethod
     def to_yaml(cls, dumper: yaml.dumper.Dumper, data: 'FeatureSetSpec'):
         data.annotations['a8r.io/description'] = data.description
@@ -363,7 +369,7 @@ class FeatureSetSpec(yaml.YAMLObject):
             "spec": {
                 "timeout": data.timeout,
                 "features": data.features,
-                "keyFeature": data.key_feature,
+                "keyFeature": None if data.key_feature == data.features[0] else data.key_feature
             }
         }
         return dumper.represent_mapping(cls.yaml_tag, manifest, flow_style=cls.yaml_flow_style)

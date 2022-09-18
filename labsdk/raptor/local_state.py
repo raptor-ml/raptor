@@ -18,7 +18,6 @@ import re
 
 import pandas as pd
 
-from .config import default_namespace
 from .types import FeatureSpec, AggrFn, FeatureSetSpec, normalize_fqn
 
 # registered features
@@ -79,3 +78,33 @@ def store_feature_values(feature_values):
 def feature_values():
     global __feature_values
     return __feature_values.copy()
+
+
+def manifests(save_to_tmp=False, print_manifests=False):
+    """
+    manifests will create a list of registered Raptor manifests ready to install for your kubernetes cluster
+
+    If save_to_tmp is True, it will save the manifests to a temporary file and return the path to the file.
+    Otherwise, it will print the manifests.
+    """
+    global spec_registry
+
+    mfts = []
+    for spec in spec_registry:
+        mfts.append(spec.manifest())
+
+    if len(mfts) == 0:
+        return ""
+
+    ret = '---\n'.join(mfts)
+    if save_to_tmp:
+        import tempfile
+        f = tempfile.NamedTemporaryFile(mode='w+t', delete=False)
+        f.write(ret)
+        file_name = f.name
+        f.close()
+        return file_name
+    elif print_manifests:
+        print(ret)
+    else:
+        return ret

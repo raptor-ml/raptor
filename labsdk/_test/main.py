@@ -7,7 +7,7 @@ from labsdk.raptor.stub import *
 # getting started code
 
 @raptor.register(int, staleness='10h')
-@raptor.connector("emails")  #<-- we are decorating our feature with our production data-connector! 😎
+@raptor.connector("emails")  # <-- we are decorating our feature with our production data-connector! 😎
 @raptor.aggr([raptor.AggrFn.Count], granularity='1m')
 def emails_10h(**req: RaptorRequest):
     """email over 10 hours"""
@@ -63,7 +63,7 @@ def views(**req):
 
 
 df = pd.read_csv("https://gist.githubusercontent.com/AlmogBaku/a1b331615eaf1284432d2eecc5fe60bc/raw/deals.csv")
-res = views.replay(df, entity_id_field="account_id")
+views.replay(df, entity_id_field="account_id")
 
 ## gong
 crm_records_df = pd.DataFrame.from_records([
@@ -205,7 +205,7 @@ commits_30m.replay(df, entity_id_field="account_id")
 
 @raptor.register(int, staleness='30m', freshness='1m', options={})
 def commits_30m_greater_2(**req):
-    res, ts = f("commits_30m[sum]", req['entity_id'])
+    res, _ = f("commits_30m[sum]", req['entity_id'])
     """sum/max/count of commits over 30 minutes"""
     return res > 2
 
@@ -214,11 +214,11 @@ commits_30m_greater_2.replay(df, entity_id_field='account_id')
 
 
 @raptor.feature_set()
-def newset():
+def newest():
     return "commits_30m[sum]", commits_30m_greater_2
 
 
 print(raptor.manifests())
 
-ret = newset.historical_get(since=pd.to_datetime('2019-12-04 00:00'), until=pd.to_datetime('2023-01-04 00:00'))
+ret = newest.historical_get(since=pd.to_datetime('2019-12-04 00:00'), until=pd.to_datetime('2023-01-04 00:00'))
 print(ret)
