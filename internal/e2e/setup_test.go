@@ -129,6 +129,7 @@ func FeatureSetupCore(name string, args ...string) features.Func {
 			ns := ctx.Value(raptorContextKey(name))
 			if ns == nil {
 				t.Log("no raptor-core namespace found")
+				t.FailNow()
 				return ctx
 			}
 
@@ -204,6 +205,7 @@ func SetupCore(name, kindClusterName, imgBasename, buildTag string, args []strin
 		if err != nil {
 			return ctx, fmt.Errorf("failed to install Core: %w", err)
 		}
+		ctx = context.WithValue(ctx, raptorContextKey(name), ns)
 
 		dep := &appsv1.Deployment{
 			ObjectMeta: v1.ObjectMeta{
@@ -218,7 +220,7 @@ func SetupCore(name, kindClusterName, imgBasename, buildTag string, args []strin
 			return ctx, fmt.Errorf("failed to wait for Core to be ready: %w", err)
 		}
 
-		return context.WithValue(ctx, raptorContextKey(name), ns), nil
+		return ctx, nil
 	}
 }
 
