@@ -139,7 +139,7 @@ test: manifests generate fmt lint envtest ## Run tests.
 
 .PHONY: test-e2e
 test-e2e: docker-build ## Run integration tests.
-	go test ./internal/e2e/... -tags e2e --build-tag=$(VERSION) -v 5
+	go test -v -timeout 1h ./internal/e2e/... -tags e2e --build-tag=$(VERSION) -v 5
 
 ##@ Build
 

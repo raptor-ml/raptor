@@ -101,7 +101,7 @@ func SetupRedis(name string) env.Func {
 		}
 		err = wait.For(conditions.New(cfg.Client().Resources()).ResourceScaled(ss, func(object k8s.Object) int32 {
 			return object.(*appsv1.StatefulSet).Status.ReadyReplicas
-		}, 1), wait.WithTimeout(5*time.Minute))
+		}, 1), wait.WithTimeout(10*time.Minute))
 		if err != nil {
 			return ctx, fmt.Errorf("failed to wait for redis to be ready: %w", err)
 		}
