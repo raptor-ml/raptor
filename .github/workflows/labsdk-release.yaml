@@ -3,54 +3,37 @@ name: LabSDK - Release and publish a version
 on:
   workflow_dispatch:
     inputs:
-      release_type:
-        default: alpha
-        description: What type of release is this?
+      prerelease:
+        default: true
+        description: Is this a pre-release version?
         required: true
-        type: choice
-        options:
-          - a
-          - b
-          - rc
-          - stable
+        type: boolean
 
 jobs:
   version:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.version.outputs.version }}
-      prerelease: ${{ steps.prerelease.outputs.prerelease }}
+      version: ${{ steps.changelog.outputs.version }}
+      tag: ${{ steps.changelog.outputs.tag }}
+      changelog: ${{ steps.changelog.outputs.changelog }}
+      clean_changelog: ${{ steps.changelog.outputs.clean_changelog }}
+      skipped: ${{ steps.changelog.outputs.skipped }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Prerelease prep
-        id: prerelease
-        run: |
-          if [ "${{ github.event.inputs.release_type }}" == "stable" ]; then
-            echo "::set-output name=version_format::v\${major}.\${minor}.\${patch}"
-            echo "::set-output name=prerelease::false"
-          else
-            echo "::set-output name=prerelease::true"
-            echo "::set-output name=version_format::v\${major}.\${minor}.\${patch}${{ github.event.inputs.release_type }}\${increment}"
-          fi
-        shell: bash
-      - name: Calculate Semver
-        uses: paulhatch/semantic-version@v5.0.0-alpha
-        id: version
+      - name: Conventional Changelog Action
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@v3
         with:
-          # The prefix to use to identify tags
-          tag_prefix: "v"
-          major_pattern: "/^(:warning:|⚠/).*/"
-          # Same as above except indicating a minor change, supports regular expressions wrapped with '/'
-          minor_pattern: "/^(:sparkles:|✨).*/"
-          # A string to determine the format of the version output
-          version_format: "${{ steps.prerelease.outputs.version_format }}"
-      - name: Override the version for the dist code
-        working-directory: ./labsdk/
-        run: |
-          sed -i "s/^version *= *.*/version = '${{ steps.version.outputs.version }}'/" setup.py
+          release-count: '1'
+          skip-version-file: 'true'
+          skip-commit: 'true'
+          skip-pull: 'true'
+          git-push: 'true'
+          git-path: 'labsdk'
+          tag-prefix: 'LabSDK-v'
 
   build_wheels:
     needs: [ version ]
@@ -91,9 +74,6 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: '^1.18'
-
-      - name: Clone the code
-        uses: actions/checkout@v3
 
       - uses: actions/setup-python@v3
 
@@ -152,13 +132,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
+      - name: Override the version for the dist code
+        working-directory: ./labsdk/
+        run: |
+          sed -i "s/^version *= *.*/version = '${{ needs.version.outputs.version }}'/" setup.py
+      - name: Make changelog for the dist code
+        working-directory: ./labsdk/
+        run: |
+          echo "{{ needs.version.outputs.changelog }}" > CHANGELOG.md
       - name: Build SDist
         working-directory: ./labsdk/
         env:
           BUILD_VERSION: "${{ needs.version.outputs.version }}"
         run: pipx run build --sdist
-
       - uses: actions/upload-artifact@v2
         with:
           path: ./labsdk/dist/*.tar.gz
@@ -177,12 +163,35 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
+      - name: Update changelog
+        working-directory: ./labsdk/
+        shell: bash
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          echo -e "{{ needs.version.outputs.changelog }}\n\n$(cat CHANGELOG.md)" > CHANGELOG.md
+          git add CHANGELOG.md
+          git commit -m "chore(LabSDK-release): ${{ needs.version.outputs.version }}" CHANGELOG.md
+          git push
+      - name: Tag
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ steps.version.outputs.tag }}',
+              sha: context.sha
+            })
       - name: Release on GitHub
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: LabSDK-${{ needs.version.outputs.version }}
+          tag_name: ${{ needs.version.outputs.tag }}
           files: dist/*
-          body: Released to https://pypi.org/project/raptor-labsdk/${{ needs.version.outputs.version }}/
-          prerelease: ${{ needs.version.outputs.prerelease }}
+          body: |
+            Released to https://pypi.org/project/raptor-labsdk/${{ needs.version.outputs.version }}/
+            ---
+            ${{ needs.version.outputs.clean_changelog }}
+          prerelease: ${{ inputs.prerelease }}
           name: LabSDK - Version ${{ needs.version.outputs.version }}
-          generate_release_notes: true
+          generate_release_notes: false
