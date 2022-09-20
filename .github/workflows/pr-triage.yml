@@ -47,6 +47,8 @@ jobs:
               exit 1
             fi
       - uses: amannn/action-semantic-pull-request@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           disallowScopes: |
             release
