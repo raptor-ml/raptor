@@ -30,7 +30,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/open-policy-agent/cert-controller/pkg/rotator"
 	opctrl "github.com/raptor-ml/raptor/internal/operator"
-	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -48,27 +47,14 @@ import (
 )
 
 func Certs(mgr manager.Manager, certsReady chan struct{}) {
-	healthChecks = append(healthChecks, func(_ *http.Request) error {
+	OrFail(mgr.AddReadyzCheck("certs", func(_ *http.Request) error {
 		select {
 		case <-certsReady:
 			return nil
 		default:
 			return fmt.Errorf("cert rotation not ready")
 		}
-	})
-	if viper.GetBool("disable-cert-management") || viper.GetBool("no-webhooks") {
-		close(certsReady)
-		return
-	}
-
-	upstreamReady := make(chan struct{})
-	err := mgr.Add(&certsEnsurer{
-		client:        mgr.GetClient(),
-		isReady:       certsReady,
-		upstreamReady: upstreamReady,
-		logger:        mgr.GetLogger().WithName("certs-ensurer"),
-	})
-	OrFail(err, "unable to set up cert ensurer")
+	}), "unable to add readyz check for certs")
 
 	ns, err := getInClusterNamespace()
 	OrFail(err, "Failed to discover local namespace. Are you running in a cluster?")
@@ -77,12 +63,19 @@ func Certs(mgr manager.Manager, certsReady chan struct{}) {
 	_, err = mgr.GetClient().RESTMapper().RESTMapping(gvk.GroupKind(), gvk.Version)
 	if err == nil {
 		setupLog.Info("Cert-manager detected")
-		err := mgr.Add(certManagerRunnable(mgr.GetClient(), mgr.GetScheme(), ns, upstreamReady))
+		err = mgr.Add(certManagerRunnable(mgr.GetClient(), mgr.GetScheme(), ns, certsReady))
 		OrFail(err, "Failed to add cert-manager runnable")
 		return
 	}
 
-	certsWithCertsController(mgr, ns, upstreamReady)
+	ce := &certsEnsurer{
+		client:        mgr.GetClient(),
+		isReady:       certsReady,
+		upstreamReady: make(chan struct{}),
+		logger:        mgr.GetLogger().WithName("certs-ensurer"),
+	}
+	OrFail(mgr.Add(ce), "Failed to add cert-ensurer runnable")
+	certsWithCertsController(mgr, ns, ce.upstreamReady)
 }
 
 const (
@@ -336,10 +329,10 @@ func (ce *certsEnsurer) Start(ctx context.Context) error {
 		return true, nil
 	}
 	if err := wait.ExponentialBackoff(wait.Backoff{
-		Duration: 5 * time.Second,
-		Factor:   3,
+		Duration: 1 * time.Second,
+		Factor:   2,
 		Jitter:   1,
-		Steps:    15,
+		Steps:    10,
 	}, checkFn); err != nil {
 		ce.logger.Error(err, "max retries for checking CA Injection")
 		return fmt.Errorf("max retries for checking CA Injection: %w", err)

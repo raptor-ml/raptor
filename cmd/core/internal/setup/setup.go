@@ -18,27 +18,9 @@ package setup
 
 import (
 	"fmt"
-	"golang.org/x/sync/errgroup"
-	"net/http"
 	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
 )
-
-var healthChecks []healthz.Checker
-
-// HealthCheck is an aggregated health check for the entire system.
-func HealthCheck(r *http.Request) error {
-	g, ctx := errgroup.WithContext(r.Context())
-	r = r.WithContext(ctx)
-	for _, check := range healthChecks {
-		check := check // https://golang.org/doc/faq#closures_and_goroutines
-		g.Go(func() error {
-			return check(r)
-		})
-	}
-	return g.Wait()
-}
 
 var (
 	setupLog = ctrl.Log.WithName("setup")

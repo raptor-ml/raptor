@@ -79,19 +79,16 @@ func main() {
 
 	// Set Up certificates for the webhooks
 	certsReady := make(chan struct{})
-	setup.Certs(mgr, certsReady)
+	if viper.GetBool("disable-cert-management") || viper.GetBool("no-webhooks") {
+		close(certsReady)
+	} else {
+		setup.Certs(mgr, certsReady)
+	}
 
 	// Set up the Core
 	setup.Core(mgr, certsReady)
 
 	// +kubebuilder:scaffold:builder
-
-	err = mgr.AddHealthzCheck("healthz", setup.HealthCheck)
-	setup.OrFail(err, "unable to set up health check")
-
-	// Currently, this is being solved by configuring a `initialDelaySeconds` for the probe
-	err = mgr.AddReadyzCheck("readyz", setup.HealthCheck)
-	setup.OrFail(err, "unable to set up ready check")
 
 	setupLog.Info("starting manager")
 	err = mgr.Start(ctrl.SetupSignalHandler())

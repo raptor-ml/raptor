@@ -134,9 +134,15 @@ func Core(mgr manager.Manager, certsReady chan struct{}) {
 	// Create the state
 	state, err := plugins.NewState(viper.GetString("state-provider"), viper.GetViper())
 	OrFail(err, fmt.Sprintf("failed to create state for provider %s", viper.GetString("state-provider")))
-	healthChecks = append(healthChecks, func(req *http.Request) error {
+
+	err = mgr.AddHealthzCheck("state", func(req *http.Request) error {
 		return state.Ping(req.Context())
 	})
+	OrFail(err, "unable to add health check for state")
+	err = mgr.AddReadyzCheck("state", func(req *http.Request) error {
+		return state.Ping(req.Context())
+	})
+	OrFail(err, "unable to add ready check for state")
 
 	// Create a new Core engine
 	eng := engine.New(state, hsc, ctrl.Log.WithName("engine"))
