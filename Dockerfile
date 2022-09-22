@@ -17,9 +17,9 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -ldflags
 
 FROM gcr.io/distroless/static:nonroot as core
 
-LABEL org.opencontainers.image.source="https://github.com/raptor-ml/raptor
-LABEL org.opencontainers.image.version=${VERSION}
-LABEL org.opencontainers.image.url="https://raptor.ml
+LABEL org.opencontainers.image.source="https://github.com/raptor-ml/raptor"
+LABEL org.opencontainers.image.version="${VERSION}"
+LABEL org.opencontainers.image.url="https://raptor.ml"
 LABEL org.opencontainers.image.title="Raptor Core"
 LABEL org.opencontainers.image.description="Raptor Core is the extension that implements on Kubernetes"
 
@@ -35,9 +35,9 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -ldflags
 
 FROM gcr.io/distroless/static:nonroot as historian
 
-LABEL org.opencontainers.image.source="https://github.com/raptor-ml/raptor
-LABEL org.opencontainers.image.version=${VERSION}
-LABEL org.opencontainers.image.url="https://raptor.ml
+LABEL org.opencontainers.image.source="https://github.com/raptor-ml/raptor"
+LABEL org.opencontainers.image.version="${VERSION}"
+LABEL org.opencontainers.image.url="https://raptor.ml"
 LABEL org.opencontainers.image.title="Raptor Historian"
 LABEL org.opencontainers.image.description="Raptor Historian is responsible to record the historical data of the production results"
 
@@ -53,9 +53,9 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -ldflags
 
 FROM gcr.io/distroless/static:nonroot as runtime
 
-LABEL org.opencontainers.image.source="https://github.com/raptor-ml/raptor
-LABEL org.opencontainers.image.version=${VERSION}
-LABEL org.opencontainers.image.url="https://raptor.ml
+LABEL org.opencontainers.image.source="https://github.com/raptor-ml/raptor"
+LABEL org.opencontainers.image.version="${VERSION}"
+LABEL org.opencontainers.image.url="https://raptor.ml"
 LABEL org.opencontainers.image.title="Raptor Runtime"
 LABEL org.opencontainers.image.description="Raptor Runtime is a sidecar that provides tooling for Raptor extensions"
 
