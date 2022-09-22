@@ -48,6 +48,9 @@ type redisContextKey string
 type raptorContextKey string
 type extraCfgContextKey int
 
+const waitTimeout = 10 * time.Minute
+const coreReplicas int32 = 2
+
 type extraCfg struct {
 	buildTag    string
 	imgBasename string
@@ -101,7 +104,7 @@ func SetupRedis(name string) env.Func {
 		}
 		err = wait.For(conditions.New(cfg.Client().Resources()).ResourceScaled(ss, func(object k8s.Object) int32 {
 			return object.(*appsv1.StatefulSet).Status.ReadyReplicas
-		}, 1), wait.WithTimeout(10*time.Minute))
+		}, 1), wait.WithTimeout(waitTimeout))
 		if err != nil {
 			return ctx, fmt.Errorf("failed to wait for redis to be ready: %w", err)
 		}
@@ -125,19 +128,19 @@ func FeatureSetupCore(name string, args ...string) features.Func {
 	return func(ctx context.Context, t *testing.T, cfg *envconf.Config) context.Context {
 		ctx, err := SetupCoreFromCtx(name, args...)(ctx, cfg)
 		if err != nil {
+			defer t.FailNow()
 			t.Error(err)
+
 			ns := ctx.Value(raptorContextKey(name))
 			if ns == nil {
 				t.Log("no raptor-core namespace found")
-				t.FailNow()
 				return ctx
 			}
 
-			ctx, err = CollectNamespaceLogs(ns.(string), -1, t.Log)(ctx, cfg)
+			ctx, err = CollectNamespaceLogs(ns.(string), -1)(ctx, cfg)
 			if err != nil {
 				t.Error(err)
 			}
-			t.FailNow()
 			return ctx
 		}
 		return ctx
@@ -215,7 +218,7 @@ func SetupCore(name, kindClusterName, imgBasename, buildTag string, args []strin
 		}
 		err = wait.For(conditions.New(cfg.Client().Resources()).ResourceScaled(dep, func(object k8s.Object) int32 {
 			return object.(*appsv1.Deployment).Status.ReadyReplicas
-		}, 3), wait.WithTimeout(10*time.Minute))
+		}, coreReplicas), wait.WithTimeout(waitTimeout))
 		if err != nil {
 			return ctx, fmt.Errorf("failed to wait for Core to be ready: %w", err)
 		}
@@ -275,6 +278,9 @@ func MutateRaptorKustomize(ns string, coreImg string, historianImg string, args 
 						dep.Spec.Template.Spec.Containers[i].Args = append(c.Args, args...)
 					}
 				}
+
+				r := coreReplicas
+				dep.Spec.Replicas = &r
 			}
 			if dep.GetName() == "raptor-historian" {
 				for i, c := range dep.Spec.Template.Spec.Containers {

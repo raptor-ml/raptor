@@ -8,7 +8,8 @@ on:
       - 'hack/**'
       - 'labsdk/**'
       - '**.md'
-  pull_request:
+  pull_request_target:
+    types: [ opened, edited, reopened, synchronize ]
     paths-ignore:
       - '.github/**'
       - 'hack/**'
