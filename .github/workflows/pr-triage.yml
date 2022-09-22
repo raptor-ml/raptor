@@ -39,12 +39,16 @@ jobs:
           files_to_ignore: ''
       - name: "Check for PR body length"
         shell: bash
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          if [ "${#github.event.pull_request.body}" -lt 80 ]; then
+            if [ ${#PR_BODY} -lt 80 ]; then
               echo "::error title=PR body is too short::Your PR is probably isn't descriptive enough.\nYou should give a description that highlights both what you're doing it and *why* you're doing it. Someone reading the PR description without clicking any issue links should be able to roughly understand what's going on."
               exit 1
-          fi
+            fi
       - uses: amannn/action-semantic-pull-request@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           disallowScopes: |
             release
