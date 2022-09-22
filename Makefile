@@ -152,29 +152,19 @@ LDFLAGS += -X github.com/raptor-ml/raptor/internal/plugins/builders/streaming.ru
 
 .PHONY: build
 build: generate ## Build core binary.
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o bin/core cmd/core/*.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o bin/historian cmd/historian/*.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="${LDFLAGS}" -a -o bin/runtime cmd/runtime/*.go
+	go build -ldflags="${LDFLAGS}" -a -o bin/core cmd/core/*.go
+	go build -ldflags="${LDFLAGS}" -a -o bin/historian cmd/historian/*.go
+	go build -ldflags="${LDFLAGS}" -a -o bin/runtime cmd/runtime/*.go
 
 .PHONY: run
 run: manifests generate fmt lint ## Run a controller from your host.
 	go run ./cmd/raptor/*
 
 .PHONY: docker-build
-docker-build: build ## Build docker images.
-	docker build -t ${CORE_IMG_BASE}:${VERSION}  -t ${CORE_IMG_BASE}:latest -f hack/release.Dockerfile --target core .
-	docker build -t ${RUNTIME_IMG_BASE}:${VERSION} -t ${RUNTIME_IMG_BASE}:latest -f hack/release.Dockerfile --target runtime .
-	docker build -t ${HISTORIAN_IMG_BASE}:${VERSION} -t ${HISTORIAN_IMG_BASE}:latest -f hack/release.Dockerfile --target historian .
-
-IMG ?= ${CORE_IMG_BASE}:${VERSION}
-.PHONY: docker-push
-docker-push: ## Push docker image with the core.
-ifneq ($(ENV),prod)
-	$(error "Docker image can only be pushed in production mode. Perhaps 'make kind-load' instead")
-else
-	warning "Pushing docker image manually should be avioded. You should prefer using the CI"
-	@echo -n "Are you sure? [y/N] " && read ans && if [ $${ans:-'N'} = 'y' ]; then docker push ${IMG}; fi
-endif
+docker-build: generate ## Build docker images.
+	docker build --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${CORE_IMG_BASE}:${VERSION} -t ${CORE_IMG_BASE}:latest --target core .
+	docker build --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${RUNTIME_IMG_BASE}:${VERSION} -t ${RUNTIME_IMG_BASE}:latest --target runtime .
+	docker build --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${HISTORIAN_IMG_BASE}:${VERSION} -t ${HISTORIAN_IMG_BASE}:latest --target historian .
 
 .PHONY: kind-load
 kind-load: ## Load docker images into kind.

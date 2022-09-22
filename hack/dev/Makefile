@@ -119,6 +119,7 @@ deploy-raptor: setup-redis ## deploy operator to cluster
 	$(KUBECTL) --namespace raptor-system patch deployment raptor-historian --patch-file config/raptor-historian-patch.yaml
 	$(MAKE) scale-normal
 
+.PHONY: scale-0 scale-core-1 scale-normal
 scale-0: remove-webhooks ## Scale down to zero the number of replicas of the operator
 	$(KUBECTL) --namespace raptor-system scale deployment raptor-controller-core --replicas 0
 	$(KUBECTL) --namespace raptor-system scale deployment raptor-historian --replicas 0
@@ -128,13 +129,14 @@ scale-normal: install-webhooks ## Scale back to normal the number of replicas of
 	$(KUBECTL) --namespace raptor-system scale deployment raptor-controller-core --replicas 2
 	$(KUBECTL) --namespace raptor-system scale deployment raptor-historian --replicas 1
 
+.PHONY: install-samples
 install-samples: ## Install samples
 	$(KUBECTL) --namespace default apply -k ${PROJECT_DIR}/config/samples/
 
+.PHONY: remove-webhooks install-webhooks
 remove-webhooks: ## Remove webhooks
 	$(KUBECTL) --namespace raptor-system delete validatingwebhookconfiguration raptor-validating-webhook-configuration
 	$(KUBECTL) --namespace raptor-system delete mutatingwebhookconfiguration raptor-mutating-webhook-configuration
-
 install-webhooks: ## Install webhooks
 	cd ${PROJECT_DIR}/config/webhook/ && $(KUSTOMIZE) edit set nameprefix raptor- && $(KUSTOMIZE) edit set namespace raptor-system
 	$(KUBECTL) --namespace raptor-system apply -k ${PROJECT_DIR}/config/webhook/

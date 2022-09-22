@@ -50,7 +50,7 @@ jobs:
           go-version: '^1.18'
       - name: Build project
         run: |
-          make generate bundle installer build \
+          make generate docker-build bundle installer \
             VERSION=${{ steps.version.outputs.version }} \
             BUNDLE_VERSION=${{ steps.version.outputs.tag }} \
             CHANNELS=${{ steps.bundle_channel.outputs.channel }} \
@@ -61,66 +61,12 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Extract metadata - Core
-        id: meta_core
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-core
-          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
-      - name: Extract metadata - Historian
-        id: meta_historian
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-historian
-          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
-      - name: Extract metadata - Bundle
-        id: meta_bundle
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-bundle
-          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
-      - name: Extract metadata - Runtime
-        id: meta_runtime
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-runtime
-          tags: type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
-      - name: Build & Push - Historian
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: hack/release.Dockerfile
-          target: historian
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta_historian.outputs.tags }}
-          labels: ${{ steps.meta_historian.outputs.labels }}
-      - name: Build & Push - Core
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: hack/release.Dockerfile
-          target: core
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta_core.outputs.tags }}
-          labels: ${{ steps.meta_core.outputs.labels }}
-      - name: Build & Push - Runtime
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: hack/release.Dockerfile
-          target: runtime
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta_runtime.outputs.tags }}
-          labels: ${{ steps.meta_runtime.outputs.labels }}
-      - name: Build & Push - Bundle
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: bundle.Dockerfile
-          target: bundle
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta_bundle.outputs.tags }}
-          labels: ${{ steps.meta_bundle.outputs.labels }}
+      - name: Push images
+        run: |
+          docker push --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-core
+          docker push --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-historian
+          docker push --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-runtime
+          docker push --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-bundle
       - name: Update changelog
         shell: bash
         run: |
