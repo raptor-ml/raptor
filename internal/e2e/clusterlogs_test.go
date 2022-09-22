@@ -22,6 +22,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,9 +43,9 @@ type log struct {
 }
 
 func (l *log) Log(logger klog.Logger) {
-	logger = logger.WithValues("namespace", l.namespace, "pod", l.podName)
+	prefix := fmt.Sprintf("%s/%s", l.namespace, l.podName)
 	if l.containers > 1 {
-		logger.WithValues("container", l.containerName)
+		prefix = fmt.Sprintf("%s[%s]", prefix, l.containerName)
 	}
 
 	msg := ""
@@ -81,11 +82,16 @@ func (l *log) Log(logger klog.Logger) {
 
 	switch level {
 	case "info":
-		logger.Info(msg, pairs...)
+		logger.WithValues(pairs...).WithName(prefix).Info(msg)
 	case "error":
-		logger.Error(nil, msg, pairs...)
+		var err error
+		if e, ok := l.log["error"]; ok {
+			err = fmt.Errorf(e.(string))
+			delete(l.log, "error")
+		}
+		logger.WithValues(pairs...).WithName(prefix).Error(err, msg)
 	default:
-		logger.Info(msg, pairs...)
+		logger.WithValues(pairs...).WithName(prefix).Info(msg, pairs...)
 	}
 }
 
