@@ -72,7 +72,10 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          touch CHANGELOG.md
           echo -e "{{ needs.version.outputs.changelog }}\n\n$(cat CHANGELOG.md)" > CHANGELOG.md
+          
           git add CHANGELOG.md
           git commit -m "chore(release): ${{ needs.version.outputs.version }}" CHANGELOG.md
           git push
