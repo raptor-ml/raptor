@@ -15,17 +15,16 @@
 import inspect
 import types as pytypes
 from . import replay, local_state, stub
-from .pyexp import pyexp
-from .types import FeatureSpec, AggrSpec, ResourceReference, AggrFn, PyExpProgram, WrapException, BuilderSpec, \
-    FeatureSetSpec, normalize_fqn
+from .types import FeatureSpec, AggrSpec, ResourceReference, AggrFn, PyExpProgram, BuilderSpec, \
+    FeatureSetSpec, normalize_fqn, PyExpException
 
 
 def _wrap_decorator_err(f):
     def wrap(*args, **kwargs):
         try:
             return f(*args, **kwargs)
-        except RuntimeError as e:
-            raise WrapException(e, args[0].raptor_spec)
+        except PyExpException as e:
+            raise e
         except Exception as e:
             back_frame = e.__traceback__.tb_frame.f_back
             tb = pytypes.TracebackType(tb_next=None,
@@ -183,10 +182,7 @@ def register(primitive, staleness: str, freshness: str = '', options=None):
             raise Exception(f"{func.__name__} must have a staleness")
 
         # add source coded (decorators stripped)
-        spec.program = PyExpProgram(func)
-
-        # try to compile the feature
-        pyexp.New(spec.program.code, spec.fqn())
+        spec.program = PyExpProgram(func, spec.fqn())
 
         # register
         func.raptor_spec = spec

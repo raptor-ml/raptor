@@ -21,7 +21,7 @@ from pandas.tseries.frequencies import to_offset
 
 from . import local_state, replay_instructions
 from .pyexp import pyexp, go
-from .types import FeatureSpec, Primitive, WrapException, FeatureSetSpec
+from .types import FeatureSpec, Primitive, _wrap_exception, FeatureSetSpec, PyExpException
 
 
 def __detect_ts_field(df) -> str:
@@ -80,7 +80,6 @@ def new_replay(spec: FeatureSpec):
             if timestamp_field is None:
                 raise Exception("No `timestamp` field detected for the dataframe.\n"
                                 "   Please specify using the `timestamp_field` argument")
-        df[timestamp_field] = pd.to_datetime(df[timestamp_field])  # normalize
 
         if entity_id_field is None:
             entity_id_field = __detect_entity_id(df)
@@ -91,9 +90,11 @@ def new_replay(spec: FeatureSpec):
         if headers_field is None:
             headers_field = __detect_headers_field(df)
 
-        rt = pyexp.New(spec.program.code, spec.fqn())
+        # normalize
+        df[timestamp_field] = pd.to_datetime(df[timestamp_field])
+        df[entity_id_field] = df[entity_id_field].astype(str)
 
-        df["__raptor.ret__"] = df.apply(__replay_map(spec, rt, timestamp_field, headers_field, entity_id_field), axis=1)
+        df["__raptor.ret__"] = df.apply(__replay_map(spec, timestamp_field, headers_field, entity_id_field), axis=1)
         df = df.dropna(subset=['__raptor.ret__'])
 
         # flip dataframe to feature_value df
@@ -156,6 +157,8 @@ def new_replay(spec: FeatureSpec):
 
         try:
             return _replay(df, timestamp_field, headers_field, entity_id_field, store_locally)
+        except PyExpException as e:
+            raise e
         except Exception as e:
             back_frame = e.__traceback__.tb_frame.f_back
             tb = pytypes.TracebackType(tb_next=None,
@@ -199,11 +202,14 @@ def __dependency_getter(fqn, eid, ts, val):
     return str.encode("")
 
 
-def __replay_map(spec: FeatureSpec, rt: pyexp.Runtime, timestamp_field: str, headers_field: str = None,
+def __replay_map(spec: FeatureSpec, timestamp_field: str, headers_field: str = None,
                  entity_id_field: str = None):
     def map(row: pd.Series):
         ts = row[timestamp_field]
-        # row = row.drop(timestamp_field)
+        row = row.drop(timestamp_field)
+
+        if ts.tzinfo is None:
+            ts = ts.tz_localize('UTC')
 
         headers = go.nil
         if headers_field is not None:
@@ -224,13 +230,13 @@ def __replay_map(spec: FeatureSpec, rt: pyexp.Runtime, timestamp_field: str, hea
         req.Headers = headers
 
         try:
-            res = rt.Exec(req)
+            res = spec.program.runtime.Exec(req)
             for i in res.Instructions:
                 inst = pyexp.Instruction(handle=i)
                 replay_instructions.__exec_instruction(inst)
             return json.loads(pyexp.JsonAny(res, "Value"))
         except RuntimeError as e:
-            raise WrapException(e, spec)
+            raise _wrap_exception(e, spec.program)
         except Exception as err:
             raise err
 

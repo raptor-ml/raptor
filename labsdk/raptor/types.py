@@ -12,20 +12,96 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ast
 import datetime
 import inspect
 import re
 import types
 from enum import Enum
+from typing import Optional
 
-import astunparse as astunparse
 import pandas as pd
+import redbaron
 import yaml
+from pandas.core.window import RollingGroupby
+from redbaron import RedBaron
 
 from . import durpy
 from .config import default_namespace
+from .pyexp import pyexp
 from .yaml import RaptorDumper
+
+
+# PyExp
+class PyExpProgram:
+    frame: types.FrameType = None
+    f_lineno: int = -1
+    code: str = None
+    name: str = None
+
+    def __init__(self, func, fqn):
+        if not callable(func):
+            raise Exception("func must be callable")
+
+        # take a snapshot of the func frame
+        try:
+            raise Exception()
+        except Exception as e:
+            self.frame = e.__traceback__.tb_frame.f_back.f_back.f_back
+            pass
+        self.f_lineno = self.frame.f_lineno
+
+        root_node = RedBaron(inspect.getsource(func))
+        if len(root_node) != 1:
+            raise RuntimeError("PyExpProgram in LabSDK only supports one function definition")
+        node = root_node[0]
+        if not isinstance(node, redbaron.DefNode):
+            raise RuntimeError("PyExpProgram in LabSDK only supports function definition")
+        if node.arguments:
+            for arg in node.arguments:
+                arg.annotation = ''
+        if len(node.decorators) > 0:
+            node.decorators = []
+
+        for comp in node.find_all('comparison'):
+            if str(comp.value) == 'is':
+                comp.value = '=='
+            elif str(comp.value) == 'is not':
+                comp.value = '!='
+
+        self.code = root_node.dumps().strip()
+        self.name = func.__name__
+        self.fqn = fqn
+
+        try:
+            self.runtime = pyexp.New(self.code, self.fqn)
+        except RuntimeError as e:
+            raise _wrap_exception(e, self)
+
+
+class PyExpException(RuntimeError):
+    def __int__(self, *args, **kwargs):
+        Exception.__init__(*args, **kwargs)
+
+
+def _wrap_exception(e: Exception, program: PyExpProgram, *args, **kwargs):
+    frame_str = re.match(r".*<pyexp>:([0-9]+):([0-9]+)?: (.*)", str(e).replace("\n", ""), flags=re.MULTILINE)
+    if frame_str is None or not isinstance(program, PyExpProgram):
+        return e
+    else:
+        err_str = re.match(r"in (.*)Error in ([aA0-zZ09_]+): (.*)", frame_str.group(3))
+        if err_str is None:
+            err_str = frame_str.group(3).strip()
+        else:
+            err_str = f"Error in {err_str.group(2)}: {err_str.group(3).strip()}"
+        frame = program.frame
+        loc = program.f_lineno + int(frame_str.group(1)) - 1
+        tb = types.TracebackType(tb_next=None,
+                                 tb_frame=frame,
+                                 tb_lasti=int(frame_str.group(2)),
+                                 tb_lineno=loc)
+        return PyExpException(
+            f"on {program.name}:\n    {err_str}\n\n️Friendly tip: remember that PyExp is not python3 😬") \
+            .with_traceback(tb)
 
 
 def normalize_fqn(fqn):
@@ -60,7 +136,7 @@ class AggrFn(Enum):
             return typ in (Primitive.Integer, Primitive.Float)
         return True
 
-    def apply(self, rgb: pd.core.window.RollingGroupby):
+    def apply(self, rgb: RollingGroupby):
         if self == AggrFn.Sum:
             return rgb.sum()
         if self == AggrFn.Avg:
@@ -81,43 +157,6 @@ class AggrFn(Enum):
 
 
 RaptorDumper.add_representer(AggrFn, AggrFn.to_yaml)
-
-
-class PyExpProgram:
-    frame: types.FrameType = None
-    f_lineno: int = -1
-    code: str = None
-    name: str = None
-
-    def __init__(self, func):
-        if not callable(func):
-            raise Exception("func must be callable")
-
-        # take a snapshot of the func frame
-        try:
-            raise Exception()
-        except Exception as e:
-            self.frame = e.__traceback__.tb_frame.f_back.f_back.f_back
-            pass
-        self.f_lineno = self.frame.f_lineno
-
-        root_node = ast.parse(inspect.getsource(func))
-        if len(root_node.body) != 1:
-            raise RuntimeError("PyExpProgram in LabSDK only supports one function definition")
-        node = root_node.body[0]
-        if not isinstance(node, ast.FunctionDef):
-            raise RuntimeError("PyExpProgram in LabSDK only supports function definition")
-        if node.args.args:
-            for arg in node.args.args:
-                arg.annotation = None
-        if node.args.kwarg:
-            node.args.kwarg.annotation = None
-        if len(node.decorator_list) > 0:
-            self.f_lineno += len(node.decorator_list)
-            node.decorator_list = []
-
-        self.code = astunparse.unparse(node).strip()
-        self.name = func.__name__
 
 
 class Primitive(Enum):
@@ -162,7 +201,7 @@ class BuilderSpec(object):
     kind: str = None
     pyexp: str = None
 
-    def __init__(self, kind: str, options=None):
+    def __init__(self, kind: Optional[str], options=None):
         self.kind = kind
         if options is not None:
             """add options to __dict__"""
@@ -211,7 +250,7 @@ class FeatureSpec(yaml.YAMLObject):
     annotations: dict = {}
 
     primitive: Primitive = None
-    _freshness: datetime.timedelta = None
+    _freshness: Optional[datetime.timedelta] = None
     staleness: datetime.timedelta = None
     timeout: datetime.timedelta = None
 
@@ -244,7 +283,7 @@ class FeatureSpec(yaml.YAMLObject):
             if isinstance(value, PyExpProgram):
                 pass
             elif callable(value):
-                value = PyExpProgram(value)
+                value = PyExpProgram(value, self.fqn())
             else:
                 raise Exception("program must be a callable or a PyExpProgram")
         elif key == 'staleness' or key == 'timeout':
@@ -378,29 +417,3 @@ class FeatureSetSpec(yaml.YAMLObject):
 
 
 RaptorDumper.add_representer(FeatureSetSpec, FeatureSetSpec.to_yaml)
-
-
-def WrapException(e: Exception, spec: FeatureSpec, *args, **kwargs):
-    frame_str = re.match(r".*<pyexp>:([0-9]+):([0-9]+)?: (.*)", str(e).replace("\n", ""), flags=re.MULTILINE)
-    if frame_str is None or not isinstance(spec.program, PyExpProgram):
-        return e
-    else:
-        err_str = re.match(r"in (.*)Error in ([aA0-zZ09_]+): (.*)", frame_str.group(3))
-        if err_str is None:
-            err_str = frame_str.group(3).strip()
-        else:
-            err_str = f"Error in {err_str.group(2)}: {err_str.group(3).strip()}"
-        frame = spec.program.frame
-        loc = spec.program.f_lineno + int(frame_str.group(1)) - 1
-        tb = types.TracebackType(tb_next=None,
-                                 tb_frame=frame,
-                                 tb_lasti=e.__traceback__.tb_lasti,
-                                 tb_lineno=loc)
-        return PyExpException(
-            f"on {spec.program.name}:\n    {err_str}\n\n️Friendly tip: remember that PyExp is not python3 😬") \
-            .with_traceback(tb)
-
-
-class PyExpException(RuntimeError):
-    def __int__(self, *args, **kwargs):
-        Exception.__init__(*args, **kwargs)
