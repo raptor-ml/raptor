@@ -14,7 +14,7 @@
 
 from typing import Optional
 
-from typing_extensions import TypedDict
+from typing_extensions import TypedDict, NotRequired
 
 
 def get_feature(fqn: str, entity_id: str):
@@ -93,16 +93,16 @@ class RaptorRequest(TypedDict):
 
     It is a dictionary that consist with the following keys::
 
-    :param Optional[str] entity_id: the entity identifier that the feature is calculated for
+    :param str entity_id: the entity identifier that the feature is calculated for
         (i.e. user_id, item_id, etc.)
     :param object timestamp: the timestamp of the request. This is used to attach a timestamp to the feature value.
-    :param Optional[object] payload: the payload of the request (i.e. event data, etc.)
-    :param Optional[dict] headers: the headers of the request
+    :param object payload: the payload of the request (i.e. event data, etc.)
+    :param dict headers: the headers of the request
 
     seealso:: https://raptor.ml/docs/reference/pyexp/handler-function#input-arguments-via-kwargs
     """
 
-    entity_id: Optional[str]
+    entity_id: NotRequired[str]
     timestamp: object
-    payload: Optional[object]
-    headers: Optional[dict]
+    payload: NotRequired[object]
+    headers: NotRequired[dict]
