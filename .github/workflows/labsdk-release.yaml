@@ -102,6 +102,8 @@ jobs:
         run: |
           echo "::set-output name=data::$(echo '${{ toJSON(matrix) }}' | base64 ${{steps.base64_flags.outputs.flags}})"
 
+      - uses: actions/checkout@v3
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.10.1
         with:
