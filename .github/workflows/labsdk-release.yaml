@@ -77,9 +77,6 @@ jobs:
 
       - uses: actions/setup-python@v3
 
-      - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.6.0
-
       - name: Set up QEMU
         if: runner.os == 'Linux'
         uses: docker/setup-qemu-action@v1
@@ -106,7 +103,10 @@ jobs:
           echo "::set-output name=data::$(echo '${{ toJSON(matrix) }}' | base64 ${{steps.base64_flags.outputs.flags}})"
 
       - name: Build wheels
-        run: python -m cibuildwheel --output-dir wheelhouse labsdk
+        uses: pypa/cibuildwheel@v2.10.1
+        with:
+          package-dir: labsdk
+          output-dir: wheelhouse
         env:
           CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform_id }}
           CIBW_ARCHS: ${{ matrix.arch }}
