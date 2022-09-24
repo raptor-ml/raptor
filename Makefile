@@ -162,9 +162,9 @@ run: manifests generate fmt lint ## Run a controller from your host.
 
 .PHONY: docker-build
 docker-build: generate ## Build docker images.
-	DOCKER_BUILDKIT=1 docker build -f release.Dockerfile --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${CORE_IMG_BASE}:${VERSION} -t ${CORE_IMG_BASE}:latest --target core .
-	DOCKER_BUILDKIT=1 docker build -f release.Dockerfile --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${RUNTIME_IMG_BASE}:${VERSION} -t ${RUNTIME_IMG_BASE}:latest --target runtime .
-	DOCKER_BUILDKIT=1 docker build -f release.Dockerfile --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${HISTORIAN_IMG_BASE}:${VERSION} -t ${HISTORIAN_IMG_BASE}:latest --target historian .
+	DOCKER_BUILDKIT=1 docker build --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${CORE_IMG_BASE}:${VERSION} -t ${CORE_IMG_BASE}:latest --target core .
+	DOCKER_BUILDKIT=1 docker build --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${RUNTIME_IMG_BASE}:${VERSION} -t ${RUNTIME_IMG_BASE}:latest --target runtime .
+	DOCKER_BUILDKIT=1 docker build --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${HISTORIAN_IMG_BASE}:${VERSION} -t ${HISTORIAN_IMG_BASE}:latest --target historian .
 
 .PHONY: kind-load
 kind-load: ## Load docker images into kind.
