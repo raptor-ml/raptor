@@ -1,3 +1,0 @@
-{{ needs.version.outputs.changelog }}
-
-
