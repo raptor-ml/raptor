@@ -167,14 +167,13 @@ jobs:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
       - name: Update changelog
-        working-directory: ./labsdk/
         shell: bash
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          echo -e "{{ needs.version.outputs.changelog }}\n\n$(cat CHANGELOG.md)" > CHANGELOG.md
-          git add CHANGELOG.md
-          git commit -m "chore(LabSDK-release): ${{ needs.version.outputs.version }}" CHANGELOG.md
+          echo -e "{{ needs.version.outputs.changelog }}\n\n$(cat CHANGELOG.md)" > labsdk/CHANGELOG.md
+          git add labsdk/CHANGELOG.md
+          git commit -m "chore(LabSDK-release): ${{ needs.version.outputs.version }}" labsdk/CHANGELOG.md
           git push
       - name: Tag
         uses: actions/github-script@v6
