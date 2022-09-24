@@ -41,7 +41,7 @@ jobs:
           skip-version-file: 'true'
           skip-commit: 'true'
           skip-pull: 'true'
-          git-push: 'true'
+          git-push: 'false'
           git-path: ". '!:labsdk'"
           tag-prefix: 'v'
       - name: Setup Go environment
