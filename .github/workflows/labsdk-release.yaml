@@ -102,13 +102,14 @@ jobs:
         run: |
           echo "::set-output name=data::$(echo '${{ toJSON(matrix) }}' | base64 ${{steps.base64_flags.outputs.flags}})"
 
-      - uses: actions/checkout@v3
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.10.1
-        with:
-          package-dir: labsdk
-          output-dir: wheelhouse
+        run: python -m cibuildwheel labsdk --output-dir wheelhouse
         env:
           CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform_id }}
           CIBW_ARCHS: ${{ matrix.arch }}
