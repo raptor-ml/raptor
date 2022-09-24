@@ -188,7 +188,7 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/${{ steps.version.outputs.tag }}',
+              ref: 'refs/tags/${{ needs.version.outputs.tag }}',
               sha: context.sha
             })
       - name: Release on GitHub
