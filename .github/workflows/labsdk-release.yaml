@@ -176,7 +176,7 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
           touch labsdk/CHANGELOG.md
-          echo -e "{{ needs.version.outputs.changelog }}\n\n$(cat labsdk/CHANGELOG.md)" > labsdk/CHANGELOG.md
+          echo -e "${{ needs.version.outputs.changelog }}\n\n$(cat labsdk/CHANGELOG.md)" > labsdk/CHANGELOG.md
           
           git add labsdk/CHANGELOG.md
           git commit -m "chore(LabSDK-release): ${{ needs.version.outputs.version }}" labsdk/CHANGELOG.md
