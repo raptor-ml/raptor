@@ -28,11 +28,11 @@ import (
 type featureSetQuery struct {
 	baseQuery
 	BeforePadding time.Duration
-	Features      []api.Metadata
+	Features      []api.FeatureDescriptor
 	KeyFeature    string
 }
 
-func (qb *queryBuilder) FeatureSet(ctx context.Context, fs manifests.FeatureSetSpec, getter api.MetadataGetter) (string, error) {
+func (qb *queryBuilder) FeatureSet(ctx context.Context, fs manifests.FeatureSetSpec, getter api.FeatureDescriptorGetter) (string, error) {
 	if fs.KeyFeature == "" {
 		fs.KeyFeature = fs.Features[0]
 	}
@@ -60,7 +60,7 @@ func (qb *queryBuilder) FeatureSet(ctx context.Context, fs manifests.FeatureSetS
 	for _, fqn := range fs.Features {
 		ft, err := getter(ctx, fqn)
 		if err != nil {
-			return "", fmt.Errorf("failed to get metadata for %s: %w", fqn, err)
+			return "", fmt.Errorf("failed to get FeatureDescriptor for %s: %w", fqn, err)
 		}
 		if ft.ValidWindow() {
 			if data.BeforePadding < ft.Staleness {

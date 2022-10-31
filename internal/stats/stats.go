@@ -51,10 +51,10 @@ var (
 		Name:      "number_of_feature_increments",
 		Help:      "Number of features INCR requests.",
 	})
-	metadataReqs = prometheus.NewCounter(prometheus.CounterOpts{
+	fdReqs = prometheus.NewCounter(prometheus.CounterOpts{
 		Subsystem: coreSubsystemKey,
-		Name:      "number_of_metadata_reqs",
-		Help:      "Number of Metadata requests.",
+		Name:      "number_of_fd_reqs",
+		Help:      "Number of FeatureDescriptor requests.",
 	})
 )
 
@@ -66,7 +66,7 @@ func init() {
 		featureUpdates,
 		featureAppends,
 		featureIncrements,
-		metadataReqs,
+		fdReqs,
 	)
 }
 func IncNumberOfFeatures() {
@@ -90,6 +90,6 @@ func IncrFeatureAppends() {
 func IncrFeatureIncrements() {
 	featureIncrements.Inc()
 }
-func IncrMetadataReqs() {
-	metadataReqs.Inc()
+func IncrFeatureDescriptorReqs() {
+	fdReqs.Inc()
 }

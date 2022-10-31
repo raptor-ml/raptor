@@ -59,10 +59,10 @@ func NewHistoricalRecord(wn api.WriteNotification) HistoricalRecord {
 	if wn.Bucket != "" {
 		wrm := api.ToLowLevelValue[api.WindowResultMap](wn.Value.Value)
 
-		count := int64(wrm[api.WindowFnCount])
-		sum := wrm[api.WindowFnSum]
-		min := wrm[api.WindowFnMin]
-		max := wrm[api.WindowFnMax]
+		count := int64(wrm[api.AggrFnCount])
+		sum := wrm[api.AggrFnSum]
+		min := wrm[api.AggrFnMin]
+		max := wrm[api.AggrFnMax]
 		hr.Bucket = &Bucket{
 			BucketName: wn.Bucket,
 			Alive:      &wn.ActiveBucket,

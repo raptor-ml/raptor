@@ -29,8 +29,8 @@ type Value struct {
 	Fresh     bool      `json:"fresh"`
 }
 
-// WindowResultMap is a map of WindowFn and their aggregated results
-type WindowResultMap map[WindowFn]float64
+// WindowResultMap is a map of AggrFn and their aggregated results
+type WindowResultMap map[AggrFn]float64
 
 // RawBucket is a the data that is stored in the raw bucket.
 type RawBucket struct {
@@ -56,39 +56,39 @@ type State interface {
 	// Get returns the SimpleValue of the feature.
 	// If the feature is not available, it returns nil.
 	// If the feature is windowed, the returned SimpleValue is a map from window function to SimpleValue.
-	Get(ctx context.Context, md Metadata, entityID string) (*Value, error)
+	Get(ctx context.Context, fd FeatureDescriptor, entityID string) (*Value, error)
 
 	// Set sets the SimpleValue of the feature.
 	// If the feature's primitive is a List, it replaces the entire list.
 	// If the feature is windowed, it is aliased to WindowAdd instead of Set.
-	Set(ctx context.Context, md Metadata, entityID string, val any, timestamp time.Time) error
+	Set(ctx context.Context, fd FeatureDescriptor, entityID string, val any, timestamp time.Time) error
 
 	// Append appends the SimpleValue to the feature.
 	// If the feature's primitive is NOT a List it will throw an error.
-	Append(ctx context.Context, md Metadata, entityID string, val any, ts time.Time) error
+	Append(ctx context.Context, fd FeatureDescriptor, entityID string, val any, ts time.Time) error
 
 	// Incr increments the SimpleValue of the feature.
 	// If the feature's primitive is NOT a Scalar it will throw an error.
 	// It returns the updated value in the state, and an error if occurred.
-	Incr(ctx context.Context, md Metadata, entityID string, by any, timestamp time.Time) error
+	Incr(ctx context.Context, fd FeatureDescriptor, entityID string, by any, timestamp time.Time) error
 	// Update is the common function to update a feature SimpleValue.
 	// Under the hood, it utilizes lower-level functions depending on the type of the feature.
 	//  - Set for Scalars
 	//	- Append for Lists
 	//  - WindowAdd for Windows
-	Update(ctx context.Context, md Metadata, entityID string, val any, timestamp time.Time) error
+	Update(ctx context.Context, fd FeatureDescriptor, entityID string, val any, timestamp time.Time) error
 
 	// WindowAdd adds a Bucket to the window that contains aggregated data internally
 	// Later the bucket's aggregations should be aggregated for the whole Window via Get
 	//
 	// Buckets should last *at least* as long as the feature's staleness time + DeadGracePeriod
-	WindowAdd(ctx context.Context, md Metadata, entityID string, val any, timestamp time.Time) error
+	WindowAdd(ctx context.Context, fd FeatureDescriptor, entityID string, val any, timestamp time.Time) error
 
 	// WindowBuckets returns the list of RawBuckets for the feature and specific entityID.
-	WindowBuckets(ctx context.Context, md Metadata, entityID string, buckets []string) (RawBuckets, error)
+	WindowBuckets(ctx context.Context, fd FeatureDescriptor, entityID string, buckets []string) (RawBuckets, error)
 
 	// DeadWindowBuckets returns the list of all the dead feature's RawBuckets of all the entities.
-	DeadWindowBuckets(ctx context.Context, md Metadata, ignore RawBuckets) (RawBuckets, error)
+	DeadWindowBuckets(ctx context.Context, fd FeatureDescriptor, ignore RawBuckets) (RawBuckets, error)
 
 	// Ping is a simple keepalive check for the state.
 	// It should return an error in case an error occurred, or nil if everything is alright.

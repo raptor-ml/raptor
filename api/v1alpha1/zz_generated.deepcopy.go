@@ -186,7 +186,7 @@ func (in *FeatureBuilder) DeepCopyInto(out *FeatureBuilder) {
 	*out = *in
 	if in.Aggr != nil {
 		in, out := &in.Aggr, &out.Aggr
-		*out = make([]AggrType, len(*in))
+		*out = make([]AggrFn, len(*in))
 		copy(*out, *in)
 	}
 	out.AggrGranularity = in.AggrGranularity

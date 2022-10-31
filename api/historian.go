@@ -49,5 +49,5 @@ type HistoricalWriter interface {
 	Flush(ctx context.Context, fqn string) error
 	FlushAll(context.Context) error
 	Close(ctx context.Context) error
-	BindFeature(md *Metadata, fs *manifests.FeatureSetSpec, getter MetadataGetter) error
+	BindFeature(fd *FeatureDescriptor, fs *manifests.FeatureSetSpec, getter FeatureDescriptorGetter) error
 }

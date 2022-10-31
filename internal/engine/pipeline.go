@@ -24,7 +24,7 @@ import (
 type Middlewares []api.Middleware
 type Pipeline struct {
 	Middlewares
-	api.Metadata
+	api.FeatureDescriptor
 }
 
 func (p Pipeline) Apply(ctx context.Context, entityID string, first api.Value) (api.Value, error) {
@@ -41,22 +41,22 @@ func (p Pipeline) Apply(ctx context.Context, entityID string, first api.Value) (
 
 func (p Pipeline) apply(ctx context.Context, entityID string, first api.Value) (api.Value, error) {
 	var next api.MiddlewareHandler
-	next = func(ctx context.Context, md api.Metadata, entityID string, val api.Value) (api.Value, error) {
+	next = func(ctx context.Context, fd api.FeatureDescriptor, entityID string, val api.Value) (api.Value, error) {
 		return val, nil
 	}
 	for i := len(p.Middlewares) - 1; i >= 0; i-- {
 		next = p.Middlewares[i](next)
 	}
-	return next(ctx, p.Metadata, entityID, first)
+	return next(ctx, p.FeatureDescriptor, entityID, first)
 }
 
 func handlerWithTimeout(next api.MiddlewareHandler, c chan api.Value) api.MiddlewareHandler {
-	return func(ctx context.Context, md api.Metadata, entityID string, val api.Value) (api.Value, error) {
+	return func(ctx context.Context, fd api.FeatureDescriptor, entityID string, val api.Value) (api.Value, error) {
 		c <- val
 		if next == nil {
 			return val, nil
 		}
-		return next(ctx, md, entityID, val)
+		return next(ctx, fd, entityID, val)
 	}
 }
 
@@ -71,7 +71,7 @@ func (p Pipeline) applyWithTimeout(ctx context.Context, entityID string, first a
 
 	var err error
 	go func(first api.Value) {
-		_, e := next(ctx, p.Metadata, entityID, first)
+		_, e := next(ctx, p.FeatureDescriptor, entityID, first)
 		if err != nil {
 			err = e
 		}

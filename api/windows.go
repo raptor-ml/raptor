@@ -27,80 +27,80 @@ import (
 
 // DeadGracePeriod is the *extra* time that the bucket should be kept alive on top of the feature's Staleness.
 // Bucket TTL = staleness + DeadGracePeriod
-const DeadGracePeriod = time.Minute * 8
+const DeadGracePeriod = time.Minute * 10
 
 //goland:noinspection RegExpRedundantEscape
-var windowNameRegexp = regexp.MustCompile(`(?i)^([a0-z9\-\.]*)\[["']?(sum|avg|min|max|count)["']?\]$`)
+var aggrFnNameRegexp = regexp.MustCompile(`(?i)^([a0-z9\-\.]*)\[["']?(sum|avg|min|max|count)["']?\]$`)
 
-func FQNToRealFQN(name string) (string, WindowFn) {
-	matches := windowNameRegexp.FindStringSubmatch(name)
+func FQNToRealFQN(name string) (string, AggrFn) {
+	matches := aggrFnNameRegexp.FindStringSubmatch(name)
 	if len(matches) < 3 {
-		return name, WindowFnUnknown
+		return name, AggrFnUnknown
 	}
-	return matches[1], StringToWindowFn(matches[2])
+	return matches[1], StringToAggrFn(matches[2])
 }
 
-// WindowFn is an aggregation function
-type WindowFn int
+// AggrFn is an aggregation function
+type AggrFn int
 
 const (
-	WindowFnUnknown WindowFn = iota
-	WindowFnSum
-	WindowFnAvg
-	WindowFnMax
-	WindowFnMin
-	WindowFnCount
+	AggrFnUnknown AggrFn = iota
+	AggrFnSum
+	AggrFnAvg
+	AggrFnMax
+	AggrFnMin
+	AggrFnCount
 )
 
-func (w WindowFn) String() string {
+func (w AggrFn) String() string {
 	switch w {
-	case WindowFnSum:
+	case AggrFnSum:
 		return "sum"
-	case WindowFnAvg:
+	case AggrFnAvg:
 		return "avg"
-	case WindowFnMax:
+	case AggrFnMax:
 		return "max"
-	case WindowFnMin:
+	case AggrFnMin:
 		return "min"
-	case WindowFnCount:
+	case AggrFnCount:
 		return "count"
 	default:
 		return "unknown"
 	}
 }
 
-func StringsToWindowFns(fns []string) ([]WindowFn, error) {
-	windowFnsMap := make(map[WindowFn]bool)
+func StringsToAggrFns(fns []string) ([]AggrFn, error) {
+	aggrFnsMap := make(map[AggrFn]bool)
 	for _, fn := range fns {
-		f := StringToWindowFn(fn)
-		if f == WindowFnUnknown {
+		f := StringToAggrFn(fn)
+		if f == AggrFnUnknown {
 			return nil, fmt.Errorf("%w: %s", ErrUnsupportedAggrError, fn)
 		}
-		windowFnsMap[f] = true
+		aggrFnsMap[f] = true
 	}
 
 	// Unique
-	var windowFns []WindowFn
-	for f := range windowFnsMap {
-		windowFns = append(windowFns, f)
+	var aggrFns []AggrFn
+	for f := range aggrFnsMap {
+		aggrFns = append(aggrFns, f)
 	}
 
-	return windowFns, nil
+	return aggrFns, nil
 }
-func StringToWindowFn(s string) WindowFn {
+func StringToAggrFn(s string) AggrFn {
 	switch strings.ToLower(s) {
 	case "sum":
-		return WindowFnSum
+		return AggrFnSum
 	case "avg", "mean":
-		return WindowFnAvg
+		return AggrFnAvg
 	case "min":
-		return WindowFnMin
+		return AggrFnMin
 	case "max":
-		return WindowFnMax
+		return AggrFnMax
 	case "count":
-		return WindowFnCount
+		return AggrFnCount
 	default:
-		return WindowFnUnknown
+		return AggrFnUnknown
 	}
 }
 

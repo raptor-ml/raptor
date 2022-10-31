@@ -41,16 +41,16 @@ func (h *historian) Collector() LeaderRunnableFunc {
 
 // dispatch collect notifications: collect the data and send it to the write queue
 func (h *historian) dispatchCollect(ctx context.Context, notification api.CollectNotification) error {
-	md, err := h.Metadata(ctx, notification.FQN)
+	fd, err := h.FeatureDescriptor(ctx, notification.FQN)
 	if err != nil {
-		return fmt.Errorf("failed to get metadata for %s", notification.FQN)
+		return fmt.Errorf("failed to get FeatureDescriptor for %s", notification.FQN)
 	}
 
-	if md.ValidWindow() {
-		return h.dispatchCollectWithWindow(ctx, notification, md)
+	if fd.ValidWindow() {
+		return h.dispatchCollectWithWindow(ctx, notification, fd)
 	}
 
-	v, err := h.State.Get(ctx, md, notification.EntityID)
+	v, err := h.State.Get(ctx, fd, notification.EntityID)
 	if err != nil {
 		return fmt.Errorf("failed to get state for %s: %w", notification.FQN, err)
 	}
@@ -63,17 +63,17 @@ func (h *historian) dispatchCollect(ctx context.Context, notification api.Collec
 }
 
 // dispatch collect notifications for windows
-func (h *historian) dispatchCollectWithWindow(ctx context.Context, notification api.CollectNotification, md api.Metadata) error {
+func (h *historian) dispatchCollectWithWindow(ctx context.Context, notification api.CollectNotification, fd api.FeatureDescriptor) error {
 	switch notification.Bucket {
 	case "":
 		panic(fmt.Errorf("no bucket specified for %s", notification.FQN)) // irrecoverable
 	case DeadRequestMarker:
-		return h.dispatchCollectDead(ctx, md)
+		return h.dispatchCollectDead(ctx, fd)
 	}
 
-	deadBuckets := api.DeadWindowBuckets(md.Staleness, md.Freshness)
+	deadBuckets := api.DeadWindowBuckets(fd.Staleness, fd.Freshness)
 
-	buckets, err := h.State.WindowBuckets(ctx, md, notification.EntityID, []string{notification.Bucket})
+	buckets, err := h.State.WindowBuckets(ctx, fd, notification.EntityID, []string{notification.Bucket})
 	if err != nil {
 		return fmt.Errorf("failed to get buckets for %s: %w", notification.FQN, err)
 	}
@@ -84,7 +84,7 @@ func (h *historian) dispatchCollectWithWindow(ctx context.Context, notification 
 			EntityID: b.EntityID,
 			Value: &api.Value{
 				Value:     b.Data,
-				Timestamp: api.BucketTime(b.Bucket, md.Freshness),
+				Timestamp: api.BucketTime(b.Bucket, fd.Freshness),
 			},
 			Bucket:       b.Bucket,
 			ActiveBucket: activeBucket,
@@ -93,10 +93,10 @@ func (h *historian) dispatchCollectWithWindow(ctx context.Context, notification 
 	return nil
 }
 
-func (h *historian) dispatchCollectDead(ctx context.Context, md api.Metadata) error {
+func (h *historian) dispatchCollectDead(ctx context.Context, fd api.FeatureDescriptor) error {
 	var ignore api.RawBuckets
 	for k := range h.handledBuckets.Items() {
-		if strings.HasPrefix(k, fmt.Sprintf("%s/", md.FQN)) {
+		if strings.HasPrefix(k, fmt.Sprintf("%s/", fd.FQN)) {
 			fqn, bucket, eid := fromDeadBucketKey(k)
 			ignore = append(ignore, api.RawBucket{
 				FQN:      fqn,
@@ -105,9 +105,9 @@ func (h *historian) dispatchCollectDead(ctx context.Context, md api.Metadata) er
 			})
 		}
 	}
-	buckets, err := h.State.DeadWindowBuckets(ctx, md, ignore)
+	buckets, err := h.State.DeadWindowBuckets(ctx, fd, ignore)
 	if err != nil {
-		return fmt.Errorf("failed to get buckets for %s: %w", md.FQN, err)
+		return fmt.Errorf("failed to get buckets for %s: %w", fd.FQN, err)
 	}
 
 	for _, b := range buckets {
@@ -116,7 +116,7 @@ func (h *historian) dispatchCollectDead(ctx context.Context, md api.Metadata) er
 			EntityID: b.EntityID,
 			Value: &api.Value{
 				Value:     b.Data,
-				Timestamp: api.BucketTime(b.Bucket, md.Freshness),
+				Timestamp: api.BucketTime(b.Bucket, fd.Freshness),
 			},
 			Bucket:       b.Bucket,
 			ActiveBucket: false,
@@ -125,9 +125,9 @@ func (h *historian) dispatchCollectDead(ctx context.Context, md api.Metadata) er
 
 	// Add the next dead collection to the queue
 	h.collectTasks.queue.AddAfter(api.CollectNotification{
-		FQN:    md.FQN,
+		FQN:    fd.FQN,
 		Bucket: DeadRequestMarker,
-	}, timeTillNextBucket(md.Freshness))
+	}, timeTillNextBucket(fd.Freshness))
 
 	return nil
 }

@@ -40,21 +40,21 @@ func NewGRPCEngine(client coreApi.EngineServiceClient) api.Engine {
 	}
 }
 
-func (e *grpcEngine) Metadata(ctx context.Context, fqn string) (api.Metadata, error) {
-	req := &coreApi.MetadataRequest{
+func (e *grpcEngine) FeatureDescriptor(ctx context.Context, fqn string) (api.FeatureDescriptor, error) {
+	req := &coreApi.FeatureDescriptorRequest{
 		Uuid: uuid.NewString(),
 		Fqn:  fqn,
 	}
-	resp, err := e.client.Metadata(ctx, req)
+	resp, err := e.client.FeatureDescriptor(ctx, req)
 	if err != nil {
-		return api.Metadata{}, fmt.Errorf("failed to get metadata: %w", normalizeError(err))
+		return api.FeatureDescriptor{}, fmt.Errorf("failed to get FeatureDescriptor: %w", normalizeError(err))
 	}
 	if resp.Uuid != req.Uuid {
-		return api.Metadata{}, fmt.Errorf("got %s uuid but requested with %s", resp.Uuid, req.Uuid)
+		return api.FeatureDescriptor{}, fmt.Errorf("got %s uuid but requested with %s", resp.Uuid, req.Uuid)
 	}
-	return FromAPIMetadata(resp.Metadata), nil
+	return FromAPIFeatureDescriptor(resp.FeatureDescriptor), nil
 }
-func (e *grpcEngine) Get(ctx context.Context, fqn string, entityID string) (api.Value, api.Metadata, error) {
+func (e *grpcEngine) Get(ctx context.Context, fqn string, entityID string) (api.Value, api.FeatureDescriptor, error) {
 	req := coreApi.GetRequest{
 		Uuid:     uuid.NewString(),
 		Fqn:      fqn,
@@ -63,17 +63,17 @@ func (e *grpcEngine) Get(ctx context.Context, fqn string, entityID string) (api.
 	ret := api.Value{}
 	resp, err := e.client.Get(ctx, &req)
 	if err != nil {
-		return ret, api.Metadata{}, fmt.Errorf("failed to get feature: %w", normalizeError(err))
+		return ret, api.FeatureDescriptor{}, fmt.Errorf("failed to get feature: %w", normalizeError(err))
 	}
 
 	if resp.Uuid != req.Uuid {
-		return ret, api.Metadata{}, fmt.Errorf("got %s uuid but requested with %s", resp.Uuid, req.Uuid)
+		return ret, api.FeatureDescriptor{}, fmt.Errorf("got %s uuid but requested with %s", resp.Uuid, req.Uuid)
 	}
 
 	ret.Value = FromValue(resp.Value.Value)
 	ret.Timestamp = resp.Value.Timestamp.AsTime()
 	ret.Fresh = resp.Value.Fresh
-	return ret, FromAPIMetadata(resp.Metadata), nil
+	return ret, FromAPIFeatureDescriptor(resp.FeatureDescriptor), nil
 }
 func (e *grpcEngine) Set(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
 	req := coreApi.SetRequest{

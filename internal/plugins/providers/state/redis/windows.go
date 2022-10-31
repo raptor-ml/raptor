@@ -40,8 +40,8 @@ func fromWindowKey(k string) (fqn string, bucketName string, entityID string) {
 	return k[:firstSep], k[firstSep+1 : lastColon], k[lastColon+1:]
 }
 
-func (s *state) DeadWindowBuckets(ctx context.Context, md api.Metadata, ignore api.RawBuckets) (api.RawBuckets, error) {
-	bucketNames := api.DeadWindowBuckets(md.Staleness, md.Freshness)
+func (s *state) DeadWindowBuckets(ctx context.Context, fd api.FeatureDescriptor, ignore api.RawBuckets) (api.RawBuckets, error) {
+	bucketNames := api.DeadWindowBuckets(fd.Staleness, fd.Freshness)
 
 	wg := &sync.WaitGroup{}
 	wg.Add(len(bucketNames))
@@ -54,7 +54,7 @@ func (s *state) DeadWindowBuckets(ctx context.Context, md api.Metadata, ignore a
 		go func(bucketName string, wg *sync.WaitGroup, cRes chan string, cErr chan error) {
 			defer wg.Done()
 
-			itr := s.client.ScanType(ctx, 0, windowKey(md.FQN, bucketName, "*"), MaxScanCount, "hash").Iterator()
+			itr := s.client.ScanType(ctx, 0, windowKey(fd.FQN, bucketName, "*"), MaxScanCount, "hash").Iterator()
 			for itr.Next(ctx) {
 				cRes <- itr.Val()
 			}
@@ -129,7 +129,7 @@ func (s *state) windowBuckets(ctx context.Context, buckets []api.RawBucket) (api
 				if err != nil {
 					cErr <- err
 				}
-				rm[api.StringToWindowFn(k)] = vv
+				rm[api.StringToAggrFn(k)] = vv
 			}
 			c <- api.RawBucket{
 				FQN:      b.FQN,
@@ -158,11 +158,11 @@ func (s *state) windowBuckets(ctx context.Context, buckets []api.RawBucket) (api
 		}
 	}
 }
-func (s *state) WindowBuckets(ctx context.Context, md api.Metadata, entityID string, bucketNames []string) (api.RawBuckets, error) {
+func (s *state) WindowBuckets(ctx context.Context, fd api.FeatureDescriptor, entityID string, bucketNames []string) (api.RawBuckets, error) {
 	var buckets api.RawBuckets
 	for _, b := range bucketNames {
 		buckets = append(buckets, api.RawBucket{
-			FQN:      md.FQN,
+			FQN:      fd.FQN,
 			Bucket:   b,
 			EntityID: entityID,
 		})
@@ -175,8 +175,8 @@ func (s *state) WindowBuckets(ctx context.Context, md api.Metadata, entityID str
 	return buckets, nil
 }
 
-func (s *state) getWindow(ctx context.Context, md api.Metadata, entityID string) (*api.Value, error) {
-	buckets, err := s.WindowBuckets(ctx, md, entityID, api.AliveWindowBuckets(md.Staleness, md.Freshness))
+func (s *state) getWindow(ctx context.Context, fd api.FeatureDescriptor, entityID string) (*api.Value, error) {
+	buckets, err := s.WindowBuckets(ctx, fd, entityID, api.AliveWindowBuckets(fd.Staleness, fd.Freshness))
 	if err != nil {
 		return nil, err
 	}
@@ -184,30 +184,30 @@ func (s *state) getWindow(ctx context.Context, md api.Metadata, entityID string)
 	var avg bool
 	ret := make(api.WindowResultMap)
 	for _, b := range buckets {
-		for _, fn := range md.Aggr {
+		for _, fn := range fd.Aggr {
 			switch fn {
-			case api.WindowFnCount, api.WindowFnSum:
+			case api.AggrFnCount, api.AggrFnSum:
 				ret[fn] += b.Data[fn]
-			case api.WindowFnMin:
+			case api.AggrFnMin:
 				if _, ok := ret[fn]; !ok {
 					ret[fn] = b.Data[fn]
 				} else {
 					ret[fn] = math.Min(ret[fn], b.Data[fn])
 				}
-			case api.WindowFnMax:
+			case api.AggrFnMax:
 				if _, ok := ret[fn]; !ok {
 					ret[fn] = b.Data[fn]
 				} else {
 					ret[fn] = math.Max(ret[fn], b.Data[fn])
 				}
-			case api.WindowFnAvg:
+			case api.AggrFnAvg:
 				avg = true
 			}
 		}
 	}
 	// Should be implicitly by the end
 	if avg {
-		ret[api.WindowFnAvg] = ret[api.WindowFnSum] / ret[api.WindowFnCount]
+		ret[api.AggrFnAvg] = ret[api.AggrFnSum] / ret[api.AggrFnCount]
 	}
 
 	if len(ret) == 0 {
@@ -221,9 +221,9 @@ func (s *state) getWindow(ctx context.Context, md api.Metadata, entityID string)
 	}, nil
 }
 
-func (s *state) WindowAdd(ctx context.Context, md api.Metadata, entityID string, value any, ts time.Time) error {
-	bucket := api.BucketName(ts, md.Freshness)
-	key := windowKey(md.FQN, bucket, entityID)
+func (s *state) WindowAdd(ctx context.Context, fd api.FeatureDescriptor, entityID string, value any, ts time.Time) error {
+	bucket := api.BucketName(ts, fd.Freshness)
+	key := windowKey(fd.FQN, bucket, entityID)
 
 	var val float64
 	switch v := value.(type) {
@@ -236,19 +236,19 @@ func (s *state) WindowAdd(ctx context.Context, md api.Metadata, entityID string,
 	}
 
 	tx := s.client.TxPipeline()
-	for _, fn := range md.Aggr {
+	for _, fn := range fd.Aggr {
 		switch fn {
-		case api.WindowFnSum:
+		case api.AggrFnSum:
 			tx.HIncrByFloat(ctx, key, "sum", val)
-		case api.WindowFnCount:
+		case api.AggrFnCount:
 			tx.HIncrBy(ctx, key, "count", 1)
-		case api.WindowFnMin:
+		case api.AggrFnMin:
 			luaHMin.Run(ctx, tx, []string{key, "min"}, val)
-		case api.WindowFnMax:
+		case api.AggrFnMax:
 			luaHMax.Run(ctx, tx, []string{key, "max"}, val)
 		}
 	}
-	exp := api.BucketDeadTime(bucket, md.Freshness, md.Staleness)
+	exp := api.BucketDeadTime(bucket, fd.Freshness, fd.Staleness)
 	setTimestampExpireAt(ctx, tx, key, ts, exp)
 	tx.PExpireAt(ctx, key, exp)
 

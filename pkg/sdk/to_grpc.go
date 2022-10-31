@@ -90,23 +90,23 @@ func ToAPIPrimitive(p api.PrimitiveType) coreApi.Primitive {
 		return coreApi.Primitive_PRIMITIVE_TIMESTAMP_LIST
 	}
 }
-func ToAPIAggrFn(f api.WindowFn) coreApi.AggrFn {
+func ToAPIAggrFn(f api.AggrFn) coreApi.AggrFn {
 	switch f {
 	default:
 		return coreApi.AggrFn_AGGR_FN_UNSPECIFIED
-	case api.WindowFnCount:
+	case api.AggrFnCount:
 		return coreApi.AggrFn_AGGR_FN_COUNT
-	case api.WindowFnSum:
+	case api.AggrFnSum:
 		return coreApi.AggrFn_AGGR_FN_SUM
-	case api.WindowFnAvg:
+	case api.AggrFnAvg:
 		return coreApi.AggrFn_AGGR_FN_AVG
-	case api.WindowFnMin:
+	case api.AggrFnMin:
 		return coreApi.AggrFn_AGGR_FN_MIN
-	case api.WindowFnMax:
+	case api.AggrFnMax:
 		return coreApi.AggrFn_AGGR_FN_MAX
 	}
 }
-func ToAPIAggrFns(fs []api.WindowFn) []coreApi.AggrFn {
+func ToAPIAggrFns(fs []api.AggrFn) []coreApi.AggrFn {
 	ret := make([]coreApi.AggrFn, len(fs))
 	for i, f := range fs {
 		ret[i] = ToAPIAggrFn(f)
@@ -114,16 +114,16 @@ func ToAPIAggrFns(fs []api.WindowFn) []coreApi.AggrFn {
 	return ret
 }
 
-func ToAPIMetadata(md api.Metadata) *coreApi.Metadata {
-	ret := &coreApi.Metadata{
-		Fqn:           md.FQN,
-		Primitive:     ToAPIPrimitive(md.Primitive),
-		Aggr:          ToAPIAggrFns(md.Aggr),
-		Freshness:     durationpb.New(md.Freshness),
-		Staleness:     durationpb.New(md.Staleness),
-		Timeout:       durationpb.New(md.Timeout),
-		Builder:       md.Builder,
-		DataConnector: md.DataConnector,
+func ToAPIFeatureDescriptor(fd api.FeatureDescriptor) *coreApi.FeatureDescriptor {
+	ret := &coreApi.FeatureDescriptor{
+		Fqn:           fd.FQN,
+		Primitive:     ToAPIPrimitive(fd.Primitive),
+		Aggr:          ToAPIAggrFns(fd.Aggr),
+		Freshness:     durationpb.New(fd.Freshness),
+		Staleness:     durationpb.New(fd.Staleness),
+		Timeout:       durationpb.New(fd.Timeout),
+		Builder:       fd.Builder,
+		DataConnector: fd.DataConnector,
 	}
 
 	return ret
