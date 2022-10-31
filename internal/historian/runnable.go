@@ -30,7 +30,7 @@ func (r NoLeaderRunnableFunc) Start(ctx context.Context) error {
 }
 
 // NeedLeaderElection make sure the Runnable will run on every instance
-func (r *NoLeaderRunnableFunc) NeedLeaderElection() bool {
+func (r NoLeaderRunnableFunc) NeedLeaderElection() bool {
 	return false
 }
 
@@ -44,6 +44,6 @@ func (r LeaderRunnableFunc) Start(ctx context.Context) error {
 }
 
 // NeedLeaderElection make sure the Runnable will run on every instance
-func (r *LeaderRunnableFunc) NeedLeaderElection() bool {
+func (r LeaderRunnableFunc) NeedLeaderElection() bool {
 	return true
 }

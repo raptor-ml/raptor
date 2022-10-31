@@ -22,7 +22,7 @@ import (
 )
 
 type Middleware func(next MiddlewareHandler) MiddlewareHandler
-type MiddlewareHandler func(ctx context.Context, md Metadata, entityID string, val Value) (Value, error)
+type MiddlewareHandler func(ctx context.Context, fd FeatureDescriptor, entityID string, val Value) (Value, error)
 
 // FeatureAbstractAPI is the interface that plugins can use to modify the Core's feature abstraction on creation time
 type FeatureAbstractAPI interface {
@@ -36,8 +36,8 @@ type FeatureAbstractAPI interface {
 type ContextKey int
 
 const (
-	// ContextKeyWindowFn is a key to store the requested window function in context.
-	ContextKeyWindowFn ContextKey = iota
+	// ContextKeyAggrFn is a key to store the requested window function in context.
+	ContextKeyAggrFn ContextKey = iota
 
 	// ContextKeyCachePostGet is a key to store the flag to cache in the storage postGet value.
 	// If not set it is defaulting to true.
@@ -61,18 +61,18 @@ func LoggerFromContext(ctx context.Context) logr.Logger {
 	}
 	return logr.Logger{}
 }
-func WindowFnFromContext(ctx context.Context) (WindowFn, error) {
+func AggrFnFromContext(ctx context.Context) (AggrFn, error) {
 	if ctx == nil {
-		return WindowFnUnknown, ErrInvalidPipelineContext
+		return AggrFnUnknown, ErrInvalidPipelineContext
 	}
 
-	if f, ok := ctx.Value(ContextKeyWindowFn).(WindowFn); ok {
+	if f, ok := ctx.Value(ContextKeyAggrFn).(AggrFn); ok {
 		return f, nil
 	}
 
-	return WindowFnUnknown, ErrInvalidPipelineContext
+	return AggrFnUnknown, ErrInvalidPipelineContext
 }
-func ContextWithWindowFn(ctx context.Context, fn WindowFn) context.Context {
-	ctx = context.WithValue(ctx, ContextKeyWindowFn, fn)
+func ContextWithAggrFn(ctx context.Context, fn AggrFn) context.Context {
+	ctx = context.WithValue(ctx, ContextKeyAggrFn, fn)
 	return ctx
 }

@@ -32,7 +32,7 @@ func init() {
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
-func FeatureApply(md api.Metadata, builder manifests.FeatureBuilder, faapi api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
+func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, faapi api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
 	spec := manifests.FeatureSetSpec{}
 	err := json.Unmarshal(builder.Raw, &spec)
 	if err != nil {
@@ -45,7 +45,7 @@ func FeatureApply(md api.Metadata, builder manifests.FeatureBuilder, faapi api.F
 
 	//normalize features
 	for i, f := range spec.Features {
-		ns := md.FQN[strings.Index(md.FQN, ".")+1:]
+		ns := fd.FQN[strings.Index(fd.FQN, ".")+1:]
 		spec.Features[i] = api.NormalizeFQN(f, ns)
 	}
 
@@ -60,7 +60,7 @@ type featureset struct {
 }
 
 func (fs *featureset) preGetMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
-	return func(ctx context.Context, md api.Metadata, entityID string, val api.Value) (api.Value, error) {
+	return func(ctx context.Context, fd api.FeatureDescriptor, entityID string, val api.Value) (api.Value, error) {
 		logger := api.LoggerFromContext(ctx)
 		wg := &sync.WaitGroup{}
 		wg.Add(len(fs.features))

@@ -639,8 +639,12 @@ github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9dec
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 go.buf.build/raptor/api-go/envoyproxy/protoc-gen-validate v1.3.7 h1:5wg8gS60yWB9h9/HXiDIRQrXMxMf2XyEU2TWYvaBtVg=
 go.buf.build/raptor/api-go/envoyproxy/protoc-gen-validate v1.3.7/go.mod h1:88DcUfbsM/rfC2hyCZ6SPrko1cVhtmr5d0Vwc6vSbqI=
+go.buf.build/raptor/api-go/envoyproxy/protoc-gen-validate v1.3.8 h1:NgwD3pWCPtEhSegtOIywAvMyVcIKAdgNWAKsQVPRPPI=
+go.buf.build/raptor/api-go/envoyproxy/protoc-gen-validate v1.3.8/go.mod h1:88DcUfbsM/rfC2hyCZ6SPrko1cVhtmr5d0Vwc6vSbqI=
 go.buf.build/raptor/api-go/raptor/core v1.3.2 h1:KbTitlqhUrPt/ZKDXGiWP3l3pb/4BfyRJ7dOCwLJa7I=
 go.buf.build/raptor/api-go/raptor/core v1.3.2/go.mod h1:EyPcUk6MEdFA6D1t+kBVF65j1TmLqDBunbeVYd07iZw=
+go.buf.build/raptor/api-go/raptor/core v1.3.3 h1:5ayY0Cv+j7uw6kVHXKERi6l6ccREbTB8y/dou6PHYRk=
+go.buf.build/raptor/api-go/raptor/core v1.3.3/go.mod h1:+HCGR/AYEEcWGH5Yx8ZSP6L6WO5ZpH8+QWw49q5+euE=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.opencensus.io v0.22.2/go.mod h1:yxeiOL68Rb0Xd1ddK5vPZ/oVn4vY4Ynel7k9FzqtOIw=

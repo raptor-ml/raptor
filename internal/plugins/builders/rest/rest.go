@@ -52,7 +52,7 @@ type Spec struct {
 
 var httpMemoryCache = lrucache.New(500<<(10*2), 60*15) // 500MB; 15min
 
-func FeatureApply(md api.Metadata, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
+func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
 	spec := &Spec{}
 	err := json.Unmarshal(builder.Raw, spec)
 	if err != nil {
@@ -62,12 +62,12 @@ func FeatureApply(md api.Metadata, builder manifests.FeatureBuilder, api api.Fea
 	if builder.PyExp == "" {
 		return fmt.Errorf("expression is empty")
 	}
-	runtime, err := pyexp.New(builder.PyExp, md.FQN)
+	runtime, err := pyexp.New(builder.PyExp, fd.FQN)
 	if err != nil {
 		return fmt.Errorf("failed to create expression runtime: %w", err)
 	}
 
-	timeout := time.Duration(float32(md.Timeout) * 0.8)
+	timeout := time.Duration(float32(fd.Timeout) * 0.8)
 	if timeout == 0 {
 		timeout = 5 * time.Second
 	}
@@ -88,7 +88,7 @@ func FeatureApply(md api.Metadata, builder manifests.FeatureBuilder, api api.Fea
 		headers: spec.Headers,
 	}
 
-	if md.Freshness <= 0 {
+	if fd.Freshness <= 0 {
 		api.AddPreGetMiddleware(0, r.getMiddleware)
 	} else {
 		api.AddPostGetMiddleware(0, r.getMiddleware)
@@ -107,10 +107,10 @@ type rest struct {
 }
 
 func (rp *rest) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
-	return func(ctx context.Context, md api.Metadata, entityID string, val api.Value) (api.Value, error) {
+	return func(ctx context.Context, fd api.FeatureDescriptor, entityID string, val api.Value) (api.Value, error) {
 		cache, cacheOk := ctx.Value(api.ContextKeyFromCache).(bool)
-		if cacheOk && cache && val.Fresh && !md.ValidWindow() {
-			return next(ctx, md, entityID, val)
+		if cacheOk && cache && val.Fresh && !fd.ValidWindow() {
+			return next(ctx, fd, entityID, val)
 		}
 
 		var body io.Reader
@@ -170,6 +170,6 @@ func (rp *rest) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler 
 			}
 		}
 
-		return next(ctx, md, entityID, val)
+		return next(ctx, fd, entityID, val)
 	}
 }

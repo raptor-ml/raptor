@@ -79,39 +79,39 @@ func (e *engine) write(ctx context.Context, fqn string, entityID string, val any
 	return nil
 }
 
-func (e *engine) Get(ctx context.Context, fqn string, entityID string) (api.Value, api.Metadata, error) {
+func (e *engine) Get(ctx context.Context, fqn string, entityID string) (api.Value, api.FeatureDescriptor, error) {
 	defer stats.IncrFeatureGets()
 
 	ret := api.Value{Timestamp: time.Now()}
 	f, ctx, cancel, err := e.featureForRequest(ctx, fqn)
 	if err != nil {
-		return ret, api.Metadata{}, err
+		return ret, api.FeatureDescriptor{}, err
 	}
 	defer cancel()
 
 	ret, err = e.readPipeline(f).Apply(ctx, entityID, ret)
 	if err != nil && !(goerrors.Is(err, context.DeadlineExceeded) && ret.Value != nil && !ret.Fresh) {
-		return ret, f.Metadata, fmt.Errorf("failed to GET value for feature %s with entity %s: %w", fqn, entityID, err)
+		return ret, f.FeatureDescriptor, fmt.Errorf("failed to GET value for feature %s with entity %s: %w", fqn, entityID, err)
 	}
-	return ret, f.Metadata, nil
+	return ret, f.FeatureDescriptor, nil
 }
 
-func (e *engine) Metadata(ctx context.Context, fqn string) (api.Metadata, error) {
-	defer stats.IncrMetadataReqs()
+func (e *engine) FeatureDescriptor(ctx context.Context, fqn string) (api.FeatureDescriptor, error) {
+	defer stats.IncrFeatureDescriptorReqs()
 	f, _, cancel, err := e.featureForRequest(ctx, fqn)
 	if err != nil {
-		return api.Metadata{}, err
+		return api.FeatureDescriptor{}, err
 	}
 	defer cancel()
 
-	return f.Metadata, nil
+	return f.FeatureDescriptor, nil
 }
 func (e *engine) featureForRequest(ctx context.Context, fqn string) (*Feature, context.Context, context.CancelFunc, error) {
 	fqn, fn := api.FQNToRealFQN(fqn)
 	if f, ok := e.features.Load(fqn); ok {
 		if f, ok := f.(*Feature); ok {
 			ctx, cancel := f.Context(ctx, e.Logger())
-			ctx = api.ContextWithWindowFn(ctx, fn)
+			ctx = api.ContextWithAggrFn(ctx, fn)
 			return f, ctx, cancel, nil
 		}
 	}

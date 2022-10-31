@@ -49,11 +49,11 @@ func DataConnectorFromManifest(ctx context.Context, dc *manifests.DataConnector,
 	}, nil
 }
 
-// Metadata is the metadata of a feature.
-type Metadata struct {
+// FeatureDescriptor is describing a feature definition for an internal use of the Core.
+type FeatureDescriptor struct {
 	FQN           string        `json:"FQN"`
 	Primitive     PrimitiveType `json:"primitive"`
-	Aggr          []WindowFn    `json:"aggr"`
+	Aggr          []AggrFn      `json:"aggr"`
 	Freshness     time.Duration `json:"freshness"`
 	Staleness     time.Duration `json:"staleness"`
 	Timeout       time.Duration `json:"timeout"`
@@ -62,22 +62,22 @@ type Metadata struct {
 }
 
 // ValidWindow checks if the feature have aggregation enabled, and if it is valid
-func (md Metadata) ValidWindow() bool {
-	if md.Freshness < 1 {
+func (fd FeatureDescriptor) ValidWindow() bool {
+	if fd.Freshness < 1 {
 		return false
 	}
-	if md.Staleness < md.Freshness {
+	if fd.Staleness < fd.Freshness {
 		return false
 	}
-	if len(md.Aggr) == 0 {
+	if len(fd.Aggr) == 0 {
 		return false
 	}
-	if !(md.Primitive == PrimitiveTypeInteger || md.Primitive == PrimitiveTypeFloat) {
+	if !(fd.Primitive == PrimitiveTypeInteger || fd.Primitive == PrimitiveTypeFloat) {
 		return false
 	}
 	return true
 }
-func aggrsToStrings(a []manifests.AggrType) []string {
+func aggrsToStrings(a []manifests.AggrFn) []string {
 	var res []string
 	for _, v := range a {
 		res = append(res, string(v))
@@ -85,13 +85,13 @@ func aggrsToStrings(a []manifests.AggrType) []string {
 	return res
 }
 
-// MetadataFromManifest returns a Metadata from a manifests.Feature
-func MetadataFromManifest(in *manifests.Feature) (*Metadata, error) {
-	primitive := StringToPrimitiveType(in.Spec.Primitive)
+// FeatureDescriptorFromManifest returns a FeatureDescriptor from a manifests.Feature
+func FeatureDescriptorFromManifest(in *manifests.Feature) (*FeatureDescriptor, error) {
+	primitive := StringToPrimitiveType(string(in.Spec.Primitive))
 	if primitive == PrimitiveTypeUnknown {
 		return nil, fmt.Errorf("%w: %s", ErrUnsupportedPrimitiveError, in.Spec.Primitive)
 	}
-	aggr, err := StringsToWindowFns(aggrsToStrings(in.Spec.Builder.Aggr))
+	aggr, err := StringsToAggrFns(aggrsToStrings(in.Spec.Builder.Aggr))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse aggregation functions: %w", err)
 	}
@@ -102,7 +102,7 @@ func MetadataFromManifest(in *manifests.Feature) (*Metadata, error) {
 		in.Spec.Freshness = in.Spec.Builder.AggrGranularity
 	}
 
-	md := &Metadata{
+	fd := &FeatureDescriptor{
 		FQN:       in.FQN(),
 		Primitive: primitive,
 		Aggr:      aggr,
@@ -112,17 +112,16 @@ func MetadataFromManifest(in *manifests.Feature) (*Metadata, error) {
 		Builder:   strings.ToLower(in.Spec.Builder.Kind),
 	}
 	if in.Spec.DataConnector != nil {
-		md.DataConnector = in.Spec.DataConnector.FQN()
+		fd.DataConnector = in.Spec.DataConnector.FQN()
 	}
-	if md.Builder == "" {
-		//Todo auto-detect builder
-		md.Builder = ExpressionBuilder
+	if fd.Builder == "" {
+		fd.Builder = ExpressionBuilder
 	}
 
-	if len(md.Aggr) > 0 && !md.ValidWindow() {
+	if len(fd.Aggr) > 0 && !fd.ValidWindow() {
 		return nil, fmt.Errorf("invalid feature specification for windowed feature")
 	}
-	return md, nil
+	return fd, nil
 }
 
 func NormalizeFQN(fqn, defaultNamespace string) string {

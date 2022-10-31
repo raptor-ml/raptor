@@ -138,7 +138,7 @@ func (r *runtime) pyExpPayload(ev *cloudevents.Event) (starlark.Value, error) {
 		return nil, fmt.Errorf("failed to parse data schema: %w", err)
 	}
 
-	md, err := protoregistry.GetDescriptor(u.Fragment)
+	fd, err := protoregistry.GetDescriptor(u.Fragment)
 	if err != nil {
 		if !errors.Is(err, protoregistry.ErrNotFound) {
 			return nil, fmt.Errorf("failed to find proto type for message")
@@ -153,13 +153,13 @@ func (r *runtime) pyExpPayload(ev *cloudevents.Event) (starlark.Value, error) {
 		if strings.Count(s, ".") < 1 {
 			s = fmt.Sprintf("%s.%s", pack, u.Fragment)
 		}
-		md, err = protoregistry.GetDescriptor(s)
+		fd, err = protoregistry.GetDescriptor(s)
 		if err != nil {
 			panic(fmt.Errorf("failed to get a schema that was just registered: %w", err))
 		}
 	}
 
-	payload, err := proto.Unmarshal(md, ev.Data())
+	payload, err := proto.Unmarshal(fd, ev.Data())
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse message to proto: %w", err)
 	}

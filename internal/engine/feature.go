@@ -26,7 +26,7 @@ import (
 
 // Feature is a Core's feature abstraction.
 type Feature struct {
-	api.Metadata
+	api.FeatureDescriptor
 
 	preGet  mws
 	postGet mws
@@ -71,8 +71,8 @@ func (f *Feature) Context(ctx context.Context, logger logr.Logger) (context.Cont
 	ctx = context.WithValue(ctx, api.ContextKeyLogger, logger)
 
 	cancel := func() {}
-	if f.Metadata.Timeout > 0 {
-		ctx, cancel = context.WithTimeout(ctx, time.Duration(float64(f.Metadata.Timeout)*0.98))
+	if f.FeatureDescriptor.Timeout > 0 {
+		ctx, cancel = context.WithTimeout(ctx, time.Duration(float64(f.FeatureDescriptor.Timeout)*0.98))
 	}
 	return ctx, cancel
 }
@@ -83,6 +83,7 @@ type mw struct {
 	priority int
 }
 
+// Sort sorts the middlewares by priority. The lower the priority the earlier the middleware is called.
 func (mws *mws) Sort() mws {
 	sort.SliceStable(*mws, func(i, j int) bool {
 		return (*mws)[i].priority < (*mws)[j].priority

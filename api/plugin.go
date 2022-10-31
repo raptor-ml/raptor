@@ -35,7 +35,7 @@ type Plugins interface {
 type BindConfig func(set *pflag.FlagSet) error
 
 // FeatureApply applies changes on the feature abstraction.
-type FeatureApply func(metadata Metadata, builder manifests.FeatureBuilder, api FeatureAbstractAPI, engine EngineWithConnector) error
+type FeatureApply func(fd FeatureDescriptor, builder manifests.FeatureBuilder, api FeatureAbstractAPI, engine EngineWithConnector) error
 
 // ReconcileRequest contains metadata for the reconcile.
 type ReconcileRequest struct {
@@ -49,7 +49,7 @@ type ReconcileRequest struct {
 // This is useful for plugins that need to spawn external Feature Ingestion.
 //
 // It returns ture if the reconciliation has changed the object (and therefore the operator should re-queue).
-type DataConnectorReconcile func(ctx context.Context, md ReconcileRequest) (changed bool, err error)
+type DataConnectorReconcile func(ctx context.Context, fd ReconcileRequest) (changed bool, err error)
 
 // StateFactory is the interface to be implemented by plugins that implements storage providers.
 type StateFactory func(viper *viper.Viper) (State, error)

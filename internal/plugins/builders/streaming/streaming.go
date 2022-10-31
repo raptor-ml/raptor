@@ -49,12 +49,12 @@ func init() {
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
-func FeatureApply(md api.Metadata, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
-	if md.DataConnector == "" {
+func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
+	if fd.DataConnector == "" {
 		return fmt.Errorf("data connector must be set for `%s` builder", name)
 	}
 
-	dc, err := engine.GetDataConnector(md.DataConnector)
+	dc, err := engine.GetDataConnector(fd.DataConnector)
 	if err != nil {
 		return fmt.Errorf("failed to get data connector: %v", err)
 	}
@@ -68,7 +68,7 @@ func FeatureApply(md api.Metadata, builder manifests.FeatureBuilder, api api.Fea
 	}
 
 	// make sure the expression is valid
-	_, err = pyexp.New(builder.PyExp, md.FQN)
+	_, err = pyexp.New(builder.PyExp, fd.FQN)
 	if err != nil {
 		return fmt.Errorf("failed to create expression runtime: %w", err)
 	}

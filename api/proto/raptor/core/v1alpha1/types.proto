@@ -52,7 +52,7 @@ message ObjectReference {
     string name = 1;
     string namespace = 2;
 }
-message Metadata {
+message FeatureDescriptor {
     string fqn = 1 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
     Primitive primitive = 2 [(validate.rules).enum.defined_only = true];
     repeated AggrFn aggr = 3 [

@@ -26,10 +26,10 @@ import (
 	"time"
 )
 
-func (sw *snowflakeWriter) BindFeature(md *api.Metadata, fs *manifests.FeatureSetSpec, getter api.MetadataGetter) error {
+func (sw *snowflakeWriter) BindFeature(fd *api.FeatureDescriptor, fs *manifests.FeatureSetSpec, getter api.FeatureDescriptorGetter) error {
 	var query string
 	var typ string
-	if md.Builder == api.FeatureSetBuilder {
+	if fd.Builder == api.FeatureSetBuilder {
 		typ = "FeatureSet"
 		if fs == nil {
 			return fmt.Errorf("feature set is nil")
@@ -41,7 +41,7 @@ func (sw *snowflakeWriter) BindFeature(md *api.Metadata, fs *manifests.FeatureSe
 		query = q
 	} else {
 		typ = "Feature"
-		q, err := sw.queryBuilder.Feature(*md)
+		q, err := sw.queryBuilder.Feature(*fd)
 		if err != nil {
 			return fmt.Errorf("failed to build Feature query: %w", err)
 		}
@@ -54,9 +54,9 @@ CREATE OR REPLACE VIEW %s
 AS %s`
 
 	ctx, _ := sf.WithMultiStatement(context.TODO(), 2)
-	_, err := sw.db.ExecContext(ctx, fmt.Sprintf(viewQuery, querybuilder.EscapeName(md.FQN), md.FQN, typ, query))
+	_, err := sw.db.ExecContext(ctx, fmt.Sprintf(viewQuery, querybuilder.EscapeName(fd.FQN), fd.FQN, typ, query))
 	if err != nil {
-		return fmt.Errorf("failed to create %s view for %s: %w", typ, md.FQN, err)
+		return fmt.Errorf("failed to create %s view for %s: %w", typ, fd.FQN, err)
 	}
 	return nil
 }
@@ -89,7 +89,7 @@ func subtractDuration(d time.Duration, field string) string {
 	}
 	return fmt.Sprintf("DATEADD('%s', %d, %s)", unit, v, field)
 }
-func castFeature(ft api.Metadata) string {
+func castFeature(ft api.FeatureDescriptor) string {
 	if ft.ValidWindow() {
 		return "OBJECT"
 	}

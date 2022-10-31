@@ -26,11 +26,11 @@ type Dummy struct {
 	DataConnector api.DataConnector
 }
 
-func (*Dummy) Metadata(ctx context.Context, FQN string) (api.Metadata, error) {
-	return api.Metadata{}, nil
+func (*Dummy) FeatureDescriptor(ctx context.Context, FQN string) (api.FeatureDescriptor, error) {
+	return api.FeatureDescriptor{}, nil
 }
-func (*Dummy) Get(ctx context.Context, FQN string, entityID string) (api.Value, api.Metadata, error) {
-	return api.Value{}, api.Metadata{}, nil
+func (*Dummy) Get(ctx context.Context, FQN string, entityID string) (api.Value, api.FeatureDescriptor, error) {
+	return api.Value{}, api.FeatureDescriptor{}, nil
 }
 func (*Dummy) Set(ctx context.Context, FQN string, entityID string, val any, ts time.Time) error {
 	return nil

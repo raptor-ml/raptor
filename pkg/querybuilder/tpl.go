@@ -37,12 +37,12 @@ type baseQuery struct {
 }
 type featureQuery struct {
 	baseQuery
-	api.Metadata
+	api.FeatureDescriptor
 }
 
 type QueryBuilder interface {
-	FeatureSet(ctx context.Context, fs manifests.FeatureSetSpec, getter api.MetadataGetter) (query string, err error)
-	Feature(feature api.Metadata) (string, error)
+	FeatureSet(ctx context.Context, fs manifests.FeatureSetSpec, getter api.FeatureDescriptorGetter) (query string, err error)
+	Feature(feature api.FeatureDescriptor) (string, error)
 }
 
 type queryBuilder struct {
@@ -58,7 +58,7 @@ type Config struct {
 	// SubtractDuration is used to subtract a duration from a field with your SQL flavor.
 	SubtractDuration func(d time.Duration, field string) string
 	// CastFeature is used to cast a feature to a specific type for your SQL flavor.
-	CastFeature func(ft api.Metadata) string
+	CastFeature func(ft api.FeatureDescriptor) string
 	// TmpName is used to generate a temporary table name.
 	TmpName func(s string) string
 }

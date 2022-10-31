@@ -35,7 +35,6 @@ require (
 	github.com/vladimirvivien/gexe v0.1.1
 	github.com/xitongsys/parquet-go v1.6.2
 	github.com/xitongsys/parquet-go-source v0.0.0-20220723234337-052319f3f36b
-	go.buf.build/raptor/api-go/raptor/core v1.3.2
 	go.starlark.net v0.0.0-20220817180228-f738f5508c12
 	go.uber.org/zap v1.23.0
 	golang.org/x/sync v0.0.0-20220907140024-f12130a52804
@@ -133,7 +132,8 @@ require (
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
-	go.buf.build/raptor/api-go/envoyproxy/protoc-gen-validate v1.3.7 // indirect
+	go.buf.build/raptor/api-go/envoyproxy/protoc-gen-validate v1.3.8 // indirect
+	go.buf.build/raptor/api-go/raptor/core v1.3.3 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90 // indirect

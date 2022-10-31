@@ -30,18 +30,18 @@ func init() {
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
-func FeatureApply(md api.Metadata, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
+func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
 	if builder.PyExp == "" {
 		return fmt.Errorf("pyexp is empty")
 	}
 
-	runtime, err := pyexp.New(builder.PyExp, md.FQN)
+	runtime, err := pyexp.New(builder.PyExp, fd.FQN)
 	if err != nil {
 		return fmt.Errorf("failed to create expression runtime: %w", err)
 	}
 	e := expr{runtime: runtime, engine: engine}
 
-	if md.Freshness <= 0 {
+	if fd.Freshness <= 0 {
 		api.AddPreGetMiddleware(0, e.getMiddleware)
 	} else {
 		api.AddPostGetMiddleware(0, e.getMiddleware)
@@ -55,10 +55,10 @@ type expr struct {
 }
 
 func (p *expr) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
-	return func(ctx context.Context, md api.Metadata, entityID string, val api.Value) (api.Value, error) {
+	return func(ctx context.Context, fd api.FeatureDescriptor, entityID string, val api.Value) (api.Value, error) {
 		cache, cacheOk := ctx.Value(api.ContextKeyFromCache).(bool)
-		if cacheOk && cache && val.Fresh && !md.ValidWindow() {
-			return next(ctx, md, entityID, val)
+		if cacheOk && cache && val.Fresh && !fd.ValidWindow() {
+			return next(ctx, fd, entityID, val)
 		}
 
 		ret, err := p.runtime.ExecWithEngine(ctx, pyexp.ExecRequest{
@@ -83,6 +83,6 @@ func (p *expr) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
 			}
 		}
 
-		return next(ctx, md, entityID, val)
+		return next(ctx, fd, entityID, val)
 	}
 }

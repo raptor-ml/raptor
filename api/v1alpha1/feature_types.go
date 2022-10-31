@@ -24,27 +24,20 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// AggrType defines the type of aggregation
+// AggrFn defines the type of aggregation
 // +kubebuilder:validation:Enum=count;min;max;sum;avg;mean
-type AggrType string
+type AggrFn string
+
+// PrimitiveType defines the type of primitive
+// +kubebuilder:validation:Enum=int;float;string;timestamp;[]int;[]float;[]string;[]timestamp;headless
+// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Primitive Type"
+type PrimitiveType string
 
 // FeatureSpec defines the desired state of Feature
 type FeatureSpec struct {
-	// Primitive defines the type of the underlying feature-value that a Feature should respond with
-	// Valid values are:
-	//  - `int`
-	//  - `float`
-	//  - `string`
-	//	- `timestamp
-	//  - `[]int`
-	//  - `[]float`
-	//  - `[]string`
-	//  - `[]timestamp`
-	//  - `headless`
+	// Primitive defines the type of the underlying feature-value that a Feature should respond with.
 	// +kubebuilder:validation:Required
-	// +kubebuilder:validation:Enum=int;float;string;timestamp;[]int;[]float;[]string;[]timestamp;headless
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Primitive Type"
-	Primitive string `json:"primitive"`
+	Primitive PrimitiveType `json:"primitive"`
 
 	// Freshness defines the age of a feature-value(time since the value has set) to consider as *fresh*.
 	// Fresh values doesn't require re-ingestion
@@ -84,17 +77,10 @@ type FeatureBuilder struct {
 
 	// Aggr defines an aggregation on top of the underlying feature-value. Aggregations will be calculated on time-of-request.
 	// Users can specify here multiple functions to calculate the aggregation.
-	// Valid values:
-	//  - `count`
-	//  - `min`
-	//  - `mix`
-	//  - `sum``
-	//  - `mean` (alias for `avg`)
-	//  - `avg`
 	// +optional
 	// +nullable
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Aggregations"
-	Aggr []AggrType `json:"aggr"`
+	Aggr []AggrFn `json:"aggr"`
 
 	// AggrGranularity defines the granularity of the aggregation.
 	// +optional

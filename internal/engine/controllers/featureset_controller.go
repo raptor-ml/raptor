@@ -56,7 +56,7 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Convert the FeatureSet definition to a MetaData object.
+	// Convert the FeatureSet definition to a FeatureDescriptor object.
 	ft := &raptorApi.Feature{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Feature",
@@ -67,7 +67,7 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			Namespace: fs.Namespace,
 		},
 		Spec: raptorApi.FeatureSpec{
-			Primitive: api.PrimitiveTypeHeadless.String(),
+			Primitive: raptorApi.PrimitiveType(api.PrimitiveTypeHeadless.String()),
 			Timeout:   fs.Spec.Timeout,
 		},
 	}
