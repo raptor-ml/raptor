@@ -44,13 +44,11 @@ spec:
                   feature-value
                 properties:
                   aggr:
-                    description: 'Aggr defines an aggregation on top of the underlying
+                    description: Aggr defines an aggregation on top of the underlying
                       feature-value. Aggregations will be calculated on time-of-request.
                       Users can specify here multiple functions to calculate the aggregation.
-                      Valid values: - `count` - `min` - `mix` - `sum`` - `mean` (alias
-                      for `avg`) - `avg`'
                     items:
-                      description: AggrType defines the type of aggregation
+                      description: AggrFn defines the type of aggregation
                       enum:
                       - count
                       - min
@@ -98,10 +96,8 @@ spec:
                   require re-ingestion
                 type: string
               primitive:
-                description: 'Primitive defines the type of the underlying feature-value
-                  that a Feature should respond with Valid values are: - `int` - `float`
-                  - `string` - `timestamp - `[]int` - `[]float` - `[]string` - `[]timestamp`
-                  - `headless`'
+                description: Primitive defines the type of the underlying feature-value
+                  that a Feature should respond with.
                 enum:
                 - int
                 - float

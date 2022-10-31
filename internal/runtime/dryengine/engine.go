@@ -24,7 +24,7 @@ import (
 
 type ValueMeta struct {
 	api.Value
-	api.Metadata
+	api.FeatureDescriptor
 }
 type DependenciesData map[string]map[string]ValueMeta
 
@@ -82,20 +82,20 @@ func New(data DependenciesData, discoveryMode bool) DryEngine {
 	}
 }
 
-func (d *dry) Metadata(_ context.Context, FQN string) (api.Metadata, error) {
-	return api.Metadata{}, nil
+func (d *dry) FeatureDescriptor(_ context.Context, FQN string) (api.FeatureDescriptor, error) {
+	return api.FeatureDescriptor{}, nil
 }
-func (d *dry) Get(_ context.Context, FQN string, entityID string) (api.Value, api.Metadata, error) {
+func (d *dry) Get(_ context.Context, FQN string, entityID string) (api.Value, api.FeatureDescriptor, error) {
 	if d.discovery {
 		d.discovered[FQN] = struct{}{}
-		return api.Value{}, api.Metadata{}, nil
+		return api.Value{}, api.FeatureDescriptor{}, nil
 	}
 	if f, ok := d.dd[FQN]; ok {
 		if v, ok := f[entityID]; ok {
-			return v.Value, v.Metadata, nil
+			return v.Value, v.FeatureDescriptor, nil
 		}
 	}
-	return api.Value{}, api.Metadata{}, api.ErrFeatureNotFound
+	return api.Value{}, api.FeatureDescriptor{}, api.ErrFeatureNotFound
 }
 func (d *dry) Set(_ context.Context, FQN string, entityID string, val any, ts time.Time) error {
 	d.instructions = append(d.instructions, Instruction{

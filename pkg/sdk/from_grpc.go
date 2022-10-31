@@ -43,31 +43,31 @@ func FromAPIPrimitive(p coreApi.Primitive) api.PrimitiveType {
 		return api.PrimitiveTypeTimestampList
 	}
 }
-func FromAPIAggrFunc(f coreApi.AggrFn) api.WindowFn {
+func FromAPIAggrFunc(f coreApi.AggrFn) api.AggrFn {
 	switch f {
 	default:
-		return api.WindowFnUnknown
+		return api.AggrFnUnknown
 	case coreApi.AggrFn_AGGR_FN_SUM:
-		return api.WindowFnSum
+		return api.AggrFnSum
 	case coreApi.AggrFn_AGGR_FN_AVG:
-		return api.WindowFnAvg
+		return api.AggrFnAvg
 	case coreApi.AggrFn_AGGR_FN_MIN:
-		return api.WindowFnMin
+		return api.AggrFnMin
 	case coreApi.AggrFn_AGGR_FN_MAX:
-		return api.WindowFnMax
+		return api.AggrFnMax
 	case coreApi.AggrFn_AGGR_FN_COUNT:
-		return api.WindowFnCount
+		return api.AggrFnCount
 	}
 }
-func FromAPIAggrFuncs(fs []coreApi.AggrFn) []api.WindowFn {
-	var wfs []api.WindowFn
+func FromAPIAggrFuncs(fs []coreApi.AggrFn) []api.AggrFn {
+	var afs []api.AggrFn
 	for _, f := range fs {
-		wfs = append(wfs, FromAPIAggrFunc(f))
+		afs = append(afs, FromAPIAggrFunc(f))
 	}
-	return wfs
+	return afs
 }
-func FromAPIMetadata(m *coreApi.Metadata) api.Metadata {
-	return api.Metadata{
+func FromAPIFeatureDescriptor(m *coreApi.FeatureDescriptor) api.FeatureDescriptor {
+	return api.FeatureDescriptor{
 		FQN:           m.Fqn,
 		Primitive:     FromAPIPrimitive(m.Primitive),
 		Aggr:          FromAPIAggrFuncs(m.Aggr),

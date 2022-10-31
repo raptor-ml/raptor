@@ -20,7 +20,7 @@ message GetRequest {
 message GetResponse {
     string uuid = 1 [(validate.rules).string.uuid = true];
     FeatureValue value = 2;
-    Metadata metadata = 3;
+    FeatureDescriptor feature_descriptor = 3;
 }
 
 // +++ Write methods +++
@@ -72,19 +72,19 @@ message UpdateResponse {
     string uuid = 1 [(validate.rules).string.uuid = true];
     google.protobuf.Timestamp timestamp = 2;
 }
-message MetadataRequest {
+message FeatureDescriptorRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
     string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
 }
-message MetadataResponse {
+message FeatureDescriptorResponse {
     string uuid = 1 [(validate.rules).string.uuid = true];
-    Metadata metadata = 2;
+    FeatureDescriptor feature_descriptor = 2;
 }
 
 
 // +++ Service +++
 service EngineService {
-    rpc Metadata (MetadataRequest) returns (MetadataResponse) {
+    rpc FeatureDescriptor (FeatureDescriptorRequest) returns (FeatureDescriptorResponse) {
         option (google.api.http) = {
             get: "/{fqn}"
         };

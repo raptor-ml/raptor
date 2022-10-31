@@ -27,17 +27,17 @@ import (
 // FeatureWithEngine converts the k8s Feature CRD to the internal engine implementation.
 // This is useful as a standalone function for validating features.
 func FeatureWithEngine(e api.EngineWithConnector, in *manifests.Feature) (*Feature, error) {
-	md, err := api.MetadataFromManifest(in)
+	fd, err := api.FeatureDescriptorFromManifest(in)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse metadata from CR: %w", err)
+		return nil, fmt.Errorf("failed to parse FeatureDescriptor from CR: %w", err)
 	}
 
 	ft := Feature{
-		Metadata: *md,
+		FeatureDescriptor: *fd,
 	}
 
 	if p := plugins.FeatureAppliers.Get(ft.Builder); p != nil {
-		err := p(ft.Metadata, in.Spec.Builder, &ft, e)
+		err := p(ft.FeatureDescriptor, in.Spec.Builder, &ft, e)
 		if err != nil {
 			return nil, err
 		}
@@ -78,8 +78,8 @@ func (e *engine) HasFeature(fqn string) bool {
 	return ok
 }
 
-func (e *engine) BindDataConnector(md api.DataConnector) error {
-	e.dataConnectors.Store(md.FQN, md)
+func (e *engine) BindDataConnector(fd api.DataConnector) error {
+	e.dataConnectors.Store(fd.FQN, fd)
 	return nil
 }
 func (e *engine) UnbindDataConnector(FQN string) error {
@@ -92,9 +92,9 @@ func (e *engine) HasDataConnector(FQN string) bool {
 }
 
 func (e *engine) GetDataConnector(fqn string) (api.DataConnector, error) {
-	md, ok := e.dataConnectors.Load(fqn)
+	fd, ok := e.dataConnectors.Load(fqn)
 	if !ok {
 		return api.DataConnector{}, fmt.Errorf("DataConnector %s not found", fqn)
 	}
-	return md.(api.DataConnector), nil
+	return fd.(api.DataConnector), nil
 }

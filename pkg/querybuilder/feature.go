@@ -23,14 +23,14 @@ import (
 	"text/template"
 )
 
-func (qb *queryBuilder) Feature(ft api.Metadata) (string, error) {
+func (qb *queryBuilder) Feature(ft api.FeatureDescriptor) (string, error) {
 	data := featureQuery{
 		baseQuery: baseQuery{
 			FeaturesTable: qb.featureTable,
 			Since:         "$SINCE",
 			Until:         "$UNTIL",
 		},
-		Metadata: ft,
+		FeatureDescriptor: ft,
 	}
 
 	var tpl *template.Template

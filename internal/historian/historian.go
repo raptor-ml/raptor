@@ -29,7 +29,7 @@ import (
 	"time"
 )
 
-const SyncPeriod = 5 * time.Minute
+const SyncPeriod = time.Duration(float32(api.DeadGracePeriod) / 2.5)
 const DeadRequestMarker = "*dead*"
 
 // Although this is done at compile time, we want to make sure nobody messed with the numbers inappropriately
@@ -57,7 +57,7 @@ type historian struct {
 	collectTasks   subscriptionQueue[api.CollectNotification]
 	writeTasks     subscriptionQueue[api.WriteNotification]
 	writes         uint32
-	metadata       sync.Map
+	fds            sync.Map
 	handledBuckets *ttlcache.Cache[string, struct{}]
 }
 
@@ -95,55 +95,55 @@ func (h *historian) Writer() LeaderRunnableFunc {
 }
 
 func (h *historian) BindFeature(in *manifests.Feature) error {
-	md, err := api.MetadataFromManifest(in)
+	fd, err := api.FeatureDescriptorFromManifest(in)
 	if err != nil {
-		return fmt.Errorf("failed to parse metadata from CR: %w", err)
+		return fmt.Errorf("failed to parse FeatureDescriptor from CR: %w", err)
 	}
 
 	var fs *manifests.FeatureSetSpec
-	if md.Builder == api.FeatureSetBuilder {
+	if fd.Builder == api.FeatureSetBuilder {
 		fs = &manifests.FeatureSetSpec{}
 		err := json.Unmarshal(in.Spec.Builder.Raw, fs)
 		if err != nil {
 			return fmt.Errorf("failed to parse featureset builder spec: %w", err)
 		}
 	}
-	if err := h.HistoricalWriter.BindFeature(md, fs, h.Metadata); err != nil {
+	if err := h.HistoricalWriter.BindFeature(fd, fs, h.FeatureDescriptor); err != nil {
 		return fmt.Errorf("failed to bind feature to historical writer: %w", err)
 	}
-	if md.Primitive == api.PrimitiveTypeHeadless {
+	if fd.Primitive == api.PrimitiveTypeHeadless {
 		// Headless features are not stored and not backed up to historical storage
 		return nil
 	}
 
-	if md.ValidWindow() {
+	if fd.ValidWindow() {
 		h.collectTasks.queue.Add(api.CollectNotification{
-			FQN:    md.FQN,
+			FQN:    fd.FQN,
 			Bucket: DeadRequestMarker,
 		})
 	}
 
-	h.metadata.Store(in.FQN(), *md)
+	h.fds.Store(in.FQN(), *fd)
 	h.Logger.Info("feature bounded", "feature", in.FQN())
 	return nil
 }
 
 func (h *historian) UnbindFeature(fqn string) error {
-	h.metadata.Delete(fqn)
+	h.fds.Delete(fqn)
 	h.Logger.Info("feature unbound", "feature", fqn)
 	return nil
 }
 
 func (h *historian) HasFeature(fqn string) bool {
-	_, ok := h.metadata.Load(fqn)
+	_, ok := h.fds.Load(fqn)
 	return ok
 }
-func (h *historian) Metadata(ctx context.Context, FQN string) (api.Metadata, error) {
-	md, ok := h.metadata.Load(FQN)
+func (h *historian) FeatureDescriptor(ctx context.Context, FQN string) (api.FeatureDescriptor, error) {
+	fd, ok := h.fds.Load(FQN)
 	if !ok {
-		return api.Metadata{}, api.ErrFeatureNotFound
+		return api.FeatureDescriptor{}, api.ErrFeatureNotFound
 	}
-	return md.(api.Metadata), nil
+	return fd.(api.FeatureDescriptor), nil
 }
 
 func timeTillNextBucket(bucketSize time.Duration) time.Duration {

@@ -38,21 +38,21 @@ func NewServiceServer(engine api.Engine) coreApi.EngineServiceServer {
 	}
 }
 
-func (s *serviceServer) Metadata(ctx context.Context, req *coreApi.MetadataRequest) (*coreApi.MetadataResponse, error) {
-	md, err := s.engine.Metadata(ctx, req.GetFqn())
+func (s *serviceServer) FeatureDescriptor(ctx context.Context, req *coreApi.FeatureDescriptorRequest) (*coreApi.FeatureDescriptorResponse, error) {
+	fd, err := s.engine.FeatureDescriptor(ctx, req.GetFqn())
 	if err != nil {
 		if errors.Is(err, api.ErrFeatureNotFound) {
 			return nil, status.Errorf(codes.NotFound, "feature not found")
 		}
-		return nil, status.Errorf(codes.Internal, "failed to get metadata: %s", err)
+		return nil, status.Errorf(codes.Internal, "failed to get FeatureDescriptor: %s", err)
 	}
-	return &coreApi.MetadataResponse{
-		Uuid:     req.GetUuid(),
-		Metadata: ToAPIMetadata(md),
+	return &coreApi.FeatureDescriptorResponse{
+		Uuid:              req.GetUuid(),
+		FeatureDescriptor: ToAPIFeatureDescriptor(fd),
 	}, nil
 }
 func (s *serviceServer) Get(ctx context.Context, req *coreApi.GetRequest) (*coreApi.GetResponse, error) {
-	resp, md, err := s.engine.Get(ctx, req.GetFqn(), req.GetEntityId())
+	resp, fd, err := s.engine.Get(ctx, req.GetFqn(), req.GetEntityId())
 	if err != nil {
 		if errors.Is(err, api.ErrFeatureNotFound) {
 			return nil, status.Errorf(codes.NotFound, "feature not found")
@@ -62,15 +62,15 @@ func (s *serviceServer) Get(ctx context.Context, req *coreApi.GetRequest) (*core
 
 	val := resp.Value
 	if r, ok := resp.Value.(api.WindowResultMap); ok {
-		if len(md.Aggr) < 1 {
+		if len(fd.Aggr) < 1 {
 			return nil, status.Errorf(codes.InvalidArgument, "the feature is windowed, but requested window function not found."+
-				"please use s request with FullyQualifiedName with an aggregator i.e. `%s[%s]`", req.GetFqn(), md.Aggr[0])
+				"please use s request with FullyQualifiedName with an aggregator i.e. `%s[%s]`", req.GetFqn(), fd.Aggr[0])
 		}
-		if len(md.Aggr) != 1 {
+		if len(fd.Aggr) != 1 {
 			return nil, status.Errorf(codes.InvalidArgument, "the feature is windowed, but requested window function not found."+
-				"please use s request with FullyQualifiedName with an aggregator i.e. `%s[%s]`", req.GetFqn(), md.Aggr[0])
+				"please use s request with FullyQualifiedName with an aggregator i.e. `%s[%s]`", req.GetFqn(), fd.Aggr[0])
 		}
-		val = r[md.Aggr[0]]
+		val = r[fd.Aggr[0]]
 	}
 
 	ret := &coreApi.GetResponse{
@@ -81,7 +81,7 @@ func (s *serviceServer) Get(ctx context.Context, req *coreApi.GetRequest) (*core
 			Value:     ToAPIValue(val),
 			Timestamp: timestamppb.New(resp.Timestamp),
 		},
-		Metadata: ToAPIMetadata(md),
+		FeatureDescriptor: ToAPIFeatureDescriptor(fd),
 	}
 
 	return ret, nil

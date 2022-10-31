@@ -34,7 +34,7 @@ const runtimeImg = "ghcr.io/raptor-ml/raptor-runtime"
 var distrolessNoRootUser int64 = 65532
 
 type Base interface {
-	Reconcile(ctx context.Context, md api.ReconcileRequest, conn *raptorApi.DataConnector) error
+	Reconcile(ctx context.Context, rr api.ReconcileRequest, conn *raptorApi.DataConnector) error
 }
 type BaseRunner struct {
 	Image           string
