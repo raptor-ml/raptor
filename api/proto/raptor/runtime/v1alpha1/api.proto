@@ -12,7 +12,7 @@ option go_package = "github.com/raptor-ml/raptor/core/v1alpha1;coreV1alpha1";
 
 message ExecutePyExpRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
-    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    string fqn = 2 [(validate.rules).string.pattern = "(?si)^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\[(?P<encoding>([a-z]+_*[a-z]+))])?$"];
     string program_hash = 3 [(validate.rules).string.len = 64];
     optional string entity_id = 4;
     google.protobuf.Any data = 5 [(validate.rules).any = {
@@ -25,7 +25,7 @@ message ExecutePyExpResponse {
 }
 message LoadPyExpProgramRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
-    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    string fqn = 2 [(validate.rules).string.pattern = "(?si)^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\[(?P<encoding>([a-z]+_*[a-z]+))])?$"];
     string program = 3;
 }
 message LoadPyExpProgramResponse {

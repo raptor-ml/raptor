@@ -19,7 +19,6 @@ package api
 import (
 	"fmt"
 	"math"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -29,15 +28,15 @@ import (
 // Bucket TTL = staleness + DeadGracePeriod
 const DeadGracePeriod = time.Minute * 10
 
-//goland:noinspection RegExpRedundantEscape
-var aggrFnNameRegexp = regexp.MustCompile(`(?i)^([a0-z9\-\.]*)\[["']?(sum|avg|min|max|count)["']?\]$`)
-
 func FQNToRealFQN(name string) (string, AggrFn) {
-	matches := aggrFnNameRegexp.FindStringSubmatch(name)
-	if len(matches) < 3 {
-		return name, AggrFnUnknown
+	ns, name, aggrFn, _, _, err := ParseFQN(name)
+	if err != nil {
+		panic(err)
 	}
-	return matches[1], StringToAggrFn(matches[2])
+	if aggrFn == "" {
+		return fmt.Sprintf("%s.%s", ns, name), AggrFnUnknown
+	}
+	return fmt.Sprintf("%s.%s", ns, name), StringToAggrFn(aggrFn)
 }
 
 // AggrFn is an aggregation function
