@@ -16,7 +16,7 @@ limitations under the License.
 
 package controllers
 
-// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=dataconnectors,verbs=get;list;watch
+// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=datasources,verbs=get;list;watch
 
 import (
 	"context"
@@ -30,27 +30,27 @@ import (
 	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
 )
 
-// DataConnectorReconciler reconciles a DataConnector object
+// DataSourceReconciler reconciles a DataSource object
 // This reconciler is used in every instance of the app, and not only the leader.
 // It is used to ensure the EngineManager's state is synchronized with the CustomResources.
 //
 // For the creation and modification external resources, the operator's controller is used.
-// For the operator's controller see the `internal/operator/dataconnector_controller.go` file
-type DataConnectorReconciler struct {
+// For the operator's controller see the `internal/operator/datasource_controller.go` file
+type DataSourceReconciler struct {
 	client.Reader
 	Scheme        *runtime.Scheme
-	EngineManager api.DataConnectorManager
+	EngineManager api.DataSourceManager
 }
 
 // Reconcile is the main function of the reconciler.
-func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
-	// Fetch the DataConnector definition from the Kubernetes API.
-	dc := &raptorApi.DataConnector{}
-	err := r.Get(ctx, req.NamespacedName, dc)
+	// Fetch the DataSource definition from the Kubernetes API.
+	src := &raptorApi.DataSource{}
+	err := r.Get(ctx, req.NamespacedName, src)
 	if err != nil {
-		logger.Error(err, "Failed to get DataConnector")
+		logger.Error(err, "Failed to get DataSource")
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
 		// requeue (we'll need to wait for a new notification), and we can get them
 		// on deleted requests.
@@ -58,31 +58,31 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	// examine DeletionTimestamp to determine if object is under deletion
-	if !dc.ObjectMeta.DeletionTimestamp.IsZero() {
+	if !src.ObjectMeta.DeletionTimestamp.IsZero() {
 		// The object is being deleted
 		// Since this controller is used for the internal Core, we don't need to use finalizers
 
-		if err := r.EngineManager.UnbindDataConnector(dc.FQN()); err != nil {
+		if err := r.EngineManager.UnbindDataSource(src.FQN()); err != nil {
 			// if fail to delete, return with error, so that it can be retried
 			return ctrl.Result{}, err
 		}
 		return ctrl.Result{}, nil
 	}
 
-	if r.EngineManager.HasDataConnector(dc.FQN()) {
-		if err := r.EngineManager.UnbindDataConnector(dc.FQN()); err != nil {
+	if r.EngineManager.HasDataSource(src.FQN()) {
+		if err := r.EngineManager.UnbindDataSource(src.FQN()); err != nil {
 			// if fail to delete, return with error, so that it can be retried
 			return ctrl.Result{}, err
 		}
 	}
 
-	dci, err := api.DataConnectorFromManifest(ctx, dc, r.Reader)
+	dci, err := api.DataSourceFromManifest(ctx, src, r.Reader)
 	if err != nil {
-		logger.Error(err, "Failed to get DataConnector: %w", err)
+		logger.Error(err, "Failed to get DataSource: %w", err)
 		return ctrl.Result{}, err
 	}
 
-	if err := r.EngineManager.BindDataConnector(dci); err != nil {
+	if err := r.EngineManager.BindDataSource(dci); err != nil {
 		return ctrl.Result{RequeueAfter: 10 * time.Second}, err
 	}
 
@@ -90,6 +90,6 @@ func (r *DataConnectorReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 }
 
 // SetupWithManager sets up the controller with the Controller Manager.
-func (r *DataConnectorReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return attachCoreConnector(r, &raptorApi.DataConnector{}, true, mgr)
+func (r *DataSourceReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	return attachCoreController(r, &raptorApi.DataSource{}, true, mgr)
 }

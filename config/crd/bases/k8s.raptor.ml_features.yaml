@@ -66,7 +66,7 @@ spec:
                   kind:
                     description: Kind defines the type of Builder to use to build
                       the feature-value. The kind is usually auto-detected from the
-                      connector, but can be overridden.
+                      data-source, but can be overridden.
                     type: string
                   pyexp:
                     description: PyExp defines a Python expression to use to build
@@ -75,21 +75,6 @@ spec:
                     type: string
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
-              connector:
-                description: DataConnector is a reference for the DataConnector that
-                  this Feature is associated with
-                nullable: true
-                properties:
-                  name:
-                    description: Name is unique within a namespace to reference a
-                      resource.
-                    type: string
-                  namespace:
-                    description: Namespace defines the space within which the resource
-                      name must be unique.
-                    type: string
-                type: object
-                x-kubernetes-map-type: atomic
               freshness:
                 description: Freshness defines the age of a feature-value(time since
                   the value has set) to consider as *fresh*. Fresh values doesn't
@@ -109,6 +94,21 @@ spec:
                 - '[]timestamp'
                 - headless
                 type: string
+              source:
+                description: DataSource is a reference for the DataSource that this
+                  Feature is associated with
+                nullable: true
+                properties:
+                  name:
+                    description: Name is unique within a namespace to reference a
+                      resource.
+                    type: string
+                  namespace:
+                    description: Namespace defines the space within which the resource
+                      name must be unique.
+                    type: string
+                type: object
+                x-kubernetes-map-type: atomic
               staleness:
                 description: Staleness defines the age of a feature-value(time since
                   the value has set) to consider as *stale*. Stale values are not

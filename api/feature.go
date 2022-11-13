@@ -28,37 +28,38 @@ import (
 const FeatureSetBuilder = "featureset"
 const ExpressionBuilder = "expression"
 
-// DataConnector is a parsed abstracted representation of a manifests.DataConnector
-type DataConnector struct {
+// DataSource is a parsed abstracted representation of a manifests.DataSource
+type DataSource struct {
 	FQN    string                 `json:"fqn"`
 	Kind   string                 `json:"kind"`
 	Config manifests.ParsedConfig `json:"config"`
+	//Todo Schema
 }
 
-// DataConnectorFromManifest returns a DataConnector from a manifests.DataConnector
-func DataConnectorFromManifest(ctx context.Context, dc *manifests.DataConnector, r client.Reader) (DataConnector, error) {
-	pc, err := dc.ParseConfig(ctx, r)
+// DataSourceFromManifest returns a DataSource from a manifests.DataSource
+func DataSourceFromManifest(ctx context.Context, src *manifests.DataSource, r client.Reader) (DataSource, error) {
+	pc, err := src.ParseConfig(ctx, r)
 	if err != nil {
-		return DataConnector{}, fmt.Errorf("failed to parse config: %w", err)
+		return DataSource{}, fmt.Errorf("failed to parse config: %w", err)
 	}
 
-	return DataConnector{
-		FQN:    dc.FQN(),
-		Kind:   dc.Spec.Kind,
+	return DataSource{
+		FQN:    src.FQN(),
+		Kind:   src.Spec.Kind,
 		Config: pc,
 	}, nil
 }
 
 // FeatureDescriptor is describing a feature definition for an internal use of the Core.
 type FeatureDescriptor struct {
-	FQN           string        `json:"FQN"`
-	Primitive     PrimitiveType `json:"primitive"`
-	Aggr          []AggrFn      `json:"aggr"`
-	Freshness     time.Duration `json:"freshness"`
-	Staleness     time.Duration `json:"staleness"`
-	Timeout       time.Duration `json:"timeout"`
-	Builder       string        `json:"builder"`
-	DataConnector string        `json:"connector"`
+	FQN        string        `json:"FQN"`
+	Primitive  PrimitiveType `json:"primitive"`
+	Aggr       []AggrFn      `json:"aggr"`
+	Freshness  time.Duration `json:"freshness"`
+	Staleness  time.Duration `json:"staleness"`
+	Timeout    time.Duration `json:"timeout"`
+	Builder    string        `json:"builder"`
+	DataSource string        `json:"data_source"`
 }
 
 // ValidWindow checks if the feature have aggregation enabled, and if it is valid
@@ -111,8 +112,8 @@ func FeatureDescriptorFromManifest(in *manifests.Feature) (*FeatureDescriptor, e
 		Timeout:   in.Spec.Timeout.Duration,
 		Builder:   strings.ToLower(in.Spec.Builder.Kind),
 	}
-	if in.Spec.DataConnector != nil {
-		fd.DataConnector = in.Spec.DataConnector.FQN()
+	if in.Spec.DataSource != nil {
+		fd.DataSource = in.Spec.DataSource.FQN()
 	}
 	if fd.Builder == "" {
 		fd.Builder = ExpressionBuilder

@@ -64,15 +64,15 @@ def aggr(funcs: [AggrFn], granularity=None):
     return decorator
 
 
-def connector(name: str, namespace: str = None):
+def source(name: str, namespace: str = None):
     """
-    Register a DataConnector for the FeatureDefinition.
-    :param name: the name of the DataConnector.
-    :param namespace: the namespace of the DataConnector.
+    Register a DataSource for the FeatureDefinition.
+    :param name: the name of the DataSource.
+    :param namespace: the namespace of the DataSource.
     """
 
     def decorator(func):
-        return _opts(func, {"connector": ResourceReference(name, namespace)})
+        return _opts(func, {"datasource": ResourceReference(name, namespace)})
 
     return decorator
 
@@ -167,8 +167,8 @@ def register(primitive, staleness: str, freshness: str = '', options=None):
         if "namespace" in options:
             spec.namespace = options['namespace']
 
-        if "connector" in options:
-            spec.connector = options['connector']
+        if "datasource" in options:
+            spec.datasource = options['datasource']
         if "aggr" in options:
             for f in options['aggr'].funcs:
                 if not f.supports(spec.primitive):

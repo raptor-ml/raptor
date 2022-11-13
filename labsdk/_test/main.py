@@ -20,7 +20,7 @@ from labsdk.raptor.stub import *
 # getting started code
 
 @raptor.register(int, staleness='10h')
-@raptor.connector("emails")  # <-- we are decorating our feature with our production data-connector! 😎
+@raptor.source("emails")  # <-- we are decorating our feature with our production DataSource! 😎
 @raptor.aggr([raptor.AggrFn.Count], granularity='1m')
 def emails_10h(**req: RaptorRequest):
     """email over 10 hours"""
@@ -28,7 +28,7 @@ def emails_10h(**req: RaptorRequest):
 
 
 @raptor.register(float, staleness='10h')
-@raptor.connector("deals")
+@raptor.source("deals")
 @raptor.builder("streaming")
 @raptor.aggr([raptor.AggrFn.Sum, raptor.AggrFn.Avg, raptor.AggrFn.Max, raptor.AggrFn.Min], granularity='1m')
 def deals_10h(**req):
@@ -106,7 +106,7 @@ crm_records_df = pd.DataFrame.from_records([
 
 
 @raptor.register(int, staleness='8760h', freshness='24h')
-@raptor.connector("crm_updates")
+@raptor.source("crm_updates")
 @raptor.aggr([raptor.AggrFn.DistinctCount])
 def unique_deals_involvment_annualy(**req: RaptorRequest):
     if req['payload']['action'] == "deal_assigned":
@@ -118,7 +118,7 @@ unique_deals_involvment_annualy.replay(crm_records_df, entity_id_field='salesman
 
 
 @raptor.register(int, staleness='8760h', freshness='24h')
-@raptor.connector("crm_updates")
+@raptor.source("crm_updates")
 @raptor.aggr([raptor.AggrFn.Count])
 def closed_deals_annualy(**req: RaptorRequest):
     if req['payload']['action'] == "deal_closed":

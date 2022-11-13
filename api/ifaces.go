@@ -48,29 +48,29 @@ type FeatureManager interface {
 	HasFeature(FQN string) bool
 }
 
-// DataConnectorManager is managing DataConnector(s) within Core
-// It is responsible for maintaining the DataConnector(s) in an internal store
-type DataConnectorManager interface {
-	BindDataConnector(fd DataConnector) error
-	UnbindDataConnector(FQN string) error
-	HasDataConnector(FQN string) bool
+// DataSourceManager is managing DataSource(s) within Core
+// It is responsible for maintaining the DataSource(s) in an internal store
+type DataSourceManager interface {
+	BindDataSource(fd DataSource) error
+	UnbindDataSource(FQN string) error
+	HasDataSource(FQN string) bool
 }
 
-// DataConnectorGetter is a simple interface that returns a DataConnector
-type DataConnectorGetter interface {
-	GetDataConnector(FQN string) (DataConnector, error)
+// DataSourceGetter is a simple interface that returns a DataSource
+type DataSourceGetter interface {
+	GetDataSource(FQN string) (DataSource, error)
 }
 
-// EngineWithConnector is an Engine that has a DataConnector
-type EngineWithConnector interface {
+// EngineWithSource is an Engine that has a DataSource
+type EngineWithSource interface {
 	Engine
-	DataConnectorGetter
+	DataSourceGetter
 }
 
 // ManagerEngine is the business-logic implementation of the Core
 type ManagerEngine interface {
 	Logger
 	FeatureManager
-	DataConnectorManager
+	DataSourceManager
 	Engine
 }

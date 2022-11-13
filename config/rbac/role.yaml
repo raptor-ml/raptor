@@ -102,7 +102,7 @@ rules:
 - apiGroups:
   - k8s.raptor.ml
   resources:
-  - dataconnectors
+  - datasources
   verbs:
   - create
   - delete
@@ -114,13 +114,13 @@ rules:
 - apiGroups:
   - k8s.raptor.ml
   resources:
-  - dataconnectors/finalizers
+  - datasources/finalizers
   verbs:
   - update
 - apiGroups:
   - k8s.raptor.ml
   resources:
-  - dataconnectors/status
+  - datasources/status
   verbs:
   - get
   - patch

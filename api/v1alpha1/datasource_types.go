@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"encoding/json"
 	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,19 +26,29 @@ import (
 
 // Important: Run "make" to regenerate code after modifying this file
 
-// DataConnectorSpec defines the desired state of DataConnector
-type DataConnectorSpec struct {
-	// Kind of the DataConnector
+// DataSourceSpec defines the desired state of DataSource
+type DataSourceSpec struct {
+	// Kind of the DataSource
 	// +kubebuilder:validation:Required
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Connector Kind"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Data Source Kind"
 	Kind string `json:"kind"`
 
-	// Config of the DataConnector
+	// Config of the DataSource
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Config"
 	Config []ConfigVar `json:"config"`
 
-	// Resources defines the required resources for a single container(underlying implementation) of this DataConnector.
-	// Notice that this is not applicable for every DataConnector, but only for those who implement an External Runner.
+	// KeyFields are the fields that are used to identify the data source of a single data row.
+	// +kubebuilder:validation:Required
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Key Fields"
+	KeyFields []string `json:"keyFields"`
+
+	// TimestampField is the field that is used to identify the timestamp of a single data row.
+	// +optional
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Timestamp Field"
+	TimestampField string `json:"timestampField,omitempty"`
+
+	// Resources defines the required resources for a single container(underlying implementation) of this DataSource.
+	// Notice that this is not applicable for every DataSource, but only for those who implement an External Runner.
 	//
 	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 	// +optional
@@ -49,6 +60,13 @@ type DataConnectorSpec struct {
 	// +optional
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Replicas",xDescriptors={"urn:alm:descriptor:com.tectonic.ui:podCount"}
 	Replicas *int32 `json:"replicas,omitempty"`
+
+	// Schema defines the schema of the data source.
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:Schemaless
+	// +optional
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Schema"
+	Schema json.RawMessage `json:"schema,omitempty"`
 }
 
 // ConfigVar is a name/value pair for the config.
@@ -90,9 +108,9 @@ func (in *ResourceReference) FQN() string {
 	return fmt.Sprintf("%s.%s", in.Name, in.Namespace)
 }
 
-// DataConnectorStatus defines the observed state of DataConnector
-type DataConnectorStatus struct {
-	// Features includes a list of references for the Feature that uses this DataConnector
+// DataSourceStatus defines the observed state of DataSource
+type DataSourceStatus struct {
+	// Features includes a list of references for the Feature that uses this DataSource
 	// +operator-sdk:csv:customresourcedefinitions:type=status
 	Features []ResourceReference `json:"features"`
 
@@ -104,23 +122,23 @@ type DataConnectorStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas
-// +kubebuilder:resource:categories=datascience,shortName=conn
-// +operator-sdk:csv:customresourcedefinitions:displayName="DataConnector",resources={{Deployment,v1,raptor-conn-<name>}}
+// +kubebuilder:resource:categories=datascience,shortName=dsrc
+// +operator-sdk:csv:customresourcedefinitions:displayName="DataSource",resources={{Deployment,v1,raptor-dsrc-<name>}}
 
-// DataConnector is the Schema for the dataconnectors API
-type DataConnector struct {
+// DataSource is the Schema for the DataSource API
+type DataSource struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   DataConnectorSpec   `json:"spec,omitempty"`
-	Status DataConnectorStatus `json:"status,omitempty"`
+	Spec   DataSourceSpec   `json:"spec,omitempty"`
+	Status DataSourceStatus `json:"status,omitempty"`
 }
 
 // FQN returns the fully qualified name of the feature.
-func (in *DataConnector) FQN() string {
+func (in *DataSource) FQN() string {
 	return fmt.Sprintf("%s.%s", in.GetName(), in.GetNamespace())
 }
-func (in *DataConnector) ResourceReference() ResourceReference {
+func (in *DataSource) ResourceReference() ResourceReference {
 	return ResourceReference{
 		Namespace: in.GetNamespace(),
 		Name:      in.GetName(),
@@ -129,13 +147,13 @@ func (in *DataConnector) ResourceReference() ResourceReference {
 
 //+kubebuilder:object:root=true
 
-// DataConnectorList contains a list of DataConnector
-type DataConnectorList struct {
+// DataSourceList contains a list of DataSource
+type DataSourceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []DataConnector `json:"items"`
+	Items           []DataSource `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&DataConnector{}, &DataConnectorList{})
+	SchemeBuilder.Register(&DataSource{}, &DataSourceList{})
 }

@@ -254,7 +254,7 @@ class FeatureSpec(yaml.YAMLObject):
     staleness: datetime.timedelta = None
     timeout: datetime.timedelta = None
 
-    connector: ResourceReference = None
+    datasource: ResourceReference = None
     builder: BuilderSpec = BuilderSpec(None)
     aggr: AggrSpec = None
 
@@ -336,7 +336,7 @@ class FeatureSpec(yaml.YAMLObject):
                 "freshness": data.freshness,
                 "staleness": data.staleness,
                 "timeout": data.timeout,
-                "connector": None if data.connector is None else data.connector.__dict__,
+                "source": None if data.datasource is None else data.datasource.__dict__,
                 "builder": data.builder.__dict__,
             }
         }

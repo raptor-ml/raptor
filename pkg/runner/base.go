@@ -34,7 +34,7 @@ const runtimeImg = "ghcr.io/raptor-ml/raptor-runtime"
 var distrolessNoRootUser int64 = 65532
 
 type Base interface {
-	Reconcile(ctx context.Context, rr api.ReconcileRequest, conn *raptorApi.DataConnector) error
+	Reconcile(ctx context.Context, rr api.ReconcileRequest, src *raptorApi.DataSource) error
 }
 type BaseRunner struct {
 	Image           string
@@ -43,7 +43,7 @@ type BaseRunner struct {
 	SecurityContext *corev1.SecurityContext
 }
 
-func (r BaseRunner) Reconciler() (api.DataConnectorReconcile, error) {
+func (r BaseRunner) Reconciler() (api.DataSourceReconcile, error) {
 	if r.Image == "" {
 		return nil, fmt.Errorf("runner image is required")
 	}
@@ -64,13 +64,13 @@ func (r BaseRunner) reconcile(ctx context.Context, req api.ReconcileRequest) (bo
 	logger := log.FromContext(ctx)
 
 	deploy := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{
-		Name:      deploymentName(req.DataConnector),
-		Namespace: req.DataConnector.GetNamespace(),
+		Name:      deploymentName(req.DataSource),
+		Namespace: req.DataSource.GetNamespace(),
 	}}
 
 	op, err := ctrl.CreateOrUpdate(ctx, req.Client, deploy, func() error {
 		r.updateDeployment(deploy, req)
-		return ctrl.SetControllerReference(req.DataConnector, deploy, req.Scheme)
+		return ctrl.SetControllerReference(req.DataSource, deploy, req.Scheme)
 	})
 	if err != nil {
 		logger.Error(err, "Deployment reconcile failed")
@@ -85,15 +85,15 @@ func (r BaseRunner) reconcile(ctx context.Context, req api.ReconcileRequest) (bo
 
 func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.ReconcileRequest) {
 	labels := map[string]string{
-		"dataconnector-kind": req.DataConnector.Spec.Kind,
-		"dataconnector":      req.DataConnector.GetName(),
+		"data-source-kind": req.DataSource.Spec.Kind,
+		"data-source":      req.DataSource.GetName(),
 	}
 	deploy.ObjectMeta.Labels = labels
 
 	if deploy.Spec.Replicas == nil {
 		var replicas int32
-		if req.DataConnector.Spec.Replicas != nil {
-			replicas = *req.DataConnector.Spec.Replicas
+		if req.DataSource.Spec.Replicas != nil {
+			replicas = *req.DataSource.Spec.Replicas
 		} else {
 			replicas = 1
 		}
@@ -120,11 +120,11 @@ func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.Reconcil
 			Image: r.Image,
 			Name:  "runner",
 			Command: append(r.Command, []string{
-				"--dataconnector-resource", req.DataConnector.Name,
-				"--dataconnector-namespace", req.DataConnector.Namespace,
+				"--data-source-resource", req.DataSource.Name,
+				"--data-source-namespace", req.DataSource.Namespace,
 				"--runtime-grpc-addr", ":60005"}...),
 			Resources: corev1.ResourceRequirements{
-				Limits: req.DataConnector.Spec.Resources.Limits,
+				Limits: req.DataSource.Spec.Resources.Limits,
 			},
 			SecurityContext: &corev1.SecurityContext{
 				RunAsUser:    &distrolessNoRootUser,
@@ -139,7 +139,7 @@ func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.Reconcil
 				"--core-grpc-url", req.CoreAddress,
 				"--grpc-addr", ":60005",
 			},
-			Resources:       req.DataConnector.Spec.Resources,
+			Resources:       req.DataSource.Spec.Resources,
 			SecurityContext: r.SecurityContext,
 		}),
 	}
@@ -164,6 +164,6 @@ func containerWithDefaults(container corev1.Container) corev1.Container {
 	return container
 }
 
-func deploymentName(conn *raptorApi.DataConnector) string {
-	return fmt.Sprintf("raptor-conn-%s", conn.Name)
+func deploymentName(src *raptorApi.DataSource) string {
+	return fmt.Sprintf("raptor-dsrc-%s", src.Name)
 }

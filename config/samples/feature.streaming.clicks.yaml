@@ -12,7 +12,7 @@ spec:
   primitive: int
   freshness: 10s
   staleness: 1m
-  connector:
+  source:
     name: clicks
   builder:
     aggr:

@@ -35,7 +35,7 @@ func (c *coreController) NeedLeaderElection() bool {
 	return false
 }
 
-func attachCoreConnector(rcl reconcile.Reconciler, obj client.Object, updatesAllowed bool, mgr manager.Manager) error {
+func attachCoreController(rcl reconcile.Reconciler, obj client.Object, updatesAllowed bool, mgr manager.Manager) error {
 	_, err := newCoreController(rcl, obj, updatesAllowed, mgr)
 	return err
 }
