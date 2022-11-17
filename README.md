@@ -9,6 +9,7 @@
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fraptor-ml%2Fraptor.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fraptor-ml%2Fraptor?ref=badge_shield)
 <!-- [![Contributors][contributors-shield]][contributors-url] -->
 
 <br />
@@ -203,6 +204,9 @@ For more information about contributing code to the project, read the `CONTRIBUT
 Distributed under the Apache2 License. Read the `LICENSE` file for more information.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fraptor-ml%2Fraptor.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fraptor-ml%2Fraptor?ref=badge_large)
 
 ## 👫 Joining the community
 
