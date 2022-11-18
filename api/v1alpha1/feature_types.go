@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 )
 
 // AggrFn defines the type of aggregation
@@ -123,7 +124,9 @@ type Feature struct {
 
 // FQN returns the fully qualified name of the feature.
 func (in *Feature) FQN() string {
-	return fmt.Sprintf("%s.%s", in.GetName(), in.GetNamespace())
+	ns := strings.Replace(in.GetNamespace(), "-", "_", -1)
+	name := strings.Replace(in.GetName(), "-", "_", -1)
+	return fmt.Sprintf("%s.%s", ns, name)
 }
 
 func (in *Feature) ResourceReference() ResourceReference {

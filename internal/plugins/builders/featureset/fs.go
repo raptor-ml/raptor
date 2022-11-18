@@ -23,7 +23,6 @@ import (
 	"github.com/raptor-ml/raptor/api"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/raptor-ml/raptor/pkg/plugins"
-	"strings"
 	"sync"
 )
 
@@ -43,9 +42,13 @@ func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, fa
 		return fmt.Errorf("featureset must have at least 2 features")
 	}
 
+	ns, _, _, _, _, err := api.ParseFQN(fd.FQN)
+	if err != nil {
+		return err
+	}
+
 	//normalize features
 	for i, f := range spec.Features {
-		ns := fd.FQN[strings.Index(fd.FQN, ".")+1:]
 		spec.Features[i] = api.NormalizeFQN(f, ns)
 	}
 

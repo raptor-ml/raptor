@@ -104,8 +104,11 @@ func New(program string, fqn string) (Runtime, error) {
 	}
 
 	// Todo try multiple alt handlers, i.e. convert snake to camel case
-	altHandler := strings.SplitN(fqn, ".", 2)[0]
-	altHandler = strings.ReplaceAll(altHandler, "-", "_")
+	_, fname, _, _, _, err := api.ParseFQN(fqn)
+	if err != nil {
+		return nil, err
+	}
+	altHandler := strings.ReplaceAll(fname, "-", "_")
 	d.handler = programHandler(f, altHandler)
 	if d.handler == "" {
 		return nil, fmt.Errorf("`%s` func or `%s` has not declared and is required by the RaptorML spec", HandlerFuncName, altHandler)
