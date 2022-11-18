@@ -52,9 +52,10 @@ func GetDescriptor(protoFqn string) (protoreflect.MessageDescriptor, error) {
 		}
 		return nil, fmt.Errorf("failed to find a protobuf type `%s`: %w", protoFqn, err)
 	}
-	fqn := strings.Split(protoFqn, ".")
+	protoFQN := strings.Split(protoFqn, ".")
+	msgName := protoFQN[len(protoFQN)-1]
 
-	return fd.ParentFile().Messages().ByName(protoreflect.Name(fqn[len(fqn)-1])), nil
+	return fd.ParentFile().Messages().ByName(protoreflect.Name(msgName)), nil
 }
 
 // httpMemCache is a simple in-memory cache for http responses.

@@ -237,7 +237,7 @@ def feature_set(register=False, options=None):
                     raise Exception("Feature not found")
                 if ft.aggr is not None:
                     raise Exception(
-                        "You must specify a FQN with AggrFn(i.e. `name.namespace[sum]`) for aggregated features")
+                        "You must specify a FQN with AggrFn(i.e. `namespace.name+sum`) for aggregated features")
                 fts.append(ft.fqn())
 
         if hasattr(func, "__raptor_options"):
