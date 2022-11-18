@@ -64,11 +64,11 @@ func (s *serviceServer) Get(ctx context.Context, req *coreApi.GetRequest) (*core
 	if r, ok := resp.Value.(api.WindowResultMap); ok {
 		if len(fd.Aggr) < 1 {
 			return nil, status.Errorf(codes.InvalidArgument, "the feature is windowed, but requested window function not found."+
-				"please use s request with FullyQualifiedName with an aggregator i.e. `%s[%s]`", req.GetFqn(), fd.Aggr[0])
+				"please use s request with FullyQualifiedName with an aggregator i.e. `%s+%s`", req.GetFqn(), fd.Aggr[0])
 		}
 		if len(fd.Aggr) != 1 {
 			return nil, status.Errorf(codes.InvalidArgument, "the feature is windowed, but requested window function not found."+
-				"please use s request with FullyQualifiedName with an aggregator i.e. `%s[%s]`", req.GetFqn(), fd.Aggr[0])
+				"please use s request with FullyQualifiedName with an aggregator i.e. `%s+%s`", req.GetFqn(), fd.Aggr[0])
 		}
 		val = r[fd.Aggr[0]]
 	}

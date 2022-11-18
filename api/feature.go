@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
+	"regexp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"time"
@@ -125,15 +126,48 @@ func FeatureDescriptorFromManifest(in *manifests.Feature) (*FeatureDescriptor, e
 	return fd, nil
 }
 
-func NormalizeFQN(fqn, defaultNamespace string) string {
-	ns := strings.Index(fqn, ".")
-	if ns != -1 {
-		return fqn
+var FQNRegExp = regexp.MustCompile(`(?si)^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\[(?P<encoding>([a-z]+_*[a-z]+))])?$`)
+
+func ParseFQN(fqn string) (namespace, name, aggrFn, version, encoding string, err error) {
+	if !FQNRegExp.MatchString(fqn) {
+		return "", "", "", "", "", fmt.Errorf("invalid FQN: %s", fqn)
 	}
 
-	fn := strings.Index(fqn, "[")
-	if fn != -1 {
-		return fmt.Sprintf("%s.%s%s", fqn[:fn], defaultNamespace, fqn[fn:])
+	match := FQNRegExp.FindStringSubmatch(fqn)
+	parsedFQN := make(map[string]string)
+	for i, name := range FQNRegExp.SubexpNames() {
+		if i != 0 && name != "" {
+			parsedFQN[name] = match[i]
+		}
 	}
-	return fmt.Sprintf("%s.%s", fqn, defaultNamespace)
+
+	namespace = parsedFQN["namespace"]
+	name = parsedFQN["name"]
+	aggrFn = parsedFQN["aggrFn"]
+	version = parsedFQN["version"]
+	encoding = parsedFQN["encoding"]
+	return
+}
+
+func NormalizeFQN(fqn, defaultNamespace string) string {
+	ns, name, aggrFn, version, enc, err := ParseFQN(fqn)
+	if err != nil {
+		panic(err)
+	}
+
+	if ns == "" {
+		ns = defaultNamespace
+	}
+
+	other := ""
+	if aggrFn != "" {
+		other = fmt.Sprintf("%s+%s", other, aggrFn)
+	}
+	if version != "" {
+		other = fmt.Sprintf("%s@-%s", other, version)
+	}
+	if enc != "" {
+		other = fmt.Sprintf("%s[%s]", other, enc)
+	}
+	return fmt.Sprintf("%s.%s%s", ns, name, other)
 }

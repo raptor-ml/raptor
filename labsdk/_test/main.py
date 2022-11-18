@@ -20,7 +20,7 @@ from labsdk.raptor.stub import *
 # getting started code
 
 @raptor.register(int, staleness='10h')
-@raptor.source("emails")  # <-- we are decorating our feature with our production DataSource! 😎
+@raptor.data_source("emails")  # <-- we are decorating our feature with our production DataSource! 😎
 @raptor.aggr([raptor.AggrFn.Count], granularity='1m')
 def emails_10h(**req: RaptorRequest):
     """email over 10 hours"""
@@ -28,7 +28,7 @@ def emails_10h(**req: RaptorRequest):
 
 
 @raptor.register(float, staleness='10h')
-@raptor.source("deals")
+@raptor.data_source("deals")
 @raptor.builder("streaming")
 @raptor.aggr([raptor.AggrFn.Sum, raptor.AggrFn.Avg, raptor.AggrFn.Max, raptor.AggrFn.Min], granularity='1m')
 def deals_10h(**req):
@@ -39,21 +39,21 @@ def deals_10h(**req):
 @raptor.register('headless', staleness='-1', freshness='-1')
 def emails_deals(**req: RaptorRequest):
     """emails/deal[avg] rate over 10 hours"""
-    e, _ = get_feature("emails_10h[count]", req['entity_id'])
-    d, _ = get_feature("deals_10h[avg]", req['entity_id'])
-    if e == None or d == None:
+    e, _ = get_feature("emails_10h+count", req['entity_id'])
+    d, _ = get_feature("deals_10h+avg", req['entity_id'])
+    if e is None or d is None:
         return None
     return e / d
 
 
 @raptor.feature_set(register=True)
 def deal_prediction():
-    return "emails_10h[count]", "deals_10h[sum]", emails_deals
+    return "emails_10h+count", "deals_10h+sum", emails_deals
 
 
 @raptor.feature_set(register=True)
 def deal_prediction():
-    return "emails_10h[count]", "deals_10h[sum]", emails_deals
+    return "emails_10h+count", "deals_10h+sum", emails_deals
 
 
 # first, calculate the "root" features
@@ -106,7 +106,7 @@ crm_records_df = pd.DataFrame.from_records([
 
 
 @raptor.register(int, staleness='8760h', freshness='24h')
-@raptor.source("crm_updates")
+@raptor.data_source("crm_updates")
 @raptor.aggr([raptor.AggrFn.DistinctCount])
 def unique_deals_involvment_annualy(**req: RaptorRequest):
     if req['payload']['action'] == "deal_assigned":
@@ -118,7 +118,7 @@ unique_deals_involvment_annualy.replay(crm_records_df, entity_id_field='salesman
 
 
 @raptor.register(int, staleness='8760h', freshness='24h')
-@raptor.source("crm_updates")
+@raptor.data_source("crm_updates")
 @raptor.aggr([raptor.AggrFn.Count])
 def closed_deals_annualy(**req: RaptorRequest):
     if req['payload']['action'] == "deal_closed":
@@ -131,8 +131,8 @@ closed_deals_annualy.replay(crm_records_df, entity_id_field='salesman_id')
 
 @raptor.register(int, staleness='8760h', freshness='24h')
 def salesperson_deals_closes_rate(**req: RaptorRequest):
-    udia, _ = get_feature("unique_deals_involvment_annualy[distinct_count]", req['entity_id'])
-    cda, _ = get_feature("closed_deals_annualy[count]", req['entity_id'])
+    udia, _ = get_feature("unique_deals_involvment_annualy+distinct_count", req['entity_id'])
+    cda, _ = get_feature("closed_deals_annualy+count", req['entity_id'])
     if udia == None or cda == None:
         return None
     return udia / cda
@@ -218,7 +218,7 @@ commits_30m.replay(df, entity_id_field="account_id")
 
 @raptor.register(int, staleness='30m', freshness='1m', options={})
 def commits_30m_greater_2(**req):
-    res, _ = f("commits_30m[sum]", req['entity_id'])
+    res, _ = f("commits_30m+sum", req['entity_id'])
     """sum/max/count of commits over 30 minutes"""
     return res > 2
 
@@ -228,7 +228,7 @@ commits_30m_greater_2.replay(df, entity_id_field='account_id')
 
 @raptor.feature_set()
 def newest():
-    return "commits_30m[sum]", commits_30m_greater_2
+    return "commits_30m+sum", commits_30m_greater_2
 
 
 print(raptor.manifests())

@@ -19,7 +19,7 @@ jobs:
       - uses: bufbuild/buf-breaking-action@v1
         with:
           input: api/proto
-          against: .git#branch=master,subdir=api/proto
+          against: https://github.com/raptor-ml/raptor.git#branch=master,subdir=api/proto
       - name: Pushing to BSR
         if: success() && github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: bufbuild/buf-push-action@v1

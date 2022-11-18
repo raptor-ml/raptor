@@ -14,11 +14,9 @@
 
 from __future__ import annotations
 
-import re
-
 import pandas as pd
 
-from .types import FeatureSpec, AggrFn, FeatureSetSpec, normalize_fqn
+from .types import FeatureSpec, AggrFn, FeatureSetSpec, normalize_fqn, fqn_regex
 
 # registered features
 spec_registry: [FeatureSpec | FeatureSetSpec] = []
@@ -37,9 +35,9 @@ def check_valid_fqn(spec, fqn):
     if not isinstance(spec, FeatureSpec):
         raise Exception(f"`{fqn}` is not a feature")
     if spec.fqn() != fqn:
-        fn = re.match(r"^(.*)\[(.*)\]$", fqn)
+        fn = fqn_regex.match(fqn)
         if fn is not None:
-            fn = AggrFn(fn.group(2))
+            fn = AggrFn(fn.group("aggrFn"))
             if spec.aggr is None:
                 err = f"feature `{fqn}` is not an aggregation"
                 raise Exception(err)
@@ -54,7 +52,9 @@ def spec_by_fqn(fqn: str) -> FeatureSpec:
     global spec_registry
     fqn = normalize_fqn(fqn)
 
-    spec = next(filter(lambda m: isinstance(m, FeatureSpec) and m.fqn() == fqn.split("[")[0], spec_registry), None)
+    matches = fqn_regex.match(fqn)
+    base_fqn = f"{matches.group('namespace')}.{matches.group('name')}"
+    spec = next(filter(lambda m: isinstance(m, FeatureSpec) and m.fqn() == base_fqn, spec_registry), None)
     if spec is None:
         raise Exception(f"feature `{fqn}` is not registered locally")
     check_valid_fqn(spec, fqn)

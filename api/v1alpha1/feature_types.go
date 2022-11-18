@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 )
 
 // AggrFn defines the type of aggregation
@@ -61,7 +62,7 @@ type FeatureSpec struct {
 	// +optional
 	// +nullable
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Data Source"
-	DataSource *ResourceReference `json:"source,omitempty"`
+	DataSource *ResourceReference `json:"dataSource,omitempty"`
 
 	// Builder defines a building-block to use to build the feature-value
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Builder"
@@ -85,7 +86,7 @@ type FeatureBuilder struct {
 	// AggrGranularity defines the granularity of the aggregation.
 	// +optional
 	// +nullable
-	AggrGranularity metav1.Duration `json:"aggr_granularity"`
+	AggrGranularity metav1.Duration `json:"aggrGranularity"`
 
 	// PyExp defines a Python expression to use to build the feature-value.
 	// +optional
@@ -123,7 +124,9 @@ type Feature struct {
 
 // FQN returns the fully qualified name of the feature.
 func (in *Feature) FQN() string {
-	return fmt.Sprintf("%s.%s", in.GetName(), in.GetNamespace())
+	ns := strings.Replace(in.GetNamespace(), "-", "_", -1)
+	name := strings.Replace(in.GetName(), "-", "_", -1)
+	return fmt.Sprintf("%s.%s", ns, name)
 }
 
 func (in *Feature) ResourceReference() ResourceReference {

@@ -59,7 +59,7 @@ spec:
                       type: string
                     nullable: true
                     type: array
-                  aggr_granularity:
+                  aggrGranularity:
                     description: AggrGranularity defines the granularity of the aggregation.
                     nullable: true
                     type: string
@@ -75,6 +75,21 @@ spec:
                     type: string
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
+              dataSource:
+                description: DataSource is a reference for the DataSource that this
+                  Feature is associated with
+                nullable: true
+                properties:
+                  name:
+                    description: Name is unique within a namespace to reference a
+                      resource.
+                    type: string
+                  namespace:
+                    description: Namespace defines the space within which the resource
+                      name must be unique.
+                    type: string
+                type: object
+                x-kubernetes-map-type: atomic
               freshness:
                 description: Freshness defines the age of a feature-value(time since
                   the value has set) to consider as *fresh*. Fresh values doesn't
@@ -94,21 +109,6 @@ spec:
                 - '[]timestamp'
                 - headless
                 type: string
-              source:
-                description: DataSource is a reference for the DataSource that this
-                  Feature is associated with
-                nullable: true
-                properties:
-                  name:
-                    description: Name is unique within a namespace to reference a
-                      resource.
-                    type: string
-                  namespace:
-                    description: Namespace defines the space within which the resource
-                      name must be unique.
-                    type: string
-                type: object
-                x-kubernetes-map-type: atomic
               staleness:
                 description: Staleness defines the age of a feature-value(time since
                   the value has set) to consider as *stale*. Stale values are not
