@@ -26,7 +26,7 @@ import (
 func (e *engine) getValueMiddleware() api.Middleware {
 	return func(next api.MiddlewareHandler) api.MiddlewareHandler {
 		return func(ctx context.Context, fd api.FeatureDescriptor, entityID string, val api.Value) (api.Value, error) {
-			if fd.Primitive == api.PrimitiveTypeHeadless {
+			if fd.DataSource == "" {
 				return next(ctx, fd, entityID, val)
 			}
 
@@ -73,7 +73,7 @@ func (e *engine) cachePostGetMiddleware(f *Feature) api.Middleware {
 	return func(next api.MiddlewareHandler) api.MiddlewareHandler {
 		return func(ctx context.Context, fd api.FeatureDescriptor, entityID string, val api.Value) (api.Value, error) {
 			// If the value is nil, we should not cache the value.
-			if val.Value == nil || fd.ValidWindow() || fd.Primitive == api.PrimitiveTypeHeadless {
+			if val.Value == nil || fd.ValidWindow() || fd.DataSource == "" {
 				return next(ctx, fd, entityID, val)
 			}
 
@@ -121,7 +121,7 @@ func (e *engine) writePipeline(f *Feature, method api.StateMethod) Pipeline {
 func (e *engine) setMiddleware(method api.StateMethod) api.Middleware {
 	return func(next api.MiddlewareHandler) api.MiddlewareHandler {
 		return func(ctx context.Context, fd api.FeatureDescriptor, entityID string, val api.Value) (api.Value, error) {
-			if fd.Primitive == api.PrimitiveTypeHeadless {
+			if fd.DataSource == "" {
 				return next(ctx, fd, entityID, val)
 			}
 

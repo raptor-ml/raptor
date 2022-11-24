@@ -59,6 +59,7 @@ type FeatureDescriptor struct {
 	Freshness  time.Duration `json:"freshness"`
 	Staleness  time.Duration `json:"staleness"`
 	Timeout    time.Duration `json:"timeout"`
+	Keys       []string      `json:"keys"`
 	Builder    string        `json:"builder"`
 	DataSource string        `json:"data_source"`
 }
@@ -111,6 +112,7 @@ func FeatureDescriptorFromManifest(in *manifests.Feature) (*FeatureDescriptor, e
 		Freshness: in.Spec.Freshness.Duration,
 		Staleness: in.Spec.Staleness.Duration,
 		Timeout:   in.Spec.Timeout.Duration,
+		Keys:      in.Spec.Keys,
 		Builder:   strings.ToLower(in.Spec.Builder.Kind),
 	}
 	if in.Spec.DataSource != nil {

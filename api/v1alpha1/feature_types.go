@@ -30,7 +30,7 @@ import (
 type AggrFn string
 
 // PrimitiveType defines the type of primitive
-// +kubebuilder:validation:Enum=int;float;string;timestamp;[]int;[]float;[]string;[]timestamp;headless
+// +kubebuilder:validation:Enum=int;float;string;timestamp;[]int;[]float;[]string;[]timestamp
 type PrimitiveType string
 
 // FeatureSpec defines the desired state of Feature
@@ -57,6 +57,11 @@ type FeatureSpec struct {
 	// +nullable
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Timeout"
 	Timeout metav1.Duration `json:"timeout"`
+
+	// Keys defines the list of keys that are required to calculate the feature value.
+	// +kubebuilder:validation:Required
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Keys"
+	Keys []string `json:"keys"`
 
 	// DataSource is a reference for the DataSource that this Feature is associated with
 	// +optional

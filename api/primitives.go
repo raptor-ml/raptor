@@ -29,12 +29,13 @@ type PrimitiveType int
 const (
 	PrimitiveTypeUnknown PrimitiveType = iota
 	PrimitiveTypeString
-	PrimitiveTypeTimestamp
 	PrimitiveTypeInteger
 	PrimitiveTypeFloat
+	PrimitiveTypeTimestamp
+
+	PrimitiveTypeStringList
 	PrimitiveTypeIntegerList
 	PrimitiveTypeFloatList
-	PrimitiveTypeStringList
 	PrimitiveTypeTimestampList
 	PrimitiveTypeHeadless
 )
@@ -43,22 +44,20 @@ func StringToPrimitiveType(s string) PrimitiveType {
 	switch strings.ToLower(s) {
 	case "string", "text":
 		return PrimitiveTypeString
-	case "time", "datetime", "timestamp", "time.time":
-		return PrimitiveTypeTimestamp
 	case "integer", "int", "int32":
 		return PrimitiveTypeInteger
 	case "float", "double", "float32", "float64":
 		return PrimitiveTypeFloat
+	case "time", "datetime", "timestamp", "time.time":
+		return PrimitiveTypeTimestamp
+	case "[]string", "[]text":
+		return PrimitiveTypeStringList
 	case "[]integer", "[]int", "[]int64", "[]int32":
 		return PrimitiveTypeIntegerList
 	case "[]float", "[]double", "[]float32", "[]float64":
 		return PrimitiveTypeFloatList
-	case "[]string", "[]text":
-		return PrimitiveTypeStringList
 	case "[]time", "[]datetime", "[]timestamp", "[]time.time":
 		return PrimitiveTypeTimestampList
-	case "headless":
-		return PrimitiveTypeHeadless
 	default:
 		return PrimitiveTypeUnknown
 	}
@@ -88,14 +87,14 @@ func (pt PrimitiveType) Singular() PrimitiveType {
 }
 func (pt PrimitiveType) Plural() PrimitiveType {
 	switch pt {
-	case PrimitiveTypeTimestamp:
-		return PrimitiveTypeTimestampList
 	case PrimitiveTypeString:
 		return PrimitiveTypeStringList
 	case PrimitiveTypeInteger:
 		return PrimitiveTypeIntegerList
 	case PrimitiveTypeFloat:
 		return PrimitiveTypeFloatList
+	case PrimitiveTypeTimestamp:
+		return PrimitiveTypeTimestampList
 	default:
 		return pt
 	}
@@ -104,22 +103,20 @@ func (pt PrimitiveType) String() string {
 	switch pt {
 	case PrimitiveTypeString:
 		return "string"
-	case PrimitiveTypeTimestamp:
-		return "timestamp"
 	case PrimitiveTypeInteger:
 		return "int"
 	case PrimitiveTypeFloat:
 		return "float"
+	case PrimitiveTypeTimestamp:
+		return "timestamp"
+	case PrimitiveTypeStringList:
+		return "[]string"
 	case PrimitiveTypeIntegerList:
 		return "[]int"
 	case PrimitiveTypeFloatList:
 		return "[]]list"
-	case PrimitiveTypeStringList:
-		return "[]string"
 	case PrimitiveTypeTimestampList:
 		return "[]timestamp"
-	case PrimitiveTypeHeadless:
-		return "headless"
 	default:
 		return "(unknown)"
 	}

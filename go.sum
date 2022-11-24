@@ -812,6 +812,10 @@ go.buf.build/raptor/api-go/envoyproxy/protoc-gen-validate v1.3.8 h1:NgwD3pWCPtEh
 go.buf.build/raptor/api-go/envoyproxy/protoc-gen-validate v1.3.8/go.mod h1:88DcUfbsM/rfC2hyCZ6SPrko1cVhtmr5d0Vwc6vSbqI=
 go.buf.build/raptor/api-go/raptor/core v1.3.3 h1:5ayY0Cv+j7uw6kVHXKERi6l6ccREbTB8y/dou6PHYRk=
 go.buf.build/raptor/api-go/raptor/core v1.3.3/go.mod h1:+HCGR/AYEEcWGH5Yx8ZSP6L6WO5ZpH8+QWw49q5+euE=
+go.buf.build/raptor/api-go/raptor/core v1.3.4 h1:0SmXrEVjA4Yxfn3WBqD38XJ7hcY/Uu1e9DJLhcnJgbk=
+go.buf.build/raptor/api-go/raptor/core v1.3.4/go.mod h1:+HCGR/AYEEcWGH5Yx8ZSP6L6WO5ZpH8+QWw49q5+euE=
+go.buf.build/raptor/api-go/raptor/core v1.3.5 h1:9J3gyoilhTpb7/fyqVHs46Wco8nE74Pk9WZL2rfcqSs=
+go.buf.build/raptor/api-go/raptor/core v1.3.5/go.mod h1:+HCGR/AYEEcWGH5Yx8ZSP6L6WO5ZpH8+QWw49q5+euE=
 go.opencensus.io v0.15.0/go.mod h1:UffZAU+4sDEINUGP/B7UfBBkq4fqLu9zXAX7ke6CHW0=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=

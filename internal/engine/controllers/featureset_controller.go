@@ -67,7 +67,7 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			Namespace: fs.Namespace,
 		},
 		Spec: raptorApi.FeatureSpec{
-			Primitive: raptorApi.PrimitiveType(api.PrimitiveTypeHeadless.String()),
+			Primitive: raptorApi.PrimitiveType(api.PrimitiveTypeUnknown.String()),
 			Timeout:   fs.Spec.Timeout,
 		},
 	}

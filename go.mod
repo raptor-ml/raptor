@@ -1,6 +1,6 @@
 module github.com/raptor-ml/raptor
 
-go 1.18
+go 1.19
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.17.1
@@ -36,7 +36,7 @@ require (
 	github.com/vladimirvivien/gexe v0.1.1
 	github.com/xitongsys/parquet-go v1.6.2
 	github.com/xitongsys/parquet-go-source v0.0.0-20221025031416-9877e685ef65
-	go.buf.build/raptor/api-go/raptor/core v1.3.3
+	go.buf.build/raptor/api-go/raptor/core v1.3.5
 	go.starlark.net v0.0.0-20221028183056-acb66ad56dd2
 	go.uber.org/zap v1.23.0
 	golang.org/x/sync v0.1.0

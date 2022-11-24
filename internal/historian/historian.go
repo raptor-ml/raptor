@@ -33,6 +33,7 @@ const SyncPeriod = time.Duration(float32(api.DeadGracePeriod) / 2.5)
 const DeadRequestMarker = "*dead*"
 
 // Although this is done at compile time, we want to make sure nobody messed with the numbers inappropriately
+//
 //goland:noinspection GoBoolExpressions
 func init() {
 	if api.DeadGracePeriod < (SyncPeriod - (30 * time.Second)) {
@@ -111,7 +112,7 @@ func (h *historian) BindFeature(in *manifests.Feature) error {
 	if err := h.HistoricalWriter.BindFeature(fd, fs, h.FeatureDescriptor); err != nil {
 		return fmt.Errorf("failed to bind feature to historical writer: %w", err)
 	}
-	if fd.Primitive == api.PrimitiveTypeHeadless {
+	if fd.DataSource == "" {
 		// Headless features are not stored and not backed up to historical storage
 		return nil
 	}
