@@ -33,6 +33,7 @@ message LoadProgramRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
     string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
     string program = 3;
+    repeated string packages = 4;
 }
 message LoadProgramResponse {
     enum PrimitiveType {

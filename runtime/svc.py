@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-
+import subprocess
 import warnings
 from datetime import datetime
 from uuid import uuid4
@@ -32,7 +32,6 @@ from proto.raptor.core.v1alpha1 import types_pb2 as types_pb2
 from proto.raptor.runtime.v1alpha1 import api_pb2
 from proto.raptor.runtime.v1alpha1 import api_pb2_grpc
 
-
 class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
     programs: Dict[str, Program] = {}
     engine: core_grpc.EngineServiceStub
@@ -49,6 +48,9 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
 
     async def LoadProgram(self, request: api_pb2.LoadProgramRequest, context: ServicerContext):
         try:
+            for pkg in request.packages:
+                subprocess.run([sys.executable, "-m", "pip", "install", pkg], check=True)
+
             program = Program(request.program)
             self.programs[request.fqn] = program
             return api_pb2.LoadProgramResponse(uuid=request.uuid)
