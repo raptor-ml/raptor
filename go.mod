@@ -11,6 +11,7 @@ require (
 	github.com/cloudevents/sdk-go/binding/format/protobuf/v2 v2.12.0
 	github.com/cloudevents/sdk-go/v2 v2.12.0
 	github.com/die-net/lrucache v0.0.0-20220628165024-20a71bc65bf1
+	github.com/envoyproxy/protoc-gen-validate v0.1.0
 	github.com/go-logr/logr v1.2.3
 	github.com/go-logr/zapr v1.2.3
 	github.com/go-redis/redis/v8 v8.11.5
@@ -39,6 +40,7 @@ require (
 	go.starlark.net v0.0.0-20221028183056-acb66ad56dd2
 	go.uber.org/zap v1.23.0
 	golang.org/x/sync v0.1.0
+	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c
 	google.golang.org/grpc v1.50.1
 	google.golang.org/protobuf v1.28.1
 	k8s.io/api v0.25.3
@@ -147,7 +149,6 @@ require (
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	gonum.org/v1/gonum v0.11.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect

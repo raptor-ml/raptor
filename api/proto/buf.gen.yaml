@@ -24,3 +24,9 @@ plugins:
     opt:
       - paths=source_relative
       - lang=go
+  - remote: buf.build/protocolbuffers/plugins/python
+    out: gen/python
+  - remote: buf.build/protocolbuffers/plugins/pyi
+    out: gen/python
+  - remote: buf.build/grpc/plugins/python
+    out: gen/python

@@ -150,6 +150,7 @@ func Core(mgr manager.Manager, certsReady chan struct{}) {
 	// Create a new Accessor
 	acc := accessor.New(eng, ctrl.Log.WithName("accessor"))
 	OrFail(mgr.Add(acc.GRPC(viper.GetString("accessor-grpc-address"))), "unable to start gRPC accessor")
+	OrFail(mgr.Add(acc.GrpcUds()), "unable to start gRPC UDS accessor")
 	OrFail(
 		mgr.Add(acc.HTTP(viper.GetString("accessor-http-address"), viper.GetString("accessor-http-prefix"))),
 		"unable to start HTTP accessor")

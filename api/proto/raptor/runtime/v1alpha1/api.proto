@@ -3,34 +3,52 @@ syntax = "proto3";
 package raptor.runtime.v1alpha1;
 
 import "google/api/annotations.proto";
-import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+import "raptor/core/v1alpha1/types.proto";
 import "validate/validate.proto";
 
 option go_package = "github.com/raptor-ml/raptor/core/v1alpha1;coreV1alpha1";
 
+// +++  SideEffects +++
+message SideEffects {
+    string kind = 1;
+    map<string, string> args = 2;
+    bool conditional = 3;
+}
+
 // +++ Read methods +++
 
-message ExecutePyExpRequest {
+message ExecuteProgramRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
     string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-    string program_hash = 3 [(validate.rules).string.len = 64];
-    optional string entity_id = 4;
-    google.protobuf.Any data = 5 [(validate.rules).any = {
-        required: true,
-        in: ["type.googleapis.com/pb.CloudEvent"]
-    }];
+    map<string, string> keys = 3;
+    map<string, raptor.core.v1alpha1.Value> data = 4;
+    google.protobuf.Timestamp timestamp = 5;
 }
-message ExecutePyExpResponse {
+message ExecuteProgramResponse {
     string uuid = 1 [(validate.rules).string.uuid = true];
+    raptor.core.v1alpha1.Value result = 2;
 }
-message LoadPyExpProgramRequest {
+message LoadProgramRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
     string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
     string program = 3;
 }
-message LoadPyExpProgramResponse {
+message LoadProgramResponse {
+    enum PrimitiveType {
+        STRING = 0;
+        INT = 1;
+        FLOAT = 2;
+        TIMESTAMP = 3;
+        BOOL = 4;
+        STRING_LIST = 5;
+        INT_LIST = 6;
+        FLOAT_LIST = 7;
+        TIMESTAMP_LIST = 8;
+        BOOL_LIST = 9;
+    }
     string uuid = 1 [(validate.rules).string.uuid = true];
-    string program_hash = 3;
+
 }
 message RegisterSchemaRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
@@ -42,9 +60,9 @@ message RegisterSchemaResponse {
 
 // +++ Service +++
 service RuntimeService {
-    rpc LoadPyExpProgram (LoadPyExpProgramRequest) returns (LoadPyExpProgramResponse) {
+    rpc LoadProgram (LoadProgramRequest) returns (LoadProgramResponse) {
         option (google.api.http) = {
-            post: "/pyexp"
+            post: "/program"
             body: "*"
         };
     }
@@ -54,9 +72,9 @@ service RuntimeService {
             body: "*"
         };
     }
-    rpc ExecutePyExp (ExecutePyExpRequest) returns (ExecutePyExpResponse) {
+    rpc ExecuteProgram (ExecuteProgramRequest) returns (ExecuteProgramResponse) {
         option (google.api.http) = {
-            post: "/pyexp/{program_hash}"
+            post: "/program/{fqn}"
             body: "*"
         };
     }

@@ -15,7 +15,7 @@ option go_package = "github.com/raptor-ml/raptor/core/v1alpha1;coreV1alpha1";
 message GetRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
     string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-    string entity_id = 3;
+    map<string, string> keys = 3;
 }
 message GetResponse {
     string uuid = 1 [(validate.rules).string.uuid = true];
@@ -28,7 +28,7 @@ message GetResponse {
 message SetRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
     string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-    string entity_id = 3;
+    map<string, string> keys = 3;
     Value value = 4;
     google.protobuf.Timestamp timestamp = 5;
 }
@@ -40,7 +40,7 @@ message SetResponse {
 message AppendRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
     string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-    string entity_id = 3;
+    map<string, string> keys = 3;
     Scalar value = 4;
     google.protobuf.Timestamp timestamp = 5;
 }
@@ -52,7 +52,7 @@ message AppendResponse {
 message IncrRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
     string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-    string entity_id = 3;
+    map<string, string> keys = 3;
     Scalar value = 4;
     google.protobuf.Timestamp timestamp = 5;
 }
@@ -64,7 +64,7 @@ message IncrResponse {
 message UpdateRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
     string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-    string entity_id = 3;
+    map<string, string> keys = 3;
     Value value = 4;
     google.protobuf.Timestamp timestamp = 5;
 }
@@ -86,32 +86,35 @@ message FeatureDescriptorResponse {
 service EngineService {
     rpc FeatureDescriptor (FeatureDescriptorRequest) returns (FeatureDescriptorResponse) {
         option (google.api.http) = {
-            get: "/{fqn}"
+            custom: {
+                kind: "HEAD",
+                path: "/{fqn}"
+            }
         };
     }
     rpc Get (GetRequest) returns (GetResponse) {
         option (google.api.http) = {
-            get: "/{fqn}/{entity_id}"
+            get: "/{fqn}"
         };
     }
     rpc Set (SetRequest) returns (SetResponse) {
         option (google.api.http) = {
-            put: "/{fqn}/{entity_id}"
+            put: "/{fqn}"
         };
     }
     rpc Append (AppendRequest) returns (AppendResponse) {
         option (google.api.http) = {
-            post: "/{fqn}/{entity_id}/append"
+            post: "/{fqn}/append"
         };
     }
     rpc Incr (IncrRequest) returns (IncrResponse) {
         option (google.api.http) = {
-            post: "/{fqn}/{entity_id}/incr"
+            post: "/{fqn}/incr"
         };
     }
     rpc Update (UpdateRequest) returns (UpdateResponse) {
         option (google.api.http) = {
-            post: "/{fqn}/{entity_id}"
+            post: "/{fqn}"
         };
     }
 }

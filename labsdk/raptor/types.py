@@ -181,7 +181,7 @@ class Primitive(Enum):
             return Primitive.Integer
         elif p == 'float' or p == float:
             return Primitive.Float
-        elif p == 'timestamp' or p == datetime:
+        elif p == 'timestamp' or p == datetime.datetime:
             return Primitive.Timestamp
         elif p == '[]string' or p == [str]:
             return Primitive.StringList
@@ -189,7 +189,7 @@ class Primitive(Enum):
             return Primitive.IntList
         elif p == '[]float' or p == [float]:
             return Primitive.FloatList
-        elif p == '[]timestamp' or p == [datetime]:
+        elif p == '[]timestamp' or p == [datetime.datetime]:
             return Primitive.TimestampList
         elif p == 'headless':
             return Primitive.Headless

@@ -18,7 +18,6 @@ package programregistry
 
 import (
 	"context"
-	"crypto/sha256"
 	"fmt"
 	"github.com/jellydator/ttlcache/v3"
 	"github.com/raptor-ml/raptor/api"
@@ -34,7 +33,7 @@ var ErrNotFound = fmt.Errorf("not found")
 // This allows the runtime to store the program regardless to the feature definition, and to execute programs
 // by passing their hash.
 type Registry interface {
-	Register(program string, fqn string) (hash string, err error)
+	Register(program string, fqn string) error
 	Get(hash string) (program pyexp.Runtime, err error)
 }
 type registry struct {
@@ -60,22 +59,18 @@ func New(ctx context.Context, engine api.Engine) Registry {
 }
 
 // Register a program
-func (r *registry) Register(program string, fqn string) (string, error) {
-	if v := r.cache.Get(program); v != nil {
-		return "", ErrAlreadyRegistered
+func (r *registry) Register(program string, fqn string) error {
+	if v := r.cache.Get(fqn); v != nil {
+		return ErrAlreadyRegistered
 	}
 
 	rt, err := pyexp.New(program, fqn)
 	if err != nil {
-		return "", fmt.Errorf("failed to create pyexp runtime: %w", err)
+		return fmt.Errorf("failed to create pyexp runtime: %w", err)
 	}
+	r.cache.Set(fqn, rt, ttlcache.DefaultTTL)
 
-	h := sha256.New()
-	h.Write([]byte(program))
-	sum := fmt.Sprintf("%x", h.Sum(nil))
-	r.cache.Set(sum, rt, ttlcache.DefaultTTL)
-
-	return sum, nil
+	return nil
 }
 
 // Get a program by its hash
