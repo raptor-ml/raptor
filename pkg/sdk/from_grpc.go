@@ -68,14 +68,14 @@ func FromAPIAggrFuncs(fs []coreApi.AggrFn) []api.AggrFn {
 }
 func FromAPIFeatureDescriptor(m *coreApi.FeatureDescriptor) api.FeatureDescriptor {
 	return api.FeatureDescriptor{
-		FQN:           m.Fqn,
-		Primitive:     FromAPIPrimitive(m.Primitive),
-		Aggr:          FromAPIAggrFuncs(m.Aggr),
-		Freshness:     m.Freshness.AsDuration(),
-		Staleness:     m.Staleness.AsDuration(),
-		Timeout:       m.Timeout.AsDuration(),
-		Builder:       m.Builder,
-		DataConnector: m.DataConnector,
+		FQN:        m.Fqn,
+		Primitive:  FromAPIPrimitive(m.Primitive),
+		Aggr:       FromAPIAggrFuncs(m.Aggr),
+		Freshness:  m.Freshness.AsDuration(),
+		Staleness:  m.Staleness.AsDuration(),
+		Timeout:    m.Timeout.AsDuration(),
+		Builder:    m.Builder,
+		DataSource: m.DataSource,
 	}
 }
 

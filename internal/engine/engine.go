@@ -29,11 +29,11 @@ import (
 )
 
 type engine struct {
-	features       sync.Map
-	dataConnectors sync.Map
-	state          api.State
-	historian      historian.Client
-	logger         logr.Logger
+	features    sync.Map
+	dataSources sync.Map
+	state       api.State
+	historian   historian.Client
+	logger      logr.Logger
 }
 
 // New creates a new engine manager

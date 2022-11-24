@@ -74,7 +74,7 @@ message UpdateResponse {
 }
 message FeatureDescriptorRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
-    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    string fqn = 2 [(validate.rules).string.pattern = "(?si)^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\\[(?P<encoding>([a-z]+_*[a-z]+))])?$"];
 }
 message FeatureDescriptorResponse {
     string uuid = 1 [(validate.rules).string.uuid = true];

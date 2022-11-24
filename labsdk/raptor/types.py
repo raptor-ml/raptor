@@ -104,12 +104,33 @@ def _wrap_exception(e: Exception, program: PyExpProgram, *args, **kwargs):
             .with_traceback(tb)
 
 
+fqn_regex = re.compile(
+    r"^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\[(?P<encoding>([a-z]+_*[a-z]+))])?$",
+    re.IGNORECASE | re.DOTALL)
+
+
 def normalize_fqn(fqn):
-    if "." in fqn:
-        return fqn
-    if "[" in fqn:
-        return f"{fqn[:fqn.index('[')]}.{default_namespace}{fqn[fqn.index('['):]}"
-    return f"{fqn}.{default_namespace}"
+    matches = fqn_regex.match(fqn)
+    if matches is None:
+        raise Exception(f"Invalid fqn: {fqn}")
+    namespace = matches.group("namespace")
+    name = matches.group("name")
+    aggrFn = matches.group("aggrFn")
+    version = matches.group("version")
+    encoding = matches.group("encoding")
+
+    if namespace is None:
+        namespace = default_namespace
+
+    extra = ""
+    if aggrFn is not None and aggrFn != "":
+        extra += f"+{aggrFn}"
+    if version is not None and version != "":
+        extra += f"@-{version}"
+    if encoding is not None and encoding != "":
+        extra += f"[{encoding}]"
+
+    return f"{namespace}.{name}{extra}"
 
 
 def _k8s_name(name):
@@ -254,7 +275,7 @@ class FeatureSpec(yaml.YAMLObject):
     staleness: datetime.timedelta = None
     timeout: datetime.timedelta = None
 
-    connector: ResourceReference = None
+    data_source: ResourceReference = None
     builder: BuilderSpec = BuilderSpec(None)
     aggr: AggrSpec = None
 
@@ -300,8 +321,8 @@ class FeatureSpec(yaml.YAMLObject):
 
     def fqn(self):
         if self.namespace is None:
-            return f"{self.name}.{default_namespace}"
-        return f"{self.name}.{self.namespace}"
+            return f"{default_namespace}.{self.name}"
+        return f"{self.namespace}.{self.name}"
 
     def __str__(self):
         return self.__repr__()
@@ -317,7 +338,7 @@ class FeatureSpec(yaml.YAMLObject):
     def to_yaml(cls, dumper: yaml.dumper.Dumper, data: 'FeatureSpec'):
         if data.aggr is not None:
             data.builder.aggr = data.aggr.funcs
-            data.builder.aggr_granularity = data.aggr.granularity
+            data.builder.aggrGranularity = data.aggr.granularity
         data.builder.pyexp = data.program.code
 
         data.annotations['a8r.io/description'] = data.description
@@ -336,7 +357,7 @@ class FeatureSpec(yaml.YAMLObject):
                 "freshness": data.freshness,
                 "staleness": data.staleness,
                 "timeout": data.timeout,
-                "connector": None if data.connector is None else data.connector.__dict__,
+                "dataSource": None if data.data_source is None else data.data_source.__dict__,
                 "builder": data.builder.__dict__,
             }
         }
@@ -361,8 +382,8 @@ class FeatureSetSpec(yaml.YAMLObject):
 
     def fqn(self):
         if self.namespace is None:
-            return f"{self.name}.{default_namespace}"
-        return f"{self.name}.{self.namespace}"
+            return f"{self.namespace}.{self.name}"
+        return f"{self.namespace}.{self.name}"
 
     def __str__(self):
         return self.__repr__()

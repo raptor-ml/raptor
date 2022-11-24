@@ -52,7 +52,7 @@ type Spec struct {
 
 var httpMemoryCache = lrucache.New(500<<(10*2), 60*15) // 500MB; 15min
 
-func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
+func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithSource) error {
 	spec := &Spec{}
 	err := json.Unmarshal(builder.Raw, spec)
 	if err != nil {

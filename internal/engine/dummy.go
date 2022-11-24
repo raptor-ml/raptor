@@ -23,7 +23,7 @@ import (
 )
 
 type Dummy struct {
-	DataConnector api.DataConnector
+	DataSource api.DataSource
 }
 
 func (*Dummy) FeatureDescriptor(ctx context.Context, FQN string) (api.FeatureDescriptor, error) {
@@ -45,6 +45,6 @@ func (*Dummy) Update(ctx context.Context, FQN string, entityID string, val any, 
 	return nil
 }
 
-func (d *Dummy) GetDataConnector(_ string) (api.DataConnector, error) {
-	return d.DataConnector, nil
+func (d *Dummy) GetDataSource(_ string) (api.DataSource, error) {
+	return d.DataSource, nil
 }

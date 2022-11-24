@@ -66,7 +66,7 @@ message FeatureDescriptor {
     google.protobuf.Duration staleness = 5;
     google.protobuf.Duration timeout = 6;
     string builder = 7;
-    string data_connector = 8;
+    string data_source = 8;
     repeated string keys = 9;
 }
 message FeatureValue {

@@ -5,24 +5,24 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.9.2
   creationTimestamp: null
-  name: dataconnectors.k8s.raptor.ml
+  name: datasources.k8s.raptor.ml
 spec:
   group: k8s.raptor.ml
   names:
     categories:
     - datascience
-    kind: DataConnector
-    listKind: DataConnectorList
-    plural: dataconnectors
+    kind: DataSource
+    listKind: DataSourceList
+    plural: datasources
     shortNames:
-    - conn
-    singular: dataconnector
+    - dsrc
+    singular: datasource
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: DataConnector is the Schema for the dataconnectors API
+        description: DataSource is the Schema for the DataSource API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -37,10 +37,10 @@ spec:
           metadata:
             type: object
           spec:
-            description: DataConnectorSpec defines the desired state of DataConnector
+            description: DataSourceSpec defines the desired state of DataSource
             properties:
               config:
-                description: Config of the DataConnector
+                description: Config of the DataSource
                 items:
                   description: ConfigVar is a name/value pair for the config.
                   properties:
@@ -73,8 +73,14 @@ spec:
                   - name
                   type: object
                 type: array
+              keyFields:
+                description: KeyFields are the fields that are used to identify the
+                  data source of a single data row.
+                items:
+                  type: string
+                type: array
               kind:
-                description: Kind of the DataConnector
+                description: Kind of the DataSource
                 type: string
               replicas:
                 description: Replicas defines the number of desired pods. This is
@@ -84,9 +90,9 @@ spec:
                 type: integer
               resources:
                 description: "Resources defines the required resources for a single
-                  container(underlying implementation) of this DataConnector. Notice
-                  that this is not applicable for every DataConnector, but only for
-                  those who implement an External Runner. \n More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/"
+                  container(underlying implementation) of this DataSource. Notice
+                  that this is not applicable for every DataSource, but only for those
+                  who implement an External Runner. \n More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/"
                 properties:
                   limits:
                     additionalProperties:
@@ -111,16 +117,24 @@ spec:
                       to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                     type: object
                 type: object
+              schema:
+                description: Schema defines the schema of the data source.
+                x-kubernetes-preserve-unknown-fields: true
+              timestampField:
+                description: TimestampField is the field that is used to identify
+                  the timestamp of a single data row.
+                type: string
             required:
             - config
+            - keyFields
             - kind
             type: object
           status:
-            description: DataConnectorStatus defines the observed state of DataConnector
+            description: DataSourceStatus defines the observed state of DataSource
             properties:
               features:
                 description: Features includes a list of references for the Feature
-                  that uses this DataConnector
+                  that uses this DataSource
                 items:
                   description: ResourceReference represents a resource reference.
                     It has enough information to retrieve resource in any namespace.

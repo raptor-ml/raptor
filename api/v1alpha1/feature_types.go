@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 )
 
 // AggrFn defines the type of aggregation
@@ -30,13 +31,13 @@ type AggrFn string
 
 // PrimitiveType defines the type of primitive
 // +kubebuilder:validation:Enum=int;float;string;timestamp;[]int;[]float;[]string;[]timestamp;headless
-// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Primitive Type"
 type PrimitiveType string
 
 // FeatureSpec defines the desired state of Feature
 type FeatureSpec struct {
 	// Primitive defines the type of the underlying feature-value that a Feature should respond with.
 	// +kubebuilder:validation:Required
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Primitive Type"
 	Primitive PrimitiveType `json:"primitive"`
 
 	// Freshness defines the age of a feature-value(time since the value has set) to consider as *fresh*.
@@ -57,11 +58,11 @@ type FeatureSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Timeout"
 	Timeout metav1.Duration `json:"timeout"`
 
-	// DataConnector is a reference for the DataConnector that this Feature is associated with
+	// DataSource is a reference for the DataSource that this Feature is associated with
 	// +optional
 	// +nullable
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Data Connector"
-	DataConnector *ResourceReference `json:"connector,omitempty"`
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Data Source"
+	DataSource *ResourceReference `json:"dataSource,omitempty"`
 
 	// Builder defines a building-block to use to build the feature-value
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Builder"
@@ -71,7 +72,7 @@ type FeatureSpec struct {
 // FeatureBuilder defines a building-block to use to build the feature-value
 type FeatureBuilder struct {
 	// Kind defines the type of Builder to use to build the feature-value.
-	// The kind is usually auto-detected from the connector, but can be overridden.
+	// The kind is usually auto-detected from the data-source, but can be overridden.
 	// +optional
 	Kind string `json:"kind"`
 
@@ -85,7 +86,7 @@ type FeatureBuilder struct {
 	// AggrGranularity defines the granularity of the aggregation.
 	// +optional
 	// +nullable
-	AggrGranularity metav1.Duration `json:"aggr_granularity"`
+	AggrGranularity metav1.Duration `json:"aggrGranularity"`
 
 	// PyExp defines a Python expression to use to build the feature-value.
 	// +optional
@@ -123,7 +124,9 @@ type Feature struct {
 
 // FQN returns the fully qualified name of the feature.
 func (in *Feature) FQN() string {
-	return fmt.Sprintf("%s.%s", in.GetName(), in.GetNamespace())
+	ns := strings.Replace(in.GetNamespace(), "-", "_", -1)
+	name := strings.Replace(in.GetName(), "-", "_", -1)
+	return fmt.Sprintf("%s.%s", ns, name)
 }
 
 func (in *Feature) ResourceReference() ResourceReference {

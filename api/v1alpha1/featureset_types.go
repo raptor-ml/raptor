@@ -19,6 +19,7 @@ package v1alpha1
 import (
 	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 )
 
 // FeatureSetSpec defines the list of feature FQNs that are enabled for a given feature set
@@ -65,7 +66,9 @@ type FeatureSet struct {
 
 // FQN returns the fully qualified name of the feature.
 func (in *FeatureSet) FQN() string {
-	return fmt.Sprintf("%s.%s", in.GetName(), in.GetNamespace())
+	ns := strings.Replace(in.GetNamespace(), "-", "_", -1)
+	name := strings.Replace(in.GetName(), "-", "_", -1)
+	return fmt.Sprintf("%s.%s", ns, name)
 }
 
 // +kubebuilder:object:root=true
