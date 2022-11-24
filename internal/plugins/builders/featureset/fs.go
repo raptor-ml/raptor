@@ -31,7 +31,7 @@ func init() {
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
-func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, faapi api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
+func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, faapi api.FeatureAbstractAPI, engine api.EngineWithSource) error {
 	spec := manifests.FeatureSetSpec{}
 	err := json.Unmarshal(builder.Raw, &spec)
 	if err != nil {

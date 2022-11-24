@@ -30,7 +30,7 @@ func init() {
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
-func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
+func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithSource) error {
 	if builder.PyExp == "" {
 		return fmt.Errorf("pyexp is empty")
 	}

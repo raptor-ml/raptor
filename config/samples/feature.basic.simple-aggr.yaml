@@ -14,7 +14,7 @@ spec:
   staleness: 1m
   builder:
     kind: expression
-    aggr_granularity: 10s
+    aggrGranularity: 10s
     aggr:
       - sum
       - count

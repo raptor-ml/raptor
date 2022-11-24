@@ -59,14 +59,14 @@ spec:
                       type: string
                     nullable: true
                     type: array
-                  aggr_granularity:
+                  aggrGranularity:
                     description: AggrGranularity defines the granularity of the aggregation.
                     nullable: true
                     type: string
                   kind:
                     description: Kind defines the type of Builder to use to build
                       the feature-value. The kind is usually auto-detected from the
-                      connector, but can be overridden.
+                      data-source, but can be overridden.
                     type: string
                   pyexp:
                     description: PyExp defines a Python expression to use to build
@@ -75,9 +75,9 @@ spec:
                     type: string
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
-              connector:
-                description: DataConnector is a reference for the DataConnector that
-                  this Feature is associated with
+              dataSource:
+                description: DataSource is a reference for the DataSource that this
+                  Feature is associated with
                 nullable: true
                 properties:
                   name:

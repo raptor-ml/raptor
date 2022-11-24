@@ -87,29 +87,29 @@ func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
 	f := obj.(*raptorApi.Feature)
 	wh.logger.Info("defaulting", "name", f.GetName())
 
-	if f.Spec.DataConnector != nil && f.Spec.DataConnector.Namespace == "" {
-		f.Spec.DataConnector.Namespace = f.GetNamespace()
+	if f.Spec.DataSource != nil && f.Spec.DataSource.Namespace == "" {
+		f.Spec.DataSource.Namespace = f.GetNamespace()
 	}
 	if f.Spec.Builder.Kind == "" {
-		if f.Spec.Builder.Kind == "" && f.Spec.DataConnector != nil {
+		if f.Spec.Builder.Kind == "" && f.Spec.DataSource != nil {
 			if ar, ok := ctx.Value(admissionRequestContextKey).(admission.Request); ok && ar.DryRun == nil || ok && !*ar.DryRun {
-				dc := raptorApi.DataConnector{}
-				err := wh.client.Get(ctx, f.Spec.DataConnector.ObjectKey(), &dc)
+				src := raptorApi.DataSource{}
+				err := wh.client.Get(ctx, f.Spec.DataSource.ObjectKey(), &src)
 				if apierrors.IsNotFound(err) {
-					return fmt.Errorf("data connector %s/%s not found", f.Spec.DataConnector.Namespace, f.Spec.DataConnector.Name)
+					return fmt.Errorf("DataSource %s/%s not found", f.Spec.DataSource.Namespace, f.Spec.DataSource.Name)
 				}
 				if err != nil {
-					return fmt.Errorf("failed to get data connector: %w", err)
+					return fmt.Errorf("failed to get DataSource: %w", err)
 				}
 
-				dci, err := api.DataConnectorFromManifest(ctx, &dc, wh.client)
+				srci, err := api.DataSourceFromManifest(ctx, &src, wh.client)
 				if err != nil {
-					return fmt.Errorf("failed to get data connector instance: %w", err)
+					return fmt.Errorf("failed to get DataSource instance: %w", err)
 				}
 
-				// Check if data-connector is mapped to a special builder
-				if plugins.FeatureAppliers[dci.Kind] != nil {
-					f.Spec.Builder.Kind = dci.Kind
+				// Check if DataSource is mapped to a special builder
+				if plugins.FeatureAppliers[srci.Kind] != nil {
+					f.Spec.Builder.Kind = srci.Kind
 				}
 			}
 		}
@@ -148,22 +148,22 @@ func (wh *webhook) ValidateUpdate(ctx context.Context, oldObject, newObj runtime
 func (wh *webhook) Validate(ctx context.Context, f *raptorApi.Feature) error {
 	dummyEngine := engine.Dummy{}
 
-	if f.Spec.DataConnector != nil {
+	if f.Spec.DataSource != nil {
 		if ar, ok := ctx.Value(admissionRequestContextKey).(admission.Request); ok && ar.DryRun == nil || ok && !*ar.DryRun {
-			dc := raptorApi.DataConnector{}
-			err := wh.client.Get(ctx, f.Spec.DataConnector.ObjectKey(), &dc)
+			src := raptorApi.DataSource{}
+			err := wh.client.Get(ctx, f.Spec.DataSource.ObjectKey(), &src)
 			if apierrors.IsNotFound(err) {
-				return fmt.Errorf("data connector %s/%s not found", f.Spec.DataConnector.Namespace, f.Spec.DataConnector.Name)
+				return fmt.Errorf("DataSource %s/%s not found", f.Spec.DataSource.Namespace, f.Spec.DataSource.Name)
 			}
 			if err != nil {
-				return fmt.Errorf("failed to get data connector: %w", err)
+				return fmt.Errorf("failed to get DataSource: %w", err)
 			}
 
-			dci, err := api.DataConnectorFromManifest(ctx, &dc, wh.client)
+			dci, err := api.DataSourceFromManifest(ctx, &src, wh.client)
 			if err != nil {
-				return fmt.Errorf("failed to get data connector instance: %w", err)
+				return fmt.Errorf("failed to get DataSource instance: %w", err)
 			}
-			dummyEngine.DataConnector = dci
+			dummyEngine.DataSource = dci
 		}
 	}
 	_, err := engine.FeatureWithEngine(&dummyEngine, f)

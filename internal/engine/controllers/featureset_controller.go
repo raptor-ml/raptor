@@ -107,5 +107,5 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 // SetupWithManager sets up the controller with the Controller Manager.
 func (r *FeatureSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return attachCoreConnector(r, &raptorApi.FeatureSet{}, true, mgr)
+	return attachCoreController(r, &raptorApi.FeatureSet{}, true, mgr)
 }

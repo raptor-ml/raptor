@@ -1,5 +1,5 @@
 apiVersion: k8s.raptor.ml/v1alpha1
-kind: DataConnector
+kind: DataSource
 metadata:
   name: clicks
 spec:
@@ -15,3 +15,6 @@ spec:
       value: clicks-consumer-group
     - name: tls_disable
       value: "true"
+  keyField: client_id
+  timestampField: timestamp
+  schema: ~
