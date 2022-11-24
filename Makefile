@@ -244,7 +244,7 @@ $(ENVTEST):
 	GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
 OSDK ?= $(LOCALBIN)/operator-sdk
-OPERATOR_SDK_VERSION=v1.23.0
+OPERATOR_SDK_VERSION=v1.25.1
 
 .PHONY: operator-sdk
 operator-sdk: $(OSDK) ## Download controller-gen locally if necessary.

@@ -45,22 +45,22 @@ func init() {
 	}
 
 	// Register the plugin
-	plugins.DataConnectorReconciler.Register(name, reconciler)
+	plugins.DataSourceReconciler.Register(name, reconciler)
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
-func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithConnector) error {
-	if fd.DataConnector == "" {
-		return fmt.Errorf("data connector must be set for `%s` builder", name)
+func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithSource) error {
+	if fd.DataSource == "" {
+		return fmt.Errorf("DataSource must be set for `%s` builder", name)
 	}
 
-	dc, err := engine.GetDataConnector(fd.DataConnector)
+	dc, err := engine.GetDataSource(fd.DataSource)
 	if err != nil {
-		return fmt.Errorf("failed to get data connector: %v", err)
+		return fmt.Errorf("failed to get DataSource: %v", err)
 	}
 
 	if dc.Kind != name {
-		return fmt.Errorf("data connector must be of type `%s`. got `%s`", name, dc.Kind)
+		return fmt.Errorf("DataSource must be of type `%s`. got `%s`", name, dc.Kind)
 	}
 
 	if builder.PyExp == "" {

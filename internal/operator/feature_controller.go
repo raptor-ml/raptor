@@ -71,7 +71,7 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		// The object is being deleted
 		if controllerutil.ContainsFinalizer(feature, finalizerName) {
 			// our finalizer is present, so lets handle any external dependency
-			if err := r.deleteFromConnector(ctx, feature); err != nil {
+			if err := r.deleteFromSource(ctx, feature); err != nil {
 				// if fail to delete the external dependency here, return with error
 				// so that it can be retried
 				return ctrl.Result{}, err
@@ -88,11 +88,11 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, nil
 	}
 
-	if err := r.addToConnector(ctx, feature); err != nil {
-		// If the error is "not found" then requeue this because maybe the user trying to add both the DataConnector
+	if err := r.addToSource(ctx, feature); err != nil {
+		// If the error is "not found" then requeue this because maybe the user trying to add both the DataSource
 		// and the Feature on the same time
 		if client.IgnoreNotFound(err) == nil {
-			logger.Error(err, "Trying to add a Feature to a non-existing DataConnector")
+			logger.Error(err, "Trying to add a Feature to a non-existing DataSource")
 		}
 		return ctrl.Result{RequeueAfter: time.Millisecond * 100}, client.IgnoreNotFound(err)
 	}
@@ -112,63 +112,63 @@ func (r *FeatureReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *FeatureReconciler) deleteFromConnector(ctx context.Context, feature *raptorApi.Feature) error {
-	if feature.Spec.DataConnector == nil {
+func (r *FeatureReconciler) deleteFromSource(ctx context.Context, feature *raptorApi.Feature) error {
+	if feature.Spec.DataSource == nil {
 		return nil
 	}
 
 	logger := log.FromContext(ctx)
 
-	// fix connector namespace
-	if feature.Spec.DataConnector.Namespace == "" {
-		feature.Spec.DataConnector.Namespace = feature.Namespace
+	// fix source namespace
+	if feature.Spec.DataSource.Namespace == "" {
+		feature.Spec.DataSource.Namespace = feature.Namespace
 	}
 
-	conn := &raptorApi.DataConnector{}
-	err := r.Get(ctx, feature.Spec.DataConnector.ObjectKey(), conn)
+	src := &raptorApi.DataSource{}
+	err := r.Get(ctx, feature.Spec.DataSource.ObjectKey(), src)
 	if err != nil {
-		logger.Error(err, "Failed to get associated DataConnector")
+		logger.Error(err, "Failed to get associated DataSource")
 		// we'll ignore not-found errors, since they probably deleted and there's nothing we can do.
 		return client.IgnoreNotFound(err)
 	}
 
-	if len(conn.Status.Features) == 0 {
+	if len(src.Status.Features) == 0 {
 		return nil
 	}
 	var fts []raptorApi.ResourceReference
-	for _, f := range conn.Status.Features {
+	for _, f := range src.Status.Features {
 		if f.Name != feature.Name {
 			fts = append(fts, f)
 		}
 	}
-	conn.Status.Features = fts
-	return r.Status().Update(ctx, conn)
+	src.Status.Features = fts
+	return r.Status().Update(ctx, src)
 }
 
-func (r *FeatureReconciler) addToConnector(ctx context.Context, feature *raptorApi.Feature) error {
-	if feature.Spec.DataConnector == nil {
+func (r *FeatureReconciler) addToSource(ctx context.Context, feature *raptorApi.Feature) error {
+	if feature.Spec.DataSource == nil {
 		return nil
 	}
 
 	logger := log.FromContext(ctx)
 
-	// fix connector namespace
-	if feature.Spec.DataConnector.Namespace == "" {
-		feature.Spec.DataConnector.Namespace = feature.Namespace
+	// fix source namespace
+	if feature.Spec.DataSource.Namespace == "" {
+		feature.Spec.DataSource.Namespace = feature.Namespace
 	}
 
-	conn := &raptorApi.DataConnector{}
-	err := r.Get(ctx, feature.Spec.DataConnector.ObjectKey(), conn)
+	src := &raptorApi.DataSource{}
+	err := r.Get(ctx, feature.Spec.DataSource.ObjectKey(), src)
 	if err != nil {
-		logger.Error(err, "Failed to get associated DataConnector")
+		logger.Error(err, "Failed to get associated DataSource")
 		return err
 	}
-	for _, f := range conn.Status.Features {
+	for _, f := range src.Status.Features {
 		if f.Name == feature.Name {
 			return nil
 		}
 	}
 
-	conn.Status.Features = append(conn.Status.Features, feature.ResourceReference())
-	return r.Status().Update(ctx, conn)
+	src.Status.Features = append(src.Status.Features, feature.ResourceReference())
+	return r.Status().Update(ctx, src)
 }

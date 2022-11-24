@@ -10,10 +10,11 @@ option go_package = "github.com/raptor-ml/raptor/core/v1alpha1;coreV1alpha1";
 
 message Scalar {
     oneof value {
-        int32 int_value = 1;
-        double float_value = 2;
-        string string_value = 3;
-        google.protobuf.Timestamp timestamp_value = 4;
+        string string_value = 1;
+        int32 int_value = 2;
+        double float_value = 3;
+        bool bool_value = 4;
+        google.protobuf.Timestamp timestamp_value = 5;
     }
 }
 
@@ -28,15 +29,17 @@ message Value {
 }
 enum Primitive {
     PRIMITIVE_UNSPECIFIED = 0;
-    PRIMITIVE_INTEGER = 1;
-    PRIMITIVE_FLOAT = 2;
-    PRIMITIVE_STRING = 3;
-    PRIMITIVE_TIMESTAMP = 4;
-    // 5-10 Reserved for future use.
-    PRIMITIVE_INTEGER_LIST = 10;
-    PRIMITIVE_FLOAT_LIST = 11;
-    PRIMITIVE_STRING_LIST = 12;
-    PRIMITIVE_TIMESTAMP_LIST = 13;
+    PRIMITIVE_STRING = 1;
+    PRIMITIVE_INTEGER = 2;
+    PRIMITIVE_FLOAT = 3;
+    PRIMITIVE_BOOL = 4;
+    PRIMITIVE_TIMESTAMP = 5;
+    // 6-9 Reserved for future use.
+    PRIMITIVE_STRING_LIST = 10;
+    PRIMITIVE_INTEGER_LIST = 11;
+    PRIMITIVE_FLOAT_LIST = 12;
+    PRIMITIVE_BOOL_LIST = 13;
+    PRIMITIVE_TIMESTAMP_LIST = 14;
 }
 
 enum AggrFn {
@@ -63,10 +66,10 @@ message FeatureDescriptor {
     google.protobuf.Duration staleness = 5;
     google.protobuf.Duration timeout = 6;
     string builder = 7;
-    string data_connector = 8;
+    string data_source = 8;
 }
 message FeatureValue {
-    string fqn = 1 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    string fqn = 1 [(validate.rules).string.pattern = "(?si)^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\\[(?P<encoding>([a-z]+_*[a-z]+))])?$"];
     string entity_id = 2;
     Value value = 3;
     google.protobuf.Timestamp timestamp = 4;

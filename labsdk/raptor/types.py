@@ -275,7 +275,7 @@ class FeatureSpec(yaml.YAMLObject):
     staleness: datetime.timedelta = None
     timeout: datetime.timedelta = None
 
-    connector: ResourceReference = None
+    data_source: ResourceReference = None
     builder: BuilderSpec = BuilderSpec(None)
     aggr: AggrSpec = None
 
@@ -338,7 +338,7 @@ class FeatureSpec(yaml.YAMLObject):
     def to_yaml(cls, dumper: yaml.dumper.Dumper, data: 'FeatureSpec'):
         if data.aggr is not None:
             data.builder.aggr = data.aggr.funcs
-            data.builder.aggr_granularity = data.aggr.granularity
+            data.builder.aggrGranularity = data.aggr.granularity
         data.builder.pyexp = data.program.code
 
         data.annotations['a8r.io/description'] = data.description
@@ -357,7 +357,7 @@ class FeatureSpec(yaml.YAMLObject):
                 "freshness": data.freshness,
                 "staleness": data.staleness,
                 "timeout": data.timeout,
-                "connector": None if data.connector is None else data.connector.__dict__,
+                "dataSource": None if data.data_source is None else data.data_source.__dict__,
                 "builder": data.builder.__dict__,
             }
         }

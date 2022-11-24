@@ -1,13 +1,13 @@
-# permissions for end users to view dataconnectors.
+# permissions for end users to view datasources.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: dataconnector-viewer-role
+  name: datasource-viewer-role
 rules:
   - apiGroups:
       - k8s.raptor.ml
     resources:
-      - dataconnectors
+      - datasources
     verbs:
       - get
       - list
@@ -15,6 +15,6 @@ rules:
   - apiGroups:
       - k8s.raptor.ml
     resources:
-      - dataconnectors/status
+      - datasources/status
     verbs:
       - get

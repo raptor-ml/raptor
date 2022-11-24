@@ -3,7 +3,7 @@
 # It should be run by config/default
 resources:
   - bases/k8s.raptor.ml_features.yaml
-  - bases/k8s.raptor.ml_dataconnectors.yaml
+  - bases/k8s.raptor.ml_datasources.yaml
   - bases/k8s.raptor.ml_featuresets.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
@@ -11,7 +11,7 @@ resources:
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix.
 # patches here are for enabling the conversion webhook for each CRD
 #- patches/webhook_in_features.yaml
-#- patches/webhook_in_dataconnectors.yaml
+#- patches/webhook_in_datasources.yaml
 #- patches/webhook_in_featuresets.yaml
 #+kubebuilder:scaffold:crdkustomizewebhookpatch
 

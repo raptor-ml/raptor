@@ -67,12 +67,12 @@ func coreControllers(mgr manager.Manager, eng api.ManagerEngine) {
 	var err error
 
 	// Setup Core Controllers
-	err = (&corectrl.DataConnectorReconciler{
+	err = (&corectrl.DataSourceReconciler{
 		Reader:        mgr.GetClient(),
 		Scheme:        mgr.GetScheme(),
 		EngineManager: eng,
 	}).SetupWithManager(mgr)
-	OrFail(err, "unable to create core controller", "controller", "DataConnector")
+	OrFail(err, "unable to create core controller", "controller", "DataSource")
 
 	err = (&corectrl.FeatureReconciler{
 		Reader:         mgr.GetClient(),
@@ -100,12 +100,12 @@ func operatorControllers(mgr manager.Manager) {
 		coreAddr = fmt.Sprintf("raptor-core-service.%s.svc", ns)
 	}
 
-	err = (&opctrl.DataConnectorReconciler{
+	err = (&opctrl.DataSourceReconciler{
 		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),
 		CoreAddr: coreAddr,
 	}).SetupWithManager(mgr)
-	OrFail(err, "unable to create controller", "operator", "DataConnector")
+	OrFail(err, "unable to create controller", "operator", "DataSource")
 
 	err = (&opctrl.FeatureSetReconciler{
 		Client: mgr.GetClient(),
