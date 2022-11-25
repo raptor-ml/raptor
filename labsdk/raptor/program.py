@@ -32,9 +32,9 @@ import builtins
 import importlib
 from datetime import datetime
 from pydoc import locate
+from typing import List, Dict, Callable, Optional
 
 from redbaron import RedBaron, DefNode
-from typing import List, Dict, Callable
 
 _blocked_builtins = [
     'compile', 'eval', 'exec', 'open', 'input', 'file', 'dir', 'quit', 'exit', 'InterruptedError', 'SystemExit',
@@ -96,7 +96,21 @@ class Context:
         self.timestamp = timestamp
         self.__feature_getter = feature_getter
 
-    def get_feature(self, fqn: str, keys: Dict[str, str] = None, timestamp: datetime = None) -> any:
+    def get_feature(self, fqn: str, keys: Dict[str, str] = None, timestamp: datetime = None) -> Optional[any, datetime]:
+        """Get feature value for a dependant feature.
+
+        Behind the scenes, the LabSDK will return you the value for the requested fqn and entity
+        **at the appropriate** timestamp of the request. That means that we'll use the request's timestamp when replying
+        features. Cool right? 😎
+
+        :param str fqn: Fully Qualified Name of the feature, including aggregation function if exists.
+        :param str keys: the keys(identifiers) we request the value for.
+        :return: a tuple of (value, timestamp)
+
+        note::
+            You can also use the alias :func:`f` to refer to this function.
+        """
+
         if keys is None:
             keys = self.keys
         if timestamp is None:
@@ -111,6 +125,8 @@ class Program:
     locals: dict
     primitive: [str, int, float, datetime, List[str], List[int], List[float], List[datetime], None]
     side_effects: List[SideEffect]
+
+    code: str
 
     def __init__(self, code, fqn_resolver: Callable[[object], str] = None):
         root_node = RedBaron(code)
@@ -174,13 +190,14 @@ class Program:
         else:
             self.primitive = locate(rav)
 
-        c = compile(root_node.dumps().strip(), f"<{self.name}>", "exec")
+        self.code = node.dumps().strip()
+        compiled = compile(self.code, f"<{self.name}>", "exec")
         glob, loc = {'__builtins__': safe_builtins}, {}
-        exec(c, glob, loc)
+        exec(compiled, glob, loc)
 
         self.handler = loc[self.name]
         self.globals = glob
         self.locals = loc
 
-    async def call(self, data: Dict[str, any], context: Context):
-        return await self.handler(data, context)
+    def call(self, data: Dict[str, any], context: Context):
+        return self.handler(data, context)
