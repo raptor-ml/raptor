@@ -17,9 +17,9 @@ limitations under the License.
 package plugins
 
 import (
-	// register all builder plugins
-	_ "github.com/raptor-ml/raptor/internal/plugins/builders/expression"
 	_ "github.com/raptor-ml/raptor/internal/plugins/builders/featureset"
+	// register all builder plugins
+	_ "github.com/raptor-ml/raptor/internal/plugins/builders/headless"
 	_ "github.com/raptor-ml/raptor/internal/plugins/builders/rest"
 	_ "github.com/raptor-ml/raptor/internal/plugins/builders/streaming"
 

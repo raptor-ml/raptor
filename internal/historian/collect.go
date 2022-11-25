@@ -50,14 +50,20 @@ func (h *historian) dispatchCollect(ctx context.Context, notification api.Collec
 		return h.dispatchCollectWithWindow(ctx, notification, fd)
 	}
 
-	v, err := h.State.Get(ctx, fd, notification.EntityID)
+	keys := api.Keys{}
+	err = keys.Decode(notification.EncodedKeys, fd)
+	if err != nil {
+		return fmt.Errorf("failed to decode keys: %w", err)
+	}
+
+	v, err := h.State.Get(ctx, fd, keys)
 	if err != nil {
 		return fmt.Errorf("failed to get state for %s: %w", notification.FQN, err)
 	}
 	h.writeTasks.queue.Add(api.WriteNotification{
-		FQN:      notification.FQN,
-		EntityID: notification.EntityID,
-		Value:    v,
+		FQN:         notification.FQN,
+		EncodedKeys: notification.EncodedKeys,
+		Value:       v,
 	})
 	return nil
 }
@@ -73,15 +79,21 @@ func (h *historian) dispatchCollectWithWindow(ctx context.Context, notification 
 
 	deadBuckets := api.DeadWindowBuckets(fd.Staleness, fd.Freshness)
 
-	buckets, err := h.State.WindowBuckets(ctx, fd, notification.EntityID, []string{notification.Bucket})
+	keys := api.Keys{}
+	err := keys.Decode(notification.EncodedKeys, fd)
+	if err != nil {
+		return fmt.Errorf("failed to decode keys: %w", err)
+	}
+
+	buckets, err := h.State.WindowBuckets(ctx, fd, keys, []string{notification.Bucket})
 	if err != nil {
 		return fmt.Errorf("failed to get buckets for %s: %w", notification.FQN, err)
 	}
 	for _, b := range buckets {
 		activeBucket := !contains(deadBuckets, b.Bucket)
 		h.writeTasks.queue.Add(api.WriteNotification{
-			FQN:      b.FQN,
-			EntityID: b.EntityID,
+			FQN:         b.FQN,
+			EncodedKeys: b.EncodedKeys,
 			Value: &api.Value{
 				Value:     b.Data,
 				Timestamp: api.BucketTime(b.Bucket, fd.Freshness),
@@ -99,9 +111,9 @@ func (h *historian) dispatchCollectDead(ctx context.Context, fd api.FeatureDescr
 		if strings.HasPrefix(k, fmt.Sprintf("%s/", fd.FQN)) {
 			fqn, bucket, eid := fromDeadBucketKey(k)
 			ignore = append(ignore, api.RawBucket{
-				FQN:      fqn,
-				Bucket:   bucket,
-				EntityID: eid,
+				FQN:         fqn,
+				Bucket:      bucket,
+				EncodedKeys: eid,
 			})
 		}
 	}
@@ -112,8 +124,8 @@ func (h *historian) dispatchCollectDead(ctx context.Context, fd api.FeatureDescr
 
 	for _, b := range buckets {
 		h.writeTasks.queue.Add(api.WriteNotification{
-			FQN:      b.FQN,
-			EntityID: b.EntityID,
+			FQN:         b.FQN,
+			EncodedKeys: b.EncodedKeys,
 			Value: &api.Value{
 				Value:     b.Data,
 				Timestamp: api.BucketTime(b.Bucket, fd.Freshness),

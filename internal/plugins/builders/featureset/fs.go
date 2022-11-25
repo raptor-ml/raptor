@@ -31,7 +31,7 @@ func init() {
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
-func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, faapi api.FeatureAbstractAPI, engine api.EngineWithSource) error {
+func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, faapi api.FeatureAbstractAPI, engine api.ExtendedManager) error {
 	spec := manifests.FeatureSetSpec{}
 	err := json.Unmarshal(builder.Raw, &spec)
 	if err != nil {
@@ -63,7 +63,7 @@ type featureset struct {
 }
 
 func (fs *featureset) preGetMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
-	return func(ctx context.Context, fd api.FeatureDescriptor, entityID string, val api.Value) (api.Value, error) {
+	return func(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, val api.Value) (api.Value, error) {
 		logger := api.LoggerFromContext(ctx)
 		wg := &sync.WaitGroup{}
 		wg.Add(len(fs.features))
@@ -73,7 +73,7 @@ func (fs *featureset) preGetMiddleware(next api.MiddlewareHandler) api.Middlewar
 		for _, fqn := range fs.features {
 			go func(fqn string, wg *sync.WaitGroup) {
 				defer wg.Done()
-				val, _, err := fs.engine.Get(ctx, fqn, entityID)
+				val, _, err := fs.engine.Get(ctx, fqn, keys)
 				if err != nil {
 					logger.Error(err, "failed to get feature %s", fqn)
 					return

@@ -35,14 +35,15 @@ type Plugins interface {
 type BindConfig func(set *pflag.FlagSet) error
 
 // FeatureApply applies changes on the feature abstraction.
-type FeatureApply func(fd FeatureDescriptor, builder manifests.FeatureBuilder, api FeatureAbstractAPI, engine EngineWithSource) error
+type FeatureApply func(fd FeatureDescriptor, builder manifests.FeatureBuilder, api FeatureAbstractAPI, engine ExtendedManager) error
 
 // ReconcileRequest contains metadata for the reconcile.
 type ReconcileRequest struct {
-	DataSource  *manifests.DataSource
-	Client      client.Client
-	Scheme      *runtime.Scheme
-	CoreAddress string
+	DataSource     *manifests.DataSource
+	RuntimeManager RuntimeManager
+	Client         client.Client
+	Scheme         *runtime.Scheme
+	CoreAddress    string
 }
 
 // DataSourceReconcile is the interface to be implemented by plugins that want to be reconciled in the operator.

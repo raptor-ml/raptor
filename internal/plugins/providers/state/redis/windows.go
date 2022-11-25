@@ -31,10 +31,10 @@ import (
 
 const MaxScanCount = 1000
 
-func windowKey(FQN string, bucketName string, entityID string) string {
-	return fmt.Sprintf("%s/%s:%s", FQN, bucketName, entityID)
+func windowKey(FQN string, bucketName string, encodedKeys string) string {
+	return fmt.Sprintf("%s/%s:%s", FQN, bucketName, encodedKeys)
 }
-func fromWindowKey(k string) (fqn string, bucketName string, entityID string) {
+func fromWindowKey(k string) (fqn string, bucketName string, encodedKeys string) {
 	firstSep := strings.Index(k, "/")
 	lastColon := strings.LastIndex(k, ":")
 	return k[:firstSep], k[firstSep+1 : lastColon], k[lastColon+1:]
@@ -83,11 +83,11 @@ loop:
 			if ignoreKey(ignore, key) {
 				continue
 			}
-			fqn, bucketName, entityID := fromWindowKey(key)
+			fqn, bucketName, encodedKeys := fromWindowKey(key)
 			b := api.RawBucket{
-				FQN:      fqn,
-				Bucket:   bucketName,
-				EntityID: entityID,
+				FQN:         fqn,
+				Bucket:      bucketName,
+				EncodedKeys: encodedKeys,
 			}
 			buckets = append(buckets, b)
 		}
@@ -97,7 +97,7 @@ loop:
 
 func ignoreKey(ignore api.RawBuckets, key string) bool {
 	for _, b := range ignore {
-		if windowKey(b.FQN, b.Bucket, b.EntityID) == key {
+		if windowKey(b.FQN, b.Bucket, b.EncodedKeys) == key {
 			return true
 		}
 	}
@@ -114,7 +114,7 @@ func (s *state) windowBuckets(ctx context.Context, buckets []api.RawBucket) (api
 		go func(c chan api.RawBucket, wg *sync.WaitGroup, b api.RawBucket) {
 			defer wg.Done()
 
-			res, err := s.client.HGetAll(ctx, windowKey(b.FQN, b.Bucket, b.EntityID)).Result()
+			res, err := s.client.HGetAll(ctx, windowKey(b.FQN, b.Bucket, b.EncodedKeys)).Result()
 			if err != nil && !errors.Is(err, redis.Nil) {
 				cErr <- err
 				return
@@ -132,10 +132,10 @@ func (s *state) windowBuckets(ctx context.Context, buckets []api.RawBucket) (api
 				rm[api.StringToAggrFn(k)] = vv
 			}
 			c <- api.RawBucket{
-				FQN:      b.FQN,
-				Bucket:   b.Bucket,
-				EntityID: b.EntityID,
-				Data:     rm,
+				FQN:         b.FQN,
+				Bucket:      b.Bucket,
+				EncodedKeys: b.EncodedKeys,
+				Data:        rm,
 			}
 		}(cRes, wg, b)
 	}
@@ -158,16 +158,21 @@ func (s *state) windowBuckets(ctx context.Context, buckets []api.RawBucket) (api
 		}
 	}
 }
-func (s *state) WindowBuckets(ctx context.Context, fd api.FeatureDescriptor, entityID string, bucketNames []string) (api.RawBuckets, error) {
+func (s *state) WindowBuckets(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, bucketNames []string) (api.RawBuckets, error) {
 	var buckets api.RawBuckets
+	encodedKeys, err := keys.Encode(fd)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, b := range bucketNames {
 		buckets = append(buckets, api.RawBucket{
-			FQN:      fd.FQN,
-			Bucket:   b,
-			EntityID: entityID,
+			FQN:         fd.FQN,
+			Bucket:      b,
+			EncodedKeys: encodedKeys,
 		})
 	}
-	buckets, err := s.windowBuckets(ctx, buckets)
+	buckets, err = s.windowBuckets(ctx, buckets)
 	if err != nil {
 		return nil, err
 	}
@@ -175,8 +180,8 @@ func (s *state) WindowBuckets(ctx context.Context, fd api.FeatureDescriptor, ent
 	return buckets, nil
 }
 
-func (s *state) getWindow(ctx context.Context, fd api.FeatureDescriptor, entityID string) (*api.Value, error) {
-	buckets, err := s.WindowBuckets(ctx, fd, entityID, api.AliveWindowBuckets(fd.Staleness, fd.Freshness))
+func (s *state) getWindow(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys) (*api.Value, error) {
+	buckets, err := s.WindowBuckets(ctx, fd, keys, api.AliveWindowBuckets(fd.Staleness, fd.Freshness))
 	if err != nil {
 		return nil, err
 	}
@@ -221,9 +226,12 @@ func (s *state) getWindow(ctx context.Context, fd api.FeatureDescriptor, entityI
 	}, nil
 }
 
-func (s *state) WindowAdd(ctx context.Context, fd api.FeatureDescriptor, entityID string, value any, ts time.Time) error {
+func (s *state) WindowAdd(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, value any, ts time.Time) error {
 	bucket := api.BucketName(ts, fd.Freshness)
-	key := windowKey(fd.FQN, bucket, entityID)
+	key, err := primitiveKey(fd, keys)
+	if err != nil {
+		return err
+	}
 
 	var val float64
 	switch v := value.(type) {
@@ -252,6 +260,6 @@ func (s *state) WindowAdd(ctx context.Context, fd api.FeatureDescriptor, entityI
 	setTimestampExpireAt(ctx, tx, key, ts, exp)
 	tx.PExpireAt(ctx, key, exp)
 
-	_, err := tx.Exec(ctx)
+	_, err = tx.Exec(ctx)
 	return err
 }

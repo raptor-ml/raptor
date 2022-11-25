@@ -10,6 +10,9 @@ images:
 - name: controller
   newName: ghcr.io/raptor-ml/raptor-core
   newTag: latest
+- name: runtime
+  newName: ghcr.io/raptor-ml/raptor-runtime
+  newTag: latest-python3.11
 
 replicas:
 - count: 3

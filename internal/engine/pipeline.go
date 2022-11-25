@@ -27,40 +27,40 @@ type Pipeline struct {
 	api.FeatureDescriptor
 }
 
-func (p Pipeline) Apply(ctx context.Context, entityID string, first api.Value) (api.Value, error) {
+func (p Pipeline) Apply(ctx context.Context, keys api.Keys, first api.Value) (api.Value, error) {
 	if len(p.Middlewares) == 0 {
 		return first, nil
 	}
 	// Although this is probably redundant to have two appliers, we prefer to keep it simple when possible,
 	// even if it's mainly for documentation purposes.
 	if _, ok := ctx.Deadline(); ok {
-		return p.applyWithTimeout(ctx, entityID, first)
+		return p.applyWithTimeout(ctx, keys, first)
 	}
-	return p.apply(ctx, entityID, first)
+	return p.apply(ctx, keys, first)
 }
 
-func (p Pipeline) apply(ctx context.Context, entityID string, first api.Value) (api.Value, error) {
+func (p Pipeline) apply(ctx context.Context, keys api.Keys, first api.Value) (api.Value, error) {
 	var next api.MiddlewareHandler
-	next = func(ctx context.Context, fd api.FeatureDescriptor, entityID string, val api.Value) (api.Value, error) {
+	next = func(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, val api.Value) (api.Value, error) {
 		return val, nil
 	}
 	for i := len(p.Middlewares) - 1; i >= 0; i-- {
 		next = p.Middlewares[i](next)
 	}
-	return next(ctx, p.FeatureDescriptor, entityID, first)
+	return next(ctx, p.FeatureDescriptor, keys, first)
 }
 
 func handlerWithTimeout(next api.MiddlewareHandler, c chan api.Value) api.MiddlewareHandler {
-	return func(ctx context.Context, fd api.FeatureDescriptor, entityID string, val api.Value) (api.Value, error) {
+	return func(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, val api.Value) (api.Value, error) {
 		c <- val
 		if next == nil {
 			return val, nil
 		}
-		return next(ctx, fd, entityID, val)
+		return next(ctx, fd, keys, val)
 	}
 }
 
-func (p Pipeline) applyWithTimeout(ctx context.Context, entityID string, first api.Value) (api.Value, error) {
+func (p Pipeline) applyWithTimeout(ctx context.Context, keys api.Keys, first api.Value) (api.Value, error) {
 	c := make(chan api.Value)
 
 	var next api.MiddlewareHandler
@@ -71,7 +71,7 @@ func (p Pipeline) applyWithTimeout(ctx context.Context, entityID string, first a
 
 	var err error
 	go func(first api.Value) {
-		_, e := next(ctx, p.FeatureDescriptor, entityID, first)
+		_, e := next(ctx, p.FeatureDescriptor, keys, first)
 		if err != nil {
 			err = e
 		}

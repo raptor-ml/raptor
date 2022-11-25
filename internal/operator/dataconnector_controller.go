@@ -26,7 +26,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/raptor-ml/raptor/api"
-	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/raptor-ml/raptor/pkg/plugins"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"time"
@@ -41,8 +41,9 @@ import (
 // DataSourceReconciler reconciles a DataSource object
 type DataSourceReconciler struct {
 	client.Client
-	Scheme   *runtime.Scheme
-	CoreAddr string
+	Scheme         *runtime.Scheme
+	CoreAddr       string
+	RuntimeManager api.RuntimeManager
 }
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -54,7 +55,7 @@ func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	logger := log.FromContext(ctx)
 
 	// Fetch the Feature definition from the Kubernetes API.
-	src := &raptorApi.DataSource{}
+	src := &manifests.DataSource{}
 	err := r.Get(ctx, req.NamespacedName, src)
 	if err != nil {
 		logger.Error(err, "Failed to get DataSource")
@@ -105,24 +106,28 @@ func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 	}
 
-	// Todo change status to ready
+	src.Status.Replicas = src.Spec.Replicas
+	if err := r.Status().Update(ctx, src); err != nil {
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
 
-func (r *DataSourceReconciler) reconcileRequest(src *raptorApi.DataSource) api.ReconcileRequest {
+func (r *DataSourceReconciler) reconcileRequest(src *manifests.DataSource) api.ReconcileRequest {
 	return api.ReconcileRequest{
-		DataSource:  src,
-		Client:      r.Client,
-		Scheme:      r.Scheme,
-		CoreAddress: r.CoreAddr,
+		DataSource:     src,
+		Client:         r.Client,
+		Scheme:         r.Scheme,
+		CoreAddress:    r.CoreAddr,
+		RuntimeManager: r.RuntimeManager,
 	}
 }
 
 // SetupWithManager sets up the controller with the Controller Manager.
 func (r *DataSourceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&raptorApi.DataSource{}).
+		For(&manifests.DataSource{}).
 		Owns(&appsv1.Deployment{}).
 		Complete(r)
 }

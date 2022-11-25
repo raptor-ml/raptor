@@ -1,9 +1,10 @@
-### Build
-FROM golang:1.18 AS build
-ARG TARGETOS
-ARG TARGETARCH
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
 ARG LDFLAGS
 ARG VERSION
+
+### Build
+FROM golang:1.18 AS build
 
 WORKDIR /workspace
 COPY go.mod /workspace
@@ -13,7 +14,7 @@ COPY . /workspace
 
 ### Core
 FROM build AS build-core
-RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -ldflags="${LDFLAGS}" -o /out/core cmd/core/*.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="${LDFLAGS}" -o /out/core cmd/core/*.go
 
 FROM gcr.io/distroless/static:nonroot as core
 
@@ -46,21 +47,3 @@ COPY --from=build-historian /out/historian .
 USER 65532:65532
 
 ENTRYPOINT ["/historian"]
-
-### Runtime sidecar
-FROM build AS build-runtime
-RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -ldflags="${LDFLAGS}" -o /out/runtime cmd/runtime/*.go
-
-FROM gcr.io/distroless/static:nonroot as runtime
-
-LABEL org.opencontainers.image.source="https://github.com/raptor-ml/raptor"
-LABEL org.opencontainers.image.version="${VERSION}"
-LABEL org.opencontainers.image.url="https://raptor.ml"
-LABEL org.opencontainers.image.title="Raptor Runtime"
-LABEL org.opencontainers.image.description="Raptor Runtime is a sidecar that provides tooling for Raptor extensions"
-
-WORKDIR /
-COPY --from=build-runtime /out/runtime .
-USER 65532:65532
-
-ENTRYPOINT ["/runtime"]

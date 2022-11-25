@@ -29,36 +29,40 @@ type PrimitiveType int
 const (
 	PrimitiveTypeUnknown PrimitiveType = iota
 	PrimitiveTypeString
-	PrimitiveTypeTimestamp
 	PrimitiveTypeInteger
 	PrimitiveTypeFloat
+	PrimitiveTypeBoolean
+	PrimitiveTypeTimestamp
+
+	PrimitiveTypeStringList
 	PrimitiveTypeIntegerList
 	PrimitiveTypeFloatList
-	PrimitiveTypeStringList
+	PrimitiveTypeBooleanList
 	PrimitiveTypeTimestampList
-	PrimitiveTypeHeadless
 )
 
 func StringToPrimitiveType(s string) PrimitiveType {
 	switch strings.ToLower(s) {
 	case "string", "text":
 		return PrimitiveTypeString
-	case "time", "datetime", "timestamp", "time.time":
-		return PrimitiveTypeTimestamp
 	case "integer", "int", "int32":
 		return PrimitiveTypeInteger
 	case "float", "double", "float32", "float64":
 		return PrimitiveTypeFloat
+	case "time", "datetime", "timestamp", "time.time", "datetime.datetime":
+		return PrimitiveTypeTimestamp
+	case "bool", "boolean":
+		return PrimitiveTypeBoolean
+	case "[]string", "[]text":
+		return PrimitiveTypeStringList
 	case "[]integer", "[]int", "[]int64", "[]int32":
 		return PrimitiveTypeIntegerList
 	case "[]float", "[]double", "[]float32", "[]float64":
 		return PrimitiveTypeFloatList
-	case "[]string", "[]text":
-		return PrimitiveTypeStringList
+	case "[]bool", "[]boolean":
+		return PrimitiveTypeBooleanList
 	case "[]time", "[]datetime", "[]timestamp", "[]time.time":
 		return PrimitiveTypeTimestampList
-	case "headless":
-		return PrimitiveTypeHeadless
 	default:
 		return PrimitiveTypeUnknown
 	}
@@ -66,7 +70,7 @@ func StringToPrimitiveType(s string) PrimitiveType {
 
 func (pt PrimitiveType) Scalar() bool {
 	switch pt {
-	case PrimitiveTypeTimestampList, PrimitiveTypeStringList, PrimitiveTypeIntegerList, PrimitiveTypeFloatList:
+	case PrimitiveTypeStringList, PrimitiveTypeIntegerList, PrimitiveTypeFloatList, PrimitiveTypeBooleanList, PrimitiveTypeTimestampList:
 		return false
 	default:
 		return true
@@ -74,28 +78,32 @@ func (pt PrimitiveType) Scalar() bool {
 }
 func (pt PrimitiveType) Singular() PrimitiveType {
 	switch pt {
-	case PrimitiveTypeTimestampList:
-		return PrimitiveTypeTimestamp
 	case PrimitiveTypeStringList:
 		return PrimitiveTypeString
 	case PrimitiveTypeIntegerList:
 		return PrimitiveTypeInteger
 	case PrimitiveTypeFloatList:
 		return PrimitiveTypeFloat
+	case PrimitiveTypeBooleanList:
+		return PrimitiveTypeBoolean
+	case PrimitiveTypeTimestampList:
+		return PrimitiveTypeTimestamp
 	default:
 		return pt
 	}
 }
 func (pt PrimitiveType) Plural() PrimitiveType {
 	switch pt {
-	case PrimitiveTypeTimestamp:
-		return PrimitiveTypeTimestampList
 	case PrimitiveTypeString:
 		return PrimitiveTypeStringList
 	case PrimitiveTypeInteger:
 		return PrimitiveTypeIntegerList
 	case PrimitiveTypeFloat:
 		return PrimitiveTypeFloatList
+	case PrimitiveTypeBoolean:
+		return PrimitiveTypeBooleanList
+	case PrimitiveTypeTimestamp:
+		return PrimitiveTypeTimestampList
 	default:
 		return pt
 	}
@@ -104,22 +112,24 @@ func (pt PrimitiveType) String() string {
 	switch pt {
 	case PrimitiveTypeString:
 		return "string"
-	case PrimitiveTypeTimestamp:
-		return "timestamp"
 	case PrimitiveTypeInteger:
 		return "int"
 	case PrimitiveTypeFloat:
 		return "float"
+	case PrimitiveTypeBoolean:
+		return "bool"
+	case PrimitiveTypeTimestamp:
+		return "timestamp"
+	case PrimitiveTypeStringList:
+		return "[]string"
 	case PrimitiveTypeIntegerList:
 		return "[]int"
 	case PrimitiveTypeFloatList:
-		return "[]]list"
-	case PrimitiveTypeStringList:
-		return "[]string"
+		return "[]]float"
+	case PrimitiveTypeBooleanList:
+		return "[]bool"
 	case PrimitiveTypeTimestampList:
 		return "[]timestamp"
-	case PrimitiveTypeHeadless:
-		return "headless"
 	default:
 		return "(unknown)"
 	}
@@ -129,14 +139,16 @@ func (pt PrimitiveType) Interface() any {
 		return reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(pt.Singular().Interface())), 0, 0).Interface()
 	}
 	switch pt {
-	case PrimitiveTypeTimestamp:
-		return time.Time{}
 	case PrimitiveTypeString:
 		return ""
 	case PrimitiveTypeInteger:
 		return 0
 	case PrimitiveTypeFloat:
 		return float64(0)
+	case PrimitiveTypeBoolean:
+		return false
+	case PrimitiveTypeTimestamp:
+		return time.Time{}
 	default:
 		return pt
 	}
@@ -144,12 +156,14 @@ func (pt PrimitiveType) Interface() any {
 
 func ScalarString(val any) string {
 	switch v := val.(type) {
+	case string:
+		return v
 	case int:
 		return strconv.Itoa(v)
 	case float64:
 		return strconv.FormatFloat(v, 'f', -1, 64)
-	case string:
-		return v
+	case bool:
+		return strconv.FormatBool(v)
 	case time.Time:
 		return strconv.FormatInt(v.UnixMicro(), 10)
 	default:
@@ -162,12 +176,14 @@ func ScalarFromString(val string, scalar PrimitiveType) (any, error) {
 		return nil, fmt.Errorf("%s is not a scalar type", scalar)
 	}
 	switch scalar {
+	case PrimitiveTypeString:
+		return val, nil
 	case PrimitiveTypeInteger:
 		return strconv.Atoi(val)
 	case PrimitiveTypeFloat:
 		return strconv.ParseFloat(val, 64)
-	case PrimitiveTypeString:
-		return val, nil
+	case PrimitiveTypeBoolean:
+		return strconv.ParseBool(val)
 	case PrimitiveTypeTimestamp:
 		n, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {

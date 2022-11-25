@@ -124,7 +124,7 @@ func (sw *snowflakeWriter) Commit(ctx context.Context, wn api.WriteNotification)
 	if err != nil {
 		return fmt.Errorf("failed to prepare snowflake insert: %w", err)
 	}
-	_, err = stmt.ExecContext(ctx, wn.FQN, wn.EntityID, val, sf.DataTypeTimestampLtz, wn.Value.Timestamp, bucket, alive)
+	_, err = stmt.ExecContext(ctx, wn.FQN, wn.EncodedKeys, val, sf.DataTypeTimestampLtz, wn.Value.Timestamp, bucket, alive)
 	return err
 }
 func (sw *snowflakeWriter) Flush(ctx context.Context, fqn string) error { return nil }

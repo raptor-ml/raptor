@@ -27,44 +27,61 @@ import (
 	"github.com/raptor-ml/raptor/api"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/raptor-ml/raptor/pkg/plugins"
-	"github.com/raptor-ml/raptor/pkg/pyexp"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 )
 
+const name = "rest"
+
 func init() {
-	const name = "rest"
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
-type Spec struct {
+type config struct {
 	//+optional
-	URL string `json:"url"`
+	URL string `mapstructure:"url"`
 	//+optional
-	Method string `json:"method"`
+	Method string `mapstructure:"method"`
 	//+optional
-	Body string `json:"body"`
+	Body string `mapstructure:"body"`
 	//+optional
-	Headers http.Header `json:"headers"`
+	Headers http.Header `mapstructure:"headers"`
+
+	runtime api.RuntimeManager
+	client  http.Client
 }
 
 var httpMemoryCache = lrucache.New(500<<(10*2), 60*15) // 500MB; 15min
 
-func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.EngineWithSource) error {
-	spec := &Spec{}
-	err := json.Unmarshal(builder.Raw, spec)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal expression spec: %w", err)
+func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.ExtendedManager) error {
+	if fd.DataSource == "" {
+		return fmt.Errorf("DataSource must be set for `%s` builder", name)
 	}
 
-	if builder.PyExp == "" {
-		return fmt.Errorf("expression is empty")
-	}
-	runtime, err := pyexp.New(builder.PyExp, fd.FQN)
+	src, err := engine.GetDataSource(fd.DataSource)
 	if err != nil {
-		return fmt.Errorf("failed to create expression runtime: %w", err)
+		return fmt.Errorf("failed to get DataSource: %v", err)
+	}
+
+	if src.Kind != name {
+		return fmt.Errorf("DataSource must be of type `%s`. got `%s`", name, src.Kind)
+	}
+
+	cfg := config{}
+	err = src.Config.Unmarshal(&cfg)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal DataSource config: %v", err)
+	}
+
+	if builder.Code == "" {
+		return fmt.Errorf("code is empty")
+	}
+
+	err = engine.LoadProgram(builder.Runtime, fd.FQN, builder.Code, builder.Packages)
+	if err != nil {
+		return fmt.Errorf("failed to load python program: %w", err)
 	}
 
 	timeout := time.Duration(float32(fd.Timeout) * 0.8)
@@ -75,59 +92,43 @@ func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, ap
 	tr := httpcache.NewTransport(httpMemoryCache)
 	tr.Transport = &retryablehttp.RoundTripper{}
 
-	r := rest{
-		engine:  engine,
-		runtime: runtime,
-		client: http.Client{
-			Transport: httpcache.NewTransport(httpMemoryCache),
-			Timeout:   timeout,
-		},
-		method:  spec.Method,
-		url:     spec.URL,
-		body:    spec.Body,
-		headers: spec.Headers,
+	cfg.runtime = engine
+	cfg.client = http.Client{
+		Transport: httpcache.NewTransport(httpMemoryCache),
+		Timeout:   timeout,
 	}
 
 	if fd.Freshness <= 0 {
-		api.AddPreGetMiddleware(0, r.getMiddleware)
+		api.AddPreGetMiddleware(0, cfg.getMiddleware)
 	} else {
-		api.AddPostGetMiddleware(0, r.getMiddleware)
+		api.AddPostGetMiddleware(0, cfg.getMiddleware)
 	}
 	return nil
 }
 
-type rest struct {
-	runtime pyexp.Runtime
-	engine  api.Engine
-	client  http.Client
-	url     string
-	method  string
-	headers http.Header
-	body    string
-}
-
-func (rp *rest) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
-	return func(ctx context.Context, fd api.FeatureDescriptor, entityID string, val api.Value) (api.Value, error) {
+func (rest *config) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
+	return func(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, val api.Value) (api.Value, error) {
 		cache, cacheOk := ctx.Value(api.ContextKeyFromCache).(bool)
 		if cacheOk && cache && val.Fresh && !fd.ValidWindow() {
-			return next(ctx, fd, entityID, val)
+			return next(ctx, fd, keys, val)
 		}
 
 		var body io.Reader
-		if rp.body != "" {
-			body = strings.NewReader(rp.body)
+		if rest.Body != "" {
+			body = strings.NewReader(rest.Body)
 		}
 
-		u := strings.ReplaceAll(rp.url, "{entity_id}", entityID)
+		u := strings.ReplaceAll(rest.URL, "{keys}", keys.String())
+		//todo: add support for specific key placeholder
 
-		req, err := http.NewRequest(rp.method, u, body)
+		req, err := http.NewRequest(rest.Method, u, body)
 		if err != nil {
 			return val, err
 		}
 		req = req.WithContext(ctx)
-		req.Header = rp.headers
+		req.Header = rest.Headers
 
-		resp, err := rp.client.Do(req)
+		resp, err := rest.client.Do(req)
 		if err != nil {
 			return val, err
 		}
@@ -139,37 +140,17 @@ func (rp *rest) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler 
 		}
 
 		// Try to parse the input as JSON. If successful pass the unmarshalled object, otherwise pass the body as-is
-		var payload any
-		var unmarshalledPayload map[string]any
-		err = json.NewDecoder(bytes.NewReader(buf)).Decode(&unmarshalledPayload)
+		var payload map[string]any
+		err = json.NewDecoder(bytes.NewReader(buf)).Decode(&payload)
 		if err != nil {
-			payload = buf
-		} else {
-			payload = unmarshalledPayload
+			return val, fmt.Errorf("failed to parse response as JSON: %w", err)
 		}
 
-		ret, err := rp.runtime.ExecWithEngine(ctx, pyexp.ExecRequest{
-			Headers:   resp.Header,
-			Payload:   payload,
-			EntityID:  entityID,
-			Timestamp: val.Timestamp,
-			Logger:    api.LoggerFromContext(ctx),
-		}, rp.engine)
+		val, keys, err = rest.runtime.ExecuteProgram(fd.RuntimeEnv, fd.FQN, keys, payload, val.Timestamp)
 		if err != nil {
 			return val, err
 		}
 
-		if ret.Value != nil {
-			if ret.Timestamp.IsZero() && !val.Timestamp.IsZero() {
-				ret.Timestamp = val.Timestamp
-			}
-			val = api.Value{
-				Value:     ret.Value,
-				Timestamp: ret.Timestamp,
-				Fresh:     true,
-			}
-		}
-
-		return next(ctx, fd, entityID, val)
+		return next(ctx, fd, keys, val)
 	}
 }

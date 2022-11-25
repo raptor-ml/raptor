@@ -30,7 +30,7 @@ import (
 type AggrFn string
 
 // PrimitiveType defines the type of primitive
-// +kubebuilder:validation:Enum=int;float;string;timestamp;[]int;[]float;[]string;[]timestamp;headless
+// +kubebuilder:validation:Enum=int;float;string;timestamp;[]int;[]float;[]string;[]timestamp
 type PrimitiveType string
 
 // FeatureSpec defines the desired state of Feature
@@ -58,6 +58,11 @@ type FeatureSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Timeout"
 	Timeout metav1.Duration `json:"timeout"`
 
+	// Keys defines the list of keys that are required to calculate the feature value.
+	// +kubebuilder:validation:Required
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="EncodedKeys"
+	Keys []string `json:"keys"`
+
 	// DataSource is a reference for the DataSource that this Feature is associated with
 	// +optional
 	// +nullable
@@ -65,6 +70,7 @@ type FeatureSpec struct {
 	DataSource *ResourceReference `json:"dataSource,omitempty"`
 
 	// Builder defines a building-block to use to build the feature-value
+	// +kubebuilder:validation:Required
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Builder"
 	Builder FeatureBuilder `json:"builder"`
 }
@@ -88,11 +94,20 @@ type FeatureBuilder struct {
 	// +nullable
 	AggrGranularity metav1.Duration `json:"aggrGranularity"`
 
-	// PyExp defines a Python expression to use to build the feature-value.
+	// Runtime defines the runtime virtualenv to use for running the python computation.
 	// +optional
-	// +nullable
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="RuntimeManager"
+	Runtime string `json:"runtime"`
+
+	// Packages defines the list of python packages to install in the runtime virtualenv.
+	// +optional
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Packages"
+	Packages []string `json:"packages"`
+
+	// Code defines a Python expression to use to build the feature-value.
+	// +kubebuilder:validation:Required
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Python Expression"
-	PyExp string `json:"pyexp"`
+	Code string `json:"code"`
 
 	// Embedded custom configuration of the Builder to use to build the feature-value.
 	// +kubebuilder:pruning:PreserveUnknownFields

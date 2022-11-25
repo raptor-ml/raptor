@@ -24,22 +24,24 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
-type Client interface {
-	// AddCollectNotification adds a notification to the collector
-	AddCollectNotification(fqn, entityID, bucket string)
+type (
+	Client interface {
+		// AddCollectNotification adds a notification to the collector
+		AddCollectNotification(fqn, encodedKeys, bucket string)
 
-	// AddWriteNotification adds a notification to the writer
-	AddWriteNotification(fqn, entityID, bucket string, value *api.Value)
+		// AddWriteNotification adds a notification to the writer
+		AddWriteNotification(fqn, encodedKeys, bucket string, value *api.Value)
 
-	// CollectNotifier is a runnable that notifies the collector of a new collection task
-	CollectNotifier() NoLeaderRunnableFunc
+		// CollectNotifier is a runnable that notifies the collector of a new collection task
+		CollectNotifier() NoLeaderRunnableFunc
 
-	// WriteNotifier is a runnable that notifies the writer of a new writing task
-	WriteNotifier() NoLeaderRunnableFunc
+		// WriteNotifier is a runnable that notifies the writer of a new writing task
+		WriteNotifier() NoLeaderRunnableFunc
 
-	// WithManager adds all the Runnables (CollectNotifier, WriteNotifier) to the manager
-	WithManager(mgr manager.Manager) error
-}
+		// WithManager adds all the Runnables (CollectNotifier, WriteNotifier) to the manager
+		WithManager(mgr manager.Manager) error
+	}
+)
 type ClientConfig struct {
 	CollectNotifier            api.Notifier[api.CollectNotification]
 	WriteNotifier              api.Notifier[api.WriteNotification]
@@ -68,23 +70,23 @@ func NewClient(config ClientConfig) Client {
 	return c
 }
 
-func (c *client) AddCollectNotification(fqn, entityID, bucket string) {
+func (c *client) AddCollectNotification(fqn, encodedKeys, bucket string) {
 	c.pendingCollects.Add(api.CollectNotification{
-		FQN:      fqn,
-		EntityID: entityID,
-		Bucket:   bucket,
+		FQN:         fqn,
+		EncodedKeys: encodedKeys,
+		Bucket:      bucket,
 	})
 }
 
-func (c *client) AddWriteNotification(fqn, entityID, bucket string, value *api.Value) {
+func (c *client) AddWriteNotification(fqn, encodedKeys, bucket string, value *api.Value) {
 	if value == nil {
 		panic(fmt.Errorf("value is nil for NotificationTypeWrite"))
 	}
 	c.pendingWrite.Add(api.WriteNotification{
-		FQN:      fqn,
-		EntityID: entityID,
-		Value:    value,
-		Bucket:   bucket,
+		FQN:         fqn,
+		EncodedKeys: encodedKeys,
+		Value:       value,
+		Bucket:      bucket,
 	})
 }
 

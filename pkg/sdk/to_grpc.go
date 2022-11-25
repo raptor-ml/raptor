@@ -36,6 +36,8 @@ func ToAPIScalar(val any) *coreApi.Scalar {
 		return &coreApi.Scalar{Value: &coreApi.Scalar_IntValue{IntValue: int32(val.(int))}}
 	case api.PrimitiveTypeFloat:
 		return &coreApi.Scalar{Value: &coreApi.Scalar_FloatValue{FloatValue: val.(float64)}}
+	case api.PrimitiveTypeBoolean:
+		return &coreApi.Scalar{Value: &coreApi.Scalar_BoolValue{BoolValue: val.(bool)}}
 	case api.PrimitiveTypeTimestamp:
 		return &coreApi.Scalar{Value: &coreApi.Scalar_TimestampValue{TimestampValue: timestamppb.New(val.(time.Time))}}
 	default:
@@ -80,12 +82,16 @@ func ToAPIPrimitive(p api.PrimitiveType) coreApi.Primitive {
 		return coreApi.Primitive_PRIMITIVE_FLOAT
 	case api.PrimitiveTypeTimestamp:
 		return coreApi.Primitive_PRIMITIVE_TIMESTAMP
+	case api.PrimitiveTypeBoolean:
+		return coreApi.Primitive_PRIMITIVE_BOOL
 	case api.PrimitiveTypeStringList:
 		return coreApi.Primitive_PRIMITIVE_STRING_LIST
 	case api.PrimitiveTypeIntegerList:
 		return coreApi.Primitive_PRIMITIVE_INTEGER_LIST
 	case api.PrimitiveTypeFloatList:
 		return coreApi.Primitive_PRIMITIVE_FLOAT_LIST
+	case api.PrimitiveTypeBooleanList:
+		return coreApi.Primitive_PRIMITIVE_BOOL_LIST
 	case api.PrimitiveTypeTimestampList:
 		return coreApi.Primitive_PRIMITIVE_TIMESTAMP_LIST
 	}

@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/raptor-ml/raptor/api"
-	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,16 +29,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-const runtimeImg = "ghcr.io/raptor-ml/raptor-runtime"
-
 var distrolessNoRootUser int64 = 65532
 
 type Base interface {
-	Reconcile(ctx context.Context, rr api.ReconcileRequest, src *raptorApi.DataSource) error
+	Reconcile(ctx context.Context, rr api.ReconcileRequest, src *manifests.DataSource) error
 }
 type BaseRunner struct {
 	Image           string
-	RuntimeVersion  string
 	Command         []string
 	SecurityContext *corev1.SecurityContext
 }
@@ -47,17 +44,10 @@ func (r BaseRunner) Reconciler() (api.DataSourceReconcile, error) {
 	if r.Image == "" {
 		return nil, fmt.Errorf("runner image is required")
 	}
-	if r.RuntimeVersion == "" {
-		return nil, fmt.Errorf("runtime version is required")
-	}
 	if len(r.Command) == 0 {
 		return nil, fmt.Errorf("command is required")
 	}
 
-	// defaults
-	if r.RuntimeVersion == "master" {
-		r.RuntimeVersion = "latest"
-	}
 	return r.reconcile, nil
 }
 func (r BaseRunner) reconcile(ctx context.Context, req api.ReconcileRequest) (bool, error) {
@@ -115,14 +105,42 @@ func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.Reconcil
 
 	t := true
 
-	deploy.Spec.Template.Spec.Containers = []corev1.Container{
+	sidecars := req.RuntimeManager.GetSidecars()
+	for i := range sidecars {
+		found := false
+		for n, env := range sidecars[i].Env {
+			if env.Name == "CORE_GRPC_URL" {
+				sidecars[i].Env[n].Value = req.CoreAddress
+				found = true
+			}
+		}
+
+		if !found {
+			sidecars[i].Env = append(sidecars[i].Env, corev1.EnvVar{
+				Name:  "CORE_GRPC_URL",
+				Value: req.CoreAddress,
+			})
+		}
+	}
+	deploy.Spec.Template.Spec.Containers = append([]corev1.Container{
 		containerWithDefaults(corev1.Container{
 			Image: r.Image,
 			Name:  "runner",
 			Command: append(r.Command, []string{
 				"--data-source-resource", req.DataSource.Name,
-				"--data-source-namespace", req.DataSource.Namespace,
-				"--runtime-grpc-addr", ":60005"}...),
+				"--data-source-namespace", req.DataSource.Namespace}...),
+			Env: []corev1.EnvVar{
+				{
+					Name:  "DEFAULT_RUNTIME",
+					Value: req.RuntimeManager.GetDefaultEnv(),
+				},
+			},
+			VolumeMounts: []corev1.VolumeMount{
+				{
+					Name:      "grpc-udp",
+					MountPath: "/tmp/raptor",
+				},
+			},
 			Resources: corev1.ResourceRequirements{
 				Limits: req.DataSource.Spec.Resources.Limits,
 			},
@@ -131,18 +149,7 @@ func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.Reconcil
 				RunAsNonRoot: &t,
 			},
 		}),
-		containerWithDefaults(corev1.Container{
-			Image: fmt.Sprintf("%s:%s", runtimeImg, r.RuntimeVersion),
-			Name:  "runtime",
-			Command: []string{
-				"./runtime",
-				"--core-grpc-url", req.CoreAddress,
-				"--grpc-addr", ":60005",
-			},
-			Resources:       req.DataSource.Spec.Resources,
-			SecurityContext: r.SecurityContext,
-		}),
-	}
+	}, sidecars...)
 }
 
 func containerWithDefaults(container corev1.Container) corev1.Container {
@@ -164,6 +171,6 @@ func containerWithDefaults(container corev1.Container) corev1.Container {
 	return container
 }
 
-func deploymentName(src *raptorApi.DataSource) string {
+func deploymentName(src *manifests.DataSource) string {
 	return fmt.Sprintf("raptor-dsrc-%s", src.Name)
 }

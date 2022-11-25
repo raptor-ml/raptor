@@ -87,10 +87,12 @@ func fromScalar(scalar *coreApi.Scalar) any {
 	switch scalar.Value.(type) {
 	case *coreApi.Scalar_StringValue:
 		return scalar.GetStringValue()
-	case *coreApi.Scalar_FloatValue:
-		return scalar.GetFloatValue()
 	case *coreApi.Scalar_IntValue:
 		return int(scalar.GetIntValue())
+	case *coreApi.Scalar_FloatValue:
+		return scalar.GetFloatValue()
+	case *coreApi.Scalar_BoolValue:
+		return scalar.GetBoolValue()
 	case *coreApi.Scalar_TimestampValue:
 		return scalar.GetTimestampValue().AsTime()
 	}

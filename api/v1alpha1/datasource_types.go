@@ -115,7 +115,7 @@ type DataSourceStatus struct {
 	Features []ResourceReference `json:"features"`
 
 	// +operator-sdk:csv:customresourcedefinitions:type=status
-	Replicas int32 `json:"replicas,omitempty"`
+	Replicas *int32 `json:"replicas,omitempty"`
 }
 
 // +k8s:openapi-gen=true
