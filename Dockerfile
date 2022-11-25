@@ -5,6 +5,9 @@ ARG VERSION
 
 ### Build
 FROM golang:1.19 AS build
+ARG TARGETOS
+ARG TARGETARCH
+ARG LDFLAGS
 
 WORKDIR /workspace
 COPY go.mod /workspace
@@ -17,6 +20,7 @@ FROM build AS build-core
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="${LDFLAGS}" -o /out/core cmd/core/*.go
 
 FROM gcr.io/distroless/static:nonroot as core
+ARG VERSION
 
 LABEL org.opencontainers.image.source="https://github.com/raptor-ml/raptor"
 LABEL org.opencontainers.image.version="${VERSION}"
