@@ -50,6 +50,7 @@ jobs:
           - { "os": "windows-latest", "python": 38, "platform_id": "win_amd64", arch: "AMD64" }
           - { "os": "windows-latest", "python": 39, "platform_id": "win_amd64", arch: "AMD64" }
           - { "os": "windows-latest", "python": 310, "platform_id": "win_amd64", arch: "AMD64" }
+          - { "os": "windows-latest", "python": 311, "platform_id": "win_amd64", arch: "AMD64" }
 
           # Linux 64 bit #aarch64=arm64 i686=386
           - { "os": "ubuntu-latest", "python": 37, "platform_id": "manylinux_x86_64", arch: "x86_64" }
@@ -60,6 +61,8 @@ jobs:
           - { "os": "ubuntu-latest", "python": 39, "platform_id": "manylinux_aarch64", arch: "aarch64" }
           - { "os": "ubuntu-latest", "python": 310, "platform_id": "manylinux_x86_64", arch: "x86_64" }
           - { "os": "ubuntu-latest", "python": 310, "platform_id": "manylinux_aarch64", arch: "aarch64" }
+          - { "os": "ubuntu-latest", "python": 311, "platform_id": "manylinux_x86_64", arch: "x86_64" }
+          - { "os": "ubuntu-latest", "python": 311, "platform_id": "manylinux_aarch64", arch: "aarch64" }
 
           # MacOS
           - { "os": "macos-latest", "python": 37, "platform_id": "macosx_x86_64", arch: "x86_64" }
@@ -69,6 +72,8 @@ jobs:
           - { "os": "macos-latest", "python": 39, "platform_id": "macosx_arm64", arch: "arm64" }
           - { "os": "macos-latest", "python": 310, "platform_id": "macosx_x86_64", arch: "x86_64" }
           - { "os": "macos-latest", "python": 310, "platform_id": "macosx_arm64", arch: "arm64" }
+          - { "os": "macos-latest", "python": 311, "platform_id": "macosx_x86_64", arch: "x86_64" }
+          - { "os": "macos-latest", "python": 311, "platform_id": "macosx_arm64", arch: "arm64" }
     steps:
       - name: Setup Go environment
         if: runner.os != 'Linux'
