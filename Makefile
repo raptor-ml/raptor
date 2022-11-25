@@ -169,27 +169,27 @@ docker-build-runtimes: generate ## Build docker images for runtimes.
 		--build-arg BASE_PYTHON_IMAGE="python:3.11-alpine"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.11 -t ${RUNTIME_IMG_BASE}:latest-python3.11 \
 		-t ${RUNTIME_IMG_BASE}:${VERSION} -t ${RUNTIME_IMG_BASE}:latest \
-		--target runtime .
+		--target runtime -f ./runtime/Dockerfile .
 
 	DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
 		--build-arg BASE_PYTHON_IMAGE="python:3.10-alpine"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.10 -t ${RUNTIME_IMG_BASE}:latest-python3.10 \
-		--target runtime .
+		--target runtime -f ./runtime/Dockerfile .
 
 	DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
 		--build-arg BASE_PYTHON_IMAGE="python:3.9-alpine"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.9 -t ${RUNTIME_IMG_BASE}:latest-python3.9 \
-		--target runtime .
+		--target runtime -f ./runtime/Dockerfile .
 
 	DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
 		--build-arg BASE_PYTHON_IMAGE="python:3.8-alpine"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.8 -t ${RUNTIME_IMG_BASE}:latest-python3.8 \
-		--target runtime .
+		--target runtime -f ./runtime/Dockerfile .
 
 	DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
 		--build-arg BASE_PYTHON_IMAGE="python:3.7-alpine"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.7 -t ${RUNTIME_IMG_BASE}:latest-python3.7 \
-		--target runtime .
+		--target runtime -f ./runtime/Dockerfile .
 
 .PHONY: kind-load
 kind-load: ## Load docker images into kind.

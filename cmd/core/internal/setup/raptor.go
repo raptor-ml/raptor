@@ -92,7 +92,7 @@ func coreControllers(mgr manager.Manager, eng api.ManagerEngine) {
 	OrFail(err, "unable to create core controller", "controller", "FeatureSet")
 }
 
-func operatorControllers(mgr manager.Manager, rm runtimemanager.RuntimeManager) {
+func operatorControllers(mgr manager.Manager, rm api.RuntimeManager) {
 	var err error
 
 	coreAddr := viper.GetString("accessor-service")
