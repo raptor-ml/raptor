@@ -17,4 +17,4 @@ spec:
       value: "true"
   keyField: client_id
   timestampField: timestamp
-  schema: ~
+  schema: https://raw.githubusercontent.com/raptor-ml/massivedynamic-protos/master/click.proto#Click

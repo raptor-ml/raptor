@@ -6,11 +6,9 @@ spec:
   primitive: string
   freshness: 720h #30 days
   staleness: 2160h #90 days
+  dataSource:
+    name: json-placeholder
   builder:
-    kind: rest
-    url: https://jsonplaceholder.typicode.com/users/{entity_id}/
-    method: GET
-    body: ~
-    pyexp: |
+    code: |
       def handler(**req):
         return req["payload"]["address"]["city"]

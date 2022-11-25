@@ -6,7 +6,9 @@ spec:
   primitive: string
   freshness: 1h
   staleness: 2h
+  keys:
+    - name
   builder:
-    pyexp: |-
-      def handler(**req):
-         return "Hello world " + req["entity_id"]
+    code: |-
+      def handler(row, ctx) -> str:
+         return "Hello world " + ctx.keys["name"]

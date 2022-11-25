@@ -119,10 +119,12 @@ spec:
                 - int
                 - float
                 - string
+                - bool
                 - timestamp
                 - '[]int'
                 - '[]float'
                 - '[]string'
+                - '[]bool'
                 - '[]timestamp'
                 type: string
               staleness:
