@@ -52,7 +52,7 @@ func (s *serviceServer) FeatureDescriptor(ctx context.Context, req *coreApi.Feat
 	}, nil
 }
 func (s *serviceServer) Get(ctx context.Context, req *coreApi.GetRequest) (*coreApi.GetResponse, error) {
-	resp, fd, err := s.engine.Get(ctx, req.GetFqn(), req.GetEntityId())
+	resp, fd, err := s.engine.Get(ctx, req.GetFqn(), req.GetKeys())
 	if err != nil {
 		if errors.Is(err, api.ErrFeatureNotFound) {
 			return nil, status.Errorf(codes.NotFound, "feature not found")
@@ -77,7 +77,7 @@ func (s *serviceServer) Get(ctx context.Context, req *coreApi.GetRequest) (*core
 		Uuid: req.GetUuid(),
 		Value: &coreApi.FeatureValue{
 			Fqn:       req.GetFqn(),
-			EntityId:  req.GetEntityId(),
+			Keys:      req.GetKeys(),
 			Value:     ToAPIValue(val),
 			Timestamp: timestamppb.New(resp.Timestamp),
 		},
@@ -88,7 +88,7 @@ func (s *serviceServer) Get(ctx context.Context, req *coreApi.GetRequest) (*core
 }
 
 func (s *serviceServer) Set(ctx context.Context, req *coreApi.SetRequest) (*coreApi.SetResponse, error) {
-	err := s.engine.Set(ctx, req.GetFqn(), req.GetEntityId(), FromValue(req.Value), req.Timestamp.AsTime())
+	err := s.engine.Set(ctx, req.GetFqn(), req.GetKeys(), FromValue(req.Value), req.Timestamp.AsTime())
 	if err != nil {
 		if errors.Is(err, api.ErrFeatureNotFound) {
 			return nil, status.Errorf(codes.NotFound, "feature not found")
@@ -101,7 +101,7 @@ func (s *serviceServer) Set(ctx context.Context, req *coreApi.SetRequest) (*core
 	}, nil
 }
 func (s *serviceServer) Append(ctx context.Context, req *coreApi.AppendRequest) (*coreApi.AppendResponse, error) {
-	err := s.engine.Append(ctx, req.GetFqn(), req.GetEntityId(), fromScalar(req.Value), req.Timestamp.AsTime())
+	err := s.engine.Append(ctx, req.GetFqn(), req.GetKeys(), fromScalar(req.Value), req.Timestamp.AsTime())
 	if err != nil {
 		if errors.Is(err, api.ErrFeatureNotFound) {
 			return nil, status.Errorf(codes.NotFound, "feature not found")
@@ -114,7 +114,7 @@ func (s *serviceServer) Append(ctx context.Context, req *coreApi.AppendRequest) 
 	}, nil
 }
 func (s *serviceServer) Incr(ctx context.Context, req *coreApi.IncrRequest) (*coreApi.IncrResponse, error) {
-	err := s.engine.Incr(ctx, req.GetFqn(), req.GetEntityId(), fromScalar(req.Value), req.Timestamp.AsTime())
+	err := s.engine.Incr(ctx, req.GetFqn(), req.GetKeys(), fromScalar(req.Value), req.Timestamp.AsTime())
 	if err != nil {
 		if errors.Is(err, api.ErrFeatureNotFound) {
 			return nil, status.Errorf(codes.NotFound, "feature not found")
@@ -127,7 +127,7 @@ func (s *serviceServer) Incr(ctx context.Context, req *coreApi.IncrRequest) (*co
 	}, nil
 }
 func (s *serviceServer) Update(ctx context.Context, req *coreApi.UpdateRequest) (*coreApi.UpdateResponse, error) {
-	err := s.engine.Update(ctx, req.GetFqn(), req.GetEntityId(), FromValue(req.Value), req.Timestamp.AsTime())
+	err := s.engine.Update(ctx, req.GetFqn(), req.GetKeys(), FromValue(req.Value), req.Timestamp.AsTime())
 	if err != nil {
 		if errors.Is(err, api.ErrFeatureNotFound) {
 			return nil, status.Errorf(codes.NotFound, "feature not found")

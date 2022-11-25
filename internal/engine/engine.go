@@ -24,62 +24,70 @@ import (
 	"github.com/raptor-ml/raptor/api"
 	"github.com/raptor-ml/raptor/internal/historian"
 	"github.com/raptor-ml/raptor/internal/stats"
+	v1 "k8s.io/api/core/v1"
 	"sync"
 	"time"
 )
 
 type engine struct {
-	features    sync.Map
-	dataSources sync.Map
-	state       api.State
-	historian   historian.Client
-	logger      logr.Logger
+	features       sync.Map
+	dataSources    sync.Map
+	state          api.State
+	historian      historian.Client
+	runtimeManager api.RuntimeManager
+	logger         logr.Logger
 }
 
 // New creates a new engine manager
-func New(state api.State, h historian.Client, logger logr.Logger) api.ManagerEngine {
+func New(state api.State, h historian.Client, rm api.RuntimeManager, logger logr.Logger) api.ManagerEngine {
 	if state == nil {
 		panic("state is nil")
 	}
 	e := &engine{
-		state:     state,
-		historian: h,
-		logger:    logger,
+		state:          state,
+		historian:      h,
+		runtimeManager: rm,
+		logger:         logger,
 	}
 	return e
 }
 
-func (e *engine) Append(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
+func (e *engine) Append(ctx context.Context, fqn string, keys api.Keys, val any, ts time.Time) error {
 	defer stats.IncrFeatureAppends()
-	return e.write(ctx, fqn, entityID, val, ts, api.StateMethodAppend)
+	return e.write(ctx, fqn, keys, val, ts, api.StateMethodAppend)
 }
-func (e *engine) Incr(ctx context.Context, fqn string, entityID string, by any, ts time.Time) error {
+func (e *engine) Incr(ctx context.Context, fqn string, keys api.Keys, by any, ts time.Time) error {
 	defer stats.IncrFeatureIncrements()
-	return e.write(ctx, fqn, entityID, by, ts, api.StateMethodIncr)
+	return e.write(ctx, fqn, keys, by, ts, api.StateMethodIncr)
 }
-func (e *engine) Set(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
+func (e *engine) Set(ctx context.Context, fqn string, keys api.Keys, val any, ts time.Time) error {
 	defer stats.IncrFeatureSets()
-	return e.write(ctx, fqn, entityID, val, ts, api.StateMethodSet)
+	return e.write(ctx, fqn, keys, val, ts, api.StateMethodSet)
 }
-func (e *engine) Update(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
+func (e *engine) Update(ctx context.Context, fqn string, keys api.Keys, val any, ts time.Time) error {
 	defer stats.IncrFeatureUpdates()
-	return e.write(ctx, fqn, entityID, val, ts, api.StateMethodUpdate)
+	return e.write(ctx, fqn, keys, val, ts, api.StateMethodUpdate)
 }
-func (e *engine) write(ctx context.Context, fqn string, entityID string, val any, ts time.Time, method api.StateMethod) error {
+func (e *engine) write(ctx context.Context, fqn string, keys api.Keys, val any, ts time.Time, method api.StateMethod) error {
 	f, ctx, cancel, err := e.featureForRequest(ctx, fqn)
 	if err != nil {
 		return err
 	}
 	defer cancel()
 
+	_, err = keys.Encode(f.FeatureDescriptor)
+	if err != nil {
+		return fmt.Errorf("failed to encode keys: %w", err)
+	}
+
 	v := api.Value{Value: val, Timestamp: ts}
-	if _, err = e.writePipeline(f, method).Apply(ctx, entityID, v); err != nil {
-		return fmt.Errorf("failed to %s value for feature %s with entity %s: %w", method, fqn, entityID, err)
+	if _, err = e.writePipeline(f, method).Apply(ctx, keys, v); err != nil {
+		return fmt.Errorf("failed to %s value for feature %s with entity %s: %w", method, fqn, keys, err)
 	}
 	return nil
 }
 
-func (e *engine) Get(ctx context.Context, fqn string, entityID string) (api.Value, api.FeatureDescriptor, error) {
+func (e *engine) Get(ctx context.Context, fqn string, keys api.Keys) (api.Value, api.FeatureDescriptor, error) {
 	defer stats.IncrFeatureGets()
 
 	ret := api.Value{Timestamp: time.Now()}
@@ -89,9 +97,9 @@ func (e *engine) Get(ctx context.Context, fqn string, entityID string) (api.Valu
 	}
 	defer cancel()
 
-	ret, err = e.readPipeline(f).Apply(ctx, entityID, ret)
+	ret, err = e.readPipeline(f).Apply(ctx, keys, ret)
 	if err != nil && !(goerrors.Is(err, context.DeadlineExceeded) && ret.Value != nil && !ret.Fresh) {
-		return ret, f.FeatureDescriptor, fmt.Errorf("failed to GET value for feature %s with entity %s: %w", fqn, entityID, err)
+		return ret, f.FeatureDescriptor, fmt.Errorf("failed to GET value for feature %s with entity %s: %w", fqn, keys, err)
 	}
 	return ret, f.FeatureDescriptor, nil
 }
@@ -116,6 +124,22 @@ func (e *engine) featureForRequest(ctx context.Context, fqn string) (*Feature, c
 		}
 	}
 	return nil, ctx, nil, fmt.Errorf("%w: %s", api.ErrFeatureNotFound, fqn)
+}
+
+func (e *engine) LoadProgram(env, fqn, program string, packages []string) error {
+	return e.runtimeManager.LoadProgram(env, fqn, program, packages)
+}
+
+func (e *engine) ExecuteProgram(env string, fqn string, keys api.Keys, row map[string]any, ts time.Time) (value api.Value, keyz api.Keys, err error) {
+	return e.runtimeManager.ExecuteProgram(env, fqn, keys, row, ts)
+}
+
+func (e *engine) GetSidecars() []v1.Container {
+	return e.runtimeManager.GetSidecars()
+}
+
+func (e *engine) GetDefaultEnv() string {
+	return e.runtimeManager.GetDefaultEnv()
 }
 
 func (e *engine) Logger() logr.Logger {

@@ -33,7 +33,7 @@ func (h *historian) dispatchWrite(ctx context.Context, ntf api.WriteNotification
 
 	err = h.HistoricalWriter.Commit(ctx, ntf)
 	if err == nil && ntf.Bucket != "" && !ntf.ActiveBucket {
-		h.handledBuckets.Set(deadBucketKey(ntf.FQN, ntf.Bucket, ntf.EntityID), struct{}{}, api.DeadGracePeriod+time.Minute)
+		h.handledBuckets.Set(deadBucketKey(ntf.FQN, ntf.Bucket, ntf.EncodedKeys), struct{}{}, api.DeadGracePeriod+time.Minute)
 	}
 	return err
 }

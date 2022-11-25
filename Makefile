@@ -143,11 +143,9 @@ test-e2e: docker-build ## Run integration tests.
 
 ##@ Build
 
-STREAMING_RUNTIME_VERSION ?=$(VERSION)
 STREAMING_VERSION ?= latest
 LDFLAGS ?= -s -w
 LDFLAGS += -X github.com/raptor-ml/raptor/internal/version.Version=$(VERSION)
-LDFLAGS += -X github.com/raptor-ml/raptor/internal/plugins/builders/streaming.runtimeVer=$(STREAMING_RUNTIME_VERSION)
 LDFLAGS += -X github.com/raptor-ml/raptor/internal/plugins/builders/streaming.runnerImg=ghcr.io/raptor-ml/streaming-runner:$(STREAMING_VERSION)
 
 .PHONY: build
@@ -161,10 +159,37 @@ run: manifests generate fmt lint ## Run a controller from your host.
 	go run ./cmd/raptor/*
 
 .PHONY: docker-build
-docker-build: generate ## Build docker images.
+docker-build: generate docker-build-runtimes ## Build docker images.
 	DOCKER_BUILDKIT=1 docker build --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${CORE_IMG_BASE}:${VERSION} -t ${CORE_IMG_BASE}:latest --target core .
-	DOCKER_BUILDKIT=1 docker build --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${RUNTIME_IMG_BASE}:${VERSION} -t ${RUNTIME_IMG_BASE}:latest --target runtime .
 	DOCKER_BUILDKIT=1 docker build --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${HISTORIAN_IMG_BASE}:${VERSION} -t ${HISTORIAN_IMG_BASE}:latest --target historian .
+
+.PHONY: docker-build-runtimes
+docker-build-runtimes: generate ## Build docker images for runtimes.
+	DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
+		--build-arg BASE_PYTHON_IMAGE="python:3.11-alpine"\
+		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.11 -t ${RUNTIME_IMG_BASE}:latest-python3.11 \
+		-t ${RUNTIME_IMG_BASE}:${VERSION} -t ${RUNTIME_IMG_BASE}:latest \
+		--target runtime .
+
+	DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
+		--build-arg BASE_PYTHON_IMAGE="python:3.10-alpine"\
+		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.10 -t ${RUNTIME_IMG_BASE}:latest-python3.10 \
+		--target runtime .
+
+	DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
+		--build-arg BASE_PYTHON_IMAGE="python:3.9-alpine"\
+		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.9 -t ${RUNTIME_IMG_BASE}:latest-python3.9 \
+		--target runtime .
+
+	DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
+		--build-arg BASE_PYTHON_IMAGE="python:3.8-alpine"\
+		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.8 -t ${RUNTIME_IMG_BASE}:latest-python3.8 \
+		--target runtime .
+
+	DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
+		--build-arg BASE_PYTHON_IMAGE="python:3.7-alpine"\
+		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.7 -t ${RUNTIME_IMG_BASE}:latest-python3.7 \
+		--target runtime .
 
 .PHONY: kind-load
 kind-load: ## Load docker images into kind.

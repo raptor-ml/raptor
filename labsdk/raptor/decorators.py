@@ -14,17 +14,18 @@
 
 import inspect
 import types as pytypes
+from typing import Union, List
+
 from . import replay, local_state, stub
-from .types import FeatureSpec, AggrSpec, ResourceReference, AggrFn, PyExpProgram, BuilderSpec, \
-    FeatureSetSpec, normalize_fqn, PyExpException
+from .program import Program
+from .types import FeatureSpec, AggrSpec, ResourceReference, AggrFn, BuilderSpec, \
+    FeatureSetSpec, normalize_fqn
 
 
 def _wrap_decorator_err(f):
     def wrap(*args, **kwargs):
         try:
             return f(*args, **kwargs)
-        except PyExpException as e:
-            raise e
         except Exception as e:
             back_frame = e.__traceback__.tb_frame.f_back
             tb = pytypes.TracebackType(tb_next=None,
@@ -117,7 +118,7 @@ def _func_match_feature_signature(func):
     return sig == inspect.signature(_stub_feature) or sig == inspect.signature(_stub_feature_with_req)
 
 
-def register(primitive, staleness: str, freshness: str = '', options=None):
+def register(keys: Union[str, List[str]], staleness: str, freshness: str = '', options=None):
     """
     Register a Feature Definition within the LabSDK.
 
@@ -135,7 +136,6 @@ def register(primitive, staleness: str, freshness: str = '', options=None):
         def my_feature(**req):
             return "Hello "+ req["entity_id"]
 
-    :param primitive: the primitive type of the feature.
     :param staleness: the staleness of the feature.
     :param freshness: the freshness of the feature.
     :param options: optional options for the feature.
@@ -143,6 +143,9 @@ def register(primitive, staleness: str, freshness: str = '', options=None):
     """
     if options is None:
         options = {}
+
+    if isinstance(keys, str):
+        keys = [keys]
 
     @_wrap_decorator_err
     def decorator(func):
@@ -152,7 +155,7 @@ def register(primitive, staleness: str, freshness: str = '', options=None):
         spec = FeatureSpec()
         spec.freshness = freshness
         spec.staleness = staleness
-        spec.primitive = primitive
+        spec.keys = keys
         spec.name = func.__name__
         spec.description = func.__doc__
 
@@ -182,7 +185,17 @@ def register(primitive, staleness: str, freshness: str = '', options=None):
             raise Exception(f"{func.__name__} must have a staleness")
 
         # add source coded (decorators stripped)
-        spec.program = PyExpProgram(func, spec.fqn())
+        def fqn_resolver(obj):
+            frame = inspect.currentframe().f_back.f_back
+            if obj in frame.f_globals:
+                if hasattr(frame.f_globals[obj], "raptor_spec"):
+                    return frame.f_globals[obj].raptor_spec.fqn()
+            elif obj in frame.f_locals:
+                if hasattr(frame.f_locals[obj], "raptor_spec"):
+                    return frame.f_locals[obj].raptor_spec.fqn()
+
+        spec.program = Program(func, fqn_resolver)
+        spec.primitive = spec.program.primitive
 
         # register
         func.raptor_spec = spec
@@ -276,4 +289,3 @@ def feature_set(register=False, options=None):
         return func
 
     return decorator
-

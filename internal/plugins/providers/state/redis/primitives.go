@@ -26,19 +26,26 @@ import (
 	"time"
 )
 
-func primitiveKey(fqn string, entityID string) string {
-	return fmt.Sprintf("%s:%s", fqn, entityID)
-}
-
-func (s *state) Get(ctx context.Context, fd api.FeatureDescriptor, entityID string) (*api.Value, error) {
-	if fd.ValidWindow() {
-		return s.getWindow(ctx, fd, entityID)
+func primitiveKey(fd api.FeatureDescriptor, keys api.Keys) (string, error) {
+	e, err := keys.Encode(fd)
+	if err != nil {
+		return "", fmt.Errorf("failed to encode keys: %w", err)
 	}
-	return s.getPrimitive(ctx, fd, entityID)
+	return fmt.Sprintf("%s:%s", fd.Keys, e), nil
 }
 
-func (s *state) getPrimitive(ctx context.Context, fd api.FeatureDescriptor, entityID string) (*api.Value, error) {
-	key := primitiveKey(fd.FQN, entityID)
+func (s *state) Get(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys) (*api.Value, error) {
+	if fd.ValidWindow() {
+		return s.getWindow(ctx, fd, keys)
+	}
+	return s.getPrimitive(ctx, fd, keys)
+}
+
+func (s *state) getPrimitive(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys) (*api.Value, error) {
+	key, err := primitiveKey(fd, keys)
+	if err != nil {
+		return nil, err
+	}
 
 	ts, err := getTimestamp(ctx, s.client, key)
 	if errors.Is(err, redis.Nil) {
@@ -85,23 +92,27 @@ func (s *state) getPrimitive(ctx context.Context, fd api.FeatureDescriptor, enti
 		Fresh:     time.Since(*ts) < fd.Freshness,
 	}, nil
 }
-func (s *state) Update(ctx context.Context, fd api.FeatureDescriptor, entityID string, value any, ts time.Time) error {
+func (s *state) Update(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, value any, ts time.Time) error {
 	if fd.ValidWindow() {
-		return s.WindowAdd(ctx, fd, entityID, value, ts)
+		return s.WindowAdd(ctx, fd, keys, value, ts)
 	}
 	if fd.Primitive.Scalar() {
-		return s.Set(ctx, fd, entityID, value, ts)
+		return s.Set(ctx, fd, keys, value, ts)
 	}
-	return s.Append(ctx, fd, entityID, value, ts)
+	return s.Append(ctx, fd, keys, value, ts)
 }
-func (s *state) Set(ctx context.Context, fd api.FeatureDescriptor, entityID string, value any, ts time.Time) error {
+func (s *state) Set(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, value any, ts time.Time) error {
 	if fd.ValidWindow() {
-		return s.WindowAdd(ctx, fd, entityID, value, ts)
+		return s.WindowAdd(ctx, fd, keys, value, ts)
 	}
 	if time.Since(ts) > fd.Staleness {
 		return fmt.Errorf("timestamp %s is too old", ts)
 	}
-	key := primitiveKey(fd.FQN, entityID)
+
+	key, err := primitiveKey(fd, keys)
+	if err != nil {
+		return err
+	}
 
 	tx := s.client.TxPipeline()
 
@@ -120,10 +131,10 @@ func (s *state) Set(ctx context.Context, fd api.FeatureDescriptor, entityID stri
 	}
 	setTimestamp(ctx, tx, key, ts, fd.Staleness)
 
-	_, err := tx.Exec(ctx)
+	_, err = tx.Exec(ctx)
 	return err
 }
-func (s *state) Append(ctx context.Context, fd api.FeatureDescriptor, entityID string, value any, ts time.Time) error {
+func (s *state) Append(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, value any, ts time.Time) error {
 	if fd.ValidWindow() {
 		return fmt.Errorf("cannot append a windowed feature")
 	}
@@ -134,7 +145,10 @@ func (s *state) Append(ctx context.Context, fd api.FeatureDescriptor, entityID s
 		return fmt.Errorf("`Append` only supports slices and arrays")
 	}
 
-	key := primitiveKey(fd.FQN, entityID)
+	key, err := primitiveKey(fd, keys)
+	if err != nil {
+		return err
+	}
 
 	tx := s.client.TxPipeline()
 	tx.RPush(ctx, key, value)
@@ -143,11 +157,11 @@ func (s *state) Append(ctx context.Context, fd api.FeatureDescriptor, entityID s
 	}
 	setTimestamp(ctx, tx, key, ts, fd.Staleness)
 
-	_, err := tx.Exec(ctx)
+	_, err = tx.Exec(ctx)
 	return err
 }
 
-func (s *state) Incr(ctx context.Context, fd api.FeatureDescriptor, entityID string, value any, ts time.Time) error {
+func (s *state) Incr(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, value any, ts time.Time) error {
 	if fd.ValidWindow() {
 		return fmt.Errorf("cannot increment to a windowed feature")
 	}
@@ -157,7 +171,11 @@ func (s *state) Incr(ctx context.Context, fd api.FeatureDescriptor, entityID str
 	if !fd.Primitive.Scalar() {
 		return fmt.Errorf("`Ince` only supports sclars")
 	}
-	key := primitiveKey(fd.FQN, entityID)
+
+	key, err := primitiveKey(fd, keys)
+	if err != nil {
+		return err
+	}
 
 	tx := s.client.TxPipeline()
 	switch v := value.(type) {
@@ -174,6 +192,6 @@ func (s *state) Incr(ctx context.Context, fd api.FeatureDescriptor, entityID str
 	}
 	setTimestamp(ctx, tx, key, ts, fd.Staleness)
 
-	_, err := tx.Exec(ctx)
+	_, err = tx.Exec(ctx)
 	return err
 }

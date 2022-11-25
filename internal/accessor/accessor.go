@@ -32,13 +32,16 @@ import (
 	coreApi "go.buf.build/raptor/api-go/raptor/core/raptor/core/v1alpha1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"log"
 	"net"
 	"net/http"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 )
 
 type Accessor interface {
 	GRPC(addr string) NoLeaderRunnableFunc
+	GrpcUds() NoLeaderRunnableFunc
 	HTTP(addr string, prefix string) NoLeaderRunnableFunc
 }
 
@@ -87,7 +90,36 @@ func (a *accessor) GRPC(addr string) NoLeaderRunnableFunc {
 			return fmt.Errorf("failed to listen: %w", err)
 		}
 
-		a.logger.WithValues("kind", "grpc", "addr", l.Addr()).Info("Starting Accessor server")
+		a.logger.WithValues("kind", "grpc", "addr", l.Addr()).Info("Starting Accessor GRPC server")
+		go func() {
+			<-ctx.Done()
+			a.server.Stop()
+		}()
+		return a.server.Serve(l)
+	}
+}
+
+func (a *accessor) GrpcUds() NoLeaderRunnableFunc {
+	return func(ctx context.Context) error {
+		uds := "/tmp/raptor/core.sock"
+		if _, err := os.Stat("/tmp/raptor"); os.IsNotExist(err) {
+			err := os.Mkdir("/tmp/raptor", os.ModePerm)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+		if _, err := os.Stat(uds); err == nil {
+			if err := os.RemoveAll(uds); err != nil {
+				return fmt.Errorf("failed to remove uds file: %w", err)
+			}
+		}
+
+		l, err := net.Listen("socket", uds)
+		if err != nil {
+			return fmt.Errorf("failed to listen: %w", err)
+		}
+
+		a.logger.WithValues("kind", "grpc-uds", "addr", uds).Info("Starting Accessor GRPC-UDS server")
 		go func() {
 			<-ctx.Done()
 			a.server.Stop()
@@ -110,7 +142,7 @@ func (a *accessor) HTTP(addr string, prefix string) NoLeaderRunnableFunc {
 		mux := http.NewServeMux()
 		mux.Handle(prefix[:len(prefix)-1], http.StripPrefix(fmt.Sprintf("%s/", prefix), gwMux))
 
-		a.logger.WithValues("kind", "http", "addr", addr).Info("Starting Accessor server")
+		a.logger.WithValues("kind", "http", "addr", addr).Info("Starting Accessor HTTP server")
 		srv := http.Server{Handler: mux, Addr: addr}
 		go func() {
 			<-ctx.Done()

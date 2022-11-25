@@ -29,7 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
 
-	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 )
 
 // FeatureReconciler reconciles a Feature object
@@ -47,7 +47,7 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	logger := log.FromContext(ctx)
 
 	// Fetch the Feature definition from the Kubernetes API.
-	feature := &raptorApi.Feature{}
+	feature := &manifests.Feature{}
 	err := r.Get(ctx, req.NamespacedName, feature)
 	if err != nil {
 		logger.Error(err, "Failed to get Feature")
@@ -108,11 +108,11 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 // SetupWithManager sets up the controller with the Controller Manager.
 func (r *FeatureReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&raptorApi.Feature{}).
+		For(&manifests.Feature{}).
 		Complete(r)
 }
 
-func (r *FeatureReconciler) deleteFromSource(ctx context.Context, feature *raptorApi.Feature) error {
+func (r *FeatureReconciler) deleteFromSource(ctx context.Context, feature *manifests.Feature) error {
 	if feature.Spec.DataSource == nil {
 		return nil
 	}
@@ -124,7 +124,7 @@ func (r *FeatureReconciler) deleteFromSource(ctx context.Context, feature *rapto
 		feature.Spec.DataSource.Namespace = feature.Namespace
 	}
 
-	src := &raptorApi.DataSource{}
+	src := &manifests.DataSource{}
 	err := r.Get(ctx, feature.Spec.DataSource.ObjectKey(), src)
 	if err != nil {
 		logger.Error(err, "Failed to get associated DataSource")
@@ -135,7 +135,7 @@ func (r *FeatureReconciler) deleteFromSource(ctx context.Context, feature *rapto
 	if len(src.Status.Features) == 0 {
 		return nil
 	}
-	var fts []raptorApi.ResourceReference
+	var fts []manifests.ResourceReference
 	for _, f := range src.Status.Features {
 		if f.Name != feature.Name {
 			fts = append(fts, f)
@@ -145,7 +145,7 @@ func (r *FeatureReconciler) deleteFromSource(ctx context.Context, feature *rapto
 	return r.Status().Update(ctx, src)
 }
 
-func (r *FeatureReconciler) addToSource(ctx context.Context, feature *raptorApi.Feature) error {
+func (r *FeatureReconciler) addToSource(ctx context.Context, feature *manifests.Feature) error {
 	if feature.Spec.DataSource == nil {
 		return nil
 	}
@@ -157,7 +157,7 @@ func (r *FeatureReconciler) addToSource(ctx context.Context, feature *raptorApi.
 		feature.Spec.DataSource.Namespace = feature.Namespace
 	}
 
-	src := &raptorApi.DataSource{}
+	src := &manifests.DataSource{}
 	err := r.Get(ctx, feature.Spec.DataSource.ObjectKey(), src)
 	if err != nil {
 		logger.Error(err, "Failed to get associated DataSource")

@@ -44,7 +44,7 @@ import (
 	_ "github.com/raptor-ml/raptor/internal/plugins"
 	"github.com/raptor-ml/raptor/pkg/plugins"
 
-	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	corectrl "github.com/raptor-ml/raptor/internal/engine/controllers"
 )
 
@@ -56,7 +56,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(raptorApi.AddToScheme(scheme))
+	utilruntime.Must(manifests.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 

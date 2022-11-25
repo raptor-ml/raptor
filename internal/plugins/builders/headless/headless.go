@@ -14,58 +14,55 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package streaming
+package headless
 
 import (
+	"context"
 	"fmt"
 	"github.com/raptor-ml/raptor/api"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/raptor-ml/raptor/pkg/plugins"
-	"github.com/raptor-ml/raptor/pkg/runner"
 )
 
-// Image variable is being overwritten by the build process
-var Image = "ghcr.io/raptor-ml/streaming-runner:latest"
-
-const name = "streaming"
-
 func init() {
-	baseRunner := runner.BaseRunner{
-		Image:   Image,
-		Command: []string{"./runner"},
-	}
-	reconciler, err := baseRunner.Reconciler()
-	if err != nil {
-		panic(err)
-	}
-
-	// Register the plugin
-	plugins.DataSourceReconciler.Register(name, reconciler)
+	const name = "headless"
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
 func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.ExtendedManager) error {
-	if fd.DataSource == "" {
-		return fmt.Errorf("DataSource must be set for `%s` builder", name)
-	}
-
-	src, err := engine.GetDataSource(fd.DataSource)
-	if err != nil {
-		return fmt.Errorf("failed to get DataSource: %v", err)
-	}
-
-	if src.Kind != name {
-		return fmt.Errorf("DataSource must be of type `%s`. got `%s`", name, src.Kind)
-	}
-
 	if builder.Code == "" {
 		return fmt.Errorf("code is empty")
 	}
 
-	err = engine.LoadProgram(builder.Runtime, fd.FQN, builder.Code, builder.Packages)
+	err := engine.LoadProgram(builder.Runtime, fd.FQN, builder.Code, builder.Packages)
 	if err != nil {
 		return fmt.Errorf("failed to load python program: %w", err)
 	}
 
+	e := mw{engine}
+	if fd.Freshness <= 0 {
+		api.AddPreGetMiddleware(0, e.getMiddleware)
+	} else {
+		api.AddPostGetMiddleware(0, e.getMiddleware)
+	}
 	return nil
+}
+
+type mw struct {
+	api.RuntimeManager
+}
+
+func (p *mw) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
+	return func(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, val api.Value) (api.Value, error) {
+		cache, cacheOk := ctx.Value(api.ContextKeyFromCache).(bool)
+		if cacheOk && cache && val.Fresh && !fd.ValidWindow() {
+			return next(ctx, fd, keys, val)
+		}
+
+		val, keys, err := p.ExecuteProgram(fd.RuntimeEnv, fd.FQN, keys, nil, val.Timestamp)
+		if err != nil {
+			return val, fmt.Errorf("failed to execute python program: %w", err)
+		}
+		return next(ctx, fd, keys, val)
+	}
 }

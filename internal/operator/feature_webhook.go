@@ -26,7 +26,7 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/raptor-ml/raptor/api"
-	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/raptor-ml/raptor/internal/engine"
 	"github.com/raptor-ml/raptor/pkg/plugins"
 	"k8s.io/apimachinery/pkg/api/equality"
@@ -42,18 +42,19 @@ const FeatureWebhookValidateName = "raptor-validating-webhook-configuration"
 const FeatureWebhookMutatePath = "/mutate-k8s-raptor-ml-v1alpha1-feature"
 const FeatureWebhookMutateName = "raptor-mutating-webhook-configuration"
 
-func SetupFeatureWebhook(mgr ctrl.Manager, updatesAllowed bool) {
+func SetupFeatureWebhook(mgr ctrl.Manager, updatesAllowed bool, rm api.RuntimeManager) {
 	impl := &webhook{
 		updatesAllowed: updatesAllowed,
 		client:         mgr.GetClient(),
 		logger:         mgr.GetLogger().WithName("feature-webhook"),
+		runtimeManager: rm,
 	}
-	wh := admission.WithCustomValidator(&raptorApi.Feature{}, impl)
+	wh := admission.WithCustomValidator(&manifests.Feature{}, impl)
 	wh.Handler = &admissionWrapper{Handler: wh.Handler}
 
 	mgr.GetWebhookServer().Register(FeatureWebhookValidatePath, wh)
 
-	wh = admission.WithCustomDefaulter(&raptorApi.Feature{}, impl)
+	wh = admission.WithCustomDefaulter(&manifests.Feature{}, impl)
 	wh.Handler = &admissionWrapper{Handler: wh.Handler}
 	mgr.GetWebhookServer().Register(FeatureWebhookMutatePath, wh)
 }
@@ -62,6 +63,7 @@ type webhook struct {
 	client         client.Client
 	logger         logr.Logger
 	updatesAllowed bool
+	runtimeManager api.RuntimeManager
 }
 
 type ctxKey string
@@ -84,16 +86,16 @@ func (h *admissionWrapper) Handle(ctx context.Context, req admission.Request) ad
 }
 
 func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
-	f := obj.(*raptorApi.Feature)
+	f := obj.(*manifests.Feature)
 	wh.logger.Info("defaulting", "name", f.GetName())
 
 	if f.Spec.DataSource != nil && f.Spec.DataSource.Namespace == "" {
 		f.Spec.DataSource.Namespace = f.GetNamespace()
 	}
 	if f.Spec.Builder.Kind == "" {
-		if f.Spec.Builder.Kind == "" && f.Spec.DataSource != nil {
+		if f.Spec.DataSource != nil {
 			if ar, ok := ctx.Value(admissionRequestContextKey).(admission.Request); ok && ar.DryRun == nil || ok && !*ar.DryRun {
-				src := raptorApi.DataSource{}
+				src := manifests.DataSource{}
 				err := wh.client.Get(ctx, f.Spec.DataSource.ObjectKey(), &src)
 				if apierrors.IsNotFound(err) {
 					return fmt.Errorf("DataSource %s/%s not found", f.Spec.DataSource.Namespace, f.Spec.DataSource.Name)
@@ -114,7 +116,7 @@ func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
 			}
 		}
 		if f.Spec.Builder.Kind == "" {
-			f.Spec.Builder.Kind = api.ExpressionBuilder
+			f.Spec.Builder.Kind = api.HeadlessBuilder
 		}
 
 		if f.Spec.Builder.AggrGranularity.Milliseconds() > 0 && len(f.Spec.Builder.Aggr) > 0 {
@@ -127,7 +129,7 @@ func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (wh *webhook) ValidateCreate(ctx context.Context, obj runtime.Object) error {
-	f := obj.(*raptorApi.Feature)
+	f := obj.(*manifests.Feature)
 	wh.logger.Info("validate create", "name", f.Name)
 
 	return wh.Validate(ctx, f)
@@ -135,8 +137,8 @@ func (wh *webhook) ValidateCreate(ctx context.Context, obj runtime.Object) error
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (wh *webhook) ValidateUpdate(ctx context.Context, oldObject, newObj runtime.Object) error {
-	f := newObj.(*raptorApi.Feature)
-	old := oldObject.(*raptorApi.Feature)
+	f := newObj.(*manifests.Feature)
+	old := oldObject.(*manifests.Feature)
 	wh.logger.Info("validate update", "name", f.GetName())
 	if !equality.Semantic.DeepEqual(old.Spec, f.Spec) && !wh.updatesAllowed {
 		return fmt.Errorf("features are immutable in production")
@@ -145,12 +147,14 @@ func (wh *webhook) ValidateUpdate(ctx context.Context, oldObject, newObj runtime
 	return wh.Validate(ctx, f)
 }
 
-func (wh *webhook) Validate(ctx context.Context, f *raptorApi.Feature) error {
-	dummyEngine := engine.Dummy{}
+func (wh *webhook) Validate(ctx context.Context, f *manifests.Feature) error {
+	dummyEngine := engine.Dummy{
+		RuntimeManager: wh.runtimeManager,
+	}
 
 	if f.Spec.DataSource != nil {
 		if ar, ok := ctx.Value(admissionRequestContextKey).(admission.Request); ok && ar.DryRun == nil || ok && !*ar.DryRun {
-			src := raptorApi.DataSource{}
+			src := manifests.DataSource{}
 			err := wh.client.Get(ctx, f.Spec.DataSource.ObjectKey(), &src)
 			if apierrors.IsNotFound(err) {
 				return fmt.Errorf("DataSource %s/%s not found", f.Spec.DataSource.Namespace, f.Spec.DataSource.Name)
@@ -172,7 +176,7 @@ func (wh *webhook) Validate(ctx context.Context, f *raptorApi.Feature) error {
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
 func (wh *webhook) ValidateDelete(_ context.Context, obj runtime.Object) error {
-	f := obj.(*raptorApi.Feature)
+	f := obj.(*manifests.Feature)
 	wh.logger.Info("validate delete", "name", f.GetName())
 
 	// DISABLED. To enable deletion validation, change the above annotation's verbs to "verbs=create;update;delete"

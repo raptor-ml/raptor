@@ -20,8 +20,8 @@ import pandas as pd
 from pandas.tseries.frequencies import to_offset
 
 from . import local_state, replay_instructions
-from .pyexp import pyexp, go
-from .types import FeatureSpec, Primitive, _wrap_exception, FeatureSetSpec, PyExpException
+from .program import Context
+from .types import FeatureSpec, Primitive, FeatureSetSpec, Keys
 
 
 def __detect_ts_field(df) -> str:
@@ -92,9 +92,10 @@ def new_replay(spec: FeatureSpec):
 
         # normalize
         df[timestamp_field] = pd.to_datetime(df[timestamp_field])
-        df[entity_id_field] = df[entity_id_field].astype(str)
+        for k in spec.keys:
+            df[k] = df[k].astype(str)
 
-        df["__raptor.ret__"] = df.apply(__replay_map(spec, timestamp_field, headers_field, entity_id_field), axis=1)
+        df["__raptor.ret__"] = df.apply(__replay_map(spec, timestamp_field), axis=1)
         df = df.dropna(subset=['__raptor.ret__'])
 
         # flip dataframe to feature_value df
@@ -157,8 +158,7 @@ def new_replay(spec: FeatureSpec):
 
         try:
             return _replay(df, timestamp_field, headers_field, entity_id_field, store_locally)
-        except PyExpException as e:
-            raise e
+
         except Exception as e:
             back_frame = e.__traceback__.tb_frame.f_back
             tb = pytypes.TracebackType(tb_next=None,
@@ -170,75 +170,38 @@ def new_replay(spec: FeatureSpec):
     return replay
 
 
-def __dependency_getter(fqn, eid, ts, val):
-    try:
-        spec = local_state.spec_by_fqn(fqn)
-        ts = pd.to_datetime(ts)
+def __dependency_getter(fqn, keys, ts):
+    spec = local_state.spec_by_fqn(fqn)
+    ts = pd.to_datetime(ts)
 
-        df = local_state.__feature_values
-        df = df.loc[(df["fqn"] == fqn) & (df["entity_id"] == eid) & (df["timestamp"] <= ts)]
+    df = local_state.__feature_values
+    df = df.loc[(df["fqn"] == fqn) & (df["entity_id"] == keys) & (df["timestamp"] <= ts)]
 
-        if spec.staleness.total_seconds() > 0:
-            df = df.loc[(df["timestamp"] >= ts - spec.staleness)]
+    if spec.staleness.total_seconds() > 0:
+        df = df.loc[(df["timestamp"] >= ts - spec.staleness)]
 
-        df = df.sort_values(by=["timestamp"], ascending=False).head(1)
-        if df.empty:
-            return str.encode("")
-        res = df.iloc[0]
+    df = df.sort_values(by=["timestamp"], ascending=False).head(1)
+    if df.empty:
+        return str.encode("")
+    res = df.iloc[0]
 
-        v = pyexp.PyVal(handle=val)
-
-        v.Value = json.dumps(res["value"])
-        v.Timestamp = pyexp.PyTime(res["timestamp"].isoformat("T"), "")
-        v.Fresh = True
-
-        if spec.freshness.total_seconds() > 0:
-            v.Fresh = res["timestamp"] >= ts - spec.freshness
-
-    except Exception as e:
-        """return error"""
-        return str.encode(str(e))
-
-    return str.encode("")
+    return res["value"], res["timestamp"]
 
 
-def __replay_map(spec: FeatureSpec, timestamp_field: str, headers_field: str = None,
-                 entity_id_field: str = None):
+def __replay_map(spec: FeatureSpec, timestamp_field: str):
     def map(row: pd.Series):
         ts = row[timestamp_field]
         row = row.drop(timestamp_field)
 
-        if ts.tzinfo is None:
-            ts = ts.tz_localize('UTC')
+        keys = Keys()
+        for k in spec.keys:
+            keys[k] = row[k]
+            row = row.drop(k)
 
-        headers = go.nil
-        if headers_field is not None:
-            headers = row[headers_field]
-            # row = row.drop(headers_field)
-
-        entity_id = ""
-        if entity_id_field is not None:
-            entity_id = row[entity_id_field]
-            # row = row.drop(entity_id_field)
-
-        if isinstance(ts, datetime.datetime):
-            ts = ts.isoformat("T")
-
-        req = pyexp.PyExecReq(row.to_json(), __dependency_getter)
-        req.Timestamp = pyexp.PyTime(ts, "")
-        req.EntityID = entity_id
-        req.Headers = headers
-
-        try:
-            res = spec.program.runtime.Exec(req)
-            for i in res.Instructions:
-                inst = pyexp.Instruction(handle=i)
-                replay_instructions.__exec_instruction(inst)
-            return json.loads(pyexp.JsonAny(res, "Value"))
-        except RuntimeError as e:
-            raise _wrap_exception(e, spec.program)
-        except Exception as err:
-            raise err
+        data = {}
+        for k, v in row.items():
+            data[str(k)] = v
+        return spec.program.call(data=data, context=Context(spec.fqn(), keys=keys, timestamp=ts, feature_getter=__dependency_getter))
 
     return map
 

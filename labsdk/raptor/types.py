@@ -13,96 +13,17 @@
 # limitations under the License.
 
 import datetime
-import inspect
 import re
-import types
 from enum import Enum
-from typing import Optional
+from typing import Optional, List, Dict
 
 import pandas as pd
-import redbaron
 import yaml
 from pandas.core.window import RollingGroupby
-from redbaron import RedBaron
 
-from . import durpy
+from . import durpy, Program
 from .config import default_namespace
-from .pyexp import pyexp
 from .yaml import RaptorDumper
-
-
-# PyExp
-class PyExpProgram:
-    frame: types.FrameType = None
-    f_lineno: int = -1
-    code: str = None
-    name: str = None
-
-    def __init__(self, func, fqn):
-        if not callable(func):
-            raise Exception("func must be callable")
-
-        # take a snapshot of the func frame
-        try:
-            raise Exception()
-        except Exception as e:
-            self.frame = e.__traceback__.tb_frame.f_back.f_back.f_back
-            pass
-        self.f_lineno = self.frame.f_lineno
-
-        root_node = RedBaron(inspect.getsource(func))
-        if len(root_node) != 1:
-            raise RuntimeError("PyExpProgram in LabSDK only supports one function definition")
-        node = root_node[0]
-        if not isinstance(node, redbaron.DefNode):
-            raise RuntimeError("PyExpProgram in LabSDK only supports function definition")
-        if node.arguments:
-            for arg in node.arguments:
-                arg.annotation = ''
-        if len(node.decorators) > 0:
-            node.decorators = []
-
-        for comp in node.find_all('comparison'):
-            if str(comp.value) == 'is':
-                comp.value = '=='
-            elif str(comp.value) == 'is not':
-                comp.value = '!='
-
-        self.code = root_node.dumps().strip()
-        self.name = func.__name__
-        self.fqn = fqn
-
-        try:
-            self.runtime = pyexp.New(self.code, self.fqn)
-        except RuntimeError as e:
-            raise _wrap_exception(e, self)
-
-
-class PyExpException(RuntimeError):
-    def __int__(self, *args, **kwargs):
-        Exception.__init__(*args, **kwargs)
-
-
-def _wrap_exception(e: Exception, program: PyExpProgram, *args, **kwargs):
-    frame_str = re.match(r".*<pyexp>:([0-9]+):([0-9]+)?: (.*)", str(e).replace("\n", ""), flags=re.MULTILINE)
-    if frame_str is None or not isinstance(program, PyExpProgram):
-        return e
-    else:
-        err_str = re.match(r"in (.*)Error in ([aA0-zZ09_]+): (.*)", frame_str.group(3))
-        if err_str is None:
-            err_str = frame_str.group(3).strip()
-        else:
-            err_str = f"Error in {err_str.group(2)}: {err_str.group(3).strip()}"
-        frame = program.frame
-        loc = program.f_lineno + int(frame_str.group(1)) - 1
-        tb = types.TracebackType(tb_next=None,
-                                 tb_frame=frame,
-                                 tb_lasti=int(frame_str.group(2)),
-                                 tb_lineno=loc)
-        return PyExpException(
-            f"on {program.name}:\n    {err_str}\n\n️Friendly tip: remember that PyExp is not python3 😬") \
-            .with_traceback(tb)
-
 
 fqn_regex = re.compile(
     r"^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\[(?P<encoding>([a-z]+_*[a-z]+))])?$",
@@ -184,12 +105,13 @@ class Primitive(Enum):
     String = 'string'
     Integer = 'int'
     Float = 'float'
+    Boolean = 'bool'
     Timestamp = 'timestamp'
     StringList = '[]string'
     IntList = '[]int'
     FloatList = '[]float'
+    BooleanList = '[]bool'
     TimestampList = '[]timestamp'
-    Headless = 'headless'
 
     def is_scalar(self):
         return self in (Primitive.String, Primitive.Integer, Primitive.Float, Primitive.Timestamp)
@@ -202,18 +124,20 @@ class Primitive(Enum):
             return Primitive.Integer
         elif p == 'float' or p == float:
             return Primitive.Float
-        elif p == 'timestamp' or p == datetime:
+        elif p == 'bool' or p == bool:
+            return Primitive.Boolean
+        elif p == 'timestamp' or p == datetime.datetime:
             return Primitive.Timestamp
-        elif p == '[]string' or p == [str]:
+        elif p == '[]string' or p == List[str]:
             return Primitive.StringList
-        elif p == '[]int' or p == [int]:
+        elif p == '[]int' or p == List[int]:
             return Primitive.IntList
-        elif p == '[]float' or p == [float]:
+        elif p == '[]float' or p == List[float]:
             return Primitive.FloatList
-        elif p == '[]timestamp' or p == [datetime]:
+        elif p == '[]bool' or p == List[bool]:
+            return Primitive.BooleanList
+        elif p == '[]timestamp' or p == List[datetime.datetime]:
             return Primitive.TimestampList
-        elif p == 'headless':
-            return Primitive.Headless
         else:
             raise Exception("Primitive type not supported")
 
@@ -274,12 +198,13 @@ class FeatureSpec(yaml.YAMLObject):
     _freshness: Optional[datetime.timedelta] = None
     staleness: datetime.timedelta = None
     timeout: datetime.timedelta = None
+    keys: [str] = None
 
     data_source: ResourceReference = None
     builder: BuilderSpec = BuilderSpec(None)
     aggr: AggrSpec = None
 
-    program: PyExpProgram = None
+    program: Program = None
 
     @property
     def freshness(self):
@@ -301,10 +226,10 @@ class FeatureSpec(yaml.YAMLObject):
         if key == 'primitive':
             value = Primitive.parse(value)
         elif key == 'program':
-            if isinstance(value, PyExpProgram):
+            if isinstance(value, Program):
                 pass
             elif callable(value):
-                value = PyExpProgram(value, self.fqn())
+                raise Exception("Function must be parsed first")
             else:
                 raise Exception("program must be a callable or a PyExpProgram")
         elif key == 'staleness' or key == 'timeout':
@@ -339,7 +264,7 @@ class FeatureSpec(yaml.YAMLObject):
         if data.aggr is not None:
             data.builder.aggr = data.aggr.funcs
             data.builder.aggrGranularity = data.aggr.granularity
-        data.builder.pyexp = data.program.code
+        data.builder.code = data.program.code
 
         data.annotations['a8r.io/description'] = data.description
 
@@ -357,6 +282,7 @@ class FeatureSpec(yaml.YAMLObject):
                 "freshness": data.freshness,
                 "staleness": data.staleness,
                 "timeout": data.timeout,
+                "keys": data.keys,
                 "dataSource": None if data.data_source is None else data.data_source.__dict__,
                 "builder": data.builder.__dict__,
             }
@@ -438,3 +364,22 @@ class FeatureSetSpec(yaml.YAMLObject):
 
 
 RaptorDumper.add_representer(FeatureSetSpec, FeatureSetSpec.to_yaml)
+
+
+class Keys(Dict[str, str]):
+    def encode(self, spec: FeatureSpec) -> str:
+        ret = ""
+        for key in spec.keys:
+            val = self.get(key)
+            if val is None:
+                raise Exception(f"missing key {key}")
+            ret += val + "."
+        return ret
+
+    def decode(self, spec: FeatureSpec, encoded_keys: str) -> 'Keys':
+        parts = encoded_keys.split(".")
+        if len(parts) != len(spec.keys):
+            raise Exception(f"invalid key {encoded_keys}")
+        for i, encoded_keys in enumerate(spec.keys):
+            self[encoded_keys] = parts[i]
+        return self

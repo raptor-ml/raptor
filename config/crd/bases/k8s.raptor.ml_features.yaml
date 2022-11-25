@@ -63,16 +63,27 @@ spec:
                     description: AggrGranularity defines the granularity of the aggregation.
                     nullable: true
                     type: string
+                  code:
+                    description: Code defines a Python expression to use to build
+                      the feature-value.
+                    type: string
                   kind:
                     description: Kind defines the type of Builder to use to build
                       the feature-value. The kind is usually auto-detected from the
                       data-source, but can be overridden.
                     type: string
-                  pyexp:
-                    description: PyExp defines a Python expression to use to build
-                      the feature-value.
-                    nullable: true
+                  packages:
+                    description: Packages defines the list of python packages to install
+                      in the runtime virtualenv.
+                    items:
+                      type: string
+                    type: array
+                  runtime:
+                    description: Runtime defines the runtime virtualenv to use for
+                      running the python computation.
                     type: string
+                required:
+                - code
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               dataSource:
@@ -95,6 +106,12 @@ spec:
                   the value has set) to consider as *fresh*. Fresh values doesn't
                   require re-ingestion
                 type: string
+              keys:
+                description: Keys defines the list of keys that are required to calculate
+                  the feature value.
+                items:
+                  type: string
+                type: array
               primitive:
                 description: Primitive defines the type of the underlying feature-value
                   that a Feature should respond with.
@@ -107,7 +124,6 @@ spec:
                 - '[]float'
                 - '[]string'
                 - '[]timestamp'
-                - headless
                 type: string
               staleness:
                 description: Staleness defines the age of a feature-value(time since
@@ -122,6 +138,7 @@ spec:
             required:
             - builder
             - freshness
+            - keys
             - primitive
             - staleness
             type: object

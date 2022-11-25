@@ -67,10 +67,12 @@ message FeatureDescriptor {
     google.protobuf.Duration timeout = 6;
     string builder = 7;
     string data_source = 8;
+    repeated string keys = 9;
+    string runtime_env = 10;
 }
 message FeatureValue {
-    string fqn = 1 [(validate.rules).string.pattern = "(?si)^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\\[(?P<encoding>([a-z]+_*[a-z]+))])?$"];
-    string entity_id = 2;
+    string fqn = 1 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    map<string, string> keys = 2;
     Value value = 3;
     google.protobuf.Timestamp timestamp = 4;
     bool fresh = 5;

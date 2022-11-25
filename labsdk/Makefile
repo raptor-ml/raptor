@@ -37,32 +37,10 @@ help: ## Display this help.
 
 ##@ Development
 
-.PHONY: _verfiy-deps
-_verfiy-deps:
-	@echo "Verifying dependencies..."
-ifeq (, $(shell which go))
-	$(error "No Go compiler found in $(PATH), please install Go before compiling locally")
-endif
-ifeq (, $(shell which gopy))
-	@echo "GoPy not found. Installing..."
-	go install github.com/raptor-ml/raptor/pkg/gopy@master
-endif
-ifeq (, $(shell which goimports))
-	@echo "GoImports not found. Installing..."
-	go install golang.org/x/tools/cmd/goimports@latest
-endif
-ifeq (,$(shell $(PYTHON) -m pip list | grep -F pybindgen))
-	$(PYTHON) -m pip install pybindgen
-endif
-
-.PHONY: local-build
-local-build: _verfiy-deps ## Build the PyExp extension for local development purposes
-	gopy build --name="pyexp" --output raptor/pyexp --vm=$(PYTHON) github.com/raptor-ml/raptor/pkg/pyexp
-
 .PHONY: cleanup
 cleanup: ## Clean up the the project directory from generated files
 	@echo "cleaning up..."
-	rm -rf build/ dist/ raptor_labsdk.egg-info/ .egg raptor/pyexp repaired_wheel
+	rm -rf build/ dist/ raptor_labsdk.egg-info/ .egg repaired_wheel
 
 ##@ Distribution
 
@@ -74,7 +52,7 @@ build-wheel: ## Build the module for distribution as a wheel
 repair-wheel: ## Repair the wheel
 	$(eval WHEEL=$(shell ls -1t dist/*.whl | head -n1))
 ifeq ($(shell go env GOOS), windows)
-	delvewheel repair --add-path raptor/pyexp -w repaired_wheel $(WHEEL)
+	delvewheel repair --add-path raptor/ -w repaired_wheel $(WHEEL)
 else ifeq ($(shell go env GOOS), darwin)
 	delocate-listdeps $(WHEEL) &&  delocate-wheel -w repaired_wheel -v $(WHEEL)
 else ifeq ($(shell go env GOOS), linux)

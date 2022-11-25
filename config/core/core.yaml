@@ -51,6 +51,8 @@ spec:
             - mountPath: /tmp/k8s-webhook-server/serving-certs
               name: cert
               readOnly: true
+            - mountPath: /tmp/raptor
+              name: grpc-udp
           livenessProbe:
             httpGet:
               path: /healthz
@@ -63,6 +65,33 @@ spec:
               port: 8081
             initialDelaySeconds: 5
             periodSeconds: 10
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1024Mi
+            requests:
+              cpu: 100m
+              memory: 200Mi
+        - name: default-runtime
+          image: runtime:latest
+          env:
+            - name: RUNTIME_NAME
+              value: default
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - mountPath: /tmp/raptor
+              name: grpc-udp
+          readinessProbe:
+            exec:
+              command: [ "/bin/grpc_health_probe", "-addr=unix:///tmp/this-runtime.sock" ]
+            initialDelaySeconds: 5
+          livenessProbe:
+            exec:
+              command: [ "/bin/grpc_health_probe", "-addr=unix:///tmp/this-runtime.sock" ]
+            initialDelaySeconds: 5
           resources:
             limits:
               cpu: 500m
