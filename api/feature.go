@@ -27,14 +27,14 @@ import (
 )
 
 const FeatureSetBuilder = "featureset"
-const ExpressionBuilder = "expression"
+const HeadlessBuilder = "headless"
 
 // DataSource is a parsed abstracted representation of a manifests.DataSource
 type DataSource struct {
 	FQN    string                 `json:"fqn"`
 	Kind   string                 `json:"kind"`
 	Config manifests.ParsedConfig `json:"config"`
-	//Todo Schema
+	// todo Schema
 }
 
 // DataSourceFromManifest returns a DataSource from a manifests.DataSource
@@ -61,6 +61,7 @@ type FeatureDescriptor struct {
 	Timeout    time.Duration `json:"timeout"`
 	Keys       []string      `json:"keys"`
 	Builder    string        `json:"builder"`
+	RuntimeEnv string        `json:"runtimeEnv"`
 	DataSource string        `json:"data_source"`
 }
 
@@ -106,20 +107,21 @@ func FeatureDescriptorFromManifest(in *manifests.Feature) (*FeatureDescriptor, e
 	}
 
 	fd := &FeatureDescriptor{
-		FQN:       in.FQN(),
-		Primitive: primitive,
-		Aggr:      aggr,
-		Freshness: in.Spec.Freshness.Duration,
-		Staleness: in.Spec.Staleness.Duration,
-		Timeout:   in.Spec.Timeout.Duration,
-		Keys:      in.Spec.Keys,
-		Builder:   strings.ToLower(in.Spec.Builder.Kind),
+		FQN:        in.FQN(),
+		Primitive:  primitive,
+		Aggr:       aggr,
+		Freshness:  in.Spec.Freshness.Duration,
+		Staleness:  in.Spec.Staleness.Duration,
+		Timeout:    in.Spec.Timeout.Duration,
+		Keys:       in.Spec.Keys,
+		RuntimeEnv: in.Spec.Builder.Runtime,
+		Builder:    strings.ToLower(in.Spec.Builder.Kind),
 	}
 	if in.Spec.DataSource != nil {
 		fd.DataSource = in.Spec.DataSource.FQN()
 	}
 	if fd.Builder == "" {
-		fd.Builder = ExpressionBuilder
+		fd.Builder = HeadlessBuilder
 	}
 
 	if len(fd.Aggr) > 0 && !fd.ValidWindow() {

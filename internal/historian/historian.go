@@ -113,7 +113,7 @@ func (h *historian) BindFeature(in *manifests.Feature) error {
 		return fmt.Errorf("failed to bind feature to historical writer: %w", err)
 	}
 	if fd.DataSource == "" {
-		// Headless features are not stored and not backed up to historical storage
+		// HeadlessBuilder features are not stored and not backed up to historical storage
 		return nil
 	}
 

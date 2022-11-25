@@ -78,7 +78,7 @@ _side_effect_ctx_functions = ["get_feature"]
 
 
 class SideEffect:
-    def __init__(self, kind: str, args: Dict[str, any], conditional: bool):
+    def __init__(self, kind: str, args: Dict[str, str], conditional: bool):
         self.kind = kind
         self.args = args
         self.conditional = conditional
@@ -164,8 +164,15 @@ class Program:
                         SideEffect(kind=at.name.value, args=args, conditional=at.parent_find("if") is not None))
 
         self.name = node.name
-        rav = node.return_annotation.value
-        self.primitive = locate("datetime.datetime" if rav == "datetime" else rav)
+        rav = node.return_annotation.name.value
+        rav = "datetime.datetime" if rav == "datetime" else rav
+
+        if rav == "List":
+            itm = node.return_annotation.value.getitem.value.value
+            scalar = locate("datetime.datetime" if itm == "datetime" else itm)
+            self.primitive = List[scalar]
+        else:
+            self.primitive = locate(rav)
 
         c = compile(root_node.dumps().strip(), f"<{self.name}>", "exec")
         glob, loc = {'__builtins__': safe_builtins}, {}

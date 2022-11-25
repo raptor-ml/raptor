@@ -25,13 +25,13 @@ type Notification interface {
 	CollectNotification | WriteNotification
 }
 type CollectNotification struct {
-	FQN      string `json:"fqn"`
-	EntityID string `json:"entity_id"`
-	Bucket   string `json:"bucket,omitempty"`
+	FQN         string `json:"fqn"`
+	EncodedKeys string `json:"encoded_keys"`
+	Bucket      string `json:"bucket,omitempty"`
 }
 type WriteNotification struct {
 	FQN          string `json:"fqn"`
-	EntityID     string `json:"entity_id"`
+	EncodedKeys  string `json:"encoded_keys"`
 	Bucket       string `json:"bucket,omitempty"`
 	ActiveBucket bool   `json:"active_bucket,omitempty"`
 	Value        *Value `json:"value,omitempty"`

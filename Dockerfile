@@ -1,9 +1,10 @@
-### Build
-FROM golang:1.18 AS build
-ARG TARGETOS
-ARG TARGETARCH
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
 ARG LDFLAGS
 ARG VERSION
+
+### Build
+FROM golang:1.18 AS build
 
 WORKDIR /workspace
 COPY go.mod /workspace
@@ -13,7 +14,7 @@ COPY . /workspace
 
 ### Core
 FROM build AS build-core
-RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -ldflags="${LDFLAGS}" -o /out/core cmd/core/*.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="${LDFLAGS}" -o /out/core cmd/core/*.go
 
 FROM gcr.io/distroless/static:nonroot as core
 

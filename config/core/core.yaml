@@ -39,15 +39,6 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-          env:
-            - name: SYSTEM_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
           ports:
             - containerPort: 60000
               name: http
@@ -83,19 +74,13 @@ spec:
               memory: 200Mi
         - name: default-runtime
           image: runtime:latest
+          env:
+            - name: RUNTIME_NAME
+              value: default
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-          env:
-            - name: SYSTEM_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
           volumeMounts:
             - mountPath: /tmp/raptor
               name: grpc-udp

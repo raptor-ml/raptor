@@ -28,7 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
 
-	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -46,7 +46,7 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	logger := log.FromContext(ctx)
 
 	// Fetch the FeatureSet definition from the Kubernetes API.
-	fs := &raptorApi.FeatureSet{}
+	fs := &manifests.FeatureSet{}
 	err := r.Get(ctx, req.NamespacedName, fs)
 	if err != nil {
 		logger.Error(err, "Failed to get FeatureSet")
@@ -57,17 +57,17 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	// Convert the FeatureSet definition to a FeatureDescriptor object.
-	ft := &raptorApi.Feature{
+	ft := &manifests.Feature{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Feature",
-			APIVersion: raptorApi.GroupVersion.String(),
+			APIVersion: manifests.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fs.Name,
 			Namespace: fs.Namespace,
 		},
-		Spec: raptorApi.FeatureSpec{
-			Primitive: raptorApi.PrimitiveType(api.PrimitiveTypeUnknown.String()),
+		Spec: manifests.FeatureSpec{
+			Primitive: manifests.PrimitiveType(api.PrimitiveTypeUnknown.String()),
 			Timeout:   fs.Spec.Timeout,
 		},
 	}
@@ -107,5 +107,5 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 // SetupWithManager sets up the controller with the Controller Manager.
 func (r *FeatureSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return attachCoreController(r, &raptorApi.FeatureSet{}, true, mgr)
+	return attachCoreController(r, &manifests.FeatureSet{}, true, mgr)
 }

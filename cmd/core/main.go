@@ -33,7 +33,7 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -45,7 +45,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(raptorApi.AddToScheme(scheme))
+	utilruntime.Must(manifests.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 

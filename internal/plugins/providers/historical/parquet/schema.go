@@ -53,7 +53,7 @@ type Bucket struct {
 func NewHistoricalRecord(wn api.WriteNotification) HistoricalRecord {
 	hr := HistoricalRecord{
 		FQN:       wn.FQN,
-		EntityID:  wn.EntityID,
+		EntityID:  wn.EncodedKeys,
 		Timestamp: types.TimeToTIMESTAMP_MICROS(wn.Value.Timestamp, false),
 	}
 	if wn.Bucket != "" {

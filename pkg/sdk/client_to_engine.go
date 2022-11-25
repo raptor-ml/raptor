@@ -54,11 +54,11 @@ func (e *grpcEngine) FeatureDescriptor(ctx context.Context, fqn string) (api.Fea
 	}
 	return FromAPIFeatureDescriptor(resp.FeatureDescriptor), nil
 }
-func (e *grpcEngine) Get(ctx context.Context, fqn string, entityID string) (api.Value, api.FeatureDescriptor, error) {
+func (e *grpcEngine) Get(ctx context.Context, fqn string, keys api.Keys) (api.Value, api.FeatureDescriptor, error) {
 	req := coreApi.GetRequest{
-		Uuid:     uuid.NewString(),
-		Fqn:      fqn,
-		EntityId: entityID,
+		Uuid: uuid.NewString(),
+		Fqn:  fqn,
+		Keys: keys,
 	}
 	ret := api.Value{}
 	resp, err := e.client.Get(ctx, &req)
@@ -75,11 +75,11 @@ func (e *grpcEngine) Get(ctx context.Context, fqn string, entityID string) (api.
 	ret.Fresh = resp.Value.Fresh
 	return ret, FromAPIFeatureDescriptor(resp.FeatureDescriptor), nil
 }
-func (e *grpcEngine) Set(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
+func (e *grpcEngine) Set(ctx context.Context, fqn string, keys api.Keys, val any, ts time.Time) error {
 	req := coreApi.SetRequest{
 		Uuid:      uuid.NewString(),
 		Fqn:       fqn,
-		EntityId:  entityID,
+		Keys:      keys,
 		Value:     ToAPIValue(val),
 		Timestamp: timestamppb.New(ts),
 	}
@@ -92,11 +92,11 @@ func (e *grpcEngine) Set(ctx context.Context, fqn string, entityID string, val a
 	}
 	return nil
 }
-func (e *grpcEngine) Append(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
+func (e *grpcEngine) Append(ctx context.Context, fqn string, keys api.Keys, val any, ts time.Time) error {
 	req := coreApi.AppendRequest{
 		Uuid:      uuid.NewString(),
 		Fqn:       fqn,
-		EntityId:  entityID,
+		Keys:      keys,
 		Value:     ToAPIScalar(val),
 		Timestamp: timestamppb.New(ts),
 	}
@@ -109,11 +109,11 @@ func (e *grpcEngine) Append(ctx context.Context, fqn string, entityID string, va
 	}
 	return nil
 }
-func (e *grpcEngine) Incr(ctx context.Context, fqn string, entityID string, by any, ts time.Time) error {
+func (e *grpcEngine) Incr(ctx context.Context, fqn string, keys api.Keys, by any, ts time.Time) error {
 	req := coreApi.IncrRequest{
 		Uuid:      uuid.NewString(),
 		Fqn:       fqn,
-		EntityId:  entityID,
+		Keys:      keys,
 		Value:     ToAPIScalar(by),
 		Timestamp: timestamppb.New(ts),
 	}
@@ -126,11 +126,11 @@ func (e *grpcEngine) Incr(ctx context.Context, fqn string, entityID string, by a
 	}
 	return nil
 }
-func (e *grpcEngine) Update(ctx context.Context, fqn string, entityID string, val any, ts time.Time) error {
+func (e *grpcEngine) Update(ctx context.Context, fqn string, keys api.Keys, val any, ts time.Time) error {
 	req := coreApi.UpdateRequest{
 		Uuid:      uuid.NewString(),
 		Fqn:       fqn,
-		EntityId:  entityID,
+		Keys:      keys,
 		Value:     ToAPIValue(val),
 		Timestamp: timestamppb.New(ts),
 	}

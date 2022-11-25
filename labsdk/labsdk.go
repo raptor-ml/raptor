@@ -5,5 +5,4 @@ package labsdk
 import (
 	_ "github.com/go-logr/logr"
 	_ "github.com/go-python/gopy/gopyh"
-	_ "github.com/raptor-ml/raptor/pkg/pyexp"
 )

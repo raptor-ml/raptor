@@ -9,8 +9,8 @@ import "validate/validate.proto";
 
 option go_package = "github.com/raptor-ml/raptor/core/v1alpha1;coreV1alpha1";
 
-// +++  SideEffects +++
-message SideEffects {
+// +++  Program SideEffects +++
+message SideEffect {
     string kind = 1;
     map<string, string> args = 2;
     bool conditional = 3;
@@ -28,6 +28,8 @@ message ExecuteProgramRequest {
 message ExecuteProgramResponse {
     string uuid = 1 [(validate.rules).string.uuid = true];
     raptor.core.v1alpha1.Value result = 2;
+    map<string, string> keys = 3;
+    google.protobuf.Timestamp timestamp = 4;
 }
 message LoadProgramRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
@@ -36,27 +38,9 @@ message LoadProgramRequest {
     repeated string packages = 4;
 }
 message LoadProgramResponse {
-    enum PrimitiveType {
-        STRING = 0;
-        INT = 1;
-        FLOAT = 2;
-        TIMESTAMP = 3;
-        BOOL = 4;
-        STRING_LIST = 5;
-        INT_LIST = 6;
-        FLOAT_LIST = 7;
-        TIMESTAMP_LIST = 8;
-        BOOL_LIST = 9;
-    }
     string uuid = 1 [(validate.rules).string.uuid = true];
-
-}
-message RegisterSchemaRequest {
-    string uuid = 1 [(validate.rules).string.uuid = true];
-    string schema = 2 [(validate.rules).string.uri = true];
-}
-message RegisterSchemaResponse {
-    string uuid = 1 [(validate.rules).string.uuid = true];
+    raptor.core.v1alpha1.Primitive primitive = 2;
+    repeated SideEffect side_effects = 3;
 }
 
 // +++ Service +++
@@ -64,12 +48,6 @@ service RuntimeService {
     rpc LoadProgram (LoadProgramRequest) returns (LoadProgramResponse) {
         option (google.api.http) = {
             post: "/program"
-            body: "*"
-        };
-    }
-    rpc RegisterSchema (RegisterSchemaRequest) returns (RegisterSchemaResponse) {
-        option (google.api.http) = {
-            post: "/schema"
             body: "*"
         };
     }

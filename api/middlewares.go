@@ -22,7 +22,7 @@ import (
 )
 
 type Middleware func(next MiddlewareHandler) MiddlewareHandler
-type MiddlewareHandler func(ctx context.Context, fd FeatureDescriptor, entityID string, val Value) (Value, error)
+type MiddlewareHandler func(ctx context.Context, fd FeatureDescriptor, keys Keys, val Value) (Value, error)
 
 // FeatureAbstractAPI is the interface that plugins can use to modify the Core's feature abstraction on creation time
 type FeatureAbstractAPI interface {

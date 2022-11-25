@@ -27,7 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
 
-	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 )
 
 // FeatureReconciler reconciles a Feature object
@@ -48,7 +48,7 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	logger := log.FromContext(ctx)
 
 	// Fetch the Feature definition from the Kubernetes API.
-	feature := &raptorApi.Feature{}
+	feature := &manifests.Feature{}
 	err := r.Get(ctx, req.NamespacedName, feature)
 	if err != nil {
 		logger.Error(err, "Failed to get Feature")
@@ -91,5 +91,5 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 // SetupWithManager sets up the controller with the Controller Manager.
 func (r *FeatureReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return attachCoreController(r, &raptorApi.Feature{}, r.UpdatesAllowed, mgr)
+	return attachCoreController(r, &manifests.Feature{}, r.UpdatesAllowed, mgr)
 }

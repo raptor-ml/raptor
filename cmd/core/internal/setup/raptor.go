@@ -26,8 +26,10 @@ import (
 	opctrl "github.com/raptor-ml/raptor/internal/operator"
 	"github.com/raptor-ml/raptor/internal/stats"
 	"github.com/raptor-ml/raptor/pkg/plugins"
+	"github.com/raptor-ml/raptor/pkg/runtimemanager"
 	"github.com/spf13/viper"
 	"net/http"
+	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
@@ -90,7 +92,7 @@ func coreControllers(mgr manager.Manager, eng api.ManagerEngine) {
 	OrFail(err, "unable to create core controller", "controller", "FeatureSet")
 }
 
-func operatorControllers(mgr manager.Manager) {
+func operatorControllers(mgr manager.Manager, rm runtimemanager.RuntimeManager) {
 	var err error
 
 	coreAddr := viper.GetString("accessor-service")
@@ -101,9 +103,10 @@ func operatorControllers(mgr manager.Manager) {
 	}
 
 	err = (&opctrl.DataSourceReconciler{
-		Client:   mgr.GetClient(),
-		Scheme:   mgr.GetScheme(),
-		CoreAddr: coreAddr,
+		Client:         mgr.GetClient(),
+		Scheme:         mgr.GetScheme(),
+		CoreAddr:       coreAddr,
+		RuntimeManager: rm,
 	}).SetupWithManager(mgr)
 	OrFail(err, "unable to create controller", "operator", "DataSource")
 
@@ -120,7 +123,7 @@ func operatorControllers(mgr manager.Manager) {
 	OrFail(err, "unable to create controller", "operator", "Feature")
 
 	if !viper.GetBool("no-webhooks") {
-		opctrl.SetupFeatureWebhook(mgr, updatesAllowed)
+		opctrl.SetupFeatureWebhook(mgr, updatesAllowed, rm)
 	}
 }
 
@@ -144,8 +147,18 @@ func Core(mgr manager.Manager, certsReady chan struct{}) {
 	})
 	OrFail(err, "unable to add ready check for state")
 
+	ns, err := getInClusterNamespace()
+	OrFail(err, "unable to get in-cluster namespace. Please set the system-namespace flag")
+
+	podname := viper.GetString("pod-name")
+	if podname == "" {
+		podname = os.Getenv("HOSTNAME")
+	}
+	rm, err := runtimemanager.New(mgr.GetClient(), ns, podname)
+	OrFail(err, "unable to create python runtime manager")
+
 	// Create a new Core engine
-	eng := engine.New(state, hsc, ctrl.Log.WithName("engine"))
+	eng := engine.New(state, hsc, rm, ctrl.Log.WithName("engine"))
 
 	// Create a new Accessor
 	acc := accessor.New(eng, ctrl.Log.WithName("accessor"))
@@ -168,6 +181,6 @@ func Core(mgr manager.Manager, certsReady chan struct{}) {
 		setupLog.Info("Certs ready")
 
 		coreControllers(mgr, eng)
-		operatorControllers(mgr)
+		operatorControllers(mgr, rm)
 	}()
 }

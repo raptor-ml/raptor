@@ -27,7 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
 
-	raptorApi "github.com/raptor-ml/raptor/api/v1alpha1"
+	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 )
 
 // DataSourceReconciler reconciles a DataSource object
@@ -47,7 +47,7 @@ func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	logger := log.FromContext(ctx)
 
 	// Fetch the DataSource definition from the Kubernetes API.
-	src := &raptorApi.DataSource{}
+	src := &manifests.DataSource{}
 	err := r.Get(ctx, req.NamespacedName, src)
 	if err != nil {
 		logger.Error(err, "Failed to get DataSource")
@@ -91,5 +91,5 @@ func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 // SetupWithManager sets up the controller with the Controller Manager.
 func (r *DataSourceReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return attachCoreController(r, &raptorApi.DataSource{}, true, mgr)
+	return attachCoreController(r, &manifests.DataSource{}, true, mgr)
 }

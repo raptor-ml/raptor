@@ -19,32 +19,51 @@ package engine
 import (
 	"context"
 	"github.com/raptor-ml/raptor/api"
+	v1 "k8s.io/api/core/v1"
 	"time"
 )
 
 type Dummy struct {
-	DataSource api.DataSource
+	DataSource     api.DataSource
+	RuntimeManager api.RuntimeManager
 }
 
 func (*Dummy) FeatureDescriptor(ctx context.Context, FQN string) (api.FeatureDescriptor, error) {
 	return api.FeatureDescriptor{}, nil
 }
-func (*Dummy) Get(ctx context.Context, FQN string, entityID string) (api.Value, api.FeatureDescriptor, error) {
+func (*Dummy) Get(ctx context.Context, FQN string, keys api.Keys) (api.Value, api.FeatureDescriptor, error) {
 	return api.Value{}, api.FeatureDescriptor{}, nil
 }
-func (*Dummy) Set(ctx context.Context, FQN string, entityID string, val any, ts time.Time) error {
+func (*Dummy) Set(ctx context.Context, FQN string, keys api.Keys, val any, ts time.Time) error {
 	return nil
 }
-func (*Dummy) Append(ctx context.Context, FQN string, entityID string, val any, ts time.Time) error {
+func (*Dummy) Append(ctx context.Context, FQN string, keys api.Keys, val any, ts time.Time) error {
 	return nil
 }
-func (*Dummy) Incr(ctx context.Context, FQN string, entityID string, by any, ts time.Time) error {
+func (*Dummy) Incr(ctx context.Context, FQN string, keys api.Keys, by any, ts time.Time) error {
 	return nil
 }
-func (*Dummy) Update(ctx context.Context, FQN string, entityID string, val any, ts time.Time) error {
+func (*Dummy) Update(ctx context.Context, FQN string, keys api.Keys, val any, ts time.Time) error {
 	return nil
 }
 
 func (d *Dummy) GetDataSource(_ string) (api.DataSource, error) {
 	return d.DataSource, nil
+}
+
+func (d *Dummy) LoadProgram(env, fqn, program string, packages []string) error {
+	return d.RuntimeManager.LoadProgram(env, fqn, program, packages)
+}
+
+// ExecuteProgram executes a program in the runtime.
+func (*Dummy) ExecuteProgram(env string, fqn string, keys api.Keys, row map[string]any, ts time.Time) (api.Value, api.Keys, error) {
+	return api.Value{}, keys, nil
+}
+
+func (*Dummy) GetSidecars() []v1.Container {
+	return nil
+}
+
+func (*Dummy) GetDefaultEnv() string {
+	return ""
 }

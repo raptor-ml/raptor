@@ -68,6 +68,7 @@ message FeatureDescriptor {
     string builder = 7;
     string data_source = 8;
     repeated string keys = 9;
+    string runtime_env = 10;
 }
 message FeatureValue {
     string fqn = 1 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];

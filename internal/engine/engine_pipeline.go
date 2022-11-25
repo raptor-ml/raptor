@@ -25,9 +25,9 @@ import (
 
 func (e *engine) getValueMiddleware() api.Middleware {
 	return func(next api.MiddlewareHandler) api.MiddlewareHandler {
-		return func(ctx context.Context, fd api.FeatureDescriptor, entityID string, val api.Value) (api.Value, error) {
+		return func(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, val api.Value) (api.Value, error) {
 			if fd.DataSource == "" {
-				return next(ctx, fd, entityID, val)
+				return next(ctx, fd, keys, val)
 			}
 
 			af, err := api.AggrFnFromContext(ctx)
@@ -35,17 +35,17 @@ func (e *engine) getValueMiddleware() api.Middleware {
 				return val, err
 			}
 
-			v, err := e.state.Get(ctx, fd, entityID)
+			v, err := e.state.Get(ctx, fd, keys)
 			if err != nil {
 				return val, err
 			}
 
 			if v == nil {
-				return next(ctx, fd, entityID, val)
+				return next(ctx, fd, keys, val)
 			}
 			if time.Now().Add(-fd.Staleness).After(v.Timestamp) {
 				// Ignore expired values.
-				return next(ctx, fd, entityID, val)
+				return next(ctx, fd, keys, val)
 			}
 
 			// Mark the context as from cache.
@@ -58,23 +58,23 @@ func (e *engine) getValueMiddleware() api.Middleware {
 					Timestamp: v.Timestamp,
 					Fresh:     v.Fresh,
 				}
-				return next(ctx, fd, entityID, val)
+				return next(ctx, fd, keys, val)
 			}
 
 			// modify the value to the result from the state
 			val = *v
 
-			return next(ctx, fd, entityID, val)
+			return next(ctx, fd, keys, val)
 		}
 	}
 }
 
 func (e *engine) cachePostGetMiddleware(f *Feature) api.Middleware {
 	return func(next api.MiddlewareHandler) api.MiddlewareHandler {
-		return func(ctx context.Context, fd api.FeatureDescriptor, entityID string, val api.Value) (api.Value, error) {
+		return func(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, val api.Value) (api.Value, error) {
 			// If the value is nil, we should not cache the value.
 			if val.Value == nil || fd.ValidWindow() || fd.DataSource == "" {
-				return next(ctx, fd, entityID, val)
+				return next(ctx, fd, keys, val)
 			}
 
 			if api.TypeDetect(val.Value) != fd.Primitive {
@@ -83,24 +83,24 @@ func (e *engine) cachePostGetMiddleware(f *Feature) api.Middleware {
 
 			// If the flag `ContextKeyCachePostGet` is disabled, we should not cache the value.
 			if cpg, ok := ctx.Value(api.ContextKeyCachePostGet).(bool); ok && !cpg {
-				return next(ctx, fd, entityID, val)
+				return next(ctx, fd, keys, val)
 			}
 
 			// If the data from the cache was freshy, we should not cache the value.
 			if fresh, ok := ctx.Value(api.ContextKeyCacheFresh).(bool); ok && fresh {
-				return next(ctx, fd, entityID, val)
+				return next(ctx, fd, keys, val)
 			}
 
 			ctx2 := context.WithValue(context.Background(), api.ContextKeyLogger, api.LoggerFromContext(ctx))
-			go func(ctx context.Context, entityID string, val api.Value) {
-				_, err := e.writePipeline(f, api.StateMethodSet).Apply(ctx, entityID, val)
+			go func(ctx context.Context, keys api.Keys, val api.Value) {
+				_, err := e.writePipeline(f, api.StateMethodSet).Apply(ctx, keys, val)
 				if err != nil {
 					logger := api.LoggerFromContext(ctx)
 					logger.Error(err, "failed to update the value to cache")
 				}
-			}(ctx2, entityID, val)
+			}(ctx2, keys, val)
 
-			return next(ctx, fd, entityID, val)
+			return next(ctx, fd, keys, val)
 		}
 	}
 }
@@ -120,32 +120,37 @@ func (e *engine) writePipeline(f *Feature, method api.StateMethod) Pipeline {
 
 func (e *engine) setMiddleware(method api.StateMethod) api.Middleware {
 	return func(next api.MiddlewareHandler) api.MiddlewareHandler {
-		return func(ctx context.Context, fd api.FeatureDescriptor, entityID string, val api.Value) (api.Value, error) {
+		return func(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, val api.Value) (api.Value, error) {
 			if fd.DataSource == "" {
-				return next(ctx, fd, entityID, val)
+				return next(ctx, fd, keys, val)
 			}
 
 			if api.TypeDetect(val.Value) != fd.Primitive {
 				return val, fmt.Errorf("value mismatch: got value with a different type than the feature type")
 			}
-			// (retrospective write): when the value is expired, only write it to the historical storage
-			if !fd.ValidWindow() && val.Timestamp.Before(time.Now().Add(-fd.Staleness)) {
-				e.historian.AddWriteNotification(fd.FQN, entityID, "", &val)
-				return next(ctx, fd, entityID, val)
+
+			encodedKeys, err := keys.Encode(fd)
+			if err != nil {
+				return val, fmt.Errorf("failed to encode keys: %v", err)
 			}
 
-			var err error
+			// (retrospective write): when the value is expired, only write it to the historical storage
+			if !fd.ValidWindow() && val.Timestamp.Before(time.Now().Add(-fd.Staleness)) {
+				e.historian.AddWriteNotification(fd.FQN, encodedKeys, "", &val)
+				return next(ctx, fd, keys, val)
+			}
+
 			switch method {
 			case api.StateMethodSet:
-				err = e.state.Set(ctx, fd, entityID, val.Value, val.Timestamp)
+				err = e.state.Set(ctx, fd, keys, val.Value, val.Timestamp)
 			case api.StateMethodAppend:
-				err = e.state.Append(ctx, fd, entityID, val.Value, val.Timestamp)
+				err = e.state.Append(ctx, fd, keys, val.Value, val.Timestamp)
 			case api.StateMethodIncr:
-				err = e.state.Incr(ctx, fd, entityID, val.Value, val.Timestamp)
+				err = e.state.Incr(ctx, fd, keys, val.Value, val.Timestamp)
 			case api.StateMethodUpdate:
-				err = e.state.Update(ctx, fd, entityID, val.Value, val.Timestamp)
+				err = e.state.Update(ctx, fd, keys, val.Value, val.Timestamp)
 			case api.StateMethodWindowAdd:
-				err = e.state.WindowAdd(ctx, fd, entityID, val.Value, val.Timestamp)
+				err = e.state.WindowAdd(ctx, fd, keys, val.Value, val.Timestamp)
 			}
 			if err != nil {
 				return val, err
@@ -153,12 +158,12 @@ func (e *engine) setMiddleware(method api.StateMethod) api.Middleware {
 
 			if fd.ValidWindow() {
 				bucket := api.BucketName(val.Timestamp, fd.Freshness)
-				e.historian.AddCollectNotification(fd.FQN, entityID, bucket)
+				e.historian.AddCollectNotification(fd.FQN, encodedKeys, bucket)
 			} else {
-				e.historian.AddWriteNotification(fd.FQN, entityID, "", &val)
+				e.historian.AddWriteNotification(fd.FQN, encodedKeys, "", &val)
 			}
 
-			return next(ctx, fd, entityID, val)
+			return next(ctx, fd, keys, val)
 		}
 	}
 }

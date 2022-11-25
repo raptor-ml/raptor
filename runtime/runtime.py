@@ -15,6 +15,7 @@
 
 import asyncio
 import os
+import re
 import sys
 import warnings
 
@@ -28,6 +29,11 @@ from svc import RuntimeServicer
 
 async def main():
     runtime_name = "default" if os.environ.get('RUNTIME_NAME') is None else os.environ.get('RUNTIME_NAME')
+
+    legal_name = r"^[a0-z9]+[a0-z9_\-]*[a0-z9]+$"
+    if not re.match(legal_name, runtime_name):
+        raise ValueError("RUNTIME_NAME is illegal")
+
     core_grpc_url = "/tmp/raptor/core.sock" if os.environ.get("CORE_GRPC_URL") is None else os.environ.get(
         "CORE_GRPC_URL")
     engine_channel = grpc.insecure_channel(core_grpc_url)
@@ -43,8 +49,7 @@ async def main():
         health.SERVICE_NAME
     ), server)
 
-    python_version = f"python{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-    uds_path = f"/tmp/raptor/runtime/{runtime_name}@{python_version}.sock"
+    uds_path = f"/tmp/raptor/runtime/{runtime_name}.sock"
     if not os.path.exists("/tmp/raptor/runtime"):
         os.makedirs("/tmp/raptor/runtime")
     if os.path.exists(uds_path):
