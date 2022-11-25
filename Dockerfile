@@ -4,7 +4,7 @@ ARG LDFLAGS
 ARG VERSION
 
 ### Build
-FROM golang:1.18 AS build
+FROM golang:1.19 AS build
 
 WORKDIR /workspace
 COPY go.mod /workspace
