@@ -39,6 +39,9 @@ import (
 	"time"
 )
 
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:resources=pods,verbs=get;list;watch
+
 type runtime struct {
 	environments map[string]v1.Container
 	defaultEnv   string

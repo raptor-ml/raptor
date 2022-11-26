@@ -21,6 +21,12 @@ rules:
   - get
   - list
   - watch
+- resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
 - apiGroups:
   - ""
   resources:
