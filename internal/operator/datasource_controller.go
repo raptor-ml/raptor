@@ -52,7 +52,7 @@ type DataSourceReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx)
+	logger := log.FromContext(ctx).WithValues("component", "datasource-operator")
 
 	// Fetch the Feature definition from the Kubernetes API.
 	src := &manifests.DataSource{}
@@ -64,6 +64,7 @@ func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		// on deleted requests.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+	logger = logger.WithValues("datasource", src.FQN())
 
 	if src.ObjectMeta.DeletionTimestamp.IsZero() {
 		// The object is not being deleted, so if it does not have our finalizer,
@@ -104,11 +105,6 @@ func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			// to do the next update step accurately.
 			return ctrl.Result{RequeueAfter: time.Minute}, nil
 		}
-	}
-
-	src.Status.Replicas = src.Spec.Replicas
-	if err := r.Status().Update(ctx, src); err != nil {
-		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil

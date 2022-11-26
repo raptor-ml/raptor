@@ -6,4 +6,5 @@ resources:
   - feature.rest.user-city.yaml
   - featureset.basic.yaml
   - src.streaming.clicks.yml
+  - src.rest.placeholder.yml
 #+kubebuilder:scaffold:manifestskustomizesamples

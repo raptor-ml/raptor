@@ -3,8 +3,6 @@ kind: Feature
 metadata:
   name: simple-aggr
   namespace: default #production
-  labels:
-    app: massivedynamic
   annotations:
     a8r.io/owner: "@AlmogBaku"
     a8r.io/description: "Demonstration of a simple aggr function"
@@ -12,8 +10,9 @@ spec:
   primitive: int
   freshness: 10s
   staleness: 1m
+  keys:
+    - client_id
   builder:
-    kind: expression
     aggrGranularity: 10s
     aggr:
       - sum
@@ -21,7 +20,6 @@ spec:
       - min
       - max
       - avg
-    pyexp: |
-      def handler(**req):
-        print("Setting a windowed feature from the pyexp")
-        update_feature(req["feature_fqn"], req["entity_id"], 1)
+    code: |
+      def handler(data, ctx) -> int:
+        return 1

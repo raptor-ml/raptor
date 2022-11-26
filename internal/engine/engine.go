@@ -24,18 +24,17 @@ import (
 	"github.com/raptor-ml/raptor/api"
 	"github.com/raptor-ml/raptor/internal/historian"
 	"github.com/raptor-ml/raptor/internal/stats"
-	v1 "k8s.io/api/core/v1"
 	"sync"
 	"time"
 )
 
 type engine struct {
-	features       sync.Map
-	dataSources    sync.Map
-	state          api.State
-	historian      historian.Client
-	runtimeManager api.RuntimeManager
-	logger         logr.Logger
+	features    sync.Map
+	dataSources sync.Map
+	state       api.State
+	historian   historian.Client
+	logger      logr.Logger
+	api.RuntimeManager
 }
 
 // New creates a new engine manager
@@ -46,8 +45,8 @@ func New(state api.State, h historian.Client, rm api.RuntimeManager, logger logr
 	e := &engine{
 		state:          state,
 		historian:      h,
-		runtimeManager: rm,
 		logger:         logger,
+		RuntimeManager: rm,
 	}
 	return e
 }
@@ -124,22 +123,6 @@ func (e *engine) featureForRequest(ctx context.Context, fqn string) (*Feature, c
 		}
 	}
 	return nil, ctx, nil, fmt.Errorf("%w: %s", api.ErrFeatureNotFound, fqn)
-}
-
-func (e *engine) LoadProgram(env, fqn, program string, packages []string) error {
-	return e.runtimeManager.LoadProgram(env, fqn, program, packages)
-}
-
-func (e *engine) ExecuteProgram(env string, fqn string, keys api.Keys, row map[string]any, ts time.Time) (value api.Value, keyz api.Keys, err error) {
-	return e.runtimeManager.ExecuteProgram(env, fqn, keys, row, ts)
-}
-
-func (e *engine) GetSidecars() []v1.Container {
-	return e.runtimeManager.GetSidecars()
-}
-
-func (e *engine) GetDefaultEnv() string {
-	return e.runtimeManager.GetDefaultEnv()
 }
 
 func (e *engine) Logger() logr.Logger {

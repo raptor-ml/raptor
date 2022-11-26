@@ -40,7 +40,7 @@ type FeatureSetReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx)
+	logger := log.FromContext(ctx).WithValues("component", "featureset-operator")
 
 	// Fetch the Feature definition from the Kubernetes API.
 	fs := &manifests.FeatureSet{}
@@ -52,6 +52,7 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		// on deleted requests.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+	logger = logger.WithValues("featureset", fs.FQN())
 
 	fs.Status.FQN = fs.FQN()
 	if err := r.Status().Update(ctx, fs); err != nil {

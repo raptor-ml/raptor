@@ -1,0 +1,17 @@
+apiVersion: k8s.raptor.ml/v1alpha1
+kind: DataSource
+metadata:
+  name: json-placeholder
+spec:
+  kind: rest
+  config:
+    - name: url
+      value: https://jsonplaceholder.typicode.com/users/{keys}/
+    - name: method
+      value: GET
+    - name: body
+      value: ~
+  keyFields:
+    - client_id
+  timestampField: timestamp
+  schema: ~

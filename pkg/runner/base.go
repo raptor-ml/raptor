@@ -122,12 +122,20 @@ func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.Reconcil
 			})
 		}
 	}
-	deploy.Spec.Template.Spec.Volumes = append(deploy.Spec.Template.Spec.Volumes, corev1.Volume{
-		Name: "grpc-udp",
-		VolumeSource: corev1.VolumeSource{
-			EmptyDir: &corev1.EmptyDirVolumeSource{},
-		},
-	})
+	found := false
+	for _, v := range deploy.Spec.Template.Spec.Volumes {
+		if v.Name == "grpc-udp" {
+			found = true
+		}
+	}
+	if !found {
+		deploy.Spec.Template.Spec.Volumes = append(deploy.Spec.Template.Spec.Volumes, corev1.Volume{
+			Name: "grpc-udp",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
+		})
+	}
 	deploy.Spec.Template.Spec.Containers = append([]corev1.Container{
 		containerWithDefaults(corev1.Container{
 			Image: r.Image,

@@ -31,8 +31,9 @@
 import builtins
 import importlib
 from datetime import datetime
+import datetime as dt_pkg
 from pydoc import locate
-from typing import List, Dict, Callable, Optional
+from typing import List, Dict, Callable
 
 from redbaron import RedBaron, DefNode
 
@@ -96,7 +97,7 @@ class Context:
         self.timestamp = timestamp
         self.__feature_getter = feature_getter
 
-    def get_feature(self, fqn: str, keys: Dict[str, str] = None, timestamp: datetime = None) -> Optional[any, datetime]:
+    def get_feature(self, fqn: str, keys: Dict[str, str] = None, timestamp: datetime = None) -> [any, datetime]:
         """Get feature value for a dependant feature.
 
         Behind the scenes, the LabSDK will return you the value for the requested fqn and entity
@@ -121,10 +122,10 @@ class Context:
 class Program:
     name: str
     handler: callable
-    globals: dict
-    locals: dict
+    globals: dict = {}
+    locals: dict = {}
     primitive: [str, int, float, datetime, List[str], List[int], List[float], List[datetime], None]
-    side_effects: List[SideEffect]
+    side_effects: List[SideEffect] = []
 
     code: str
 
@@ -176,8 +177,8 @@ class Program:
                             args[arg.target.value] = arg.value.value
                         args[str(i)] = arg.value.value
 
-                    self.side_effects.append(
-                        SideEffect(kind=at.name.value, args=args, conditional=at.parent_find("if") is not None))
+                        self.side_effects.append(
+                            SideEffect(kind=at.name.value, args=args, conditional=at.parent_find("if") is not None))
 
         self.name = node.name
         rav = node.return_annotation.name.value
@@ -185,6 +186,8 @@ class Program:
 
         if rav == "List":
             itm = node.return_annotation.value.getitem.value.value
+            if not isinstance(itm, str):
+                itm = itm.name.value
             scalar = locate("datetime.datetime" if itm == "datetime" else itm)
             self.primitive = List[scalar]
         else:
@@ -192,7 +195,7 @@ class Program:
 
         self.code = node.dumps().strip()
         compiled = compile(self.code, f"<{self.name}>", "exec")
-        glob, loc = {'__builtins__': safe_builtins}, {}
+        glob, loc = {'__builtins__': safe_builtins, "datetime": dt_pkg, "List": List}, {}
         exec(compiled, glob, loc)
 
         self.handler = loc[self.name]

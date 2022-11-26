@@ -5,10 +5,11 @@ component/historian:
   - plg/querybuilder/*
 
 component/runtime-sidecar:
-  - cmd/runtime/*
-  - internal/runtime/*
-  - internal/programregistry/*
-  - pkg/protoregistry/*
+  - runtime/*
+  - pkg/runtimemanager/*
+
+component/engine:
+    - internal/engine/**
 
 component/labsdk:
   - labsdk/*

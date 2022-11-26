@@ -43,7 +43,7 @@ type FeatureSetReconciler struct {
 
 // Reconcile is the main function of the reconciler.
 func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx)
+	logger := log.FromContext(ctx).WithValues("component", "featureset-controller")
 
 	// Fetch the FeatureSet definition from the Kubernetes API.
 	fs := &manifests.FeatureSet{}
@@ -55,6 +55,7 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		// on deleted requests.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+	logger = logger.WithValues("featureset", fs.FQN())
 
 	// Convert the FeatureSet definition to a FeatureDescriptor object.
 	ft := &manifests.Feature{
@@ -67,7 +68,7 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			Namespace: fs.Namespace,
 		},
 		Spec: manifests.FeatureSpec{
-			Primitive: manifests.PrimitiveType(api.PrimitiveTypeUnknown.String()),
+			Primitive: manifests.PrimitiveType(api.PrimitiveTypeStringList.String()),
 			Timeout:   fs.Spec.Timeout,
 		},
 	}
@@ -85,6 +86,7 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 		if err := r.EngineManager.UnbindFeature(ft.FQN()); err != nil {
 			// if fail to delete, return with error, so that it can be retried
+			logger.Error(err, "Failed to unbind feature")
 			return ctrl.Result{}, err
 		}
 		return ctrl.Result{}, nil
@@ -93,6 +95,7 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if r.EngineManager.HasFeature(ft.FQN()) {
 		if err := r.EngineManager.UnbindFeature(ft.FQN()); err != nil {
 			// if fail to delete, return with error, so that it can be retried
+			logger.Error(err, "Failed to unbind feature")
 			return ctrl.Result{}, err
 		}
 	}
