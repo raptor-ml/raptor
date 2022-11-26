@@ -148,9 +148,7 @@ func (wh *webhook) ValidateUpdate(ctx context.Context, oldObject, newObj runtime
 }
 
 func (wh *webhook) Validate(ctx context.Context, f *manifests.Feature) error {
-	dummyEngine := engine.Dummy{
-		RuntimeManager: wh.runtimeManager,
-	}
+	dummyEngine := engine.Dummy{RuntimeManager: wh.runtimeManager}
 
 	if f.Spec.DataSource != nil {
 		if ar, ok := ctx.Value(admissionRequestContextKey).(admission.Request); ok && ar.DryRun == nil || ok && !*ar.DryRun {

@@ -153,10 +153,10 @@ check:
 	return rm, nil
 }
 
-func (r *runtime) LoadProgram(env, fqn, program string, packages []string) error {
+func (r *runtime) LoadProgram(env, fqn, program string, packages []string) (*api.ParsedProgram, error) {
 	rt, err := r.getRuntime(env)
 	if err != nil {
-		return fmt.Errorf("failed to get runtime: %w", err)
+		return nil, fmt.Errorf("failed to get runtime: %w", err)
 	}
 
 	req := &runtimeApi.LoadProgramRequest{
@@ -167,12 +167,32 @@ func (r *runtime) LoadProgram(env, fqn, program string, packages []string) error
 	}
 	resp, err := rt.LoadProgram(context.Background(), req)
 	if err != nil {
-		return fmt.Errorf("failed to load program: %w", err)
+		return nil, fmt.Errorf("failed to load program: %w", err)
 	}
 	if resp.Uuid != req.Uuid {
-		return fmt.Errorf("uuid mismatch")
+		return nil, fmt.Errorf("uuid mismatch")
 	}
-	return nil
+
+	pp := &api.ParsedProgram{
+		Primitive: sdk.FromAPIPrimitive(resp.Primitive),
+	}
+	for _, effect := range resp.GetSideEffects() {
+		if effect.GetKind() == "get_feature" {
+			dFqn := ""
+			if v, ok := effect.GetArgs()["fqn"]; ok {
+				dFqn = v
+			} else {
+				if v, ok := effect.GetArgs()["1"]; ok {
+					dFqn = v
+				} else {
+					return nil, fmt.Errorf("failed to get_feature fqn")
+				}
+			}
+			pp.Dependencies = append(pp.Dependencies, dFqn)
+		}
+	}
+
+	return pp, nil
 }
 
 func (r *runtime) ExecuteProgram(env string, fqn string, keys api.Keys, row map[string]any, ts time.Time) (api.Value, api.Keys, error) {

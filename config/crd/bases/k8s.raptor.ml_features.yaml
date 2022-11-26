@@ -147,11 +147,32 @@ spec:
           status:
             description: FeatureStatus defines the observed state of Feature
             properties:
+              dependencies:
+                items:
+                  description: ResourceReference represents a resource reference.
+                    It has enough information to retrieve resource in any namespace.
+                  properties:
+                    name:
+                      description: Name is unique within a namespace to reference
+                        a resource.
+                      type: string
+                    namespace:
+                      description: Namespace defines the space within which the resource
+                        name must be unique.
+                      type: string
+                  type: object
+                  x-kubernetes-map-type: atomic
+                type: array
               fqn:
                 description: FQN is the Fully Qualified Name for the Feature
                 type: string
+              ready:
+                description: State is the current state of the Feature
+                type: boolean
             required:
+            - dependencies
             - fqn
+            - ready
             type: object
         type: object
     served: true
