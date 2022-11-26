@@ -11,6 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import hashlib
 import logging
 import subprocess
 import warnings
@@ -51,6 +52,13 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
 
     async def LoadProgram(self, request: api_pb2.LoadProgramRequest, context: ServicerContext):
         try:
+            if request.fqn in self.programs:
+                m = hashlib.sha256()
+                m.update(request.program.encode('utf-8'))
+                if m.hexdigest() == self.programs[request.fqn].checksum:
+                    context.abort(grpc.StatusCode.ALREADY_EXISTS, "Program already exists")
+                    return
+
             for pkg in request.packages:
                 subprocess.run([sys.executable, "-m", "pip", "install", pkg], check=True)
 
