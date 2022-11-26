@@ -51,6 +51,8 @@ type extraCfgContextKey int
 const waitTimeout = 10 * time.Minute
 const coreReplicas int32 = 2
 
+var supportedRuntimes = []string{"python3.11", "python3.10", "python3.9", "python3.8", "python3.7"}
+
 type extraCfg struct {
 	buildTag    string
 	imgBasename string
@@ -184,10 +186,12 @@ func SetupCore(name, kindClusterName, imgBasename, buildTag string, args []strin
 			return ctx, fmt.Errorf("failed to load core image: %w", err)
 		}
 
-		runtimeImg := fmt.Sprintf("%s-runtime:%s", imgBasename, buildTag)
-		ctx, err = envfuncs.LoadDockerImageToCluster(kindClusterName, runtimeImg)(ctx, cfg)
-		if err != nil {
-			return ctx, fmt.Errorf("failed to load core image: %w", err)
+		for _, rt := range supportedRuntimes {
+			runtimeImg := fmt.Sprintf("%s-runtime:%s-%s", imgBasename, buildTag, rt)
+			ctx, err = envfuncs.LoadDockerImageToCluster(kindClusterName, runtimeImg)(ctx, cfg)
+			if err != nil {
+				return ctx, fmt.Errorf("failed to load core image: %w", err)
+			}
 		}
 
 		// Create the core
