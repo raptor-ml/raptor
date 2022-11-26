@@ -185,7 +185,9 @@ class Program:
         rav = "datetime.datetime" if rav == "datetime" else rav
 
         if rav == "List":
-            itm = node.return_annotation.value.getitem.value.value.name.value
+            itm = node.return_annotation.value.getitem.value.value
+            if not isinstance(itm, str):
+                itm = itm.name.value
             scalar = locate("datetime.datetime" if itm == "datetime" else itm)
             self.primitive = List[scalar]
         else:
