@@ -92,9 +92,9 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		// If the error is "not found" then requeue this because maybe the user trying to add both the DataSource
 		// and the Feature on the same time
 		if client.IgnoreNotFound(err) == nil {
-			logger.Error(err, "Trying to add a Feature to a non-existing DataSource")
+			logger.WithValues("feature", feature.FQN()).Error(err, "Trying to add a Feature to a non-existing DataSource")
 		}
-		return ctrl.Result{RequeueAfter: time.Millisecond * 100}, client.IgnoreNotFound(err)
+		return ctrl.Result{RequeueAfter: time.Second * 2}, client.IgnoreNotFound(err)
 	}
 
 	feature.Status.FQN = feature.FQN()

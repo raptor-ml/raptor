@@ -11,6 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import logging
 import subprocess
 import warnings
 from datetime import datetime
@@ -59,6 +60,7 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
                                                primitive=self.py_to_proto_primitive(program.primitive),
                                                side_effects=self.py_to_proto_side_effects(program.side_effects))
         except Exception as e:
+            logging.error(f"{request.fqn}: Failed to load program", e)
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, str(e))
             return
 
@@ -107,6 +109,7 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
                 timestamp=ts,
             )
         except Exception as e:
+            logging.error(f"{request.fqn}: Failed to execute program", e)
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, str(e))
             return
 
@@ -155,7 +158,7 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
             return types_pb2.Value(list_value=types_pb2.List(values=[self.py_to_proto_scalar(v) for v in value]))
         return types_pb2.Value()
 
-    def py_to_proto_primitive(self, primitive) -> api_pb2.Primitive:
+    def py_to_proto_primitive(self, primitive) -> types_pb2.Primitive:
         if primitive == str:
             return types_pb2.PRIMITIVE_STRING
         elif primitive == int:

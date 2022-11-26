@@ -39,7 +39,7 @@ func InitConfig() {
 	pflag.String("accessor-http-address", ":60001", "The address the http accessor binds to.")
 	pflag.String("accessor-http-prefix", "/api", "The the http accessor path prefix.")
 	pflag.String("accessor-service", "", "The the accessor service URL (that points the this application).")
-	pflag.Bool("production", true, "Set as production")
+	pflag.Bool("dev", false, "Set as development")
 	pflag.Bool("usage-reporting", true, "Allow us to anonymously report usage statistics to improve RaptorML 🪄")
 	pflag.String("usage-reporting-uid", "", "Usage reporting Unique Identifier. "+
 		"You can use this to set a unique identifier for your cluster.")
@@ -48,7 +48,7 @@ func InitConfig() {
 	pflag.Bool("disable-cert-management", false, "Setting this flag will disable the automatically "+
 		"certificate binding to the K8s API webhooks.")
 	pflag.Bool("no-webhooks", false, "Setting this flag will disable the K8s API webhook.")
-	pflag.String("system-namespace", "", "The Raptor System namespace.")
+	pflag.String("system-namespace", "raptor-system", "The Raptor System namespace.")
 	pflag.String("pod-name", "", "The current pod name.")
 
 	zapOpts := zap.Options{}
@@ -62,9 +62,12 @@ func InitConfig() {
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 	viper.AutomaticEnv()
 
-	zapOpts.Development = !viper.GetBool("production")
+	if viper.GetBool("dev") {
+		zapOpts.Development = true
+		viper.Set("no-webhooks", true)
+	}
 	logger := zap.New(zap.UseFlagOptions(&zapOpts))
 	ctrl.SetLogger(logger)
 
-	updatesAllowed = !viper.GetBool("production")
+	updatesAllowed = viper.GetBool("dev")
 }

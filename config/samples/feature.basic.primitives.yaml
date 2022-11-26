@@ -85,7 +85,7 @@ spec:
       - name
   builder:
     code: |
-      def handler(row, ctx) -> datetime:
+      def handler(row, ctx) -> datetime.datetime:
         import datetime
         return datetime.datetime.now()
 ---
@@ -176,7 +176,7 @@ spec:
     - name
   builder:
     code: |
-      def handler(row, ctx) -> List[datetime]:
+      def handler(row, ctx) -> List[datetime.datetime]:
         from datetime import datetime
         now = datetime.now()
         return [now, now+1, now+2]

@@ -79,14 +79,14 @@ endif
 
 .PHONY: setup-redis
 setup-redis: ## Install redis cluster
-	-$(KUBECTL) create namespace redis-operator
+	-$(KUBECTL) create namespace ot-operators
 	$(KUBECTL) apply -f https://raw.githubusercontent.com/OT-CONTAINER-KIT/redis-operator/master/config/crd/bases/redis.redis.opstreelabs.in_redis.yaml
 	$(KUBECTL) apply -f https://raw.githubusercontent.com/OT-CONTAINER-KIT/redis-operator/master/config/crd/bases/redis.redis.opstreelabs.in_redisclusters.yaml
 	$(KUBECTL) apply -f https://raw.githubusercontent.com/OT-CONTAINER-KIT/redis-operator/master/config/rbac/serviceaccount.yaml
 	$(KUBECTL) apply -f https://raw.githubusercontent.com/OT-CONTAINER-KIT/redis-operator/master/config/rbac/role.yaml
 	$(KUBECTL) apply -f https://raw.githubusercontent.com/OT-CONTAINER-KIT/redis-operator/master/config/rbac/role_binding.yaml
 	$(KUBECTL) apply -f https://raw.githubusercontent.com/OT-CONTAINER-KIT/redis-operator/master/config/manager/manager.yaml
-	$(KUBECTL) wait --namespace redis-operator --for=condition=ready pod --selector=control-plane=redis-operator --timeout=120s
+	$(KUBECTL) wait --namespace ot-operators --for=condition=ready pod --selector=control-plane=redis-operator --timeout=120s
 	$(KUBECTL) apply -f config/redis.yaml
 
 .PHONY: setup-certmanager

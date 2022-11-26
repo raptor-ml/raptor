@@ -8,7 +8,9 @@ spec:
   staleness: 2160h #90 days
   dataSource:
     name: json-placeholder
+  keys:
+    - user_id
   builder:
     code: |
-      def handler(**req):
-        return req["payload"]["address"]["city"]
+      def handler(row, ctx) -> str:
+        return row["address"]["city"]
