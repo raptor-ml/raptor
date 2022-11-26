@@ -45,7 +45,7 @@ type FeatureReconciler struct {
 
 // Reconcile is the main function of the reconciler.
 func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx)
+	logger := log.FromContext(ctx).WithValues("component", "feature-controller")
 
 	// Fetch the Feature definition from the Kubernetes API.
 	feature := &manifests.Feature{}
@@ -57,6 +57,7 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		// on deleted requests.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+	logger = logger.WithValues("feature", feature.FQN())
 
 	// examine DeletionTimestamp to determine if object is under deletion
 	if !feature.ObjectMeta.DeletionTimestamp.IsZero() {
@@ -65,6 +66,7 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 		if err := r.EngineManager.UnbindFeature(feature.FQN()); err != nil {
 			// if fail to delete, return with error, so that it can be retried
+			logger.Error(err, "Failed to unbind Feature")
 			return ctrl.Result{}, err
 		}
 		return ctrl.Result{}, nil
@@ -77,12 +79,13 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 		if err := r.EngineManager.UnbindFeature(feature.FQN()); err != nil {
 			// if fail to delete, return with error, so that it can be retried
+			logger.Error(err, "Failed to unbind feature")
 			return ctrl.Result{}, err
 		}
 	}
 
 	if err := r.EngineManager.BindFeature(feature); err != nil {
-		logger.WithValues("feature", feature.FQN()).Error(err, "Failed to bind feature")
+		logger.Error(err, "Failed to bind feature")
 		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 

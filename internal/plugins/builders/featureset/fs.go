@@ -49,7 +49,10 @@ func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, fa
 
 	//normalize features
 	for i, f := range spec.Features {
-		spec.Features[i] = api.NormalizeFQN(f, ns)
+		spec.Features[i], err = api.NormalizeFQN(f, ns)
+		if err != nil {
+			return fmt.Errorf("failed to normalize feature %s in featureset %s: %w", f, fd.FQN, err)
+		}
 	}
 
 	fs := &featureset{engine: engine, features: spec.Features}

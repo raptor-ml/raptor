@@ -44,7 +44,7 @@ type DataSourceReconciler struct {
 
 // Reconcile is the main function of the reconciler.
 func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx)
+	logger := log.FromContext(ctx).WithValues("component", "datasource-controller")
 
 	// Fetch the DataSource definition from the Kubernetes API.
 	src := &manifests.DataSource{}
@@ -56,6 +56,7 @@ func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		// on deleted requests.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+	logger = logger.WithValues("datasource", src.FQN())
 
 	// examine DeletionTimestamp to determine if object is under deletion
 	if !src.ObjectMeta.DeletionTimestamp.IsZero() {
@@ -64,6 +65,7 @@ func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 		if err := r.EngineManager.UnbindDataSource(src.FQN()); err != nil {
 			// if fail to delete, return with error, so that it can be retried
+			logger.Error(err, "Failed to unbind DataSource")
 			return ctrl.Result{}, err
 		}
 		return ctrl.Result{}, nil
@@ -72,6 +74,7 @@ func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	if r.EngineManager.HasDataSource(src.FQN()) {
 		if err := r.EngineManager.UnbindDataSource(src.FQN()); err != nil {
 			// if fail to delete, return with error, so that it can be retried
+			logger.Error(err, "Failed to unbind DataSource")
 			return ctrl.Result{}, err
 		}
 	}
@@ -83,6 +86,7 @@ func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	if err := r.EngineManager.BindDataSource(dci); err != nil {
+		logger.Error(err, "Failed to bind DataSource")
 		return ctrl.Result{RequeueAfter: 10 * time.Second}, err
 	}
 

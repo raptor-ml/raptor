@@ -153,10 +153,10 @@ func ParseFQN(fqn string) (namespace, name, aggrFn, version, encoding string, er
 	return
 }
 
-func NormalizeFQN(fqn, defaultNamespace string) string {
+func NormalizeFQN(fqn, defaultNamespace string) (string, error) {
 	ns, name, aggrFn, version, enc, err := ParseFQN(fqn)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	if ns == "" {
@@ -173,5 +173,5 @@ func NormalizeFQN(fqn, defaultNamespace string) string {
 	if enc != "" {
 		other = fmt.Sprintf("%s[%s]", other, enc)
 	}
-	return fmt.Sprintf("%s.%s%s", ns, name, other)
+	return fmt.Sprintf("%s.%s%s", ns, name, other), nil
 }

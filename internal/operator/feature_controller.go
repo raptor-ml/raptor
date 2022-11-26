@@ -44,7 +44,7 @@ type FeatureReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx)
+	logger := log.FromContext(ctx).WithValues("component", "feature-operator")
 
 	// Fetch the Feature definition from the Kubernetes API.
 	feature := &manifests.Feature{}
@@ -56,6 +56,7 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		// on deleted requests.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+	logger = logger.WithValues("feature", feature.FQN())
 
 	if feature.ObjectMeta.DeletionTimestamp.IsZero() {
 		// The object is not being deleted, so if it does not have our finalizer,
@@ -64,6 +65,7 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		if !controllerutil.ContainsFinalizer(feature, finalizerName) {
 			controllerutil.AddFinalizer(feature, finalizerName)
 			if err := r.Update(ctx, feature); err != nil {
+				logger.Error(err, "Failed to add finalizer")
 				return ctrl.Result{}, err
 			}
 		}
@@ -74,12 +76,14 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			if err := r.deleteFromSource(ctx, feature); err != nil {
 				// if fail to delete the external dependency here, return with error
 				// so that it can be retried
+				logger.Error(err, "Failed to delete from source")
 				return ctrl.Result{}, err
 			}
 
 			// remove our finalizer from the list and update it.
 			controllerutil.RemoveFinalizer(feature, finalizerName)
 			if err := r.Update(ctx, feature); err != nil {
+				logger.Error(err, "Failed to remove finalizer")
 				return ctrl.Result{}, err
 			}
 		}
@@ -92,13 +96,14 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		// If the error is "not found" then requeue this because maybe the user trying to add both the DataSource
 		// and the Feature on the same time
 		if client.IgnoreNotFound(err) == nil {
-			logger.WithValues("feature", feature.FQN()).Error(err, "Trying to add a Feature to a non-existing DataSource")
+			logger.WithValues("source", feature.Spec.DataSource).Error(err, "Trying to add a Feature to a non-existing DataSource")
 		}
 		return ctrl.Result{RequeueAfter: time.Second * 2}, client.IgnoreNotFound(err)
 	}
 
 	feature.Status.FQN = feature.FQN()
 	if err := r.Status().Update(ctx, feature); err != nil {
+		logger.Error(err, "Failed to update Feature status")
 		return ctrl.Result{}, err
 	}
 
@@ -163,6 +168,7 @@ func (r *FeatureReconciler) addToSource(ctx context.Context, feature *manifests.
 		logger.Error(err, "Failed to get associated DataSource")
 		return err
 	}
+
 	for _, f := range src.Status.Features {
 		if f.Name == feature.Name {
 			return nil
