@@ -59,6 +59,9 @@ func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, ap
 	if fd.DataSource == "" {
 		return fmt.Errorf("DataSource must be set for `%s` builder", name)
 	}
+	if len(fd.Aggr) > 0 {
+		return fmt.Errorf("aggregation is not supported for `%s` builder", name)
+	}
 
 	src, err := engine.GetDataSource(fd.DataSource)
 	if err != nil {
