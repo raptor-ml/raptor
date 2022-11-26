@@ -14,18 +14,17 @@
 import hashlib
 import logging
 import subprocess
+import sys
 import warnings
 from datetime import datetime
+from typing import Dict, List
 from uuid import uuid4
 
 import grpc
 from google.protobuf.internal.containers import MessageMap
 from grpc import ServicerContext
-from typing import Dict, List
 
 from program import Program, Context, SideEffect
-
-import sys
 
 sys.path.append("./proto")
 
@@ -53,20 +52,26 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
     async def LoadProgram(self, request: api_pb2.LoadProgramRequest, context: ServicerContext):
         try:
             if request.fqn in self.programs:
+                program = self.programs[request.fqn]
                 m = hashlib.sha256()
                 m.update(request.program.encode('utf-8'))
-                if m.hexdigest() == self.programs[request.fqn].checksum:
-                    context.abort(grpc.StatusCode.ALREADY_EXISTS, "Program already exists")
-                    return
+                if m.hexdigest() == program.checksum:
+                    return api_pb2.LoadProgramResponse(
+                        uuid=request.uuid,
+                        primitive=self.py_to_proto_primitive(program.primitive),
+                        side_effects=self.py_to_proto_side_effects(program.side_effects)
+                    )
 
             for pkg in request.packages:
                 subprocess.run([sys.executable, "-m", "pip", "install", pkg], check=True)
 
             program = Program(request.program)
             self.programs[request.fqn] = program
-            return api_pb2.LoadProgramResponse(uuid=request.uuid,
-                                               primitive=self.py_to_proto_primitive(program.primitive),
-                                               side_effects=self.py_to_proto_side_effects(program.side_effects))
+            return api_pb2.LoadProgramResponse(
+                uuid=request.uuid,
+                primitive=self.py_to_proto_primitive(program.primitive),
+                side_effects=self.py_to_proto_side_effects(program.side_effects)
+            )
         except Exception as e:
             logging.error(f"{request.fqn}: Failed to load program", e)
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, str(e))
@@ -189,7 +194,8 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
             return types_pb2.PRIMITIVE_TIMESTAMP_LIST
         return types_pb2.PRIMITIVE_UNSPECIFIED
 
-    def py_to_proto_side_effects(self, side_effects: List[SideEffect]) -> List[api_pb2.SideEffect]:
+    @staticmethod
+    def py_to_proto_side_effects(side_effects: List[SideEffect]) -> List[api_pb2.SideEffect]:
         se = []
         for effect in side_effects:
             se.append(api_pb2.SideEffect(
