@@ -19,13 +19,12 @@ package engine
 import (
 	"context"
 	"github.com/raptor-ml/raptor/api"
-	v1 "k8s.io/api/core/v1"
 	"time"
 )
 
 type Dummy struct {
-	DataSource     api.DataSource
-	RuntimeManager api.RuntimeManager
+	DataSource api.DataSource
+	api.RuntimeManager
 }
 
 func (*Dummy) FeatureDescriptor(ctx context.Context, FQN string) (api.FeatureDescriptor, error) {
@@ -49,21 +48,4 @@ func (*Dummy) Update(ctx context.Context, FQN string, keys api.Keys, val any, ts
 
 func (d *Dummy) GetDataSource(_ string) (api.DataSource, error) {
 	return d.DataSource, nil
-}
-
-func (d *Dummy) LoadProgram(env, fqn, program string, packages []string) error {
-	return d.RuntimeManager.LoadProgram(env, fqn, program, packages)
-}
-
-// ExecuteProgram executes a program in the runtime.
-func (*Dummy) ExecuteProgram(env string, fqn string, keys api.Keys, row map[string]any, ts time.Time) (api.Value, api.Keys, error) {
-	return api.Value{}, keys, nil
-}
-
-func (*Dummy) GetSidecars() []v1.Container {
-	return nil
-}
-
-func (*Dummy) GetDefaultEnv() string {
-	return ""
 }

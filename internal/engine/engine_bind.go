@@ -36,6 +36,21 @@ func FeatureWithEngine(e api.ExtendedManager, in *manifests.Feature) (*Feature, 
 		FeatureDescriptor: *fd,
 	}
 
+	if fd.DataSource != "" {
+		_, err := e.GetDataSource(fd.DataSource)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get DataSource: %v", err)
+		}
+	}
+
+	prog, err := e.LoadProgram(fd.RuntimeEnv, fd.FQN, in.Spec.Builder.Code, in.Spec.Builder.Packages)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load python program: %w", err)
+	}
+	if prog.Primitive != fd.Primitive {
+		return nil, fmt.Errorf("python primitive does not match declared primitive")
+	}
+
 	if p := plugins.FeatureAppliers.Get(ft.Builder); p != nil {
 		err := p(ft.FeatureDescriptor, in.Spec.Builder, &ft, e)
 		if err != nil {
