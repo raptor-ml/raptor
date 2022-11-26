@@ -56,6 +56,7 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	fs.Status.FQN = fs.FQN()
 	if err := r.Status().Update(ctx, fs); err != nil {
+		logger.Error(err, "Failed to update FeatureSet status")
 		return ctrl.Result{}, err
 	}
 

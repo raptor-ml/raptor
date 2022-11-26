@@ -36,9 +36,10 @@ var scripts = redisScripts{luaHMax, luaHMin, luaMax, luaMaxExpAt}
 
 // luaHMin doing an atomic MIN operation on a given Hash's Field
 // Arguments:
-//		- KEYS[1] - Hash Key
-//		- KEYS[2] - Field key
-//		- ARGV[1] - Numeric Value
+//   - KEYS[1] - Hash Key
+//   - KEYS[2] - Field key
+//   - ARGV[1] - Numeric Value
+//
 // Returns 1 if there was a change or 0 if not
 var luaHMin = redis.NewScript(`
 local key = KEYS[1]
@@ -55,9 +56,10 @@ return 0
 
 // luaHMax doing an atomic MAX operation on a given Hash's Field
 // Arguments:
-//		- KEYS[1] - Hash Key
-//		- KEYS[2] - Field key
-//		- ARGV[1] - Numeric Value
+//   - KEYS[1] - Hash Key
+//   - KEYS[2] - Field key
+//   - ARGV[1] - Numeric Value
+//
 // Returns 1 if there was a change or 0 if not
 var luaHMax = redis.NewScript(`
 local key = KEYS[1]
@@ -74,9 +76,10 @@ return 0
 
 // luaMax doing an atomic MAX operation on a regular key
 // Arguments:
-//		- KEYS[1] - Key
-//		- ARGV[1] - Numeric Value
-//		- ARGV[2] - Optional expiration
+//   - KEYS[1] - Key
+//   - ARGV[1] - Numeric Value
+//   - ARGV[2] - Optional expiration
+//
 // Returns 1 if there was a change or 0 if not
 var luaMax = redis.NewScript(`
 local key = KEYS[1]
@@ -99,9 +102,10 @@ return 0
 
 // luaMaxExpAt doing an atomic MAX operation on a regular key
 // Arguments:
-//		- KEYS[1] - Key
-//		- ARGV[1] - Numeric Value
-//		- ARGV[2] - ExpireAt
+//   - KEYS[1] - Key
+//   - ARGV[1] - Numeric Value
+//   - ARGV[2] - ExpireAt
+//
 // Returns 1 if there was a change or 0 if not
 var luaMaxExpAt = redis.NewScript(`
 local key = KEYS[1]
