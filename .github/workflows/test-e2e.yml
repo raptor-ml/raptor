@@ -46,7 +46,7 @@ jobs:
       - name: Install Kustomize
         uses: imranismail/setup-kustomize@v1
       - name: Set up gotestfmt
-        uses: haveyoudebuggedit/gotestfmt-action@v2
+        uses: GoTestTools/gotestfmt-action@v2
         with:
           # Optional: pass GITHUB_TOKEN to avoid rate limiting.
           token: ${{ secrets.GITHUB_TOKEN }}
