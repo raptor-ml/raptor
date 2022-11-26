@@ -18,6 +18,7 @@ import os
 import re
 import sys
 import warnings
+from typing import Union
 
 import grpc
 from grpc_health.v1 import health
@@ -25,6 +26,9 @@ from grpc_health.v1 import health_pb2_grpc
 from grpc_reflection.v1alpha import reflection
 
 from svc import RuntimeServicer
+
+server: Union[grpc.aio.Server, None] = None
+uds_path: Union[str, None] = None
 
 
 async def main():
@@ -67,4 +71,13 @@ async def main():
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    loop = asyncio.get_event_loop()
+    try:
+        loop.run_until_complete(main())
+    except KeyboardInterrupt:
+        print("Terminated by user: Shutting down")
+        if server is not None:
+            server.stop(5)
+        if uds_path is not None:
+            os.remove(uds_path)
+        sys.exit(7)
