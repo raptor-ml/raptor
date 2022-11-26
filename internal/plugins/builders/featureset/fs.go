@@ -57,6 +57,7 @@ func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, fa
 
 	fs := &featureset{engine: engine, features: spec.Features}
 	faapi.AddPostGetMiddleware(0, fs.preGetMiddleware)
+	faapi.AddPreSetMiddleware(0, fs.preSetMiddleware)
 	return nil
 }
 
@@ -94,5 +95,11 @@ func (fs *featureset) preGetMiddleware(next api.MiddlewareHandler) api.Middlewar
 		ret.Value = results
 
 		return ret, nil
+	}
+}
+
+func (fs *featureset) preSetMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
+	return func(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, val api.Value) (api.Value, error) {
+		return val, fmt.Errorf("cannot set featureset %s", fd.FQN)
 	}
 }
