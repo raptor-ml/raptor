@@ -53,16 +53,17 @@ func DataSourceFromManifest(ctx context.Context, src *manifests.DataSource, r cl
 
 // FeatureDescriptor is describing a feature definition for an internal use of the Core.
 type FeatureDescriptor struct {
-	FQN        string        `json:"FQN"`
-	Primitive  PrimitiveType `json:"primitive"`
-	Aggr       []AggrFn      `json:"aggr"`
-	Freshness  time.Duration `json:"freshness"`
-	Staleness  time.Duration `json:"staleness"`
-	Timeout    time.Duration `json:"timeout"`
-	Keys       []string      `json:"keys"`
-	Builder    string        `json:"builder"`
-	RuntimeEnv string        `json:"runtimeEnv"`
-	DataSource string        `json:"data_source"`
+	FQN          string        `json:"FQN"`
+	Primitive    PrimitiveType `json:"primitive"`
+	Aggr         []AggrFn      `json:"aggr"`
+	Freshness    time.Duration `json:"freshness"`
+	Staleness    time.Duration `json:"staleness"`
+	Timeout      time.Duration `json:"timeout"`
+	Keys         []string      `json:"keys"`
+	Builder      string        `json:"builder"`
+	RuntimeEnv   string        `json:"runtimeEnv"`
+	DataSource   string        `json:"data_source"`
+	Dependencies []string      `json:"dependencies"`
 }
 
 // ValidWindow checks if the feature have aggregation enabled, and if it is valid
@@ -106,16 +107,22 @@ func FeatureDescriptorFromManifest(in *manifests.Feature) (*FeatureDescriptor, e
 		in.Spec.Freshness = in.Spec.Builder.AggrGranularity
 	}
 
+	deps := make([]string, len(in.Status.Dependencies))
+	for i, dep := range in.Status.Dependencies {
+		deps[i] = dep.FQN()
+	}
+
 	fd := &FeatureDescriptor{
-		FQN:        in.FQN(),
-		Primitive:  primitive,
-		Aggr:       aggr,
-		Freshness:  in.Spec.Freshness.Duration,
-		Staleness:  in.Spec.Staleness.Duration,
-		Timeout:    in.Spec.Timeout.Duration,
-		Keys:       in.Spec.Keys,
-		RuntimeEnv: in.Spec.Builder.Runtime,
-		Builder:    strings.ToLower(in.Spec.Builder.Kind),
+		FQN:          in.FQN(),
+		Primitive:    primitive,
+		Aggr:         aggr,
+		Freshness:    in.Spec.Freshness.Duration,
+		Staleness:    in.Spec.Staleness.Duration,
+		Timeout:      in.Spec.Timeout.Duration,
+		Keys:         in.Spec.Keys,
+		RuntimeEnv:   in.Spec.Builder.Runtime,
+		Builder:      strings.ToLower(in.Spec.Builder.Kind),
+		Dependencies: deps,
 	}
 	if in.Spec.DataSource != nil {
 		fd.DataSource = in.Spec.DataSource.FQN()

@@ -30,15 +30,6 @@ func init() {
 }
 
 func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.ExtendedManager) error {
-	if builder.Code == "" {
-		return fmt.Errorf("code is empty")
-	}
-
-	err := engine.LoadProgram(builder.Runtime, fd.FQN, builder.Code, builder.Packages)
-	if err != nil {
-		return fmt.Errorf("failed to load python program: %w", err)
-	}
-
 	e := mw{engine}
 	if fd.Freshness <= 0 {
 		api.AddPreGetMiddleware(0, e.getMiddleware)

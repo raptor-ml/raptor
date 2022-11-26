@@ -22,6 +22,7 @@ package operator
 
 import (
 	"context"
+	"github.com/raptor-ml/raptor/api"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -35,7 +36,8 @@ import (
 // FeatureReconciler reconciles a Feature object
 type FeatureReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme         *runtime.Scheme
+	RuntimeManager api.RuntimeManager
 }
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -101,7 +103,29 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{RequeueAfter: time.Second * 2}, client.IgnoreNotFound(err)
 	}
 
+	prog, err := r.RuntimeManager.LoadProgram(feature.Spec.Builder.Runtime, feature.FQN(), feature.Spec.Builder.Code, feature.Spec.Builder.Packages)
+	if err != nil {
+		logger.Error(err, "Failed to load program")
+		return ctrl.Result{}, err
+	}
+
+	for _, dep := range prog.Dependencies {
+		ns, n, _, _, _, err := api.ParseFQN(dep)
+		if err != nil {
+			logger.Error(err, "Failed to parse dependency FQN")
+			return ctrl.Result{}, err
+		}
+		if ns == "" {
+			ns = feature.Namespace
+		}
+		feature.Status.Dependencies = append(feature.Status.Dependencies, manifests.ResourceReference{
+			Namespace: ns,
+			Name:      n,
+		})
+	}
+
 	feature.Status.FQN = feature.FQN()
+	feature.Status.Ready = true
 	if err := r.Status().Update(ctx, feature); err != nil {
 		logger.Error(err, "Failed to update Feature status")
 		return ctrl.Result{}, err

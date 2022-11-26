@@ -120,6 +120,11 @@ type FeatureStatus struct {
 	// FQN is the Fully Qualified Name for the Feature
 	// +operator-sdk:csv:customresourcedefinitions:type=status
 	FQN string `json:"fqn"`
+
+	// State is the current state of the Feature
+	Ready bool `json:"ready"`
+
+	Dependencies []ResourceReference `json:"dependencies"`
 }
 
 // +k8s:openapi-gen=true

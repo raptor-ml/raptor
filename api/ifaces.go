@@ -97,9 +97,17 @@ type DataSourceGetter interface {
 	GetDataSource(FQN string) (DataSource, error)
 }
 
+type ParsedProgram struct {
+	// Primitive is the primitive that this program is returning
+	Primitive PrimitiveType
+
+	// Dependencies is a list of FQNs that this program *might* be depended on
+	Dependencies []string
+}
+
 type RuntimeManager interface {
 	// LoadProgram loads a program into the runtime.
-	LoadProgram(env, fqn, program string, packages []string) error
+	LoadProgram(env, fqn, program string, packages []string) (*ParsedProgram, error)
 
 	// ExecuteProgram executes a program in the runtime.
 	ExecuteProgram(env string, fqn string, keys Keys, row map[string]any, ts time.Time) (value Value, keyz Keys, err error)

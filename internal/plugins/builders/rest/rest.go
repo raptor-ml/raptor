@@ -75,15 +75,6 @@ func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, ap
 		return fmt.Errorf("failed to unmarshal DataSource config: %v", err)
 	}
 
-	if builder.Code == "" {
-		return fmt.Errorf("code is empty")
-	}
-
-	err = engine.LoadProgram(builder.Runtime, fd.FQN, builder.Code, builder.Packages)
-	if err != nil {
-		return fmt.Errorf("failed to load python program: %w", err)
-	}
-
 	timeout := time.Duration(float32(fd.Timeout) * 0.8)
 	if timeout == 0 {
 		timeout = 5 * time.Second
