@@ -73,6 +73,7 @@ func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		if !controllerutil.ContainsFinalizer(src, finalizerName) {
 			controllerutil.AddFinalizer(src, finalizerName)
 			if err := r.Update(ctx, src); err != nil {
+				logger.Error(err, "Failed to add finalizer")
 				return ctrl.Result{}, err
 			}
 		}
@@ -82,12 +83,14 @@ func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			// our finalizer is present, so lets handle any external dependency
 			if len(src.Status.Features) > 0 {
 				// return with error so that it can be retried
+				logger.Info("Cannot delete DataSource with features")
 				return ctrl.Result{}, fmt.Errorf("cannot delete DataSource with associated Features")
 			}
 
 			// remove our finalizer from the list and update it.
 			controllerutil.RemoveFinalizer(src, finalizerName)
 			if err := r.Update(ctx, src); err != nil {
+				logger.Error(err, "Failed to remove finalizer")
 				return ctrl.Result{}, err
 			}
 		}
