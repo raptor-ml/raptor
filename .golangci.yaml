@@ -1,6 +1,9 @@
 run:
   tests: false
   timeout: 5m
+  skip-files:
+    - '(.+)\.pb\.go'
+    - '(.+)\.pb\.(.+)\.go'
 
 linters:
   disable:
