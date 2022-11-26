@@ -29,6 +29,9 @@ RUN wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health
 
 RUN pip install --upgrade pip
 
+RUN addgroup -g 65532 nonroot
+RUN adduser -u 65532 -G nonroot -h /home/nonroot -D nonroot
+
 WORKDIR /runtime
 COPY ./runtime/requirements.txt /runtime/
 RUN pip install -r requirements.txt
@@ -37,4 +40,5 @@ COPY ./runtime /runtime
 COPY --from=buf /workspace/gen/python /runtime/proto
 COPY ./labsdk/raptor/program.py .
 
+USER 65532:65532
 CMD [ "python", "./runtime.py" ]
