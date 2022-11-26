@@ -30,10 +30,11 @@ RUN wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health
 RUN pip install --upgrade pip
 
 WORKDIR /runtime
+COPY ./runtime/requirements.txt /runtime/
+RUN pip install -r requirements.txt
+
 COPY ./runtime /runtime
 COPY --from=buf /workspace/gen/python /runtime/proto
 COPY ./labsdk/raptor/program.py .
-
-RUN pip install -r requirements.txt
 
 CMD [ "python", "./runtime.py" ]
