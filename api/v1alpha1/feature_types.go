@@ -30,7 +30,7 @@ import (
 type AggrFn string
 
 // PrimitiveType defines the type of primitive
-// +kubebuilder:validation:Enum=int;float;string;timestamp;[]int;[]float;[]string;[]timestamp
+// +kubebuilder:validation:Enum=int;float;string;bool;timestamp;[]int;[]float;[]string;[]bool;[]timestamp
 type PrimitiveType string
 
 // FeatureSpec defines the desired state of Feature

@@ -3,8 +3,6 @@ kind: Feature
 metadata:
   name: clicks
   namespace: default #production
-  labels:
-    app: massivedynamic
   annotations:
     a8r.io/owner: "@AlmogBaku"
     a8r.io/description: "Demonstration of a simple aggr function"
@@ -14,11 +12,12 @@ spec:
   staleness: 1m
   dataSource:
     name: clicks
+  keys:
+    - client_id
   builder:
     aggr:
       - sum
       - count
-    schema: https://raw.githubusercontent.com/raptor-ml/massivedynamic-protos/master/click.proto#Click
-    pyexp: |
-      def handler(**req):
-        return 1, req["timestamp"], req["payload"]["client_id"].split(":")[1]
+    code: |
+      def handler(data, ctx) -> int:
+        return 1, ctx.timestamp, ctx.keys["client_id"].split(":")[1]

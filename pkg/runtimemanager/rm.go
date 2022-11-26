@@ -29,24 +29,34 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/local"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"os"
 	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sync"
 	"time"
 )
 
-type manager struct {
+type runtime struct {
 	environments map[string]v1.Container
 	defaultEnv   string
+	conns        sync.Map
 }
 
-func New(k client.Client, namespace string, podname string) (api.RuntimeManager, error) {
-	rm := &manager{
+func New(mgr manager.Manager, namespace string, podname string) (api.RuntimeManager, error) {
+	rm := &runtime{
 		environments: make(map[string]v1.Container),
+		conns:        sync.Map{},
 	}
 
-	if k == nil && os.Getenv("DEFAULT_RUNTIME") != "" {
+	checked := false
+check:
+	if mgr == nil || os.Getenv("DEFAULT_RUNTIME") != "" {
+		checked = true
+
+		time.Sleep(2 * time.Second) // wait for the runtimes to start
 		rm.defaultEnv = os.Getenv("DEFAULT_RUNTIME")
 
 		// discover runtimes by unix sockets
@@ -60,17 +70,48 @@ func New(k client.Client, namespace string, podname string) (api.RuntimeManager,
 			rm.environments[v[len(path):len(v)-len(suffix)]] = v1.Container{}
 		}
 
+		if len(matches) == 0 {
+			if checked {
+				return nil, fmt.Errorf("no runtimes found")
+			}
+			time.Sleep(5 * time.Second)
+			goto check
+		}
+
 		return rm, nil
 	}
 
-	pod := &v1.Pod{}
-	err := k.Get(context.Background(), client.ObjectKey{
-		Namespace: namespace,
-		Name:      podname,
-	}, pod)
-
+	k, err := client.New(mgr.GetConfig(), client.Options{
+		Scheme: mgr.GetScheme(),
+		Mapper: mgr.GetRESTMapper(),
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to get pod: %w", err)
+		return nil, fmt.Errorf("failed to create kubernetes client: %w", err)
+	}
+
+	pod := &v1.Pod{}
+
+	if podname == "" {
+		// guess from the deployment
+		// this is useful for localhost development
+		deploy := &appsv1.Deployment{}
+		err := k.Get(context.Background(), client.ObjectKey{
+			Namespace: namespace,
+			Name:      "raptor-controller-core",
+		}, deploy)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get controller deployment: %w", err)
+		}
+		pod.Spec = deploy.Spec.Template.Spec
+	} else {
+		err = k.Get(context.Background(), client.ObjectKey{
+			Namespace: namespace,
+			Name:      podname,
+		}, pod)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to get pod: %w", err)
+		}
 	}
 
 	firstRt := -1
@@ -105,11 +146,15 @@ func New(k client.Client, namespace string, podname string) (api.RuntimeManager,
 		}
 	}
 
+	if len(rm.environments) == 0 {
+		return nil, fmt.Errorf("no runtimes found")
+	}
+
 	return rm, nil
 }
 
-func (m *manager) LoadProgram(env, fqn, program string, packages []string) error {
-	rt, err := m.getRuntime(env)
+func (r *runtime) LoadProgram(env, fqn, program string, packages []string) error {
+	rt, err := r.getRuntime(env)
 	if err != nil {
 		return fmt.Errorf("failed to get runtime: %w", err)
 	}
@@ -130,8 +175,8 @@ func (m *manager) LoadProgram(env, fqn, program string, packages []string) error
 	return nil
 }
 
-func (m *manager) ExecuteProgram(env string, fqn string, keys api.Keys, row map[string]any, ts time.Time) (api.Value, api.Keys, error) {
-	rt, err := m.getRuntime(env)
+func (r *runtime) ExecuteProgram(env string, fqn string, keys api.Keys, row map[string]any, ts time.Time) (api.Value, api.Keys, error) {
+	rt, err := r.getRuntime(env)
 	if err != nil {
 		return api.Value{}, keys, fmt.Errorf("failed to get runtime: %w", err)
 	}
@@ -169,11 +214,14 @@ func (m *manager) ExecuteProgram(env string, fqn string, keys api.Keys, row map[
 	}, keys, nil
 }
 
-func (m *manager) getRuntime(name string) (runtimeApi.RuntimeServiceClient, error) {
+func (r *runtime) getRuntime(name string) (runtimeApi.RuntimeServiceClient, error) {
 	if name == "" {
-		name = m.defaultEnv
+		name = r.defaultEnv
 	}
-	if _, ok := m.environments[name]; !ok {
+	if rt, ok := r.conns.Load(name); ok && rt != nil {
+		return rt.(runtimeApi.RuntimeServiceClient), nil
+	}
+	if _, ok := r.environments[name]; !ok {
 		return nil, fmt.Errorf("runtime %s not found", name)
 	}
 	socket := fmt.Sprintf("/tmp/raptor/runtime/%s.sock", name)
@@ -196,18 +244,22 @@ func (m *manager) getRuntime(name string) (runtimeApi.RuntimeServiceClient, erro
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial socket: %w", err)
 	}
-	return runtimeApi.NewRuntimeServiceClient(cc), nil
+
+	rt := runtimeApi.NewRuntimeServiceClient(cc)
+	r.conns.Store(name, rt)
+
+	return rt, nil
 }
 
-func (m *manager) GetSidecars() []v1.Container {
+func (r *runtime) GetSidecars() []v1.Container {
 	// convert map to array
-	s := make([]v1.Container, 0, len(m.environments))
-	for _, c := range m.environments {
+	s := make([]v1.Container, 0, len(r.environments))
+	for _, c := range r.environments {
 		s = append(s, c)
 	}
 	return s
 }
 
-func (m *manager) GetDefaultEnv() string {
-	return m.defaultEnv
+func (r *runtime) GetDefaultEnv() string {
+	return r.defaultEnv
 }

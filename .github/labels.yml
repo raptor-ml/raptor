@@ -46,6 +46,10 @@
   color: 589fa3
   description: Related to the LabSDK
 
+- name: component/engine
+  color: 589fa3
+  description: Related to the Core's Engine
+
 - name: component/historian
   color: 7e5494
   description: Related to the Historian

@@ -65,7 +65,7 @@ func main() {
 		"Enabling this will ensure there is only one active controller manager.")
 	pflag.String("metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	pflag.String("health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	pflag.Bool("production", true, "Set as production")
+	pflag.Bool("dev", false, "Set as production")
 
 	pflag.String("state-provider", "redis", "The state provider.")
 	pflag.String("notifier-provider", "redis", "The notifier provider.")
@@ -82,7 +82,7 @@ func main() {
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 	viper.AutomaticEnv()
 
-	zapOpts.Development = !viper.GetBool("production")
+	zapOpts.Development = viper.GetBool("dev")
 	logger := zap.New(zap.UseFlagOptions(&zapOpts))
 	ctrl.SetLogger(logger)
 
@@ -130,15 +130,15 @@ func main() {
 	err = (&corectrl.FeatureReconciler{
 		Reader:         mgr.GetClient(),
 		Scheme:         mgr.GetScheme(),
-		UpdatesAllowed: !viper.GetBool("production"),
+		UpdatesAllowed: viper.GetBool("dev"),
 		EngineManager:  hss,
 	}).SetupWithManager(mgr)
-	orFail(err, "failed to setup feature contoller")
+	orFail(err, "failed to setup feature controller")
 
 	err = (&corectrl.FeatureReconciler{
 		Reader:         mgr.GetClient(),
 		Scheme:         mgr.GetScheme(),
-		UpdatesAllowed: !viper.GetBool("production"),
+		UpdatesAllowed: viper.GetBool("dev"),
 		EngineManager:  hss,
 	}).SetupWithManager(mgr)
 	orFail(err, "unable to create core controller", "controller", "Feature")

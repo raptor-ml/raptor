@@ -32,7 +32,6 @@ import (
 	coreApi "go.buf.build/raptor/api-go/raptor/core/raptor/core/v1alpha1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -87,6 +86,7 @@ func (a *accessor) GRPC(addr string) NoLeaderRunnableFunc {
 	return func(ctx context.Context) error {
 		l, err := net.Listen("tcp", addr)
 		if err != nil {
+			a.logger.Error(err, "failed to listen")
 			return fmt.Errorf("failed to listen: %w", err)
 		}
 
@@ -105,18 +105,21 @@ func (a *accessor) GrpcUds() NoLeaderRunnableFunc {
 		if _, err := os.Stat("/tmp/raptor"); os.IsNotExist(err) {
 			err := os.Mkdir("/tmp/raptor", os.ModePerm)
 			if err != nil {
-				log.Println(err)
+				a.logger.Error(err, "failed to create /tmp/raptor")
+				return fmt.Errorf("failed to create /tmp/raptor dir: %w", err)
 			}
 		}
 		if _, err := os.Stat(uds); err == nil {
 			if err := os.RemoveAll(uds); err != nil {
+				a.logger.Error(err, "failed to remove uds")
 				return fmt.Errorf("failed to remove uds file: %w", err)
 			}
 		}
 
-		l, err := net.Listen("socket", uds)
+		l, err := net.Listen("unix", uds)
 		if err != nil {
-			return fmt.Errorf("failed to listen: %w", err)
+			a.logger.Error(err, "failed to listen")
+			return fmt.Errorf("failed to listen on socket: %w", err)
 		}
 
 		a.logger.WithValues("kind", "grpc-uds", "addr", uds).Info("Starting Accessor GRPC-UDS server")

@@ -154,7 +154,8 @@ func Core(mgr manager.Manager, certsReady chan struct{}) {
 	if podname == "" {
 		podname = os.Getenv("HOSTNAME")
 	}
-	rm, err := runtimemanager.New(mgr.GetClient(), ns, podname)
+
+	rm, err := runtimemanager.New(mgr, ns, podname)
 	OrFail(err, "unable to create python runtime manager")
 
 	// Create a new Core engine

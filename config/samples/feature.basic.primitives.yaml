@@ -9,10 +9,11 @@ spec:
   primitive: "string"
   freshness: 10s
   staleness: 5m
+  keys:
+    - name
   builder:
-    kind: expression
-    pyexp: |
-      def handler(**req):
+    code: |
+      def handler(row, ctx) -> str:
         return "hello"
 ---
 apiVersion: k8s.raptor.ml/v1alpha1
@@ -26,10 +27,11 @@ spec:
   primitive: "int"
   freshness: 10s
   staleness: 5m
+  keys:
+      - name
   builder:
-    kind: expression
-    pyexp: |
-      def handler(**req):
+    code: |
+      def handler(row, ctx) -> int:
         return 1
 ---
 apiVersion: k8s.raptor.ml/v1alpha1
@@ -43,11 +45,30 @@ spec:
   primitive: "float"
   freshness: 10s
   staleness: 5m
+  keys:
+      - name
   builder:
-    kind: expression
-    pyexp: |
-      def handler(**req):
+    code: |
+      def handler(row, ctx) -> float:
         return 1.1
+---
+apiVersion: k8s.raptor.ml/v1alpha1
+kind: Feature
+metadata:
+  name: primitive-bool
+  namespace: default
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+spec:
+  primitive: "bool"
+  freshness: 10s
+  staleness: 5m
+  keys:
+      - name
+  builder:
+    code: |
+      def handler(row, ctx) -> bool:
+        return True
 ---
 apiVersion: k8s.raptor.ml/v1alpha1
 kind: Feature
@@ -60,11 +81,13 @@ spec:
   primitive: "timestamp"
   freshness: 10s
   staleness: 5m
+  keys:
+      - name
   builder:
-    kind: expression
-    pyexp: |
-      def handler(**req):
-        return time.now()
+    code: |
+      def handler(row, ctx) -> datetime.datetime:
+        import datetime
+        return datetime.datetime.now()
 ---
 apiVersion: k8s.raptor.ml/v1alpha1
 kind: Feature
@@ -77,15 +100,12 @@ spec:
   primitive: "[]string"
   freshness: 10s
   staleness: 5m
+  keys:
+      - name
   builder:
-    kind: expression
-    pyexp: |
-      def handler(**req):
-        return [
-          "a",
-          "b",
-          "c",
-        ]
+    code: |
+      def handler(row, ctx) -> List[str]:
+        return ["a","b","c"]
 ---
 apiVersion: k8s.raptor.ml/v1alpha1
 kind: Feature
@@ -98,10 +118,11 @@ spec:
   primitive: "[]int"
   freshness: 10s
   staleness: 5m
+  keys:
+      - name
   builder:
-    kind: expression
-    pyexp: |
-      def handler(**req):
+    code: |
+      def handler(row, ctx) -> List[int]:
         return [1,2,3]
 ---
 apiVersion: k8s.raptor.ml/v1alpha1
@@ -115,11 +136,30 @@ spec:
   primitive: "[]float"
   freshness: 10s
   staleness: 5m
+  keys:
+    - name
   builder:
-    kind: expression
-    pyexp: |
-      def handler(**req):
+    code: |
+      def handler(row, ctx) -> List[float]:
         return [1.4,2.0,3.2]
+---
+apiVersion: k8s.raptor.ml/v1alpha1
+kind: Feature
+metadata:
+  name: primitive-array-bools
+  namespace: default
+  annotations:
+    a8r.io/owner: "@AlmogBaku"
+spec:
+  primitive: "[]bool"
+  freshness: 10s
+  staleness: 5m
+  keys:
+    - name
+  builder:
+    code: |
+      def handler(row, ctx) -> List[bool]:
+        return [True, False, False]
 ---
 apiVersion: k8s.raptor.ml/v1alpha1
 kind: Feature
@@ -132,9 +172,11 @@ spec:
   primitive: "[]timestamp"
   freshness: 10s
   staleness: 5m
+  keys:
+    - name
   builder:
-    kind: expression
-    pyexp: |
-      def handler(**req):
-        now = time.now()
-        return [now, time.from_timestamp(now.unix+1), time.from_timestamp(now.unix+2)]
+    code: |
+      def handler(row, ctx) -> List[datetime.datetime]:
+        from datetime import datetime
+        now = datetime.now()
+        return [now, now+1, now+2]
