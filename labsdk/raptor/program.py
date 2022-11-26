@@ -29,6 +29,7 @@
 # Do not import anything from the runtime or core here.
 
 import builtins
+import hashlib
 import importlib
 from datetime import datetime
 import datetime as dt_pkg
@@ -128,8 +129,13 @@ class Program:
     side_effects: List[SideEffect] = []
 
     code: str
+    checksum: bytes
 
     def __init__(self, code, fqn_resolver: Callable[[object], str] = None):
+        m = hashlib.sha256()
+        m.update(code.encode('utf-8'))
+        self.checksum = m.digest()
+
         root_node = RedBaron(code)
         if len(root_node) != 1:
             raise SyntaxError("PythonRuntime supports one function definition")
