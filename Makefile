@@ -195,7 +195,11 @@ docker-build-runtimes: generate ## Build docker images for runtimes.
 kind-load: ## Load docker images into kind.
 	kind load docker-image --name raptor ${CORE_IMG_BASE}:${VERSION}
 	kind load docker-image --name raptor ${HISTORIAN_IMG_BASE}:${VERSION}
-	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}
+	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.11
+	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.10
+	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.9
+	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.8
+	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.7
 
 ##@ Deployment
 
@@ -214,12 +218,14 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 .PHONY: update_images_pre
 update_images_pre: ## Update images in the manifests.
 	cd config/core && $(KUSTOMIZE) edit set image controller=${CORE_IMG_BASE}:${VERSION}
+	cd config/core && $(KUSTOMIZE) edit set image runtime=${RUNTIME_IMG_BASE}:${VERSION}-python3.11
 	cd config/historian && $(KUSTOMIZE) edit set image historian=${HISTORIAN_IMG_BASE}:${VERSION}
 
 .PHONY: update_images_post
 .PHONY: update_images_post
 update_images_post: ## Update images in the manifests.
 	cd config/core && $(KUSTOMIZE) edit set image controller=${CORE_IMG_BASE}:latest
+	cd config/core && $(KUSTOMIZE) edit set image runtime=${CORE_IMG_BASE}:latest-python3.11
 	cd config/historian && $(KUSTOMIZE) edit set image historian=${HISTORIAN_IMG_BASE}:latest
 
 .PHONY: deploy

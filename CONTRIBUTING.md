@@ -68,7 +68,7 @@ Sometimes, it's useful to run RaptorML from a local environment for development 
     ```
 3. Compile & Run the application (you can use your favorite IDE to compile and debug):
     ```
-   go run cmd/raptor/main.go --dev -r :6379
+   go run cmd/raptor/main.go --dev --system-namespace raptor-system -r :6379
     ```
    
 4. To run the e2e test locally with a debugger, run the following command:
