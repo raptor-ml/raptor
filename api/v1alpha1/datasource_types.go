@@ -118,8 +118,10 @@ func (in *ResourceReference) FQN() string {
 // DataSourceStatus defines the observed state of DataSource
 type DataSourceStatus struct {
 	// Features includes a list of references for the Feature that uses this DataSource
+	// +optional
+	// +nullable
 	// +operator-sdk:csv:customresourcedefinitions:type=status
-	Features []ResourceReference `json:"features"`
+	Features []ResourceReference `json:"features,omitempty"`
 
 	// +operator-sdk:csv:customresourcedefinitions:type=status
 	Replicas *int32 `json:"replicas,omitempty"`
