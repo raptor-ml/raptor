@@ -113,7 +113,7 @@ check:
 		}, pod)
 
 		if err != nil {
-			return nil, fmt.Errorf("failed to get pod: %w", err)
+			return nil, fmt.Errorf("failed to get pod %s/%s: %w", namespace, podname, err)
 		}
 	}
 
