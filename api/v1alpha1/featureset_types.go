@@ -39,6 +39,7 @@ type FeatureSetSpec struct {
 	// KeyFeature is the feature FQN that is used to align the rest of the features with it timestamp.
 	// If this is unset, the first feature in the list will be used.
 	// +optional
+	// +nullable
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Key Feature FQN"
 	KeyFeature string `json:"keyFeature,omitempty"`
 }

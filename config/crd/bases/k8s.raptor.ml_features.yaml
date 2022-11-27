@@ -71,6 +71,7 @@ spec:
                     description: Kind defines the type of Builder to use to build
                       the feature-value. The kind is usually auto-detected from the
                       data-source, but can be overridden.
+                    nullable: true
                     type: string
                   packages:
                     description: Packages defines the list of python packages to install
@@ -99,6 +100,7 @@ spec:
                   namespace:
                     description: Namespace defines the space within which the resource
                       name must be unique.
+                    nullable: true
                     type: string
                 type: object
                 x-kubernetes-map-type: atomic
@@ -160,6 +162,7 @@ spec:
                     namespace:
                       description: Namespace defines the space within which the resource
                         name must be unique.
+                      nullable: true
                       type: string
                   type: object
                   x-kubernetes-map-type: atomic
