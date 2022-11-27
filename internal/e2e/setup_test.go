@@ -189,8 +189,9 @@ func SetupCore(name, kindClusterName, imgBasename, buildTag string, args ...stri
 			return ctx, fmt.Errorf("failed to load core image: %w", err)
 		}
 
+		runtimeImgBase := fmt.Sprintf("%s-runtime", imgBasename)
 		for _, rt := range supportedRuntimes {
-			runtimeImg := fmt.Sprintf("%s-runtime:%s-%s", imgBasename, buildTag, rt)
+			runtimeImg := fmt.Sprintf("%s:%s-%s", runtimeImgBase, buildTag, rt)
 			ctx, err = envfuncs.LoadDockerImageToCluster(kindClusterName, runtimeImg)(ctx, cfg)
 			if err != nil {
 				return ctx, fmt.Errorf("failed to load core image: %w", err)
@@ -210,7 +211,7 @@ func SetupCore(name, kindClusterName, imgBasename, buildTag string, args ...stri
 			ctx,
 			rdr,
 			decoder.CreateHandler(r),
-			MutateRaptorKustomize(ns, coreImg, historianImg, args...),
+			MutateRaptorKustomize(ns, imgBasename, buildTag, args...),
 		)
 		if err != nil {
 			return ctx, fmt.Errorf("failed to install Core: %w", err)
@@ -235,7 +236,7 @@ func SetupCore(name, kindClusterName, imgBasename, buildTag string, args ...stri
 }
 
 // MutateRaptorKustomize is an optional parameter to decoding functions that will patch objects with the given namespace name
-func MutateRaptorKustomize(ns string, coreImg string, historianImg string, args ...string) decoder.DecodeOption {
+func MutateRaptorKustomize(ns string, baseImg string, buildTag string, args ...string) decoder.DecodeOption {
 	return decoder.MutateOption(func(obj k8s.Object) error {
 		// rename namespace
 		obj.SetNamespace(ns)
@@ -281,8 +282,20 @@ func MutateRaptorKustomize(ns string, coreImg string, historianImg string, args 
 			if dep.GetName() == "raptor-controller-core" {
 				for i, c := range dep.Spec.Template.Spec.Containers {
 					if c.Name == "core" {
-						dep.Spec.Template.Spec.Containers[i].Image = coreImg
+						dep.Spec.Template.Spec.Containers[i].Image = fmt.Sprintf("%s-core:%s", baseImg, buildTag)
 						dep.Spec.Template.Spec.Containers[i].Args = append(c.Args, args...)
+					} else {
+						for _, e := range c.Env {
+							if e.Name == "RUNTIME_NAME" {
+								img := dep.Spec.Template.Spec.Containers[i].Image
+								sep := strings.LastIndex(img, "-")
+								if sep == -1 {
+									return fmt.Errorf("failed to parse runtime image name: %s", img)
+								}
+								dep.Spec.Template.Spec.Containers[i].Image = fmt.Sprintf("%s-runtime:%s%s", baseImg, buildTag, img[sep:])
+								break
+							}
+						}
 					}
 				}
 
@@ -292,7 +305,7 @@ func MutateRaptorKustomize(ns string, coreImg string, historianImg string, args 
 			if dep.GetName() == "raptor-historian" {
 				for i, c := range dep.Spec.Template.Spec.Containers {
 					if c.Name == "historian" {
-						dep.Spec.Template.Spec.Containers[i].Image = historianImg
+						dep.Spec.Template.Spec.Containers[i].Image = fmt.Sprintf("%s-historian:%s", baseImg, buildTag)
 						dep.Spec.Template.Spec.Containers[i].Args = append(c.Args, args...)
 					}
 				}
