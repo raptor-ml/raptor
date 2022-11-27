@@ -225,7 +225,7 @@ update_images_pre: ## Update images in the manifests.
 .PHONY: update_images_post
 update_images_post: ## Update images in the manifests.
 	cd config/core && $(KUSTOMIZE) edit set image controller=${CORE_IMG_BASE}:latest
-	cd config/core && $(KUSTOMIZE) edit set image runtime=${CORE_IMG_BASE}:latest-python3.11
+	cd config/core && $(KUSTOMIZE) edit set image runtime=${RUNTIME_IMG_BASE}:latest-python3.11
 	cd config/historian && $(KUSTOMIZE) edit set image historian=${HISTORIAN_IMG_BASE}:latest
 
 .PHONY: deploy
