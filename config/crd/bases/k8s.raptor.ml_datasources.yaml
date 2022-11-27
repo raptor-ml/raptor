@@ -156,12 +156,11 @@ spec:
                       type: string
                   type: object
                   x-kubernetes-map-type: atomic
+                nullable: true
                 type: array
               replicas:
                 format: int32
                 type: integer
-            required:
-            - features
             type: object
         type: object
     served: true

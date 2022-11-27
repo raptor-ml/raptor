@@ -81,30 +81,30 @@ type FeatureBuilder struct {
 	// The kind is usually auto-detected from the data-source, but can be overridden.
 	// +optional
 	// +nullable
-	Kind string `json:"kind"`
+	Kind string `json:"kind,omitempty"`
 
 	// Aggr defines an aggregation on top of the underlying feature-value. Aggregations will be calculated on time-of-request.
 	// Users can specify here multiple functions to calculate the aggregation.
 	// +optional
 	// +nullable
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Aggregations"
-	Aggr []AggrFn `json:"aggr"`
+	Aggr []AggrFn `json:"aggr,omitempty"`
 
 	// AggrGranularity defines the granularity of the aggregation.
 	// +optional
 	// +nullable
-	AggrGranularity metav1.Duration `json:"aggrGranularity"`
+	AggrGranularity metav1.Duration `json:"aggrGranularity,omitempty"`
 
 	// Runtime defines the runtime virtualenv to use for running the python computation.
 	// +optional
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="RuntimeManager"
-	Runtime string `json:"runtime"`
+	Runtime string `json:"runtime,omitempty"`
 
 	// Packages defines the list of python packages to install in the runtime virtualenv.
 	// +optional
 	// +nullable
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Packages"
-	Packages []string `json:"packages"`
+	Packages []string `json:"packages,omitempty"`
 
 	// Code defines a Python expression to use to build the feature-value.
 	// +kubebuilder:validation:Required
@@ -126,7 +126,10 @@ type FeatureStatus struct {
 	// State is the current state of the Feature
 	Ready bool `json:"ready"`
 
-	Dependencies []ResourceReference `json:"dependencies"`
+	// Dependencies is the list of dependencies for the Feature
+	// +optional
+	// +nullable
+	Dependencies []ResourceReference `json:"dependencies,omitempty"`
 }
 
 // +k8s:openapi-gen=true
