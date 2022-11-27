@@ -70,6 +70,9 @@ func getExtraCfg(ctx context.Context) extraCfg {
 
 func SetupRedis(name string) env.Func {
 	return func(ctx context.Context, cfg *envconf.Config) (context.Context, error) {
+		if n := ctx.Value(redisContextKey(name)); n != nil {
+			return ctx, nil
+		}
 		ns := envconf.RandomName(name, 32)
 		ctx, err := envfuncs.CreateNamespace(ns)(ctx, cfg)
 		if err != nil {
@@ -153,11 +156,11 @@ func FeatureSetupCore(name string, args ...string) features.Func {
 func SetupCoreFromCtx(name string, args ...string) env.Func {
 	return func(ctx context.Context, cfg *envconf.Config) (context.Context, error) {
 		c := getExtraCfg(ctx)
-		return SetupCore(name, c.clusterName, c.imgBasename, c.buildTag, args)(ctx, cfg)
+		return SetupCore(name, c.clusterName, c.imgBasename, c.buildTag, args...)(ctx, cfg)
 	}
 }
 
-func SetupCore(name, kindClusterName, imgBasename, buildTag string, args []string) env.Func {
+func SetupCore(name, kindClusterName, imgBasename, buildTag string, args ...string) env.Func {
 	return func(ctx context.Context, cfg *envconf.Config) (context.Context, error) {
 		args = append(args, "--usage-reporting=false")
 
