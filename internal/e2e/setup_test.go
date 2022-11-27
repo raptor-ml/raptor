@@ -337,7 +337,7 @@ func DecodeEachFileWithFilter(ctx context.Context, fsys fs.FS, ff filerFunc, han
 		}
 		defer f.Close()
 		if err := decoder.DecodeEach(ctx, f, handlerFn, options...); err != nil {
-			return err
+			return fmt.Errorf("%s: %w", file, err)
 		}
 		if err := f.Close(); err != nil {
 			return err
