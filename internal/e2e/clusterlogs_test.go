@@ -95,6 +95,11 @@ func (l *log) Log(logger klog.Logger) {
 	}
 }
 
+func CollectNamespaceLogsWithNamespaceFn(namespaceFn func(ctx context.Context) string, since time.Duration) env.Func {
+	return func(ctx context.Context, cfg *envconf.Config) (context.Context, error) {
+		return CollectNamespaceLogs(namespaceFn(ctx), since)(ctx, cfg)
+	}
+}
 func CollectNamespaceLogs(ns string, since time.Duration) env.Func {
 	return func(ctx context.Context, cfg *envconf.Config) (context.Context, error) {
 		cs, err := kubernetes.NewForConfig(cfg.Client().RESTConfig())
@@ -170,13 +175,19 @@ func CollectNamespaceLogs(ns string, since time.Duration) env.Func {
 				}(pod, container, wg)
 			}
 		}
-		go func() {
-			wg.Wait()
-			close(ch)
-		}()
-		for l := range ch {
-			l.Log(logger)
-		}
+
+		wg2 := &sync.WaitGroup{}
+		wg2.Add(1)
+		go func(ch chan log, wg *sync.WaitGroup) {
+			defer wg.Done()
+			for l := range ch {
+				l.Log(logger)
+			}
+		}(ch, wg2)
+		wg.Wait()
+		close(ch)
+		wg2.Wait()
+
 		return ctx, nil
 	}
 }

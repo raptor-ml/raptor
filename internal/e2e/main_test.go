@@ -20,6 +20,7 @@
 package e2e
 
 import (
+	"context"
 	"flag"
 	"k8s.io/klog/v2"
 	"os"
@@ -53,9 +54,14 @@ func TestMain(m *testing.M) {
 		}),
 		envfuncs.CreateKindCluster(kindClusterName),
 		envfuncs.SetupCRDs("../../config/crd/bases", "*"),
+		SetupCore("system", kindClusterName, *imgBasename, *buildTag),
 	)
 
 	testEnv.Finish(
+		CollectNamespaceLogsWithNamespaceFn(func(ctx context.Context) string {
+			return ctx.Value(raptorContextKey("system")).(string)
+		}, -1),
+		DestroyCore("system"),
 		envfuncs.TeardownCRDs("../../config/crd/bases", "*"),
 		envfuncs.DestroyKindCluster(kindClusterName),
 	)
