@@ -44,6 +44,7 @@ type DataSourceSpec struct {
 
 	// TimestampField is the field that is used to identify the timestamp of a single data row.
 	// +optional
+	// +nullable
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Timestamp Field"
 	TimestampField string `json:"timestampField,omitempty"`
 
@@ -52,12 +53,14 @@ type DataSourceSpec struct {
 	//
 	// More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 	// +optional
+	// +nullable
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Resources",xDescriptors={"urn:alm:descriptor:com.tectonic.ui:resourceRequirements"}
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 
 	// Replicas defines the number of desired pods. This is a pointer to distinguish between explicit
 	// zero and not specified. Defaults to 1.
 	// +optional
+	// +nullable
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Replicas",xDescriptors={"urn:alm:descriptor:com.tectonic.ui:podCount"}
 	Replicas *int32 `json:"replicas,omitempty"`
 
@@ -65,6 +68,7 @@ type DataSourceSpec struct {
 	// +kubebuilder:pruning:PreserveUnknownFields
 	// +kubebuilder:validation:Schemaless
 	// +optional
+	// +nullable
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Schema"
 	Schema json.RawMessage `json:"schema,omitempty"`
 }
@@ -75,9 +79,11 @@ type ConfigVar struct {
 	Name string `json:"name"`
 	// Configuration value
 	// +optional
+	// +nullable
 	Value string `json:"value,omitempty"`
 	// Configuration value from secret
 	// +optional
+	// +nullable
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors={"urn:alm:descriptor:io.kubernetes:Secret"}
 	SecretKeyRef *corev1.SecretKeySelector `json:"secretKeyRef,omitempty"`
 }
@@ -92,6 +98,7 @@ type ResourceReference struct {
 
 	// Namespace defines the space within which the resource name must be unique.
 	// +optional
+	// +nullable
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Resource's Namespace"
 	Namespace string `json:"namespace,omitempty" protobuf:"bytes,2,opt,name=namespace"`
 }

@@ -51,6 +51,7 @@ spec:
                 description: KeyFeature is the feature FQN that is used to align the
                   rest of the features with it timestamp. If this is unset, the first
                   feature in the list will be used.
+                nullable: true
                 type: string
               timeout:
                 description: Timeout defines the maximum ingestion time allowed to

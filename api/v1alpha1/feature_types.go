@@ -80,6 +80,7 @@ type FeatureBuilder struct {
 	// Kind defines the type of Builder to use to build the feature-value.
 	// The kind is usually auto-detected from the data-source, but can be overridden.
 	// +optional
+	// +nullable
 	Kind string `json:"kind"`
 
 	// Aggr defines an aggregation on top of the underlying feature-value. Aggregations will be calculated on time-of-request.
