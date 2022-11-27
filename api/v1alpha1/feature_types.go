@@ -101,6 +101,7 @@ type FeatureBuilder struct {
 
 	// Packages defines the list of python packages to install in the runtime virtualenv.
 	// +optional
+	// +nullable
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Packages"
 	Packages []string `json:"packages"`
 
