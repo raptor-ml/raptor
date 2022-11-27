@@ -31,6 +31,8 @@ func FromAPIPrimitive(p coreApi.Primitive) api.PrimitiveType {
 		return api.PrimitiveTypeInteger
 	case coreApi.Primitive_PRIMITIVE_FLOAT:
 		return api.PrimitiveTypeFloat
+	case coreApi.Primitive_PRIMITIVE_BOOL:
+		return api.PrimitiveTypeBoolean
 	case coreApi.Primitive_PRIMITIVE_TIMESTAMP:
 		return api.PrimitiveTypeTimestamp
 	case coreApi.Primitive_PRIMITIVE_STRING_LIST:
@@ -39,6 +41,8 @@ func FromAPIPrimitive(p coreApi.Primitive) api.PrimitiveType {
 		return api.PrimitiveTypeIntegerList
 	case coreApi.Primitive_PRIMITIVE_FLOAT_LIST:
 		return api.PrimitiveTypeFloatList
+	case coreApi.Primitive_PRIMITIVE_BOOL_LIST:
+		return api.PrimitiveTypeBooleanList
 	case coreApi.Primitive_PRIMITIVE_TIMESTAMP_LIST:
 		return api.PrimitiveTypeTimestampList
 	}

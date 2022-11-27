@@ -80,7 +80,6 @@ spec:
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
           volumeMounts:
             - mountPath: /tmp/raptor
               name: grpc-udp

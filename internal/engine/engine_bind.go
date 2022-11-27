@@ -43,12 +43,14 @@ func FeatureWithEngine(e api.ExtendedManager, in *manifests.Feature) (*Feature, 
 		}
 	}
 
-	prog, err := e.LoadProgram(fd.RuntimeEnv, fd.FQN, in.Spec.Builder.Code, in.Spec.Builder.Packages)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load python program: %w", err)
-	}
-	if prog.Primitive != fd.Primitive {
-		return nil, fmt.Errorf("python primitive does not match declared primitive")
+	if fd.Builder != "featureset" {
+		prog, err := e.LoadProgram(fd.RuntimeEnv, fd.FQN, in.Spec.Builder.Code, in.Spec.Builder.Packages)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load python program: %w", err)
+		}
+		if prog.Primitive != fd.Primitive {
+			return nil, fmt.Errorf("python primitive(%s) does not match declared primitive(%s)", prog.Primitive, fd.Primitive)
+		}
 	}
 
 	if p := plugins.FeatureAppliers.Get(ft.Builder); p != nil {

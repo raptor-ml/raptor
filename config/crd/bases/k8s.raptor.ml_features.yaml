@@ -71,12 +71,14 @@ spec:
                     description: Kind defines the type of Builder to use to build
                       the feature-value. The kind is usually auto-detected from the
                       data-source, but can be overridden.
+                    nullable: true
                     type: string
                   packages:
                     description: Packages defines the list of python packages to install
                       in the runtime virtualenv.
                     items:
                       type: string
+                    nullable: true
                     type: array
                   runtime:
                     description: Runtime defines the runtime virtualenv to use for
@@ -98,6 +100,7 @@ spec:
                   namespace:
                     description: Namespace defines the space within which the resource
                       name must be unique.
+                    nullable: true
                     type: string
                 type: object
                 x-kubernetes-map-type: atomic
@@ -148,6 +151,7 @@ spec:
             description: FeatureStatus defines the observed state of Feature
             properties:
               dependencies:
+                description: Dependencies is the list of dependencies for the Feature
                 items:
                   description: ResourceReference represents a resource reference.
                     It has enough information to retrieve resource in any namespace.
@@ -159,9 +163,11 @@ spec:
                     namespace:
                       description: Namespace defines the space within which the resource
                         name must be unique.
+                      nullable: true
                       type: string
                   type: object
                   x-kubernetes-map-type: atomic
+                nullable: true
                 type: array
               fqn:
                 description: FQN is the Fully Qualified Name for the Feature
@@ -170,7 +176,6 @@ spec:
                 description: State is the current state of the Feature
                 type: boolean
             required:
-            - dependencies
             - fqn
             - ready
             type: object

@@ -14,6 +14,7 @@
 
 
 import asyncio
+import logging
 import os
 import re
 import sys
@@ -65,19 +66,40 @@ async def main():
     if os.path.islink(uds_link):
         os.remove(uds_link)
     os.symlink(uds_path, uds_link)
-    print(f"Starting server on {uds_path} or {uds_link}")
+    logging.info(f"Starting server on {uds_path} or {uds_link}")
     await server.start()
     await server.wait_for_termination()
 
 
+class OneLineExceptionFormatter(logging.Formatter):
+    def formatException(self, exc_info):
+        result = super().formatException(exc_info)
+        return repr(result)
+
+    def format(self, record):
+        result = super().format(record)
+        if record.exc_text:
+            result = result.replace("\n", "")
+        return result
+
+
+handler = logging.StreamHandler()
+formatter = OneLineExceptionFormatter(logging.BASIC_FORMAT)
+handler.setFormatter(formatter)
+root = logging.getLogger()
+root.setLevel(os.environ.get("LOGLEVEL", "INFO"))
+root.addHandler(handler)
+
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
     try:
         loop.run_until_complete(main())
     except KeyboardInterrupt:
-        print("Terminated by user: Shutting down")
+        logging.error("Terminated by user: Shutting down")
         if server is not None:
             server.stop(5)
         if uds_path is not None:
             os.remove(uds_path)
         sys.exit(7)
+    except Exception as e:
+        logging.exception(e)

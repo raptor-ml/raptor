@@ -22,8 +22,9 @@ package e2e
 import (
 	"context"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
-	"os"
+	"github.com/vladimirvivien/gexe"
 	"sigs.k8s.io/e2e-framework/pkg/envfuncs"
+	"strings"
 	"testing"
 
 	"sigs.k8s.io/e2e-framework/klient/decoder"
@@ -55,14 +56,18 @@ func TestSamples(t *testing.T) {
 				return ctx
 			}
 
-			err = DecodeEachFileWithFilter(
-				ctx, os.DirFS("../../config/samples/"), FilterKustomize,
+			// Use kustomize to preserve the order of the manifests. This is important because the DataSources must be created before the Features.
+			rdr := strings.NewReader(gexe.New().RunProc("kustomize build ../../config/samples/").Result())
+			err = decoder.DecodeEach(
+				ctx,
+				rdr,
 				decoder.CreateHandler(r),
 				decoder.MutateNamespace(namespace),
 			)
+
 			if err != nil {
 				t.Errorf("failed to decode samples: %s", err)
-				t.Fail()
+				t.FailNow()
 				return ctx
 			}
 			return ctx
