@@ -41,4 +41,5 @@ COPY --from=buf /workspace/gen/python /runtime/proto
 COPY ./labsdk/raptor/program.py .
 
 USER 65532:65532
+ENV PYTHONUNBUFFERED=1
 CMD [ "python", "./runtime.py" ]
