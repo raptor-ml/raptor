@@ -62,7 +62,7 @@ func TestSamples(t *testing.T) {
 			)
 			if err != nil {
 				t.Errorf("failed to decode samples: %s", err)
-				t.Fail()
+				t.FailNow()
 				return ctx
 			}
 			return ctx
