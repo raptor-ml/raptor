@@ -14,6 +14,7 @@ on:
       - '.github/**'
       - 'hack/**'
       - 'labsdk/**'
+      - '!labsdk/raptor/program.py'
       - '**.md'
 
 jobs:
