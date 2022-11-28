@@ -21,37 +21,10 @@ import pandas as pd
 import yaml
 from pandas.core.window import RollingGroupby
 
-from . import durpy, Program
+from . import durpy
 from .config import default_namespace
+from .program import Program
 from .yaml import RaptorDumper
-
-fqn_regex = re.compile(
-    r"^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\[(?P<encoding>([a-z]+_*[a-z]+))])?$",
-    re.IGNORECASE | re.DOTALL)
-
-
-def normalize_fqn(fqn):
-    matches = fqn_regex.match(fqn)
-    if matches is None:
-        raise Exception(f"Invalid fqn: {fqn}")
-    namespace = matches.group("namespace")
-    name = matches.group("name")
-    aggrFn = matches.group("aggrFn")
-    version = matches.group("version")
-    encoding = matches.group("encoding")
-
-    if namespace is None:
-        namespace = default_namespace
-
-    extra = ""
-    if aggrFn is not None and aggrFn != "":
-        extra += f"+{aggrFn}"
-    if version is not None and version != "":
-        extra += f"@-{version}"
-    if encoding is not None and encoding != "":
-        extra += f"[{encoding}]"
-
-    return f"{namespace}.{name}{extra}"
 
 
 def _k8s_name(name):

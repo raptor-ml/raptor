@@ -16,7 +16,9 @@ from __future__ import annotations
 
 import pandas as pd
 
-from .types import FeatureSpec, AggrFn, FeatureSetSpec, normalize_fqn, fqn_regex
+from . import config
+from .types import FeatureSpec, AggrFn, FeatureSetSpec
+from .program import normalize_fqn, fqn_regex
 
 # registered features
 spec_registry: [FeatureSpec | FeatureSetSpec] = []
@@ -39,18 +41,18 @@ def check_valid_fqn(spec, fqn):
         if fn is not None:
             fn = AggrFn(fn.group("aggrFn"))
             if spec.aggr is None:
-                err = f"feature `{fqn}` is not an aggregation"
+                err = f"feature `{fqn}` is not an aggregated"
                 raise Exception(err)
             if fn not in spec.aggr.funcs:
                 err = f"feature `{spec.fqn()}` doesn't include aggregation `{fn}`"
                 raise Exception(err)
         else:
-            raise Exception(f"feature `{fqn}` is not a invalid")
+            raise Exception(f"Invalid FQN. Got: {fqn}")
 
 
 def spec_by_fqn(fqn: str) -> FeatureSpec:
     global spec_registry
-    fqn = normalize_fqn(fqn)
+    fqn = normalize_fqn(fqn, config.default_namespace)
 
     matches = fqn_regex.match(fqn)
     base_fqn = f"{matches.group('namespace')}.{matches.group('name')}"
