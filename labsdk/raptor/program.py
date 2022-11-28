@@ -29,14 +29,44 @@
 # Do not import anything from the runtime or core here.
 
 import builtins
+import datetime as dt_pkg
 import hashlib
 import importlib
+import re
 from datetime import datetime
-import datetime as dt_pkg
 from pydoc import locate
 from typing import List, Dict, Callable
 
 from redbaron import RedBaron, DefNode
+
+fqn_regex = re.compile(
+    r"^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\[(?P<encoding>([a-z]+_*[a-z]+))])?$",
+    re.IGNORECASE | re.DOTALL)
+
+
+def normalize_fqn(fqn, default_namespace="default"):
+    matches = fqn_regex.match(fqn)
+    if matches is None:
+        raise Exception(f"Invalid fqn: {fqn}")
+    namespace = matches.group("namespace")
+    name = matches.group("name")
+    aggrFn = matches.group("aggrFn")
+    version = matches.group("version")
+    encoding = matches.group("encoding")
+
+    if namespace is None:
+        namespace = default_namespace
+
+    extra = ""
+    if aggrFn is not None and aggrFn != "":
+        extra += f"+{aggrFn}"
+    if version is not None and version != "":
+        extra += f"@-{version}"
+    if encoding is not None and encoding != "":
+        extra += f"[{encoding}]"
+
+    return f"{namespace}.{name}{extra}"
+
 
 _blocked_builtins = [
     'compile', 'eval', 'exec', 'open', 'input', 'file', 'dir', 'quit', 'exit', 'InterruptedError', 'SystemExit',
@@ -93,12 +123,20 @@ class Context:
                  timestamp: datetime,
                  feature_getter: Callable[[str, Dict[str, str], datetime], any]
                  ):
+
+        parsed = fqn_regex.match(fqn)
+        if parsed is None:
+            raise Exception(f"Invalid FQN. Got: {fqn}")
+        if parsed.group("namespace") is None:
+            raise Exception(f"FQN with a namespace is mandatory when defining a context. Got: {fqn}")
+
+        self.namespace = parsed.group("namespace")
         self.fqn = fqn
         self.keys = keys
         self.timestamp = timestamp
         self.__feature_getter = feature_getter
 
-    def get_feature(self, fqn: str, keys: Dict[str, str] = None, timestamp: datetime = None) -> [any, datetime]:
+    def get_feature(self, fqn: str, keys: Dict[str, str] = None) -> [any, datetime]:
         """Get feature value for a dependant feature.
 
         Behind the scenes, the LabSDK will return you the value for the requested fqn and entity
@@ -115,9 +153,8 @@ class Context:
 
         if keys is None:
             keys = self.keys
-        if timestamp is None:
-            timestamp = self.timestamp
-        return self.__feature_getter(fqn, keys, timestamp)
+        fqn = normalize_fqn(fqn, self.namespace)
+        return self.__feature_getter(fqn, keys, self.timestamp)
 
 
 class Program:

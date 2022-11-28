@@ -16,11 +16,10 @@ import inspect
 import types as pytypes
 from typing import Union, List
 
-from . import replay, local_state, stub
+from . import replay, local_state, config
 from .program import Program
-from .types import FeatureSpec, AggrSpec, ResourceReference, AggrFn, BuilderSpec, \
-    FeatureSetSpec, normalize_fqn
-
+from .types import FeatureSpec, AggrSpec, ResourceReference, AggrFn, BuilderSpec, FeatureSetSpec
+from .program import normalize_fqn
 
 def _wrap_decorator_err(f):
     def wrap(*args, **kwargs):
@@ -107,17 +106,6 @@ def builder(kind: str, options=None):
     return decorator
 
 
-def _func_match_feature_signature(func):
-    def _stub_feature(**req):
-        pass
-
-    def _stub_feature_with_req(**req: stub.RaptorRequest):
-        pass
-
-    sig = inspect.signature(func)
-    return sig == inspect.signature(_stub_feature) or sig == inspect.signature(_stub_feature_with_req)
-
-
 def register(keys: Union[str, List[str]], staleness: str, freshness: str = '', options=None):
     """
     Register a Feature Definition within the LabSDK.
@@ -149,9 +137,6 @@ def register(keys: Union[str, List[str]], staleness: str, freshness: str = '', o
 
     @_wrap_decorator_err
     def decorator(func):
-        if not _func_match_feature_signature(func):
-            raise Exception(f"{func.__name__} have an invalid signature for a Feature definition")
-
         spec = FeatureSpec()
         spec.freshness = freshness
         spec.staleness = staleness
@@ -184,15 +169,24 @@ def register(keys: Union[str, List[str]], staleness: str, freshness: str = '', o
         if staleness == '':
             raise Exception(f"{func.__name__} must have a staleness")
 
-        # add source coded (decorators stripped)
+        # parse the program
         def fqn_resolver(obj):
             frame = inspect.currentframe().f_back.f_back
+
+            feat: Union[FeatureSpec, None] = None
             if obj in frame.f_globals:
                 if hasattr(frame.f_globals[obj], "raptor_spec"):
-                    return frame.f_globals[obj].raptor_spec.fqn()
+                    feat = frame.f_globals[obj].raptor_spec
             elif obj in frame.f_locals:
                 if hasattr(frame.f_locals[obj], "raptor_spec"):
-                    return frame.f_locals[obj].raptor_spec.fqn()
+                    feat = frame.f_locals[obj].raptor_spec
+            if feat is None:
+                raise Exception(f"Cannot resolve {obj} to an FQN")
+
+            if feat.aggr is not None:
+                raise Exception("You must specify a FQN with AggrFn(i.e. `namespace.name+sum`) for aggregated features")
+
+            return feat.fqn()
 
         spec.program = Program(func, fqn_resolver)
         spec.primitive = spec.program.primitive
@@ -243,7 +237,7 @@ def feature_set(register=False, options=None):
         for f in func():
             if type(f) is str:
                 local_state.spec_by_fqn(f)
-                fts.append(normalize_fqn(f))
+                fts.append(normalize_fqn(f, config.default_namespace))
             if callable(f):
                 ft = local_state.spec_by_src_name(f.__name__)
                 if ft is None:
