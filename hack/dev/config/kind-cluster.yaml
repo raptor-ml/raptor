@@ -10,12 +10,15 @@ nodes:
           kubeletExtraArgs:
             node-labels: "ingress-ready=true"
     extraPortMappings:
-      - containerPort: 80
+      - containerPort: 80 # http ingress
         hostPort: 80
         protocol: TCP
-      - containerPort: 443
+      - containerPort: 443 # https ingress
         hostPort: 443
         protocol: TCP
-      - containerPort: 32094
+      - containerPort: 32094 # redis
         hostPort: 6379
+        protocol: TCP
+      - containerPort: 32006 # accessor grpc
+        hostPort: 32006
         protocol: TCP
