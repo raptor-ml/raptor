@@ -54,6 +54,7 @@ async def main():
         health.SERVICE_NAME
     ), server)
 
+    # This is name convention is using us to discover runtimes from the main container of the pod
     uds_path = f"/tmp/raptor/runtime/{runtime_name}.sock"
     if not os.path.exists("/tmp/raptor/runtime"):
         os.makedirs("/tmp/raptor/runtime")
@@ -65,6 +66,7 @@ async def main():
     uds_link = "/tmp/this-runtime.sock"
     if os.path.islink(uds_link):
         os.remove(uds_link)
+    # We create the link so that the runtime can be easily accessed from the host for health checks
     os.symlink(uds_path, uds_link)
     logging.info(f"Starting server on {uds_path} or {uds_link}")
     await server.start()
