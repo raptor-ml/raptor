@@ -28,9 +28,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
+	"reflect"
 	"sigs.k8s.io/e2e-framework/pkg/env"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sync"
+	"testing"
 	"time"
 )
 
@@ -95,8 +97,14 @@ func (l *log) Log(logger klog.Logger) {
 	}
 }
 
-func CollectNamespaceLogsWithNamespaceFn(namespaceFn func(ctx context.Context) string, since time.Duration) env.Func {
+func CollectNamespaceLogsWithNamespaceFn(m *testing.M, namespaceFn func(ctx context.Context) string, since time.Duration) env.Func {
 	return func(ctx context.Context, cfg *envconf.Config) (context.Context, error) {
+		if m != nil {
+			v := reflect.ValueOf(*m)
+			if v.FieldByName("exitCode").Int() == 0 {
+				return ctx, nil
+			}
+		}
 		return CollectNamespaceLogs(namespaceFn(ctx), since)(ctx, cfg)
 	}
 }

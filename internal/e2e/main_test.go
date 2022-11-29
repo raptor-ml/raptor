@@ -58,7 +58,7 @@ func TestMain(m *testing.M) {
 	)
 
 	testEnv.Finish(
-		CollectNamespaceLogsWithNamespaceFn(func(ctx context.Context) string {
+		CollectNamespaceLogsWithNamespaceFn(m, func(ctx context.Context) string {
 			return ctx.Value(raptorContextKey("system")).(string)
 		}, -1),
 		DestroyCore("system"),
