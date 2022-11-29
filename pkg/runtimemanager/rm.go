@@ -48,6 +48,8 @@ type runtime struct {
 	conns        sync.Map
 }
 
+const serviceAccountPath = "/var/run/secrets/kubernetes.io/serviceaccount"
+
 func New(mgr manager.Manager, namespace string, podname string) (api.RuntimeManager, error) {
 	rm := &runtime{
 		environments: make(map[string]v1.Container),
@@ -119,6 +121,15 @@ check:
 
 	firstRt := -1
 	for i, c := range pod.Spec.Containers {
+		// remove service account volume
+		for n, v := range c.VolumeMounts {
+			if v.MountPath == serviceAccountPath {
+				c.VolumeMounts = append(c.VolumeMounts[:n], c.VolumeMounts[n+1:]...)
+				break
+			}
+		}
+
+		// detect name
 		name := ""
 		for _, e := range c.Env {
 			if e.Name == "RUNTIME_NAME" {
