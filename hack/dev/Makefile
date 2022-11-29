@@ -116,6 +116,7 @@ deploy-raptor: setup-redis ## deploy operator to cluster
 	$(KUBECTL) apply -f config/providers-creds.yaml
 	$(MAKE) scale-0
 	$(KUBECTL) --namespace raptor-system patch deployment raptor-controller-core --patch-file config/raptor-core-patch.yaml
+	$(KUBECTL) --namespace raptor-system patch svc raptor-core-service --patch-file config/raptor-core-svc-patch.yaml
 	$(KUBECTL) --namespace raptor-system patch deployment raptor-historian --patch-file config/raptor-historian-patch.yaml
 	$(MAKE) scale-normal
 

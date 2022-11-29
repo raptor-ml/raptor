@@ -51,7 +51,7 @@ func (r BaseRunner) Reconciler() (api.DataSourceReconcile, error) {
 	return r.reconcile, nil
 }
 func (r BaseRunner) reconcile(ctx context.Context, req api.ReconcileRequest) (bool, error) {
-	logger := log.FromContext(ctx)
+	logger := log.FromContext(ctx).WithName("base")
 
 	deploy := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{
 		Name:      deploymentName(req.DataSource),
@@ -72,6 +72,12 @@ func (r BaseRunner) reconcile(ctx context.Context, req api.ReconcileRequest) (bo
 
 	return op != controllerutil.OperationResultNone, nil
 }
+
+const (
+	udsVolumeName      = "grpc-uds"
+	udsVolumeMountPath = "/tmp/raptor"
+	coreGrpcEnvName    = "CORE_GRPC_URL"
+)
 
 func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.ReconcileRequest) {
 	labels := map[string]string{
@@ -109,7 +115,7 @@ func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.Reconcil
 	for i := range sidecars {
 		found := false
 		for n, env := range sidecars[i].Env {
-			if env.Name == "CORE_GRPC_URL" {
+			if env.Name == coreGrpcEnvName {
 				sidecars[i].Env[n].Value = req.CoreAddress
 				found = true
 			}
@@ -117,20 +123,35 @@ func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.Reconcil
 
 		if !found {
 			sidecars[i].Env = append(sidecars[i].Env, corev1.EnvVar{
-				Name:  "CORE_GRPC_URL",
+				Name:  coreGrpcEnvName,
 				Value: req.CoreAddress,
+			})
+		}
+
+		found = false
+		for n, v := range sidecars[i].VolumeMounts {
+			if v.Name == udsVolumeName {
+				sidecars[i].VolumeMounts[n].MountPath = udsVolumeMountPath
+				found = true
+			}
+		}
+		if !found {
+			sidecars[i].VolumeMounts = append(sidecars[i].VolumeMounts, corev1.VolumeMount{
+				Name:      udsVolumeName,
+				MountPath: udsVolumeMountPath,
 			})
 		}
 	}
 	found := false
-	for _, v := range deploy.Spec.Template.Spec.Volumes {
-		if v.Name == "grpc-udp" {
+	for n, v := range deploy.Spec.Template.Spec.Volumes {
+		if v.Name == udsVolumeName {
+			deploy.Spec.Template.Spec.Volumes[n].EmptyDir = &corev1.EmptyDirVolumeSource{}
 			found = true
 		}
 	}
 	if !found {
 		deploy.Spec.Template.Spec.Volumes = append(deploy.Spec.Template.Spec.Volumes, corev1.Volume{
-			Name: "grpc-udp",
+			Name: udsVolumeName,
 			VolumeSource: corev1.VolumeSource{
 				EmptyDir: &corev1.EmptyDirVolumeSource{},
 			},
@@ -148,11 +169,15 @@ func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.Reconcil
 					Name:  "DEFAULT_RUNTIME",
 					Value: req.RuntimeManager.GetDefaultEnv(),
 				},
+				{
+					Name:  coreGrpcEnvName,
+					Value: req.CoreAddress,
+				},
 			},
 			VolumeMounts: []corev1.VolumeMount{
 				{
-					Name:      "grpc-udp",
-					MountPath: "/tmp/raptor",
+					Name:      udsVolumeName,
+					MountPath: udsVolumeMountPath,
 				},
 			},
 			Resources: corev1.ResourceRequirements{

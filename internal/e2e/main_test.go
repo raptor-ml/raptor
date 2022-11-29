@@ -52,13 +52,13 @@ func TestMain(m *testing.M) {
 			imgBasename: *imgBasename,
 			clusterName: kindClusterName,
 		}),
-		envfuncs.CreateKindCluster(kindClusterName),
+		envfuncs.CreateKindClusterWithConfig(kindClusterName, "''", "./kind-cluster.yaml"),
 		envfuncs.SetupCRDs("../../config/crd/bases", "*"),
 		SetupCore("system", kindClusterName, *imgBasename, *buildTag),
 	)
 
 	testEnv.Finish(
-		CollectNamespaceLogsWithNamespaceFn(func(ctx context.Context) string {
+		CollectNamespaceLogsWithNamespaceFn(m, func(ctx context.Context) string {
 			return ctx.Value(raptorContextKey("system")).(string)
 		}, -1),
 		DestroyCore("system"),

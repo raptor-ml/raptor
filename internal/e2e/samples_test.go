@@ -21,16 +21,18 @@ package e2e
 
 import (
 	"context"
+	"fmt"
+	"github.com/raptor-ml/raptor/api"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/vladimirvivien/gexe"
-	"sigs.k8s.io/e2e-framework/pkg/envfuncs"
-	"strings"
-	"testing"
-
 	"sigs.k8s.io/e2e-framework/klient/decoder"
 	"sigs.k8s.io/e2e-framework/klient/k8s/resources"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
+	"sigs.k8s.io/e2e-framework/pkg/envfuncs"
 	"sigs.k8s.io/e2e-framework/pkg/features"
+	"strings"
+	"testing"
+	"time"
 )
 
 func TestSamples(t *testing.T) {
@@ -68,6 +70,9 @@ func TestSamples(t *testing.T) {
 				t.FailNow()
 				return ctx
 			}
+			// wait for the resources to be created.
+			// This is so fast that it's not really required, but it's just safer to do that than rare race-condition failures.
+			time.Sleep(time.Second)
 			return ctx
 		}).
 		Assess("Check If Resource created", func(ctx context.Context, t *testing.T, c *envconf.Config) context.Context {
@@ -90,9 +95,27 @@ func TestSamples(t *testing.T) {
 			err = r.Get(ctx, "hello-world", namespace, cr)
 			if err != nil {
 				t.Errorf("failed to get hello-world: %s", err)
-				t.Fail()
+				t.FailNow()
 			}
 
+			sdkClient, err := CreateSDK()
+			if err != nil {
+				t.Errorf("failed to create sdk client: %s", err)
+				t.FailNow()
+			}
+
+			keys := api.Keys{"name": "test"}
+			v, _, err := sdkClient.Get(ctx, fmt.Sprintf("%s.hello_world", namespace), keys)
+			if err != nil {
+				t.Errorf("failed to get feature value: %s", err)
+				t.FailNow()
+				return ctx
+			}
+			if v.Value != fmt.Sprintf("Hello world %s", keys["name"]) {
+				t.Errorf("unexpected value: %v", v)
+				t.FailNow()
+				return ctx
+			}
 			t.Log("CR Details", "cr", cr)
 			return ctx
 		}).Feature()

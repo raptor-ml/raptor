@@ -2,7 +2,8 @@ name: Licenses Check
 
 on:
   push: ~
-  pull_request: ~
+  pull_request:
+    types: [ opened, synchronize ]
 
 jobs:
   licenses:
