@@ -1,0 +1,8 @@
+spec:
+  ports:
+    - name: grpc
+      nodePort: 32006
+      port: 60000
+      protocol: TCP
+      targetPort: grpc
+  type: NodePort
