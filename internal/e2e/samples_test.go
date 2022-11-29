@@ -25,14 +25,14 @@ import (
 	"github.com/raptor-ml/raptor/api"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/vladimirvivien/gexe"
-	"sigs.k8s.io/e2e-framework/pkg/envfuncs"
-	"strings"
-	"testing"
-
 	"sigs.k8s.io/e2e-framework/klient/decoder"
 	"sigs.k8s.io/e2e-framework/klient/k8s/resources"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
+	"sigs.k8s.io/e2e-framework/pkg/envfuncs"
 	"sigs.k8s.io/e2e-framework/pkg/features"
+	"strings"
+	"testing"
+	"time"
 )
 
 func TestSamples(t *testing.T) {
@@ -70,6 +70,9 @@ func TestSamples(t *testing.T) {
 				t.FailNow()
 				return ctx
 			}
+			// wait for the resources to be created.
+			// This is so fast that it's not really required, but it's just safer to do that than rare race-condition failures.
+			time.Sleep(time.Second)
 			return ctx
 		}).
 		Assess("Check If Resource created", func(ctx context.Context, t *testing.T, c *envconf.Config) context.Context {
