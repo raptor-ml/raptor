@@ -100,7 +100,7 @@ func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	if p := plugins.DataSourceReconciler.Get(src.Spec.Kind); p != nil {
-		if changed, err := p(ctx, r.reconcileRequest(src)); err != nil {
+		if changed, err := p(log.IntoContext(ctx, logger.WithName("runner")), r.reconcileRequest(src)); err != nil {
 			return ctrl.Result{}, err
 		} else if changed {
 			// Ask to requeue after 1 minute in order to give enough time for the
