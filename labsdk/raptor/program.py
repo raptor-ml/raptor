@@ -35,7 +35,7 @@ import importlib
 import re
 from datetime import datetime
 from pydoc import locate
-from typing import List, Dict, Callable, Union
+from typing import List, Dict, Callable, Union, Tuple
 
 from redbaron import RedBaron, DefNode
 
@@ -43,7 +43,8 @@ fqn_regex = re.compile(
     r"^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\[(?P<encoding>([a-z]+_*[a-z]+))])?$",
     re.IGNORECASE | re.DOTALL)
 
-primitive = Union[str, int, float, bool, datetime, List[str], List[int], List[float], List[bool], List[datetime]]
+primitive = Union[str, int, float, bool, datetime, List[str], List[int], List[float], List[bool], List[datetime], None]
+
 
 def normalize_fqn(fqn, default_namespace="default"):
     matches = fqn_regex.match(fqn)
@@ -122,7 +123,7 @@ class Context:
                  fqn: str,
                  keys: Dict[str, str],
                  timestamp: datetime,
-                 feature_getter: Callable[[str, Dict[str, str], datetime], primitive]
+                 feature_getter: Callable[[str, Dict[str, str], datetime], Tuple[primitive, datetime]]
                  ):
 
         parsed = fqn_regex.match(fqn)

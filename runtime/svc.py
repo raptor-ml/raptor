@@ -17,14 +17,14 @@ import subprocess
 import sys
 import warnings
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Tuple, Union
 from uuid import uuid4
 
 import grpc
 from google.protobuf.internal.containers import MessageMap
 from grpc import ServicerContext
 
-from program import Program, Context, SideEffect
+from program import Program, Context, SideEffect, primitive
 
 sys.path.append("./proto")
 
@@ -58,7 +58,7 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
                 if m.hexdigest() == program.checksum:
                     return api_pb2.LoadProgramResponse(
                         uuid=request.uuid,
-                        primitive=self.py_to_proto_primitive(program.primitive),
+                        primitive=RuntimeServicer.py_to_proto_primitive(program.primitive),
                         side_effects=self.py_to_proto_side_effects(program.side_effects)
                     )
 
@@ -85,12 +85,12 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
         program: Program = self.programs[request.fqn]
 
         keys = {}
-        for key, value in request.keys:
+        for key, value in request.keys.items():
             keys[key] = value
 
         ts = request.timestamp.ToDatetime()
 
-        def feature_getter(fqn: str, keys: Dict[str, str], timestamp: datetime) -> any:
+        def feature_getter(fqn: str, keys: Dict[str, str], timestamp: datetime) -> Tuple[primitive, datetime]:
             if timestamp != ts:
                 warnings.warn("Timestamp mismatch")
             fg_keys = keys if keys is not None else request.keys
@@ -99,7 +99,7 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
             if resp.uuid != req.uuid:
                 raise Exception("UUID mismatch")
 
-            return self.proto_value_to_py(resp.value)
+            return self.proto_value_to_py(resp.value.value), resp.value.timestamp.ToDatetime()
 
         data = self.proto_to_dict(request.data)
         program_ctx = Context(
@@ -115,34 +115,36 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
                 if not isinstance(resp[2], datetime):
                     raise Exception("Timestamp must be a datetime object")
                 ts = resp[2]
-            return api_pb2.ExecuteProgramResponse(
+
+            ret = api_pb2.ExecuteProgramResponse(
                 uuid=request.uuid,
                 result=self.py_to_proto_value(resp[0] if isinstance(resp, tuple) else resp),
                 keys=resp[1] if isinstance(resp, tuple) else request.keys,
-                timestamp=ts,
             )
+            ret.timestamp.FromDatetime(ts)
+            return ret
         except Exception as e:
             logging.error(f"{request.fqn}: Failed to execute program", e)
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, str(e))
             return
 
     @staticmethod
-    def proto_to_dict(self, data: MessageMap[str, types_pb2.Value]) -> Dict[str, any]:
+    def proto_to_dict(data: MessageMap[str, types_pb2.Value]) -> Dict[str, primitive]:
         result = {}
         for k, v in data.items():
-            result[k] = self.proto_value_to_py(v)
+            result[k] = RuntimeServicer.proto_value_to_py(v)
         return result
 
     @staticmethod
-    def proto_value_to_py(self, value: types_pb2.Value) -> any:
+    def proto_value_to_py(value: types_pb2.Value) -> Union[primitive, None]:
         if value.scalar_value is not None:
-            return self.proto_scalar_to_py(value.scalar_value)
+            return RuntimeServicer.proto_scalar_to_py(value.scalar_value)
         elif value.list_value is not None:
-            return [self.proto_scalar_to_py(scalar) for scalar in value.list_value.values]
+            return [RuntimeServicer.proto_scalar_to_py(scalar) for scalar in value.list_value.values.items()]
         return None
 
     @staticmethod
-    def proto_scalar_to_py(self, scalar: types_pb2.Scalar) -> any:
+    def proto_scalar_to_py(scalar: types_pb2.Scalar) -> Union[primitive, None]:
         if scalar.int_value is not None:
             return scalar.int_value
         elif scalar.float_value is not None:
@@ -156,41 +158,49 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
         return None
 
     @staticmethod
-    def py_to_proto_value(self, value: any) -> types_pb2.Value:
-        if isinstance(value, int):
-            return types_pb2.Value(scalar_value=types_pb2.Scalar(int_value=value))
-        elif isinstance(value, float):
-            return types_pb2.Value(scalar_value=types_pb2.Scalar(float_value=value))
-        elif isinstance(value, str):
-            return types_pb2.Value(scalar_value=types_pb2.Scalar(string_value=value))
-        elif isinstance(value, bool):
-            return types_pb2.Value(scalar_value=types_pb2.Scalar(bool_value=value))
-        elif isinstance(value, datetime):
-            return types_pb2.Value(scalar_value=types_pb2.Scalar(timestamp_value=value))
-        elif isinstance(value, list):
-            return types_pb2.Value(list_value=types_pb2.List(values=[self.py_to_proto_scalar(v) for v in value]))
-        return types_pb2.Value()
+    def py_to_proto_value(value: primitive) -> types_pb2.Value:
+        if isinstance(value, list) or isinstance(value, List):
+            return types_pb2.Value(
+                list_value=types_pb2.List(values=[RuntimeServicer.py_to_proto_scalar(v) for v in value]))
+        return types_pb2.Value(scalar_value=RuntimeServicer.py_to_proto_scalar(value))
 
-    def py_to_proto_primitive(self, primitive) -> types_pb2.Primitive:
-        if primitive == str:
+    @staticmethod
+    def py_to_proto_scalar(value: primitive) -> Union[types_pb2.Scalar, None]:
+        if isinstance(value, int):
+            return types_pb2.Scalar(int_value=value)
+        elif isinstance(value, float):
+            return types_pb2.Scalar(float_value=value)
+        elif isinstance(value, str):
+            return types_pb2.Scalar(string_value=value)
+        elif isinstance(value, bool):
+            return types_pb2.Scalar(bool_value=value)
+        elif isinstance(value, datetime):
+            ret = types_pb2.Scalar()
+            ret.timestamp_value.FromDatetime(value)
+            return ret
+        return None
+
+    @staticmethod
+    def py_to_proto_primitive(p: primitive) -> types_pb2.Primitive:
+        if p == str:
             return types_pb2.PRIMITIVE_STRING
-        elif primitive == int:
+        elif p == int:
             return types_pb2.PRIMITIVE_INTEGER
-        elif primitive == float:
+        elif p == float:
             return types_pb2.PRIMITIVE_FLOAT
-        elif primitive == bool:
+        elif p == bool:
             return types_pb2.PRIMITIVE_BOOL
-        elif primitive == datetime:
+        elif p == datetime:
             return types_pb2.PRIMITIVE_TIMESTAMP
-        elif primitive == List[str]:
+        elif p == List[str]:
             return types_pb2.PRIMITIVE_STRING_LIST
-        elif primitive == List[int]:
+        elif p == List[int]:
             return types_pb2.PRIMITIVE_INTEGER_LIST
-        elif primitive == List[float]:
+        elif p == List[float]:
             return types_pb2.PRIMITIVE_FLOAT_LIST
-        elif primitive == List[bool]:
+        elif p == List[bool]:
             return types_pb2.PRIMITIVE_BOOL_LIST
-        elif primitive == List[datetime]:
+        elif p == List[datetime]:
             return types_pb2.PRIMITIVE_TIMESTAMP_LIST
         return types_pb2.PRIMITIVE_UNSPECIFIED
 
