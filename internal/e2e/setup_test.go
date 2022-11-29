@@ -21,10 +21,18 @@ package e2e
 import (
 	"context"
 	"fmt"
+	grpcMiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpcRetry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
+	"github.com/raptor-ml/raptor/api"
+	"github.com/raptor-ml/raptor/pkg/sdk"
 	"github.com/vladimirvivien/gexe"
+	coreApi "go.buf.build/raptor/api-go/raptor/core/raptor/core/v1alpha1"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/local"
 	"io/fs"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/e2e-framework/klient/decoder"
@@ -240,46 +248,54 @@ func MutateRaptorKustomize(ns string, baseImg string, buildTag string, args ...s
 	return decoder.MutateOption(func(obj k8s.Object) error {
 		// rename namespace
 		obj.SetNamespace(ns)
-		if obj.GetObjectKind().GroupVersionKind().Kind == "Namespace" && obj.GetName() == "raptor-system" {
+
+		kind := obj.GetObjectKind().GroupVersionKind().Kind
+		switch {
+		case kind == "Namespace" && obj.GetName() == "raptor-system":
 			obj.SetName(ns)
 			return nil
-		}
-		if obj.GetObjectKind().GroupVersionKind().Kind == "ClusterRoleBinding" {
+		case kind == "ClusterRoleBinding":
 			crb := obj.(*rbacv1.ClusterRoleBinding)
 			for i, ref := range crb.Subjects {
 				if ref.Kind == "ServiceAccount" && ref.Namespace == "raptor-system" {
 					crb.Subjects[i].Namespace = ns
 				}
 			}
-		}
-		if obj.GetObjectKind().GroupVersionKind().Kind == "RoleBinding" {
+		case kind == "RoleBinding":
 			crb := obj.(*rbacv1.RoleBinding)
 			for i, ref := range crb.Subjects {
 				if ref.Kind == "ServiceAccount" && ref.Namespace == "raptor-system" {
 					crb.Subjects[i].Namespace = ns
 				}
 			}
-		}
-		if obj.GetObjectKind().GroupVersionKind().Kind == "MutatingWebhookConfiguration" {
+		case kind == "MutatingWebhookConfiguration":
 			mwc := obj.(*admissionregistrationv1.MutatingWebhookConfiguration)
 			for i, rule := range mwc.Webhooks {
 				if rule.ClientConfig.Service.Namespace == "raptor-system" {
 					mwc.Webhooks[i].ClientConfig.Service.Namespace = ns
 				}
 			}
-		}
-		if obj.GetObjectKind().GroupVersionKind().Kind == "ValidatingWebhookConfiguration" {
+		case kind == "ValidatingWebhookConfiguration":
 			vwc := obj.(*admissionregistrationv1.ValidatingWebhookConfiguration)
 			for i, rule := range vwc.Webhooks {
 				if rule.ClientConfig.Service.Namespace == "raptor-system" {
 					vwc.Webhooks[i].ClientConfig.Service.Namespace = ns
 				}
 			}
-		}
-
-		if obj.GetObjectKind().GroupVersionKind().Kind == "Deployment" {
+		case kind == "Service":
+			svc := obj.(*corev1.Service)
+			if svc.GetName() == "raptor-core-service" {
+				for i, port := range svc.Spec.Ports {
+					if port.Name == "grpc" {
+						svc.Spec.Ports[i].NodePort = 32006
+					}
+				}
+				svc.Spec.Type = corev1.ServiceTypeNodePort
+			}
+		case kind == "Deployment":
 			dep := obj.(*appsv1.Deployment)
-			if dep.GetName() == "raptor-controller-core" {
+			switch dep.GetName() {
+			case "raptor-controller-core":
 				for i, c := range dep.Spec.Template.Spec.Containers {
 					if c.Name == "core" {
 						dep.Spec.Template.Spec.Containers[i].Image = fmt.Sprintf("%s-core:%s", baseImg, buildTag)
@@ -298,11 +314,9 @@ func MutateRaptorKustomize(ns string, baseImg string, buildTag string, args ...s
 						}
 					}
 				}
-
 				r := coreReplicas
 				dep.Spec.Replicas = &r
-			}
-			if dep.GetName() == "raptor-historian" {
+			case "raptor-historian":
 				for i, c := range dep.Spec.Template.Spec.Containers {
 					if c.Name == "historian" {
 						dep.Spec.Template.Spec.Containers[i].Image = fmt.Sprintf("%s-historian:%s", baseImg, buildTag)
@@ -360,4 +374,18 @@ func DecodeEachFileWithFilter(ctx context.Context, fsys fs.FS, ff filerFunc, han
 		}
 	}
 	return nil
+}
+
+func CreateSDK() (api.Engine, error) {
+	cc, err := grpc.Dial(
+		":22006",
+		grpc.WithUnaryInterceptor(grpcMiddleware.ChainUnaryClient(
+			grpcRetry.UnaryClientInterceptor(),
+		)),
+		grpc.WithTransportCredentials(local.NewCredentials()),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to dial: %s", err)
+	}
+	return sdk.NewGRPCEngine(coreApi.NewEngineServiceClient(cc)), nil
 }
