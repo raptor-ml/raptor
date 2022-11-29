@@ -9,7 +9,7 @@ on:
       - 'labsdk/**'
       - '**.md'
   pull_request:
-    types: [ opened, edited, reopened, synchronize ]
+    types: [ opened, synchronize ]
     paths-ignore:
       - '.github/**'
       - 'hack/**'

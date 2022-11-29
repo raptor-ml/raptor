@@ -4,6 +4,7 @@ on:
     paths:
       - api/proto/**
   pull_request:
+    types: [ opened, synchronize ]
     paths:
       - api/proto/**
 
