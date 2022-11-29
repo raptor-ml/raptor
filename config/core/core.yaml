@@ -41,9 +41,9 @@ spec:
             readOnlyRootFilesystem: true
           ports:
             - containerPort: 60000
-              name: http
-            - containerPort: 60001
               name: grpc
+            - containerPort: 60001
+              name: http
             - containerPort: 9443
               name: webhook-server
               protocol: TCP
@@ -52,7 +52,7 @@ spec:
               name: cert
               readOnly: true
             - mountPath: /tmp/raptor
-              name: grpc-udp
+              name: grpc-uds
           livenessProbe:
             httpGet:
               path: /healthz
@@ -82,7 +82,7 @@ spec:
             allowPrivilegeEscalation: false
           volumeMounts:
             - mountPath: /tmp/raptor
-              name: grpc-udp
+              name: grpc-uds
           readinessProbe:
             exec:
               command: [ "/bin/grpc_health_probe", "-addr=unix:///tmp/this-runtime.sock" ]
@@ -99,7 +99,7 @@ spec:
               cpu: 100m
               memory: 200Mi
       volumes:
-        - name: grpc-udp
+        - name: grpc-uds
           emptyDir: {}
         - name: cert
           secret:
