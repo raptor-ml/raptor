@@ -24,6 +24,7 @@ message ExecuteProgramRequest {
     map<string, string> keys = 3;
     map<string, raptor.core.v1alpha1.Value> data = 4;
     google.protobuf.Timestamp timestamp = 5;
+    bool dry_run = 6;
 }
 message ExecuteProgramResponse {
     string uuid = 1 [(validate.rules).string.uuid = true];

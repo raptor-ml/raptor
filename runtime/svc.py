@@ -79,7 +79,7 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
 
     async def ExecuteProgram(self, request: api_pb2.ExecuteProgramRequest, context: ServicerContext):
         if request.fqn not in self.programs:
-            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "Program not found")
+            context.abort(grpc.StatusCode.NOT_FOUND, "Program not found")
             return
 
         program: Program = self.programs[request.fqn]
@@ -122,6 +122,19 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
                 keys=resp[1] if isinstance(resp, tuple) else request.keys,
             )
             ret.timestamp.FromDatetime(ts)
+
+            if not request.dry_run:
+                ur = core_pb2.UpdateRequest(
+                    uuid=str(uuid4()),
+                    fqn=request.fqn,
+                    keys=ret.keys,
+                    value=ret.result,
+                )
+                ur.timestamp.FromDatetime(ts)
+                uresp = self.engine.Update(ur)
+                if uresp.uuid != ur.uuid:
+                    raise Exception("UUID mismatch")
+
             return ret
         except Exception as e:
             logging.error(f"{request.fqn}: Failed to execute program", e)

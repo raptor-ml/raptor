@@ -140,7 +140,7 @@ func (rest *config) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHand
 			return val, fmt.Errorf("failed to parse response as JSON: %w", err)
 		}
 
-		val, keys, err = rest.runtime.ExecuteProgram(fd.RuntimeEnv, fd.FQN, keys, payload, val.Timestamp)
+		val, keys, err = rest.runtime.ExecuteProgram(ctx, fd.RuntimeEnv, fd.FQN, keys, payload, val.Timestamp, true)
 		if err != nil {
 			return val, err
 		}

@@ -110,7 +110,7 @@ type RuntimeManager interface {
 	LoadProgram(env, fqn, program string, packages []string) (*ParsedProgram, error)
 
 	// ExecuteProgram executes a program in the runtime.
-	ExecuteProgram(env string, fqn string, keys Keys, row map[string]any, ts time.Time) (value Value, keyz Keys, err error)
+	ExecuteProgram(ctx context.Context, env string, fqn string, keys Keys, row map[string]any, ts time.Time, dryRun bool) (value Value, keyz Keys, err error)
 
 	// GetSidecars returns the sidecar containers attached to the current container.
 	GetSidecars() []v1.Container
