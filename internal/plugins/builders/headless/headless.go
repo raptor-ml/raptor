@@ -50,7 +50,7 @@ func (p *mw) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
 			return next(ctx, fd, keys, val)
 		}
 
-		val, keys, err := p.ExecuteProgram(fd.RuntimeEnv, fd.FQN, keys, nil, val.Timestamp)
+		val, keys, err := p.ExecuteProgram(ctx, fd.RuntimeEnv, fd.FQN, keys, nil, val.Timestamp, true)
 		if err != nil {
 			return val, fmt.Errorf("failed to execute python program: %w", err)
 		}

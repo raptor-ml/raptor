@@ -179,7 +179,7 @@ func (r *runtime) LoadProgram(env, fqn, program string, packages []string) (*api
 		Program:  program,
 		Packages: packages,
 	}
-	resp, err := rt.LoadProgram(context.Background(), req)
+	resp, err := rt.LoadProgram(context.TODO(), req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load program: %w", err)
 	}
@@ -209,7 +209,7 @@ func (r *runtime) LoadProgram(env, fqn, program string, packages []string) (*api
 	return pp, nil
 }
 
-func (r *runtime) ExecuteProgram(env string, fqn string, keys api.Keys, row map[string]any, ts time.Time) (api.Value, api.Keys, error) {
+func (r *runtime) ExecuteProgram(ctx context.Context, env string, fqn string, keys api.Keys, row map[string]any, ts time.Time, dryRun bool) (api.Value, api.Keys, error) {
 	rt, err := r.getRuntime(env)
 	if err != nil {
 		return api.Value{}, keys, fmt.Errorf("failed to get runtime: %w", err)
@@ -225,8 +225,9 @@ func (r *runtime) ExecuteProgram(env string, fqn string, keys api.Keys, row map[
 		Keys:      keys,
 		Data:      data,
 		Timestamp: timestamppb.New(ts),
+		DryRun:    dryRun,
 	}
-	resp, err := rt.ExecuteProgram(context.Background(), req)
+	resp, err := rt.ExecuteProgram(ctx, req)
 	if err != nil {
 		return api.Value{}, keys, fmt.Errorf("failed to execute program: %w", err)
 	}
