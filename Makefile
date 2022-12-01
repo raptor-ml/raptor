@@ -363,11 +363,12 @@ lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 	$(GOLANGCI_LINT) run --fix
 
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
+GOLANGCI_LINT_VERSION  = v1.50.1
 .PHONY: golangci-lint
 golangci-lint:
 	@[ -f $(GOLANGCI_LINT) ] || { \
 		set -e ;\
-		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell dirname $(GOLANGCI_LINT)) v1.49.0 ;\
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell dirname $(GOLANGCI_LINT)) $(GOLANGCI_LINT_VERSION) ;\
 	}
 
 .PHONY: apidiff
