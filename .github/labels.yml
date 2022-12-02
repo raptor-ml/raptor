@@ -81,3 +81,7 @@
 - name: size/xl
   color: ed268a
   description: This PR introduce an extra large change
+
+- name: roadmap
+  color: 0e8a16
+  description: This issue is part of the roadmap
