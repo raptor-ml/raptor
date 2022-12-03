@@ -22,12 +22,12 @@ func (sw *snowflakeWriter) createTable() error {
 	const create = `CREATE TABLE IF NOT EXISTS %s(
     id            number autoincrement start 1 increment 1,
     fqn           string(255)   not null,
-    entity_id     string(255)   not null,
+    keys          string(255)   not null,
     value         variant       not null,
     timestamp     timestamp_ltz not null,
     bucket        string(10),
     bucket_active boolean,
-    UNIQUE (fqn, entity_id, value, timestamp, bucket, bucket_active)
+    UNIQUE (fqn, keys, value, timestamp, bucket, bucket_active)
 ) CLUSTER BY (fqn, timestamp);`
 	_, err := sw.db.Exec(fmt.Sprintf(create, featuresTable))
 	return err
@@ -42,7 +42,7 @@ func (sw *snowflakeWriter) createTask() error {
     AS
         MERGE INTO historical AS target USING %s AS source
             ON target.fqn = source.fqn
-                AND target.entity_id = source.entity_id
+                AND target.keys = source.keys
                 AND target.bucket = source.bucket
             WHEN MATCHED AND target.bucket IS NOT NULL AND target.bucket_active = TRUE AND source.bucket_active = FALSE
                 THEN DELETE;`

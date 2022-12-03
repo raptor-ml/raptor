@@ -22,7 +22,7 @@
         3.1. WHERE fqn=<fqn>
         3.2. ORDER BY feature.TIMESTAMP DESC LIMIT 1*
       4. Build the final view by join the key feature with each feature CTE
-        4.1. ON f_XX.ENTITY_ID = keyFeature.ENTITY_ID
+        4.1. ON f_XX.KEYS = keyFeature.KEYS
              AND f_XX.TIMESTAMP <= keyFeature.TIMESTAMP
              AND f_XX.timestamp >= DATEADD(<staleness_unit>, <-staleness>, f_XX.timestamp)
 
@@ -30,7 +30,7 @@
      ***/ -}}
     WITH
         {{- /* 1. Get all the data relevant for this feature set */}} base AS (SELECT FQN,
-                                                                                      ENTITY_ID,
+                                                                                      KEYS,
         TIMESTAMP
        , VALUE AS VAL
        , BUCKET
@@ -68,27 +68,14 @@
         , {{- /* 2.2. Get the windowed feature */}}
         {{tmpName $f.FQN}} AS (
     SELECT
-        b1.ENTITY_ID,
-        b1.WIN_START,
-        b1.WIN_END,
-        b1.WIN_END as TIMESTAMP,
-        sum (b1.VAL['count']) as _ COUNT,
-        sum (b1.VAL['sum']) as _ SUM,
-        min (b1.VAL['min']) as _ MIN,
-        max (b1.VAL['max']) as _ MAX,
-        (_ SUM / _ COUNT) as _ AVG,
-        OBJECT_CONSTRUCT( {{- /*- building a unified value object*/}}
-        'count', _ COUNT :: int ::variant,
-        'sum', _ SUM :: int ::variant,
-        'min', _ MIN :: int ::variant,
-        'max', _ MAX :: int ::variant,
-        'avg', _ AVG :: double ::variant
+        b1.KEYS, b1.WIN_START, b1.WIN_END, b1.WIN_END as TIMESTAMP, sum (b1.VAL['count']) as _ COUNT, sum (b1.VAL['sum']) as _ SUM, min (b1.VAL['min']) as _ MIN, max (b1.VAL['max']) as _ MAX, (_ SUM / _ COUNT) as _ AVG, OBJECT_CONSTRUCT( {{- /*- building a unified value object*/}}
+        'count', _ COUNT :: int ::variant, 'sum', _ SUM :: int ::variant, 'min', _ MIN :: int ::variant, 'max', _ MAX :: int ::variant, 'avg', _ AVG :: double ::variant
         ) as VAL
     FROM (SELECT * FROM winData_{{tmpName $f.FQN}} WHERE WIN_END >= {{$.Since}}) b1
         LEFT JOIN winData_{{tmpName $f.FQN}} as b2
-    ON b1.ENTITY_ID = b2.ENTITY_ID
+    ON b1.KEYS = b2.KEYS
         AND b2.WIN_END >= b1.WIN_START and b2.WIN_END < b1.WIN_END AND b2.BUCKET != b1.BUCKET
-    GROUP BY b1.ENTITY_ID, b1.WIN_START, b1.WIN_END
+    GROUP BY b1.KEYS, b1.WIN_START, b1.WIN_END
         {{ if ne $f.FQN $.KeyFeature}}
     ORDER BY TIMESTAMP DESC LIMIT 1{{end}}
         )
@@ -106,8 +93,7 @@
     {{- end}}
     {{- /* 4. Build the final results */}}
     SELECT key.TIMESTAMP,
-           key.ENTITY_ID {{- range $_, $f := .Features}},
-        {{- if eq $f.FQN $.KeyFeature}}
+           key.KEYS {{- range $_, $f := .Features}}, {{- if eq $f.FQN $.KeyFeature}}
            key.VAL as {{escapeName $f.FQN}}
 {{- else}}
 {{printf "%s.VAL" (tmpName $f.FQN)}} as {{escapeName $f.FQN}}
@@ -119,7 +105,7 @@
         {{- $n := tmpName $f.FQN}}
         {{- /* 4.1. Join the KeyFeature with the feature's CTE */}}
         LEFT JOIN {{$n}}
-    ON {{$n}}.ENTITY_ID = key.ENTITY_ID AND {{$n}}.TIMESTAMP <= key.TIMESTAMP
+    ON {{$n}}.KEYS = key.KEYS AND {{$n}}.TIMESTAMP <= key.TIMESTAMP
         AND {{$n}}.TIMESTAMP >= {{subtractDuration $f.Staleness "key.TIMESTAMP"}}
         {{- end}}
     ORDER BY TIMESTAMP;
