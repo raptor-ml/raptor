@@ -34,6 +34,7 @@ import hashlib
 import importlib
 import re
 from datetime import datetime
+from inspect import getsource
 from pydoc import locate
 from typing import List, Dict, Callable, Union, Tuple
 
@@ -119,11 +120,23 @@ class SideEffect:
 
 
 class Context:
+    """
+    Context of the feature request.
+    :param str fqn: Fully Qualified Name of the feature.
+    :param Dict[str,str] keys: the keys(identifiers) we request the value for.
+    :param datetime timestamp: the timestamp when the request for this feature was made by the user
+    """
+
+    fqn: str
+    keys: Dict[str, str]
+    timestamp: datetime
+
     def __init__(self,
                  fqn: str,
                  keys: Dict[str, str],
                  timestamp: datetime,
-                 feature_getter: Callable[[str, Dict[str, str], datetime], Tuple[primitive, datetime]]
+                 feature_getter: Callable[[str, Dict[str, str], datetime], Tuple[primitive, datetime]],
+                 prediction_getter: Callable[[str, Dict[str, str], datetime], Tuple[primitive, datetime]],
                  ):
 
         parsed = fqn_regex.match(fqn)
@@ -137,26 +150,43 @@ class Context:
         self.keys = keys
         self.timestamp = timestamp
         self.__feature_getter = feature_getter
+        self.__prediction_getter = prediction_getter
 
     def get_feature(self, fqn: str, keys: Dict[str, str] = None) -> [primitive, datetime]:
-        """Get feature value for a dependant feature.
+        """
+        Get feature value for a dependant feature.
 
-        Behind the scenes, the LabSDK will return you the value for the requested fqn and entity
+        Behind the scenes, the LabSDK will return you the value for the requested FQN and keys
         **at the appropriate** timestamp of the request. That means that we'll use the request's timestamp when replying
         features. Cool right? 😎
 
         :param str fqn: Fully Qualified Name of the feature, including aggregation function if exists.
         :param str keys: the keys(identifiers) we request the value for.
         :return: a tuple of (value, timestamp)
-
-        note::
-            You can also use the alias :func:`f` to refer to this function.
         """
 
         if keys is None:
             keys = self.keys
         fqn = normalize_fqn(fqn, self.namespace)
         return self.__feature_getter(fqn, keys, self.timestamp)
+
+    def get_prediction(self, fqn: str, keys: Dict[str, str] = None) -> Tuple[any, datetime]:
+        """
+        Get the predicted value from a model.
+
+        Behind the scenes, the LabSDK will call the model server and deliver back the prediction from the requested FQN and keys
+        **at the appropriate** timestamp of the request. That means that we'll use the request's timestamp when replying
+        features. Cool right? 😎
+
+        :param str fqn: Fully Qualified Name of the model.
+        :param str keys: the keys(identifiers) we request the value for. By default, the keys of the current context are used.
+        :return: a tuple of (prediction, timestamp)
+        """
+
+        if keys is None:
+            keys = self.keys
+        fqn = normalize_fqn(fqn, self.namespace)
+        return self.__prediction_getter(fqn, keys, self.timestamp)
 
 
 class Program:
@@ -170,7 +200,9 @@ class Program:
     code: str
     checksum: bytes
 
-    def __init__(self, code, fqn_resolver: Callable[[object], str] = None):
+    def __init__(self, code, fqn_resolver: Callable[[str], str] = None):
+        if isinstance(code, Callable):
+            code = getsource(code)
         m = hashlib.sha256()
         m.update(code.encode('utf-8'))
         self.checksum = m.digest()
@@ -188,6 +220,11 @@ class Program:
 
         if len(node.arguments) != 2:
             raise SyntaxError("Feature function requires exactly 2 arguments: (this_row, context)")
+
+        # Remove arguments annotations
+        if node.arguments:
+            for arg in node.arguments:
+                arg.annotation = ''
 
         ctx_arg = node.arguments[1].name.value
 
@@ -211,19 +248,19 @@ class Program:
                 method = at.parent.value[1].value
                 if method in _side_effect_ctx_functions:
                     args = {}
-                    for i, arg in at.find_all("call_argument"):
-                        if i == 0 or (
-                            arg.target is not None and arg.target.value == "fqn") and arg.value.value.type != "string":
+                    for arg in at.find_all("call_argument"):
+                        if (arg.index_on_parent == 0 or (arg.target is not None and arg.target.value == "fqn")) \
+                            and arg.value.type != "string":
                             if fqn_resolver is None:
                                 raise SyntaxError("🛑 You must provide a FQN as a string for this Feature function")
                             args["fqn"] = fqn_resolver(arg.value.value)
 
                         if arg.target is not None:
                             args[arg.target.value] = arg.value.value
-                        args[str(i)] = arg.value.value
+                        args[arg.index_on_parent] = arg.value.value
 
                         self.side_effects.append(
-                            SideEffect(kind=at.name.value, args=args, conditional=at.parent_find("if") is not None))
+                            SideEffect(kind=method, args=args, conditional=at.parent_find("if") is not None))
 
         self.name = node.name
         rav = node.return_annotation.name.value
