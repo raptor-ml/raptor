@@ -11,74 +11,127 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+from datetime import datetime
+from warnings import warn
 
 import pandas as pd
-from labsdk import raptor
-from labsdk.raptor.stub import *
+from typing_extensions import TypedDict
+
+from labsdk.raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, feature_set
 
 
 # getting started code
 
-@raptor.register(int, staleness='10h')
-@raptor.data_source("emails")  # <-- we are decorating our feature with our production DataSource! 😎
-@raptor.aggr([raptor.AggrFn.Count], granularity='1m')
-def emails_10h(**req: RaptorRequest):
+@data_source(
+    training_data=pd.read_parquet(
+        "https://gist.github.com/AlmogBaku/a1b331615eaf1284432d2eecc5fe60bc/raw/emails.parquet"),
+    keys=['id', 'account_id'],
+    timestamp='event_at',
+)
+class Email(TypedDict("Email", {"from": str})):
+    event_at: datetime
+    account_id: str
+    subject: str
+    to: str
+
+
+@feature(
+    keys='account_id',
+    data_source=Email,
+)
+@aggregation(
+    function=AggregationFunction.Count,
+    over='10h',
+    granularity='1h'
+)
+def emails_10h(this_row: Email, ctx: Context) -> int:
     """email over 10 hours"""
     return 1
 
 
-@raptor.register(float, staleness='10h')
-@raptor.data_source("deals")
-@raptor.builder("streaming")
-@raptor.aggr([raptor.AggrFn.Sum, raptor.AggrFn.Avg, raptor.AggrFn.Max, raptor.AggrFn.Min], granularity='1m')
-def deals_10h(**req):
+print("# Emails")
+print(f"```\n{Email.manifest()}\n```")
+print("## Feature: `emails_10h`")
+print(f"```\n{emails_10h.manifest()}\n```")
+print("### Replayed")
+print(emails_10h.replay().to_markdown())
+
+
+@data_source(
+    training_data=pd.read_csv(
+        "https://gist.githubusercontent.com/AlmogBaku/a1b331615eaf1284432d2eecc5fe60bc/raw/deals.csv"),
+    keys=['id', 'account_id'],
+    timestamp='event_at',
+)
+class Deal(TypedDict):
+    id: int
+    event_at: pd.Timestamp
+    account_id: str
+    amount: float
+
+
+@feature(keys='account_id', data_source=Deal)
+@aggregation(
+    function=[AggregationFunction.Sum, AggregationFunction.Avg, AggregationFunction.Max, AggregationFunction.Min],
+    over='10h',
+    granularity='1m'
+)
+def deals_10h(this_row: Deal, ctx: Context) -> float:
     """sum/avg/min/max of deal amount over 10 hours"""
-    return req['payload']["amount"]
+    return this_row["amount"]
 
 
-@raptor.register('headless', staleness='-1', freshness='-1')
-def emails_deals(**req: RaptorRequest):
+@feature(keys='account_id', data_source=None)
+@freshness(target='-1', invalid_after='-1')
+def emails_deals(_, ctx: Context) -> float:
     """emails/deal[avg] rate over 10 hours"""
-    e, _ = get_feature("emails_10h+count", req['entity_id'])
-    d, _ = get_feature("deals_10h+avg", req['entity_id'])
+    e, _ = ctx.get_feature("emails_10h+count")
+    d, _ = ctx.get_feature("deals_10h+avg")
     if e is None or d is None:
         return None
     return e / d
 
 
-@raptor.feature_set(register=True)
+print("# Deals")
+print(f"```\n{Deal.manifest()}\n```")
+print("## Feature: `deals_10h`")
+print(f"```\n{deals_10h.manifest()}\n```")
+print(f"### Replayed")
+print(deals_10h.replay().to_markdown())
+print(f"## Feature: `emails_deals`")
+print(f"```\n{emails_deals.manifest()}\n```")
+print("### Replayed")
+warn("TBD: how to reply headless?")
+
+
+@feature_set(register=True)
 def deal_prediction():
     return "emails_10h+count", "deals_10h+sum", emails_deals
 
 
-@raptor.feature_set(register=True)
+@feature_set(register=True)
 def deal_prediction():
     return "emails_10h+count", "deals_10h+sum", emails_deals
 
 
-# first, calculate the "root" features
-df = pd.read_parquet("https://gist.github.com/AlmogBaku/a1b331615eaf1284432d2eecc5fe60bc/raw/emails.parquet")
-emails_10h.replay(df, entity_id_field="account_id")
-
-df = pd.read_csv("https://gist.githubusercontent.com/AlmogBaku/a1b331615eaf1284432d2eecc5fe60bc/raw/deals.csv")
-deals_10h.replay(df, entity_id_field="account_id")
-
-# then, we can calculate the derrived features
-emails_deals.replay(df, entity_id_field="account_id")
-
+print("# Model set")
 df = deal_prediction.historical_get(since=pd.to_datetime('2020-1-1'), until=pd.to_datetime('2022-12-31'))
+print(df.to_markdown())
 
 
-## counters
-@raptor.register(int, '-1', '-1')
-def views(**req):
-    incr_feature("views", req["entity_id"], 1)
+# counters
+@feature(keys='account_id', data_source=Deal)
+@aggregation(function=AggregationFunction.Count, over='999999999999999h', granularity='999999999999999h')
+def views(this_row: Deal, ctx: Context) -> int:
+    return 1
 
 
-df = pd.read_csv("https://gist.githubusercontent.com/AlmogBaku/a1b331615eaf1284432d2eecc5fe60bc/raw/deals.csv")
-views.replay(df, entity_id_field="account_id")
+print("# Views")
+print(f"```\n{views.manifest()}\n```")
+print("## Replayed")
+print(views.replay().to_markdown())
 
-## gong
+# gong
 crm_records_df = pd.DataFrame.from_records([
     {'event_at': '2022-01-01 12:00:00+00:00', 'salesman_id': 'ada', 'action': 'deal_assigned', 'opportunity_id': 15},
     {'event_at': '2022-02-01 13:10:00+00:00', 'salesman_id': 'ada', 'action': 'deal_removed', 'opportunity_id': 15},
@@ -105,57 +158,49 @@ crm_records_df = pd.DataFrame.from_records([
 ])
 
 
-@raptor.register(int, staleness='8760h', freshness='24h')
-@raptor.data_source("crm_updates")
-@raptor.aggr([raptor.AggrFn.DistinctCount])
-def unique_deals_involvment_annualy(**req: RaptorRequest):
-    if req['payload']['action'] == "deal_assigned":
-        return req['payload']["opportunity_id"]
+@data_source(training_data=crm_records_df, keys=['salesman_id', 'opportunity_id'])
+class CrmRecord(TypedDict):
+    event_at: datetime
+    salesman_id: str
+    action: str
+    opportunity_id: int
+
+
+@feature(keys='salesman_id', data_source=CrmRecord)
+@aggregation(function=AggregationFunction.DistinctCount, over='8760h', granularity='24h')
+def unique_deals_involvement_annually(this_row: CrmRecord, ctx: Context) -> int:
+    if this_row['action'] == "deal_assigned":
+        return this_row["opportunity_id"]
     return None
 
 
-unique_deals_involvment_annualy.replay(crm_records_df, entity_id_field='salesman_id')
+unique_deals_involvement_annually.replay()
 
 
-@raptor.register(int, staleness='8760h', freshness='24h')
-@raptor.data_source("crm_updates")
-@raptor.aggr([raptor.AggrFn.Count])
-def closed_deals_annualy(**req: RaptorRequest):
-    if req['payload']['action'] == "deal_closed":
+@feature(keys='salesman_id', data_source=CrmRecord)
+@aggregation(function=AggregationFunction.DistinctCount, over='8760h', granularity='24h')
+def closed_deals_annually(this_row: CrmRecord, ctx: Context) -> int:
+    if this_row['action'] == "deal_closed":
         return 1
     return None
 
 
-closed_deals_annualy.replay(crm_records_df, entity_id_field='salesman_id')
+closed_deals_annually.replay()
 
 
-@raptor.register(int, staleness='8760h', freshness='24h')
-def salesperson_deals_closes_rate(**req: RaptorRequest):
-    udia, _ = get_feature("unique_deals_involvment_annualy+distinct_count", req['entity_id'])
-    cda, _ = get_feature("closed_deals_annualy+count", req['entity_id'])
-    if udia == None or cda == None:
+@feature(keys='salesman_id', data_source=CrmRecord)
+@freshness(target='24h', invalid_after='8760h')
+def salesperson_deals_closes_rate(this_row: CrmRecord, ctx: Context) -> int:
+    udia, _ = ctx.get_feature("unique_deals_involvement_annually+distinct_count")
+    cda, _ = ctx.get_feature("closed_deals_annually+count")
+    if udia is None or cda is None:
         return None
     return udia / cda
 
 
-salesperson_deals_closes_rate.replay(crm_records_df, entity_id_field='salesman_id')
-
+salesperson_deals_closes_rate.replay()
 
 # other tests
-
-@raptor.register(int, staleness='10m', freshness='1m', options={})
-def simple(**req):
-    age = req['payload']["age"]
-    weight = req['payload']["weight"]
-    if age == None or weight == None:
-        return None
-    return req['payload']["age"] / req['payload']["weight"]
-
-
-## the above should fail
-
-# df = pd.read_parquet("./nested.parquet")
-# simple.replay(df, entity_id_field="name")
 
 
 df = pd.DataFrame.from_records([
@@ -183,47 +228,54 @@ df = pd.DataFrame.from_records([
     {'event_at': '2022-01-01 16:30:00+00:00', 'account_id': 'brian', 'subject': 'experimented', 'commit_count': 3},
 ])
 
-# convert `event_at` column from string to datetime
-df['event_at'] = pd.to_datetime(df['event_at'])
+
+@data_source(training_data=df, keys='account_id', timestamp='event_at')
+class Commit(TypedDict):
+    event_at: datetime
+    account_id: str
+    subject: str
+    commit_count: int
 
 
-@raptor.register(int, staleness='10m', freshness='1m', options={})
-def simple(**req):
-    pass
+@feature(keys='account_id', data_source=Commit)
+@freshness(target='1m', invalid_after='10m')
+def subject(this_row: Commit, ctx: Context) -> str:
+    return this_row['subject']
 
 
-@raptor.register(str, staleness='2h', freshness='10m', options={})
-@raptor.aggr([raptor.AggrFn.DistinctCount])
-def unique_tasks_over_2h(**req):
-    return req['payload']['subject']
+subject.replay()
 
 
-unique_tasks_over_2h.replay(df, entity_id_field="account_id")
+@feature(keys='account_id', data_source=Commit)
+@aggregation(function=AggregationFunction.DistinctCount, over='2h', granularity='10m')
+def unique_tasks_over_2h(this_row: Commit, ctx: Context) -> str:
+    return this_row['subject']
 
 
-@raptor.register(int, staleness='30m', freshness='1m', options={})
-@raptor.aggr([raptor.AggrFn.Sum, raptor.AggrFn.Count, raptor.AggrFn.Max])
-def commits_30m(**req):
+unique_tasks_over_2h.replay()
+
+
+@feature(keys='account_id', data_source=Commit)
+@aggregation(
+    function=[AggregationFunction.Sum, AggregationFunction.Count, AggregationFunction.Max],
+    over='30m', granularity='1m')
+def commits_30m(this_row: Commit, ctx: Context) -> int:
     """sum/max/count of commits over 30 minutes"""
 
-    set_feature("simple", req["entity_id"], 55, req['timestamp'])
-    incr_feature("simple", req["entity_id"], 55, req['timestamp'])
-    update_feature("simple", req["entity_id"], 55, req['timestamp'])
-
-    return req['payload']["commit_count"]
+    return this_row["commit_count"]
 
 
-commits_30m.replay(df, entity_id_field="account_id")
+commits_30m.replay()
 
 
-@raptor.register(int, staleness='30m', freshness='1m', options={})
-def commits_30m_greater_2(**req):
-    res, _ = f("commits_30m+sum", req['entity_id'])
-    """sum/max/count of commits over 30 minutes"""
+@feature(keys='account_id', data_source=Commit)
+@freshness(target='1m', invalid_after='30m')
+def commits_30m_greater_2(this_row: Commit, ctx: Context) -> bool:
+    res, _ = ctx.get_feature("commits_30m+sum")
     return res > 2
 
 
-commits_30m_greater_2.replay(df, entity_id_field='account_id')
+commits_30m_greater_2.replay()
 
 
 @raptor.feature_set()

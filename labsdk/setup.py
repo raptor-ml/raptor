@@ -12,17 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import base64
-import json
 import os
-import re
-import shutil
-import sys
-from subprocess import check_output
 
 import setuptools
-from setuptools.command.build_ext import build_ext as _build_ext
-from setuptools.glob import glob
 
 with open("./README.md", "r") as fh:
     long_description = fh.read()
@@ -52,7 +44,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     include_package_data=True,
-    install_requires=['pandas', 'redbaron', 'typing-extensions', 'pyyaml'],
+    install_requires=['pandas', 'redbaron', 'typing-extensions', 'pyyaml', 'pydantic'],
     py_modules=['raptor'],
     zip_safe=False,
 

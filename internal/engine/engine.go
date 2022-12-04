@@ -81,7 +81,7 @@ func (e *engine) write(ctx context.Context, fqn string, keys api.Keys, val any, 
 
 	v := api.Value{Value: val, Timestamp: ts}
 	if _, err = e.writePipeline(f, method).Apply(ctx, keys, v); err != nil {
-		return fmt.Errorf("failed to %s value for feature %s with entity %s: %w", method, fqn, keys, err)
+		return fmt.Errorf("failed to %s value for feature %s with keys %s: %w", method, fqn, keys, err)
 	}
 	return nil
 }
@@ -98,7 +98,7 @@ func (e *engine) Get(ctx context.Context, fqn string, keys api.Keys) (api.Value,
 
 	ret, err = e.readPipeline(f).Apply(ctx, keys, ret)
 	if err != nil && !(goerrors.Is(err, context.DeadlineExceeded) && ret.Value != nil && !ret.Fresh) {
-		return ret, f.FeatureDescriptor, fmt.Errorf("failed to GET value for feature %s with entity %s: %w", fqn, keys, err)
+		return ret, f.FeatureDescriptor, fmt.Errorf("failed to GET value for feature %s with keys %s: %w", fqn, keys, err)
 	}
 	return ret, f.FeatureDescriptor, nil
 }

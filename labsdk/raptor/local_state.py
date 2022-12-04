@@ -14,14 +14,17 @@
 
 from __future__ import annotations
 
+from typing import List, Union
+
 import pandas as pd
 
 from . import config
-from .types import FeatureSpec, AggrFn, FeatureSetSpec
 from .program import normalize_fqn, fqn_regex
+from .types import FeatureSpec, AggregationFunction, FeatureSetSpec, DataSourceSpec
 
 # registered features
-spec_registry: [FeatureSpec | FeatureSetSpec] = []
+Spec = Union[FeatureSpec, FeatureSetSpec, DataSourceSpec]
+spec_registry: List[Spec] = []
 
 
 def register_spec(spec):
@@ -33,13 +36,13 @@ def register_spec(spec):
     spec_registry.append(spec)
 
 
-def check_valid_fqn(spec, fqn):
+def check_valid_feature_fqn(spec, fqn):
     if not isinstance(spec, FeatureSpec):
         raise Exception(f"`{fqn}` is not a feature")
     if spec.fqn() != fqn:
         fn = fqn_regex.match(fqn)
         if fn is not None:
-            fn = AggrFn(fn.group("aggrFn"))
+            fn = AggregationFunction(fn.group("aggrFn"))
             if spec.aggr is None:
                 err = f"feature `{fqn}` is not an aggregated"
                 raise Exception(err)
@@ -50,7 +53,19 @@ def check_valid_fqn(spec, fqn):
             raise Exception(f"Invalid FQN. Got: {fqn}")
 
 
-def spec_by_fqn(fqn: str) -> FeatureSpec:
+def spec_by_fqn(fqn: str) -> Spec:
+    global spec_registry
+    fqn = normalize_fqn(fqn, config.default_namespace)
+
+    matches = fqn_regex.match(fqn)
+    base_fqn = f"{matches.group('namespace')}.{matches.group('name')}"
+    spec = next(filter(lambda m: m.fqn() == base_fqn, spec_registry), None)
+    if spec is None:
+        raise Exception(f"Spec `{fqn}` is not registered locally")
+    return spec
+
+
+def feature_spec_by_fqn(fqn: str) -> FeatureSpec:
     global spec_registry
     fqn = normalize_fqn(fqn, config.default_namespace)
 
@@ -59,11 +74,11 @@ def spec_by_fqn(fqn: str) -> FeatureSpec:
     spec = next(filter(lambda m: isinstance(m, FeatureSpec) and m.fqn() == base_fqn, spec_registry), None)
     if spec is None:
         raise Exception(f"feature `{fqn}` is not registered locally")
-    check_valid_fqn(spec, fqn)
+    check_valid_feature_fqn(spec, fqn)
     return spec
 
 
-def spec_by_src_name(src_name: str) -> FeatureSpec:
+def feature_spec_by_src_name(src_name: str) -> FeatureSpec:
     global spec_registry
     return next(filter(lambda m: isinstance(m, FeatureSpec) and m.program.name == src_name, spec_registry), None)
 

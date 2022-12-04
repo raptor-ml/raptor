@@ -89,7 +89,7 @@ type snowflakeWriter struct {
 }
 
 func (sw *snowflakeWriter) Commit(ctx context.Context, wn api.WriteNotification) error {
-	q := `INSERT INTO historical (fqn, entity_id, value, timestamp, bucket, bucket_active) SELECT ?, ?, to_variant(%s), ?, ?, ?`
+	q := `INSERT INTO historical (fqn, keys, value, timestamp, bucket, bucket_active) SELECT ?, ?, to_variant(%s), ?, ?, ?`
 	var val any
 	var bucket *string
 	var alive *bool

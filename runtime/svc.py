@@ -101,12 +101,16 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
 
             return self.proto_value_to_py(resp.value.value), resp.value.timestamp.ToDatetime()
 
+        def prediction_getter(fqn: str, keys: Dict[str, str], timestamp: datetime) -> Tuple[primitive, datetime]:
+            raise NotImplementedError("Prediction getter not implemented")
+
         data = self.proto_to_dict(request.data)
         program_ctx = Context(
             fqn=request.fqn,
             keys=keys,
             timestamp=ts,
             feature_getter=feature_getter,
+            prediction_getter=prediction_getter,
         )
 
         try:
