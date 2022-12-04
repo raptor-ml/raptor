@@ -37,15 +37,15 @@ func (k *Keys) String() string {
 	return vals.Encode()
 }
 func (k *Keys) Encode(fd FeatureDescriptor) (string, error) {
-	ret := ""
+	var ret []string
 	for _, key := range fd.Keys {
 		val, ok := (*k)[key]
 		if !ok {
 			return "", fmt.Errorf("missing key %q", key)
 		}
-		ret += val + "."
+		ret = append(ret, val)
 	}
-	return ret, nil
+	return strings.Join(ret, "."), nil
 }
 
 func (k *Keys) Decode(encodedKeys string, fd FeatureDescriptor) error {

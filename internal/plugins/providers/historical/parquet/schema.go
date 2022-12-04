@@ -24,7 +24,7 @@ import (
 
 type HistoricalRecord struct {
 	FQN       string  `parquet:"name=fqn, type=BYTE_ARRAY, convertedtype=UTF8, encoding=RLE_DICTIONARY"`
-	EntityID  string  `parquet:"name=entity_id, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN"`
+	Keys      string  `parquet:"name=keys, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN"`
 	Timestamp int64   `parquet:"name=timestamp, type=INT64, logicaltype=TIMESTAMP, logicaltype.isadjustedtoutc=false, logicaltype.unit=MICROS"`
 	Value     *Value  `parquet:"name=value"`
 	Bucket    *Bucket `parquet:"name=bucket"`
@@ -53,7 +53,7 @@ type Bucket struct {
 func NewHistoricalRecord(wn api.WriteNotification) HistoricalRecord {
 	hr := HistoricalRecord{
 		FQN:       wn.FQN,
-		EntityID:  wn.EncodedKeys,
+		Keys:      wn.EncodedKeys,
 		Timestamp: types.TimeToTIMESTAMP_MICROS(wn.Value.Timestamp, false),
 	}
 	if wn.Bucket != "" {

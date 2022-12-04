@@ -1,12 +1,12 @@
 {{- /*gotype: github.com/raptor-ml/raptor/internal/querybuilder.FeatureSetQueryData */ -}}
     WITH results as (SELECT FQN,
-                            ENTITY_ID,
+                            KEYS,
         TIMESTAMP
        , VALUE
        , {{- /* Add expiration of this value */}}
         LAG(TIMESTAMP
        , 1) OVER (partition by FQN
-       , ENTITY_ID ORDER BY TIMESTAMP DESC) AS _NEXT_TIMESTAMP
+       , KEYS ORDER BY TIMESTAMP DESC) AS _NEXT_TIMESTAMP
        , {{subtractDuration .Staleness "TIMESTAMP"}} AS _EXPIRE
        , CASE
         WHEN _NEXT_TIMESTAMP
@@ -16,10 +16,7 @@
     WHERE FQN = '{{.FQN}}'
         AND TIMESTAMP BETWEEN {{.Since}} AND {{.Until}}
         AND BUCKET IS NULL
-    ORDER BY FQN, TIMESTAMP, ENTITY_ID
+    ORDER BY FQN, TIMESTAMP, KEYS
 ) SELECT FQN,
-         ENTITY_ID,
-                           TIMESTAMP,
-                           VALUE,
-                           VALID_TILL
+         KEYS, TIMESTAMP, VALUE, VALID_TILL
   FROM results;

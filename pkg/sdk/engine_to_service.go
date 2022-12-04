@@ -57,7 +57,7 @@ func (s *serviceServer) Get(ctx context.Context, req *coreApi.GetRequest) (*core
 		if errors.Is(err, api.ErrFeatureNotFound) {
 			return nil, status.Errorf(codes.NotFound, "feature not found")
 		}
-		return nil, status.Errorf(codes.Internal, "failed to get entity: %s", err)
+		return nil, status.Errorf(codes.Internal, "failed to get value: %s", err)
 	}
 
 	val := resp.Value
@@ -93,7 +93,7 @@ func (s *serviceServer) Set(ctx context.Context, req *coreApi.SetRequest) (*core
 		if errors.Is(err, api.ErrFeatureNotFound) {
 			return nil, status.Errorf(codes.NotFound, "feature not found")
 		}
-		return nil, status.Errorf(codes.Internal, "failed to set entity: %s", err)
+		return nil, status.Errorf(codes.Internal, "failed to set value: %s", err)
 	}
 	return &coreApi.SetResponse{
 		Uuid:      req.GetUuid(),
@@ -106,7 +106,7 @@ func (s *serviceServer) Append(ctx context.Context, req *coreApi.AppendRequest) 
 		if errors.Is(err, api.ErrFeatureNotFound) {
 			return nil, status.Errorf(codes.NotFound, "feature not found")
 		}
-		return nil, status.Errorf(codes.Internal, "failed to append entity: %s", err)
+		return nil, status.Errorf(codes.Internal, "failed to append value: %s", err)
 	}
 	return &coreApi.AppendResponse{
 		Uuid:      req.GetUuid(),
@@ -119,7 +119,7 @@ func (s *serviceServer) Incr(ctx context.Context, req *coreApi.IncrRequest) (*co
 		if errors.Is(err, api.ErrFeatureNotFound) {
 			return nil, status.Errorf(codes.NotFound, "feature not found")
 		}
-		return nil, status.Errorf(codes.Internal, "failed to incr entity: %s", err)
+		return nil, status.Errorf(codes.Internal, "failed to incr value: %s", err)
 	}
 	return &coreApi.IncrResponse{
 		Uuid:      req.GetUuid(),
@@ -132,7 +132,7 @@ func (s *serviceServer) Update(ctx context.Context, req *coreApi.UpdateRequest) 
 		if errors.Is(err, api.ErrFeatureNotFound) {
 			return nil, status.Errorf(codes.NotFound, "feature not found")
 		}
-		return nil, status.Errorf(codes.Internal, "failed to update entity: %s", err)
+		return nil, status.Errorf(codes.Internal, "failed to update value: %s", err)
 	}
 	return &coreApi.UpdateResponse{
 		Uuid:      req.GetUuid(),
