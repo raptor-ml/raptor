@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
-import json
 import types as pytypes
+from datetime import datetime, timezone
+from typing import Dict, Tuple
 
 import pandas as pd
 from pandas.tseries.frequencies import to_offset
 
-from . import local_state, replay_instructions
-from .program import Context
-from .types import FeatureSpec, Primitive, FeatureSetSpec, Keys
+from . import local_state
+from .program import Context, primitive
+from .types import FeatureSpec, FeatureSetSpec, Keys, Primitive
 
 
 def __detect_ts_field(df) -> str:
@@ -58,37 +58,27 @@ def __detect_headers_field(df) -> str:
         return None
 
 
-def __detect_entity_id(df) -> str:
-    if 'entity_id' in df.columns:
-        return 'entity_id'
-    elif 'entityId' in df.columns:
-        return 'entityId'
-    elif 'entityID' in df.columns:
-        return 'entityID'
-    else:
-        return None
-
-
 def new_replay(spec: FeatureSpec):
-    def _replay(df: pd.DataFrame, timestamp_field: str = None, headers_field: str = None, entity_id_field: str = None,
-                store_locally=True):
+    def _replay(store_locally=True):
+        dsrc = spec._data_source_spec
+        if dsrc is None:
+            raise ValueError("Cannot replay feature spec without data source that was registered in the LabSDK.")
 
-        df = df.copy()
+        df = dsrc._local_df.copy()
 
+        timestamp_field = dsrc.timestamp
         if timestamp_field is None:
             timestamp_field = __detect_ts_field(df)
             if timestamp_field is None:
                 raise Exception("No `timestamp` field detected for the dataframe.\n"
-                                "   Please specify using the `timestamp_field` argument")
+                                "   Please specify using the `timestamp_field` argument of the `DataSource`.")
 
-        if entity_id_field is None:
-            entity_id_field = __detect_entity_id(df)
-            if entity_id_field is None:
-                raise Exception("No `entity_id` field detected for the dataframe.\n"
-                                "   Please specify using the `entity_id_field` argument")
+        if spec.keys is None:
+            spec.keys = dsrc.keys
 
-        if headers_field is None:
-            headers_field = __detect_headers_field(df)
+        if spec.keys is None:
+            raise Exception("No key fields defined for the dataframe.\n"
+                            "   Please specify using the `keys` argument of the `Feature`.")
 
         # normalize
         df[timestamp_field] = pd.to_datetime(df[timestamp_field])
@@ -97,10 +87,11 @@ def new_replay(spec: FeatureSpec):
 
         df["__raptor.ret__"] = df.apply(__replay_map(spec, timestamp_field), axis=1)
         df = df.dropna(subset=['__raptor.ret__'])
+        df["__raptor.keys__"] = df.apply(lambda row: Keys({k: row[k] for k in spec.keys}).encode(spec), axis=1)
 
         # flip dataframe to feature_value df
-        feature_values = df.filter([entity_id_field, "__raptor.ret__", timestamp_field], axis=1).rename(columns={
-            entity_id_field: "entity_id",
+        feature_values = df.filter(["__raptor.keys__", "__raptor.ret__", timestamp_field], axis=1).rename(columns={
+            "__raptor.keys__": "keys",
             "__raptor.ret__": "value",
             timestamp_field: "timestamp",
         })
@@ -109,8 +100,6 @@ def new_replay(spec: FeatureSpec):
             feature_values.insert(0, "fqn", spec.fqn())
             if store_locally:
                 local_state.store_feature_values(feature_values)
-                fv = local_state.feature_values()
-                return fv.loc[fv["fqn"] == spec.freshness]
             return feature_values
 
         # aggregations
@@ -124,40 +113,31 @@ def new_replay(spec: FeatureSpec):
             val_field = "f_value"
 
         for aggr in spec.aggr.funcs:
-            f = f'{spec.fqn()}[{aggr.value}]'
-
-            feature_values[f] = aggr.apply(feature_values.groupby(["entity_id"]).rolling(win)[val_field]). \
+            f = f'{spec.fqn()}+{aggr.value}'
+            feature_values[f] = aggr.apply(feature_values.groupby(["keys"]).rolling(win)[val_field]). \
                 reset_index(0, drop=True)
-
             fields.append(f)
 
         if "f_value" in feature_values.columns:
             feature_values = feature_values.drop("f_value", axis=1)
 
         feature_values = feature_values.reset_index().drop(columns=["value"]). \
-            melt(id_vars=["timestamp", "entity_id"], value_vars=fields,
+            melt(id_vars=["timestamp", "keys"], value_vars=fields,
                  var_name="fqn", value_name="value")
         if store_locally:
             local_state.store_feature_values(feature_values)
-            fv = local_state.feature_values()
-            return fv.loc[fv["fqn"] == spec.fqn()]
         return feature_values
 
-    def replay(df: pd.DataFrame, timestamp_field: str = None, headers_field: str = None, entity_id_field: str = None,
-               store_locally=True):
+    def replay(store_locally=True):
         """Replay a dataframe on the feature definition to create features values from existing data.
 
-        :param pd.DataFrame df: pandas dataframe with the data to replay
-        :param Optional[str] timestamp_field: the name of the column containing the timestamp of the data.
-        :param Optional[str] headers_field: the name of the column containing the headers of the data.
-        :param Optional[str] entity_id_field: the name of the column containing the entity id of the data.
         :param bool store_locally: Store the data locally in the feature values (this is required for working with other
             capabilities such as using the feature as a dependency or adding the data to a FeatureSet). Default is True.
         :return: pd.DataFrame with the calculated feature values
         """
 
         try:
-            return _replay(df, timestamp_field, headers_field, entity_id_field, store_locally)
+            return _replay(store_locally)
 
         except Exception as e:
             back_frame = e.__traceback__.tb_frame.f_back
@@ -170,9 +150,13 @@ def new_replay(spec: FeatureSpec):
     return replay
 
 
-def __dependency_getter(fqn, keys, ts):
-    spec = local_state.spec_by_fqn(fqn)
-    ts = pd.to_datetime(ts)
+def _prediction_getter(fqn: str, keys: Dict[str, str], timestamp: datetime) -> Tuple[primitive, datetime]:
+    raise NotImplementedError("TBD")
+
+
+def _feature_getter(fqn: str, keys: Dict[str, str], timestamp: datetime) -> Tuple[primitive, datetime]:
+    spec = local_state.feature_spec_by_fqn(fqn)
+    ts = pd.to_datetime(timestamp)
 
     df = local_state.__feature_values
     df = df.loc[(df["fqn"] == fqn) & (df["entity_id"] == keys) & (df["timestamp"] <= ts)]
@@ -182,7 +166,7 @@ def __dependency_getter(fqn, keys, ts):
 
     df = df.sort_values(by=["timestamp"], ascending=False).head(1)
     if df.empty:
-        return str.encode("")
+        return None, None
     res = df.iloc[0]
 
     return res["value"], res["timestamp"]
@@ -201,13 +185,22 @@ def __replay_map(spec: FeatureSpec, timestamp_field: str):
         data = {}
         for k, v in row.items():
             data[str(k)] = v
-        return spec.program.call(data=data, context=Context(spec.fqn(), keys=keys, timestamp=ts, feature_getter=__dependency_getter))
+        return spec.program.call(
+            data=data,
+            context=Context(
+                spec.fqn(),
+                keys=keys,
+                timestamp=ts,
+                feature_getter=_feature_getter,
+                prediction_getter=_prediction_getter,
+            )
+        )
 
     return map
 
 
 def new_historical_get(spec):
-    def _historical_get(since: datetime.datetime, until: datetime.datetime):
+    def _historical_get(since: datetime, until: datetime):
         if not isinstance(spec, FeatureSetSpec):
             raise Exception("Not a FeatureSet")
         if isinstance(since, str):
@@ -219,12 +212,12 @@ def new_historical_get(spec):
             raise Exception("since > until")
 
         if since.tzinfo is None:
-            since = since.replace(tzinfo=datetime.timezone.utc)
+            since = since.replace(tzinfo=timezone.utc)
         if until.tzinfo is None:
-            until = until.replace(tzinfo=datetime.timezone.utc)
+            until = until.replace(tzinfo=timezone.utc)
 
         key_feature = spec.key_feature
-        _key_feature_spec = local_state.spec_by_fqn(key_feature)
+        _key_feature_spec = local_state.feature_spec_by_fqn(key_feature)
         features = spec.features
 
         if key_feature in features:
@@ -248,7 +241,7 @@ def new_historical_get(spec):
         key_df = key_df.drop(columns=["fqn"])
 
         for f in features:
-            f_spec = local_state.spec_by_fqn(f)
+            f_spec = local_state.feature_spec_by_fqn(f)
 
             f_df = df.loc[df["fqn"] == f]
             f_df = f_df.rename(columns={"value": f})
@@ -264,11 +257,11 @@ def new_historical_get(spec):
 
         return key_df.reset_index(drop=True)
 
-    def historical_get(since: datetime.datetime, until: datetime.datetime):
+    def historical_get(since: datetime, until: datetime):
         """
         Get historical data for a FeatureSet.
-        :param datetime.datetime|str since: start time of the query
-        :param datetime.datetime|str until: end time of the query
+        :param datetime|str since: start time of the query
+        :param datetime|str until: end time of the query
         :return: pd.DataFrame with the historical data of the FeatureSet
         """
 

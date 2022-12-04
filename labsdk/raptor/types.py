@@ -12,19 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import re
+from datetime import timedelta, datetime
 from enum import Enum
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
+from warnings import warn
 
 import pandas as pd
 import yaml
 from pandas.core.window import RollingGroupby
+from typing_extensions import TypedDict
 
-from . import durpy
+from . import durpy, local_state
 from .config import default_namespace
 from .program import Program
 from .yaml import RaptorDumper
+
+
+def validate_timedelta(td: timedelta):
+    if td.days > 0:
+        raise ValueError(
+            f"calendarial durations is not supported. please specify the duration in hours instead. e.g. {td.days} days -> {td.days * 24}h")
 
 
 def _k8s_name(name):
@@ -34,7 +42,7 @@ def _k8s_name(name):
     return name.replace("_", "-").lower()
 
 
-class AggrFn(Enum):
+class AggregationFunction(Enum):
     Unknown = 'unknown'
     Sum = 'sum'
     Avg = 'avg'
@@ -44,34 +52,42 @@ class AggrFn(Enum):
     DistinctCount = 'distinct_count'
     ApproxDistinctCount = 'approx_distinct_count'
 
+    @staticmethod
+    def parse(a):
+        if isinstance(a, AggregationFunction):
+            return a
+        if isinstance(a, str):
+            return AggregationFunction[a]
+        raise Exception(f"Unknown AggregationFunction {a}")
+
     def supports(self, typ):
-        if self == AggrFn.Unknown:
+        if self == AggregationFunction.Unknown:
             return False
-        if self in (AggrFn.Sum, AggrFn.Avg, AggrFn.Max, AggrFn.Min):
+        if self in (AggregationFunction.Sum, AggregationFunction.Avg, AggregationFunction.Max, AggregationFunction.Min):
             return typ in (Primitive.Integer, Primitive.Float)
         return True
 
     def apply(self, rgb: RollingGroupby):
-        if self == AggrFn.Sum:
+        if self == AggregationFunction.Sum:
             return rgb.sum()
-        if self == AggrFn.Avg:
+        if self == AggregationFunction.Avg:
             return rgb.mean()
-        if self == AggrFn.Max:
+        if self == AggregationFunction.Max:
             return rgb.max()
-        if self == AggrFn.Min:
+        if self == AggregationFunction.Min:
             return rgb.min()
-        if self == AggrFn.Count:
+        if self == AggregationFunction.Count:
             return rgb.count()
-        if self == AggrFn.DistinctCount or self == AggrFn.ApproxDistinctCount:
+        if self == AggregationFunction.DistinctCount or self == AggregationFunction.ApproxDistinctCount:
             return rgb.apply(lambda x: pd.Series(x).nunique())
         raise Exception(f"Unknown AggrFn {self}")
 
     @classmethod
-    def to_yaml(cls, dumper: yaml.dumper.Dumper, data: 'AggrFn'):
+    def to_yaml(cls, dumper: yaml.dumper.Dumper, data: 'AggregationFunction'):
         return dumper.represent_scalar('!AggrFn', data.value)
 
 
-RaptorDumper.add_representer(AggrFn, AggrFn.to_yaml)
+RaptorDumper.add_representer(AggregationFunction, AggregationFunction.to_yaml)
 
 
 class Primitive(Enum):
@@ -91,7 +107,9 @@ class Primitive(Enum):
 
     @staticmethod
     def parse(p):
-        if p == 'str' or p == str:
+        if isinstance(p, Primitive):
+            return p
+        elif p == 'str' or p == str:
             return Primitive.String
         elif p == 'int' or p == int:
             return Primitive.Integer
@@ -99,7 +117,7 @@ class Primitive(Enum):
             return Primitive.Float
         elif p == 'bool' or p == bool:
             return Primitive.Boolean
-        elif p == 'timestamp' or p == datetime.datetime:
+        elif p == 'timestamp' or p == datetime:
             return Primitive.Timestamp
         elif p == '[]string' or p == List[str]:
             return Primitive.StringList
@@ -109,15 +127,17 @@ class Primitive(Enum):
             return Primitive.FloatList
         elif p == '[]bool' or p == List[bool]:
             return Primitive.BooleanList
-        elif p == '[]timestamp' or p == List[datetime.datetime]:
+        elif p == '[]timestamp' or p == List[datetime]:
             return Primitive.TimestampList
         else:
-            raise Exception("Primitive type not supported")
+            raise Exception("Primitive type {p} not supported")
 
 
 class BuilderSpec(object):
     kind: str = None
-    pyexp: str = None
+    code: str = None
+    runtime: Optional[str] = None
+    packages: Optional[List[str]] = None
 
     def __init__(self, kind: Optional[str], options=None):
         self.kind = kind
@@ -132,30 +152,45 @@ class ResourceReference:
     namespace: str = None
 
     def __init__(self, name, namespace=None):
+        if namespace is None:
+            parts = name.split('.')
+            if len(parts) == 1:
+                self.name = name
+            else:
+                self.namespace = parts[0]
+                self.name = parts[1]
         self.name = name
         self.namespace = namespace
 
+    def fqn(self):
+        if self.namespace is None:
+            return self.name
+        return f"{self.namespace}.{self.name}"
+
 
 class AggrSpec:
-    funcs: [AggrFn] = None
-    granularity: datetime.timedelta = None
+    funcs: [AggregationFunction] = None
+    over: timedelta = None
+    granularity: timedelta = None
 
-    def __init__(self, fns: [AggrFn], granularity: datetime.timedelta):
+    def __init__(self, fns: List[AggregationFunction], over: timedelta, granularity: timedelta):
         self.funcs = fns
+        self.over = over
         self.granularity = granularity
 
-    def __setattr__(self, key, value):
-        if key == 'granularity':
-            if value == '' or value is None:
-                value = None
-            elif isinstance(value, str):
-                value = durpy.from_str(value)
-            elif isinstance(value, datetime.timedelta):
-                value = value
-            else:
-                raise Exception(f"Invalid type {type(value)} for {key}")
 
-        super().__setattr__(key, value)
+def __setattr__(self, key, value):
+    if key == 'granularity':
+        if value == '' or value is None:
+            value = None
+        elif isinstance(value, str):
+            value = durpy.from_str(value)
+        elif isinstance(value, timedelta):
+            value = value
+        else:
+            raise Exception(f"Invalid type {type(value)} for {key}")
+
+    super().__setattr__(key, value)
 
 
 class FeatureSpec(yaml.YAMLObject):
@@ -168,12 +203,13 @@ class FeatureSpec(yaml.YAMLObject):
     annotations: dict = {}
 
     primitive: Primitive = None
-    _freshness: Optional[datetime.timedelta] = None
-    staleness: datetime.timedelta = None
-    timeout: datetime.timedelta = None
+    _freshness: Optional[timedelta] = None
+    staleness: timedelta = None
+    timeout: timedelta = None
     keys: [str] = None
 
-    data_source: ResourceReference = None
+    data_source: Optional[ResourceReference] = None
+    _data_source_spec: Optional['DataSourceSpec'] = None
     builder: BuilderSpec = BuilderSpec(None)
     aggr: AggrSpec = None
 
@@ -192,25 +228,50 @@ class FeatureSpec(yaml.YAMLObject):
             self._freshness = None
         elif isinstance(value, str):
             self._freshness = durpy.from_str(value)
-        elif isinstance(value, datetime.timedelta):
+        elif isinstance(value, timedelta):
             self._freshness = value
 
     def __setattr__(self, key, value):
         if key == 'primitive':
             value = Primitive.parse(value)
+        elif key == 'data_source':
+            if value is None:
+                pass
+            elif isinstance(value, ResourceReference):
+                self._data_source_spec = local_state.spec_by_fqn(value.fqn())
+            elif isinstance(value, str):
+                value = ResourceReference(value)
+                self._data_source_spec = local_state.spec_by_fqn(value.fqn())
+            elif type(value) == type(TypedDict) or isinstance(value, DataSourceSpec):
+                if type(value) == type(TypedDict):
+                    if hasattr(value, 'raptor_spec'):
+                        value = value.raptor_spec
+                    else:
+                        raise Exception(f"TypedDict {value} does not have raptor_spec")
+                value.features.append(self)
+                self._data_source_spec = value
+                value = ResourceReference(value.name, value.namespace)
+            else:
+                raise Exception(f"Invalid type {type(value)} for {key}")
+
+            if self._data_source_spec is None and value is not None:
+                warn(
+                    f"DataSource {value.fqn()} not registered locally on the LabSDK. "
+                    f"This will prevent you from replaying this feature locally"
+                )
         elif key == 'program':
             if isinstance(value, Program):
                 pass
             elif callable(value):
                 raise Exception("Function must be parsed first")
             else:
-                raise Exception("program must be a callable or a PyExpProgram")
+                raise Exception("program must be a Program")
         elif key == 'staleness' or key == 'timeout':
             if value == '' or value is None:
                 value = None
             elif isinstance(value, str):
                 value = durpy.from_str(value)
-            elif isinstance(value, datetime.timedelta):
+            elif isinstance(value, timedelta):
                 value = value
             else:
                 raise Exception(f"Invalid type {type(value)} for {key}")
@@ -266,6 +327,101 @@ class FeatureSpec(yaml.YAMLObject):
 RaptorDumper.add_representer(FeatureSpec, FeatureSpec.to_yaml)
 
 
+class SecretKeyRef:
+    name: str = None
+    key: str = None
+
+    def __init__(self, name, key):
+        self.name = name
+        self.key = key
+
+
+class ConfigVar:
+    name: str = None
+    value: Optional[str] = None
+    secretKeyRef: Optional[SecretKeyRef] = None
+
+    def __init__(self, name, value=None, secret_key_ref=None):
+        self.name = name
+        self.value = value
+        self.secretKeyRef = secret_key_ref
+        if value is None and secret_key_ref is None:
+            raise Exception("Must specify either value or secretKeyRef")
+
+
+class ResourceRequirements:
+    limits: Dict[str, str] = {}
+    requests: Dict[str, str] = {}
+
+    def __init__(self, limits=None, requests=None):
+        self.limits = limits or {}
+        self.requests = requests or {}
+
+
+class DataSourceSpec(yaml.YAMLObject):
+    yaml_tag = u'!DataSourceSpec'
+
+    name: str = None
+    namespace: str = None
+    description: str = None
+    labels: dict = {}
+    annotations: dict = {}
+
+    kind: str = None
+    config: List[ConfigVar] = None
+    schema: Optional[Dict[str, Any]] = None
+    keys: List[str] = None
+    timestamp: str = None
+    replicas: int = None
+    resources: ResourceRequirements = None
+
+    features: List[FeatureSpec] = []
+
+    _local_df: pd.DataFrame = None
+
+    def fqn(self):
+        if self.namespace is None:
+            return f"{default_namespace}.{self.name}"
+        return f"{self.namespace}.{self.name}"
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return f"DataSourceSpec({self.fqn()})"
+
+    def manifest(self):
+        """return a Kubernetes YAML manifest for this DataSourceSpec definition"""
+        return yaml.dump(self, sort_keys=False, Dumper=RaptorDumper)
+
+    @classmethod
+    def to_yaml(cls, dumper: yaml.dumper.Dumper, data: 'DataSourceSpec'):
+        data.annotations['a8r.io/description'] = data.description
+        manifest = {
+            "apiVersion": "k8s.raptor.ml/v1alpha1",
+            "kind": "DataSource",
+            "metadata": {
+                "name": _k8s_name(data.name),
+                "namespace": data.namespace,
+                "labels": data.labels,
+                "annotations": data.annotations
+            },
+            "spec": {
+                "kind": data.kind,
+                "config": data.config,
+                "keyFields": data.keys,
+                "timestampField": data.timestamp,
+                "replicas": data.replicas,
+                "resources": data.resources,
+                "schema": data.schema
+            }
+        }
+        return dumper.represent_mapping(cls.yaml_tag, manifest, flow_style=cls.yaml_flow_style)
+
+
+RaptorDumper.add_representer(DataSourceSpec, DataSourceSpec.to_yaml)
+
+
 class FeatureSetSpec(yaml.YAMLObject):
     yaml_tag = u'!FeatureSetSpec'
 
@@ -275,13 +431,15 @@ class FeatureSetSpec(yaml.YAMLObject):
     labels: dict = {}
     annotations: dict = {}
 
-    timeout: datetime.timedelta = None
+    freshness: Optional[timedelta] = None
+    staleness: timedelta = None
+    timeout: timedelta = None
     features: [str] = None
     _key_feature: str = None
 
     def fqn(self):
         if self.namespace is None:
-            return f"{self.namespace}.{self.name}"
+            return f"{default_namespace}.{self.name}"
         return f"{self.namespace}.{self.name}"
 
     def __str__(self):
@@ -294,10 +452,17 @@ class FeatureSetSpec(yaml.YAMLObject):
         if key == 'timeout':
             if isinstance(value, str):
                 value = durpy.from_str(value)
-            elif isinstance(value, datetime.timedelta):
+            elif isinstance(value, timedelta):
                 value = value
             else:
                 raise Exception(f"Invalid type {type(value)} for {key}")
+        elif key == 'freshness':
+            if value is None or value == '':
+                value = None
+            elif isinstance(value, str):
+                value = durpy.from_str(value)
+            elif isinstance(value, timedelta):
+                value = value
 
         super().__setattr__(key, value)
 
@@ -341,13 +506,13 @@ RaptorDumper.add_representer(FeatureSetSpec, FeatureSetSpec.to_yaml)
 
 class Keys(Dict[str, str]):
     def encode(self, spec: FeatureSpec) -> str:
-        ret = ""
+        ret: List[str] = []
         for key in spec.keys:
             val = self.get(key)
             if val is None:
                 raise Exception(f"missing key {key}")
-            ret += val + "."
-        return ret
+            ret.append(val)
+        return ".".join(ret)
 
     def decode(self, spec: FeatureSpec, encoded_keys: str) -> 'Keys':
         parts = encoded_keys.split(".")

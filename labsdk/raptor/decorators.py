@@ -13,13 +13,26 @@
 # limitations under the License.
 
 import inspect
-import types as pytypes
-from typing import Union, List
+import sys
+import types
+from datetime import timedelta
+from typing import Union, List, Dict, Optional
 
-from . import replay, local_state, config
+from pandas import DataFrame
+from pydantic import create_model_from_typeddict
+from typing_extensions import TypedDict
+
+from . import replay, local_state, config, durpy
 from .program import Program
-from .types import FeatureSpec, AggrSpec, ResourceReference, AggrFn, BuilderSpec, FeatureSetSpec
 from .program import normalize_fqn
+from .types import FeatureSpec, AggrSpec, AggregationFunction, FeatureSetSpec, \
+    validate_timedelta, Primitive, DataSourceSpec
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict as typing_TypedDict
+else:
+    typing_TypedDict = type(None)
+
 
 def _wrap_decorator_err(f):
     def wrap(*args, **kwargs):
@@ -27,10 +40,10 @@ def _wrap_decorator_err(f):
             return f(*args, **kwargs)
         except Exception as e:
             back_frame = e.__traceback__.tb_frame.f_back
-            tb = pytypes.TracebackType(tb_next=None,
-                                       tb_frame=back_frame,
-                                       tb_lasti=back_frame.f_lasti,
-                                       tb_lineno=back_frame.f_lineno)
+            tb = types.TracebackType(tb_next=None,
+                                     tb_frame=back_frame,
+                                     tb_lasti=back_frame.f_lasti,
+                                     tb_lineno=back_frame.f_lineno)
             raise Exception(f"in {args[0].__name__}: {str(e)}").with_traceback(tb)
 
     return wrap
@@ -39,7 +52,7 @@ def _wrap_decorator_err(f):
 @_wrap_decorator_err
 def _opts(func, options: dict):
     if hasattr(func, "raptor_spec"):
-        raise Exception("option decorators must be before the register decorator")
+        raise Exception("option decorators must be before the registration decorator")
     if not hasattr(func, "__raptor_options"):
         func.__raptor_options = {}
 
@@ -48,35 +61,7 @@ def _opts(func, options: dict):
     return func
 
 
-def aggr(funcs: [AggrFn], granularity=None):
-    """
-    Register aggregations for the Feature Definition.
-    :param granularity: the granularity of the aggregation (this is overriding the freshness).
-    :param funcs: a list of :func:`AggrFn`
-    """
-
-    def decorator(func):
-        for f in funcs:
-            if f == AggrFn.Unknown:
-                raise Exception("Unknown aggr function")
-        return _opts(func, {"aggr": AggrSpec(funcs, granularity)})
-
-    return decorator
-
-
-def data_source(name: str, namespace: str = None):
-    """
-    Register a DataSource for the FeatureDefinition.
-    :param name: the name of the DataSource.
-    :param namespace: the namespace of the DataSource.
-    """
-
-    def decorator(func):
-        return _opts(func, {"data_source": ResourceReference(name, namespace)})
-
-    return decorator
-
-
+# ** Shared **
 def namespace(namespace: str):
     """
     Register a namespace for the Feature Definition.
@@ -89,48 +74,182 @@ def namespace(namespace: str):
     return decorator
 
 
-def builder(kind: str, options=None):
+def runtime(
+    packages: Optional[List[str]],  # list of PIP installable packages
+    env_name: Optional[str],  # the Raptor virtual environment name
+):
     """
-    Register a builder for the Feature Definition.
-    :param kind: the kind of the builder.
-    :param options: options for the builder.
+    Register the runtime environment for the Feature Definition.
+    :param packages:
+    :param env_name:
     :return:
     """
 
-    if options is None:
-        options = {}
-
     def decorator(func):
-        return _opts(func, {"builder": BuilderSpec(kind, options)})
+        return _opts(func, {"runtime": {
+            "packages": packages,
+            "env_name": env_name,
+        }})
 
     return decorator
 
 
-def register(keys: Union[str, List[str]], staleness: str, freshness: str = '', options=None):
+def freshness(
+    target: Union[str, timedelta],
+    invalid_after: Optional[Union[str, timedelta]] = None,  # defaults to == target
+    latency_sla: Optional[Union[str, timedelta]] = timedelta(seconds=2),  # defaults to 2 seconds
+):
+    """
+    Set the freshness, staleness, and latency of a feature or model.
+    Must be used in conjunction with a feature or model decorator.
+    Is placed AFTER the @model or @feature decorator.
+
+    :param latency_sla: the maximum time allowed for the feature to be computed.
+    :param invalid_after:
+    :type target: object
+    """
+    if invalid_after is None:
+        invalid_after = target
+
+    def decorator(func):
+        return _opts(func, {"freshness": {
+            "target": target,
+            "invalid_after": invalid_after,
+            "latency_sla": latency_sla,
+        }})
+
+    return decorator
+
+
+def labels(labels: Dict[str, str]):
+    """
+    Register labels for the Feature Definition.
+    :param labels: a dictionary of tags.
+    """
+
+    def decorator(func):
+        return _opts(func, {"labels": labels})
+
+    return decorator
+
+
+# ** Data Source **
+
+# TODO
+def data_source(
+    training_data: DataFrame,  # training data
+
+    keys: Optional[Union[str, List[str]]] = None,
+    name: Optional[str] = None,  # inferred from class name
+    timestamp: Optional[str] = None,  # what column has the timestamp
+    production_data: Optional[object] = None,  # production data
+):
+    """
+    Register a DataSource for the FeatureDefinition.
+    """
+
+    options = {}
+
+    if isinstance(keys, str):
+        keys = [keys]
+
+    @_wrap_decorator_err
+    def decorator(cls: TypedDict):
+        if isinstance(cls, typing_TypedDict):
+            raise Exception("You should use typing_extensions.TypedDict instead of typing.TypedDict")
+        elif type(cls) != type(TypedDict):
+            raise Exception("data_source decorator must be used on a class that extends typing_extensions.TypedDict")
+
+        spec = DataSourceSpec()
+        spec.keys = keys
+        spec.description = cls.__doc__
+        spec.name = name
+        if name is None:
+            spec.name = cls.__name__
+        spec.timestamp = timestamp
+        spec._local_df = training_data
+
+        if hasattr(cls, "__raptor_options"):
+            for k, v in cls.__raptor_options.items():
+                options[k] = v
+
+        # convert cls to json schema
+        spec.schema = create_model_from_typeddict(cls).schema()
+
+        # register
+        cls.raptor_spec = spec
+        cls.manifest = spec.manifest
+        cls.export = spec.manifest
+        local_state.register_spec(spec)
+
+        if hasattr(cls, "__raptor_options"):
+            del cls.__raptor_options
+
+        return cls
+
+    return decorator
+
+
+# ** Feature **
+
+def aggregation(
+    function: Union[AggregationFunction, List[AggregationFunction], str, List[str]],
+    over: Union[str, timedelta, None],
+    granularity: Union[str, timedelta, None],
+):
+    """
+    Register aggregations for the Feature Definition.
+    :param over: the time period over which to aggregate.
+    :param granularity: the granularity of the aggregation (this is overriding the freshness).
+    :param function: a list of :func:`AggrFn`
+    """
+
+    if isinstance(function, str):
+        function = [AggregationFunction.parse(function)]
+
+    if not isinstance(function, List):
+        function = [function]
+
+    for i, f in function:
+        if isinstance(f, str):
+            function[i] = AggregationFunction.parse(f)
+
+    if isinstance(over, str):
+        over = durpy.from_str(over)
+    if isinstance(granularity, str):
+        granularity = durpy.from_str(granularity)
+
+    validate_timedelta(over)
+    validate_timedelta(granularity)
+
+    def decorator(func):
+        for f in function:
+            if f == AggregationFunction.Unknown:
+                raise Exception("Unknown aggr function")
+        return _opts(func, {"aggr": AggrSpec(function, over, granularity)})
+
+    return decorator
+
+
+def feature(
+    keys: Union[str, List[str]],
+    name: Optional[str] = None,  # set to function name if not provided
+    data_source: Optional[Union[str, object]] = None,  # set to None for headless
+    keep_previous: Optional[int] = 0,  # Set to keep `versions` previous versions of this feature's value.
+):
     """
     Register a Feature Definition within the LabSDK.
 
-    A feature definition is a PyExp handler function that process a calculation request and calculates
-    a feature value for it::
-        :param RaptorRequest **kwargs: a request bag dictionary(:class:`RaptorRequest`)
-        :return: a tuple of (value, timestamp, entity_id) where:
-            - value: the feature value
-            - timestamp: the timestamp of the value - when None, it uses the request timestamp.
-            - entity_id: the entity id of the value - when None, it uses the request entity_id.
-                If the request entity_id is None, it's required to specify an entity_id
+    A feature definition is a Python handler function that process a calculation request and calculates
 
-    :Example:
-        @register(primitive="my_primitive", freshness="1h", staleness="1h")
-        def my_feature(**req):
-            return "Hello "+ req["entity_id"]
+    :param keys: a list of indexing keys, indicated the owner of the feature value.
+    :param name: the name of the feature. If not provided, the function name will be used.
+    :param data_source: the (fully qualified) name of the DataSource.
+    :param keep_previous: Set to keep `versions` previous versions of this feature's value.
 
-    :param staleness: the staleness of the feature.
-    :param freshness: the freshness of the feature.
-    :param options: optional options for the feature.
     :return: a registered Feature Definition
     """
-    if options is None:
-        options = {}
+    options = {}
 
     if isinstance(keys, str):
         keys = [keys]
@@ -138,39 +257,43 @@ def register(keys: Union[str, List[str]], staleness: str, freshness: str = '', o
     @_wrap_decorator_err
     def decorator(func):
         spec = FeatureSpec()
-        spec.freshness = freshness
-        spec.staleness = staleness
         spec.keys = keys
-        spec.name = func.__name__
         spec.description = func.__doc__
+        spec.name = name
+        if name is None:
+            spec.name = func.__name__
 
         if hasattr(func, "__raptor_options"):
             for k, v in func.__raptor_options.items():
                 options[k] = v
 
+        spec.data_source = data_source
+
         # append annotations
-        if "builder" in options:
-            spec.builder = options['builder']
+        if "labels" in options:
+            spec.labels = options['labels']
 
         if "namespace" in options:
             spec.namespace = options['namespace']
 
-        if "data_source" in options:
-            spec.data_source = options['data_source']
         if "aggr" in options:
-            for f in options['aggr'].funcs:
-                if not f.supports(spec.primitive):
-                    raise Exception(
-                        f"{func.__name__} aggr function {f} not supported for primitive {spec.primitive}")
-            spec.aggr = options['aggr']
+            spec.freshness = options['aggr'].granularity
+            spec.staleness = options['aggr'].over
 
-        if freshness == '' and (spec.aggr is None or spec.aggr.granularity is None):
-            raise Exception(f"{func.__name__} must have a freshness or an aggregation with granularity")
-        if staleness == '':
-            raise Exception(f"{func.__name__} must have a staleness")
+        if "freshness" in options:
+            spec.freshness = options['freshness']["target"]
+            spec.staleness = options['freshness']["invalid_after"]
+            spec.timeout = options['freshness']["latency_sla"]
+
+        if spec.freshness is None or spec.staleness is None:
+            raise Exception("You must specify freshness or aggregation for a feature")
+
+        if "runtime" in options:
+            spec.builder.runtime = options['runtime']["env_name"]
+            spec.builder.packages = options['runtime']["packages"]
 
         # parse the program
-        def fqn_resolver(obj):
+        def fqn_resolver(obj: str) -> str:
             frame = inspect.currentframe().f_back.f_back
 
             feat: Union[FeatureSpec, None] = None
@@ -189,7 +312,15 @@ def register(keys: Union[str, List[str]], staleness: str, freshness: str = '', o
             return feat.fqn()
 
         spec.program = Program(func, fqn_resolver)
-        spec.primitive = spec.program.primitive
+        spec.primitive = Primitive.parse(spec.program.primitive)
+
+        # aggr parsing should be after program parsing
+        if "aggr" in options:
+            for f in options['aggr'].funcs:
+                if not f.supports(spec.primitive):
+                    raise Exception(
+                        f"{func.__name__} aggr function {f} not supported for primitive {spec.primitive}")
+            spec.aggr = options['aggr']
 
         # register
         func.raptor_spec = spec
@@ -205,6 +336,8 @@ def register(keys: Union[str, List[str]], staleness: str, freshness: str = '', o
 
     return decorator
 
+
+# ** Model **
 
 def feature_set(register=False, options=None):
     """
@@ -236,10 +369,10 @@ def feature_set(register=False, options=None):
         fts = []
         for f in func():
             if type(f) is str:
-                local_state.spec_by_fqn(f)
+                local_state.feature_spec_by_fqn(f)
                 fts.append(normalize_fqn(f, config.default_namespace))
             if callable(f):
-                ft = local_state.spec_by_src_name(f.__name__)
+                ft = local_state.feature_spec_by_src_name(f.__name__)
                 if ft is None:
                     raise Exception("Feature not found")
                 if ft.aggr is not None:
