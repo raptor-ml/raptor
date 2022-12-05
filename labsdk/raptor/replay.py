@@ -14,14 +14,14 @@
 
 import types as pytypes
 from datetime import datetime, timezone
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional, Union
 
 import pandas as pd
 from pandas.tseries.frequencies import to_offset
 
 from . import local_state
 from .program import Context, primitive
-from .types import FeatureSpec, FeatureSetSpec, Keys, Primitive
+from .types import FeatureSpec, ModelSpec, Keys, Primitive
 
 
 def __detect_ts_field(df) -> str:
@@ -159,7 +159,7 @@ def _feature_getter(fqn: str, keys: Dict[str, str], timestamp: datetime) -> Tupl
     ts = pd.to_datetime(timestamp)
 
     df = local_state.__feature_values
-    df = df.loc[(df["fqn"] == fqn) & (df["entity_id"] == keys) & (df["timestamp"] <= ts)]
+    df = df.loc[(df["fqn"] == fqn) & (df["keys"] == keys) & (df["timestamp"] <= ts)]
 
     if spec.staleness.total_seconds() > 0:
         df = df.loc[(df["timestamp"] >= ts - spec.staleness)]
@@ -200,25 +200,31 @@ def __replay_map(spec: FeatureSpec, timestamp_field: str):
 
 
 def new_historical_get(spec):
-    def _historical_get(since: datetime, until: datetime):
-        if not isinstance(spec, FeatureSetSpec):
-            raise Exception("Not a FeatureSet")
+    if not isinstance(spec, ModelSpec):
+        raise Exception("Not a Model")
+
+    def _historical_get(since: Optional[Union[datetime, str]] = None, until: Optional[Union[datetime, str]] = None):
+        if since == "" or since == "-1":
+            since = None
+        if until == "" or until == "-1":
+            until = None
         if isinstance(since, str):
             since = pd.to_datetime(since)
         if isinstance(until, str):
             until = pd.to_datetime(until)
 
-        if since > until:
+        if since is not None and until is not None and since > until:
             raise Exception("since > until")
 
-        if since.tzinfo is None:
+        if since is not None and since.tzinfo is None:
             since = since.replace(tzinfo=timezone.utc)
-        if until.tzinfo is None:
+        if until is not None and until.tzinfo is None:
             until = until.replace(tzinfo=timezone.utc)
 
         key_feature = spec.key_feature
         _key_feature_spec = local_state.feature_spec_by_fqn(key_feature)
         features = spec.features
+        features += spec.label_features
 
         if key_feature in features:
             features.remove(key_feature)
@@ -227,10 +233,12 @@ def new_historical_get(spec):
         if df.empty:
             raise Exception("No data found. Have you Replayed on your data?")
 
-        df = df.loc[(df["fqn"].isin(features + [key_feature]))
-                    & (df["timestamp"] >= since)
-                    & (df["timestamp"] <= until)
-                    ]
+        df = df.loc[(df["fqn"].isin(features + [key_feature]))]
+
+        if since is not None:
+            df = df.loc[(df["timestamp"] >= since)]
+        if until is not None:
+            df = df.loc[(df["timestamp"] <= until)]
 
         if df.empty:
             raise Exception("No data found")
@@ -250,14 +258,14 @@ def new_historical_get(spec):
 
             if f_spec.staleness.total_seconds() > 0:
                 key_df = pd.merge_asof(key_df.sort_values("timestamp"), f_df.sort_values("timestamp"), on="timestamp",
-                                       by="entity_id", direction="nearest", tolerance=f_spec.staleness)
+                                       by="keys", direction="nearest", tolerance=f_spec.staleness)
             else:
                 key_df = pd.merge_asof(key_df.sort_values("timestamp"), f_df.sort_values("timestamp"), on="timestamp",
-                                       by="entity_id", direction="nearest")
+                                       by="keys", direction="nearest")
 
         return key_df.reset_index(drop=True)
 
-    def historical_get(since: datetime, until: datetime):
+    def historical_get(since: Optional[Union[datetime, str]] = None, until: Optional[Union[datetime, str]] = None):
         """
         Get historical data for a FeatureSet.
         :param datetime|str since: start time of the query
@@ -268,11 +276,11 @@ def new_historical_get(spec):
         try:
             return _historical_get(since, until)
         except Exception as e:
-            back_frame = e.__traceback__.tb_frame.f_back
+            back_frame = e.__traceback__.tb_frame.f_back.f_back
             tb = pytypes.TracebackType(tb_next=None,
                                        tb_frame=back_frame,
                                        tb_lasti=back_frame.f_lasti,
                                        tb_lineno=back_frame.f_lineno)
-            raise Exception(f"{spec.program.name}: {str(e)}").with_traceback(tb)
+            raise Exception(f"{spec.fqn()}: {str(e)}").with_traceback(tb)
 
     return historical_get
