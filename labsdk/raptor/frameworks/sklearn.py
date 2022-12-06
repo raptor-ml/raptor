@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from labsdk.raptor.frameworks.base import BaseModelFramework
+from .base import BaseModelFramework
 
 
 class SklearnFramework(BaseModelFramework):
