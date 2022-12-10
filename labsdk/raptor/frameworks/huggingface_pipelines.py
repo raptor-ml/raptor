@@ -26,7 +26,8 @@ class HuggingFacePipelinesFramework(BaseModelFramework):
             raise TypeError("model must be a HuggingFace Pipeline")
 
         BaseModelFramework._create_output_path()
-        model.save_pretrained(f"{BaseModelFramework._base_output_path()}/{spec.fqn()}")
+        spec._model_filename = f"{spec.fqn()}_{model.__hash__()}.bin"
+        model.save_pretrained(f"{BaseModelFramework._base_output_path()}/{spec._model_filename}")
 
     @staticmethod
     def predict(model, data):

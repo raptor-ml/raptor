@@ -156,7 +156,7 @@ def data_source(
 
     @_wrap_decorator_err
     def decorator(cls: TypedDict):
-        if isinstance(cls, typing_TypedDict):
+        if type(cls) == type(typing_TypedDict):
             raise Exception("You should use typing_extensions.TypedDict instead of typing.TypedDict")
         elif type(cls) != type(TypedDict):
             raise Exception("data_source decorator must be used on a class that extends typing_extensions.TypedDict")

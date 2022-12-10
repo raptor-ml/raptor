@@ -152,6 +152,11 @@ class ModelServer(Enum):
                     return ms
         raise Exception(f"Unknown ModelServer {m}")
 
+    def __str__(self):
+        if self != ModelServer.SageMaker:
+            warn(f"ModelServer {self} is not supported yet")
+        return self.value
+
 
 class ModelFramework(Enum):
     HuggingFacePipelines = 'huggingface-pipelines'
@@ -493,6 +498,8 @@ class ModelSpec(yaml.YAMLObject):
     ModelServer: Optional[ModelServer] = None
     _trained_model: Optional[object] = None
 
+    _model_filename: Optional[str] = None
+
     def fqn(self):
         if self.namespace is None:
             return f"{default_namespace}.{self.name}"
@@ -544,9 +551,15 @@ class ModelSpec(yaml.YAMLObject):
                 "annotations": data.annotations
             },
             "spec": {
+                "freshness": data.freshness,
+                "staleness": data.staleness,
                 "timeout": data.timeout,
                 "features": data.features,
-                "keyFeature": None if data.key_feature == data.features[0] else data.key_feature
+                "keyFeature": None if data.key_feature == data.features[0] else data.key_feature,
+                "labels": data.label_features,
+                "modelFramework": data.model_framework,
+                "modelServer": data.ModelServer,
+                "storageUri": None if data._model_filename is None else f"$MODEL_URI_PATH/{data._model_filename}"
             }
         }
         return dumper.represent_mapping(cls.yaml_tag, manifest, flow_style=cls.yaml_flow_style)

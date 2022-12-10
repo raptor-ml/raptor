@@ -28,7 +28,8 @@ class SklearnFramework(BaseModelFramework):
             raise TypeError("model must be a sklearn model")
 
         BaseModelFramework._create_output_path()
-        joblib.dump(model, f"{BaseModelFramework._base_output_path()}/{spec.fqn()}.job")
+        spec._model_filename = f"{spec.fqn()}_{model.__hash__()}.job"
+        joblib.dump(model, f"{BaseModelFramework._base_output_path()}/{spec._model_filename}")
 
     @staticmethod
     def predict(model, data):
