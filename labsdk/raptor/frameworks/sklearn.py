@@ -20,6 +20,7 @@ class SklearnFramework(BaseModelFramework):
     def save(model, spec: 'ModelSpec'):
         try:
             import joblib
+            from sklearn import __version__ as sklearn_version
             from sklearn.base import BaseEstimator
         except ImportError:
             raise ImportError("Please install joblib and sklearn to use sklearn framework")
@@ -29,6 +30,7 @@ class SklearnFramework(BaseModelFramework):
 
         BaseModelFramework._create_output_path()
         spec._model_filename = f"{spec.fqn()}_{model.__hash__()}.job"
+        spec._model_framework_version = sklearn_version
         joblib.dump(model, f"{BaseModelFramework._base_output_path()}/{spec._model_filename}")
 
     @staticmethod

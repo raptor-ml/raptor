@@ -18,7 +18,7 @@ class HuggingFacePipelinesFramework(BaseModelFramework):
     @staticmethod
     def save(model: 'pipelines.Pipeline', spec: 'ModelSpec'):
         try:
-            from transformers import pipelines
+            from transformers import pipelines, __version__ as transformers_version
         except ImportError:
             raise ImportError("Please install transformers to use huggingface pipelines framework")
 
@@ -27,6 +27,7 @@ class HuggingFacePipelinesFramework(BaseModelFramework):
 
         BaseModelFramework._create_output_path()
         spec._model_filename = f"{spec.fqn()}_{model.__hash__()}.bin"
+        spec._model_framework_version = transformers_version
         model.save_pretrained(f"{BaseModelFramework._base_output_path()}/{spec._model_filename}")
 
     @staticmethod

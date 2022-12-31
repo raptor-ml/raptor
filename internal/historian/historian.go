@@ -101,12 +101,12 @@ func (h *historian) BindFeature(in *manifests.Feature) error {
 		return fmt.Errorf("failed to parse FeatureDescriptor from CR: %w", err)
 	}
 
-	var fs *manifests.FeatureSetSpec
-	if fd.Builder == api.FeatureSetBuilder {
-		fs = &manifests.FeatureSetSpec{}
+	var fs *manifests.ModelSpec
+	if fd.Builder == api.ModelBuilder {
+		fs = &manifests.ModelSpec{}
 		err := json.Unmarshal(in.Spec.Builder.Raw, fs)
 		if err != nil {
-			return fmt.Errorf("failed to parse featureset builder spec: %w", err)
+			return fmt.Errorf("failed to parse model builder spec: %w", err)
 		}
 	}
 	if err := h.HistoricalWriter.BindFeature(fd, fs, h.FeatureDescriptor); err != nil {

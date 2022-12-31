@@ -449,10 +449,10 @@ def model(
                 input_labels=spec.label_features,
                 input_features=spec.features,
                 data_getter=features_and_labels,
-                saver=lambda: None,  # TODO: implement
             ))
             spec.model_framework.save(model, spec)
             spec._trained_model = model
+            spec._training_code = inspect.getsource(func)
             return model
 
         train.raptor_spec = spec

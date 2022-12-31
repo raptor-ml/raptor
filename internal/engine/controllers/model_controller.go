@@ -16,7 +16,7 @@ limitations under the License.
 
 package controllers
 
-// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=featuresets,verbs=get;list;watch
+// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=models,verbs=get;list;watch
 
 import (
 	"context"
@@ -32,32 +32,32 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// FeatureSetReconciler reconciles a Feature object
+// ModelReconciler reconciles a Feature object
 // This reconciler is used in every instance of the app, and not only the leader.
 // It is used to ensure the EngineManager's state is synchronized with the CustomResources.
-type FeatureSetReconciler struct {
+type ModelReconciler struct {
 	client.Reader
 	Scheme        *runtime.Scheme
 	EngineManager api.FeatureManager
 }
 
 // Reconcile is the main function of the reconciler.
-func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx).WithValues("component", "featureset-controller")
+func (r *ModelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	logger := log.FromContext(ctx).WithValues("component", "model-controller")
 
-	// Fetch the FeatureSet definition from the Kubernetes API.
-	fs := &manifests.FeatureSet{}
+	// Fetch the Model definition from the Kubernetes API.
+	fs := &manifests.Model{}
 	err := r.Get(ctx, req.NamespacedName, fs)
 	if err != nil {
-		logger.Error(err, "Failed to get FeatureSet")
+		logger.Error(err, "Failed to get Model")
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
 		// requeue (we'll need to wait for a new notification), and we can get them
 		// on deleted requests.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	logger = logger.WithValues("featureset", fs.FQN())
+	logger = logger.WithValues("model", fs.FQN())
 
-	// Convert the FeatureSet definition to a FeatureDescriptor object.
+	// Convert the Model definition to a FeatureDescriptor object.
 	ft := &manifests.Feature{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Feature",
@@ -72,7 +72,7 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			Timeout:   fs.Spec.Timeout,
 		},
 	}
-	ft.Spec.Builder.Kind = api.FeatureSetBuilder
+	ft.Spec.Builder.Kind = api.ModelBuilder
 	ft.Spec.Builder.Raw, err = json.Marshal(fs.Spec)
 	if err != nil {
 		logger.Error(err, "Failed to marshal features")
@@ -101,7 +101,7 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	if err := r.EngineManager.BindFeature(ft); err != nil {
-		logger.Error(err, "Failed to bind FeatureSet as feature")
+		logger.Error(err, "Failed to bind Model as feature")
 		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 
@@ -109,6 +109,6 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 }
 
 // SetupWithManager sets up the controller with the Controller Manager.
-func (r *FeatureSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return attachCoreController(r, &manifests.FeatureSet{}, true, mgr)
+func (r *ModelReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	return attachCoreController(r, &manifests.Model{}, true, mgr)
 }

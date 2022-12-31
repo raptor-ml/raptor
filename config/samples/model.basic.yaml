@@ -1,0 +1,15 @@
+apiVersion: k8s.raptor.ml/v1alpha1
+kind: Model
+metadata:
+  name: model-basic
+spec:
+  freshness: 1h
+  staleness: 1h
+  timeout: 1s
+  features:
+    - hello_world
+    - simple_aggr
+  modelServer: sagemaker
+  modelFramework: sklearn
+  modelFrameworkVersion: 1.2.0
+  storageURI: s3://my-bucket/model

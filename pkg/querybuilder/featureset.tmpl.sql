@@ -1,4 +1,4 @@
-{{- /*gotype: github.com/raptor-ml/raptor/internal/querybuilder.featureSetQuery */ -}}
+{{- /*gotype: github.com/raptor-ml/raptor/pkg/querybuilder.featureSetQuery */ -}}
     {{- /***
       # Point in time join query
       --------------------------

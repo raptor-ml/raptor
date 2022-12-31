@@ -106,7 +106,7 @@ type FeatureBuilder struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Packages"
 	Packages []string `json:"packages,omitempty"`
 
-	// Code defines a Python expression to use to build the feature-value.
+	// Code defines a Python processing code to use to build the feature-value.
 	// +kubebuilder:validation:Required
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Python Expression"
 	Code string `json:"code"`

@@ -477,7 +477,7 @@ RaptorDumper.add_representer(DataSourceSpec, DataSourceSpec.to_yaml)
 
 
 class ModelSpec(yaml.YAMLObject):
-    yaml_tag = u'!FeatureSetSpec'
+    yaml_tag = u'!ModelSpec'
 
     name: str = None
     namespace: str = None
@@ -495,8 +495,10 @@ class ModelSpec(yaml.YAMLObject):
     _key_feature: str = None
 
     model_framework: ModelFramework = None
+    _model_framework_version: Optional[str] = None
     ModelServer: Optional[ModelServer] = None
     _trained_model: Optional[object] = None
+    _training_code: Optional[str] = None
 
     _model_filename: Optional[str] = None
 
@@ -535,7 +537,7 @@ class ModelSpec(yaml.YAMLObject):
         self._key_feature = value
 
     def manifest(self):
-        """return a Kubernetes YAML manifest for this FeatureSet definition"""
+        """return a Kubernetes YAML manifest for this Model definition"""
         return yaml.dump(self, sort_keys=False, Dumper=RaptorDumper)
 
     @classmethod
@@ -558,8 +560,10 @@ class ModelSpec(yaml.YAMLObject):
                 "keyFeature": None if data.key_feature == data.features[0] else data.key_feature,
                 "labels": data.label_features,
                 "modelFramework": data.model_framework,
+                "modelFrameworkVersion": data._model_framework_version,
                 "modelServer": data.ModelServer,
-                "storageUri": None if data._model_filename is None else f"$MODEL_URI_PATH/{data._model_filename}"
+                "storageURI": None if data._model_filename is None else f"$MODEL_URI_PATH/{data._model_filename}",
+                "trainingCode": None if data._training_code is None else data._training_code,
             }
         }
         return dumper.represent_mapping(cls.yaml_tag, manifest, flow_style=cls.yaml_flow_style)

@@ -16,8 +16,8 @@ limitations under the License.
 
 package operator
 
-// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=featuresets,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=featuresets/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=models,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=k8s.raptor.ml,resources=models/status,verbs=get;update;patch
 
 import (
 	"context"
@@ -28,8 +28,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// FeatureSetReconciler reconciles a Feature object
-type FeatureSetReconciler struct {
+// ModelReconciler reconciles a Feature object
+type ModelReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
@@ -39,24 +39,24 @@ type FeatureSetReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
-func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx).WithValues("component", "featureset-operator")
+func (r *ModelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	logger := log.FromContext(ctx).WithValues("component", "model-operator")
 
 	// Fetch the Feature definition from the Kubernetes API.
-	fs := &manifests.FeatureSet{}
+	fs := &manifests.Model{}
 	err := r.Get(ctx, req.NamespacedName, fs)
 	if err != nil {
-		logger.Error(err, "Failed to get FeatureSet")
+		logger.Error(err, "Failed to get Model")
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
 		// requeue (we'll need to wait for a new notification), and we can get them
 		// on deleted requests.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	logger = logger.WithValues("featureset", fs.FQN())
+	logger = logger.WithValues("model", fs.FQN())
 
 	fs.Status.FQN = fs.FQN()
 	if err := r.Status().Update(ctx, fs); err != nil {
-		logger.Error(err, "Failed to update FeatureSet status")
+		logger.Error(err, "Failed to update Model status")
 		return ctrl.Result{}, err
 	}
 
@@ -64,8 +64,8 @@ func (r *FeatureSetReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 }
 
 // SetupWithManager sets up the controller with the Controller Manager.
-func (r *FeatureSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *ModelReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&manifests.FeatureSet{}).
+		For(&manifests.Model{}).
 		Complete(r)
 }

@@ -26,17 +26,17 @@ import (
 	"time"
 )
 
-func (sw *snowflakeWriter) BindFeature(fd *api.FeatureDescriptor, fs *manifests.FeatureSetSpec, getter api.FeatureDescriptorGetter) error {
+func (sw *snowflakeWriter) BindFeature(fd *api.FeatureDescriptor, fs *manifests.ModelSpec, getter api.FeatureDescriptorGetter) error {
 	var query string
 	var typ string
-	if fd.Builder == api.FeatureSetBuilder {
-		typ = "FeatureSet"
+	if fd.Builder == api.ModelBuilder {
+		typ = "Model"
 		if fs == nil {
 			return fmt.Errorf("feature set is nil")
 		}
 		q, err := sw.queryBuilder.FeatureSet(context.TODO(), *fs, getter)
 		if err != nil {
-			return fmt.Errorf("failed to build FeatureSet query: %w", err)
+			return fmt.Errorf("failed to build Model query: %w", err)
 		}
 		query = q
 	} else {
