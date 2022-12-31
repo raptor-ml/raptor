@@ -1,0 +1,11 @@
+Makefile
+.github
+.git
+.venv
+.run
+.idea
+bin/
+bundle/
+bundle.Dockerfile
+.golangci.yaml
+internal/e2e/
