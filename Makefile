@@ -164,7 +164,7 @@ docker-build: generate docker-build-runtimes ## Build docker images.
 	DOCKER_BUILDKIT=1 docker build --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${HISTORIAN_IMG_BASE}:${VERSION} -t ${HISTORIAN_IMG_BASE}:latest --target historian .
 
 .PHONY: docker-build-runtimes
-docker-build-runtimes: buf-build ## Build docker images for runtimes.
+docker-build-runtimes: ## Build docker images for runtimes.
 	DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
 		--build-arg BASE_PYTHON_IMAGE="python:3.11-alpine"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.11 -t ${RUNTIME_IMG_BASE}:latest-python3.11 \
@@ -217,16 +217,16 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 
 .PHONY: update_images_pre
 update_images_pre: ## Update images in the manifests.
-	cd config/core && $(KUSTOMIZE) edit set image controller=${CORE_IMG_BASE}:${VERSION}
-	cd config/core && $(KUSTOMIZE) edit set image runtime=${RUNTIME_IMG_BASE}:${VERSION}-python3.11
-	cd config/historian && $(KUSTOMIZE) edit set image historian=${HISTORIAN_IMG_BASE}:${VERSION}
+	cd config/core && $(KUSTOMIZE) edit set image raptor-core=${CORE_IMG_BASE}:${VERSION}
+	cd config/core && $(KUSTOMIZE) edit set image raptor-runtime=${RUNTIME_IMG_BASE}:${VERSION}-python3.11
+	cd config/historian && $(KUSTOMIZE) edit set image raptor-historian=${HISTORIAN_IMG_BASE}:${VERSION}
 
 .PHONY: update_images_post
 .PHONY: update_images_post
 update_images_post: ## Update images in the manifests.
-	cd config/core && $(KUSTOMIZE) edit set image controller=${CORE_IMG_BASE}:latest
-	cd config/core && $(KUSTOMIZE) edit set image runtime=${RUNTIME_IMG_BASE}:latest-python3.11
-	cd config/historian && $(KUSTOMIZE) edit set image historian=${HISTORIAN_IMG_BASE}:latest
+	cd config/core && $(KUSTOMIZE) edit set image raptor-core=raptor-core:latest
+	cd config/core && $(KUSTOMIZE) edit set image raptor-runtime=raptor-runtime:latest-python3.11
+	cd config/historian && $(KUSTOMIZE) edit set image raptor-historian=raptor-historian:latest
 
 .PHONY: deploy
 deploy: manifests kustomize update_images_pre ## Deploy controller to the K8s cluster specified in ~/.kube/config.
@@ -379,4 +379,3 @@ GO_APIDIFF = $(LOCALBIN)/go-apidiff
 .PHONY: go-apidiff
 go-apidiff:
 	GOBIN=$(LOCALBIN) go install github.com/joelanford/go-apidiff@lates
-

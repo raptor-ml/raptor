@@ -36,46 +36,44 @@ Note that, by building RaptorML from the source code we are allowed to test the 
     make docker-build
     ```
 
-## Set up a KiND cluster
+## Set up a local development cluster
 
-Run following the command to create a new local cluster with RaptorML installed:
+To develop RaptorML locally, you can use [Tilt][tilt], with the pre-configured setup to build a local setup.
 
-```
-make -C hack/dev new-local-cluster
-```
+1. Install [Tilt][tilt]
+2. Create a local development cluster. We're highly recommending using [Kind][kind] and [ctlptl][ctlptl] to create a
+   local cluster.
 
-This will create a new local cluster with the following components:
+   Kind is a tool for running local Kubernetes clusters using Docker container “nodes”. ctlptl is a tool for managing
+   local Kubernetes clusters.
+   `ctlptl` is a tool for managing local Kubernetes clusters. It can create a local cluster using `kind` and configure
+   it to be ready for development.
 
-- Metrics server
-- Ngnix Ingress Controller (exposed to host on ports 80 & 443)
-- Redis Operator + Redis Cluster (exposed to host on port 6379)
-- Raptor Core + Raptor Historian
-
-See more utilities using the following commands:
-
-```
-make -C hack/dev help
-```
-
-## Development: running from local environment
-
-Sometimes, it's useful to run RaptorML from a local environment for development and debugging purposes.
-
-1. We need to [set up a local environment first](#set-up-a-kind-cluster).
-2. Disable the cluster's controllers and webhooks:
+    ```console
+    ctlptl create cluster kind --registry=ctlptl-registry --name kind-raptor
     ```
-   make -C hack/dev scale-0
+   This command will create a local Kind cluster, with a local registry ready to be used.
+3. Start the Tilt environment
+
+    ```console
+    tilt up
     ```
-3. Compile & Run the application (you can use your favorite IDE to compile and debug):
-    ```
-   go run cmd/raptor/main.go --dev --system-namespace raptor-system -r :6379
-    ```
-   
-4. To run the e2e test locally with a debugger, run the following command:
-    ```
-   make docker-build
-   go test -v --tags e2e github.com/raptor-ml/raptor/internal/e2e --args -build-tag=latest -v 5
-    ```
+   This command will start the Tilt environment, which will build the docker images and deploy the RaptorML components
+   to the local cluster.
+
+The Tilt environment will watch for changes in the source code and will automatically rebuild the images and redeploy
+the components.
+
+In addition, it'll create the necessary resources to run RaptorML locally, including Redis, Ingress controller(ngnix),
+and Prometheus - and will automatically create port-forwarding to the local cluster.
+
+While developing Raptor, the Tilt environment will watch for changes in the source code and will automatically rebuild
+the images and redeploy the components.
+
+We're also attaching to this environment a go debugger, which will allow us to debug the code while running it locally.
+
+**You can connect to the debugger on port `2345` for the `raptor-controller-core`,
+and `2346` for the `raptor-historian`.**
 
 ## What to do before submitting a pull request
 
@@ -200,6 +198,10 @@ Participation in the RaptorML community is governed by the [Kubernetes Code of C
 [golangci]:https://github.com/golangci/golangci-lint
 
 [kind]:https://kind.sigs.k8s.io/#installation-and-usage
+
+[tilt]: https://docs.tilt.dev/install.html
+
+[ctlptl]: https://github.com/tilt-dev/ctlptl/
 
 [setup-envtest]:https://book.kubebuilder.io/reference/envtest
 

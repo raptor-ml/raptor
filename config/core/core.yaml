@@ -34,7 +34,7 @@ spec:
             - "--health-probe-bind-address=:8081"
             - "--metrics-bind-address=127.0.0.1:8080"
             - "--leader-elect"
-          image: controller:latest
+          image: raptor-core:latest
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -57,14 +57,14 @@ spec:
             httpGet:
               path: /healthz
               port: 8081
-            initialDelaySeconds: 15
+            initialDelaySeconds: 35
             periodSeconds: 20
           readinessProbe:
             httpGet:
               path: /readyz
               port: 8081
             initialDelaySeconds: 5
-            periodSeconds: 10
+            periodSeconds: 20
           resources:
             limits:
               cpu: 500m
@@ -73,7 +73,7 @@ spec:
               cpu: 100m
               memory: 200Mi
         - name: default-runtime
-          image: runtime:latest
+          image: raptor-runtime:latest
           env:
             - name: RUNTIME_NAME
               value: default
@@ -104,6 +104,6 @@ spec:
         - name: cert
           secret:
             defaultMode: 420
-            secretName: webhook-server-cert
+            secretName: webhook-server-cert # pragma: allowlist secret
       serviceAccountName: controller-core
       terminationGracePeriodSeconds: 10
