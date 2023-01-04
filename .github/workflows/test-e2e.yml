@@ -8,6 +8,11 @@ on:
       - 'hack/**'
       - 'labsdk/**'
       - '**.md'
+      - 'Tiltfile'
+      - '.tiltignore'
+      - '.golangci.yml'
+      - '.pre-commit-config.yaml'
+      - '.gitingore'
   pull_request:
     types: [ opened, synchronize ]
     paths-ignore:
@@ -16,6 +21,11 @@ on:
       - 'labsdk/**'
       - '!labsdk/raptor/program.py'
       - '**.md'
+      - 'Tiltfile'
+      - '.tiltignore'
+      - '.golangci.yml'
+      - '.pre-commit-config.yaml'
+      - '.gitingore'
 
 jobs:
 
