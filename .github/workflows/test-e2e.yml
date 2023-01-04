@@ -8,6 +8,11 @@ on:
       - 'hack/**'
       - 'labsdk/**'
       - '**.md'
+      - 'Tiltfile'
+      - '.tiltignore'
+      - '.golangci.yml'
+      - '.pre-commit-config.yaml'
+      - '.gitingore'
   pull_request:
     types: [ opened, synchronize ]
     paths-ignore:
@@ -16,6 +21,11 @@ on:
       - 'labsdk/**'
       - '!labsdk/raptor/program.py'
       - '**.md'
+      - 'Tiltfile'
+      - '.tiltignore'
+      - '.golangci.yml'
+      - '.pre-commit-config.yaml'
+      - '.gitingore'
 
 jobs:
 
@@ -41,7 +51,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
       - name: Install KiND
-        uses: helm/kind-action@v1.3.0
+        uses: helm/kind-action@v1.5.0
         with:
           install_only: true
       - name: Install Kustomize

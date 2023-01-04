@@ -7,11 +7,11 @@ generatorOptions:
   disableNameSuffixHash: true
 
 images:
-- name: controller
-  newName: ghcr.io/raptor-ml/raptor-core
+- name: raptor-core
+  newName: raptor-core
   newTag: latest
-- name: runtime
-  newName: ghcr.io/raptor-ml/raptor-runtime
+- name: raptor-runtime
+  newName: raptor-runtime
   newTag: latest-python3.11
 
 replicas:
