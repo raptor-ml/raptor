@@ -16,17 +16,18 @@ import inspect
 import sys
 import types
 from datetime import timedelta
-from typing import Union, List, Dict, Optional
+from typing import Union, List, Dict, Optional, Callable
 
 from pandas import DataFrame
 from pydantic import create_model_from_typeddict
 from typing_extensions import TypedDict
 
-from . import replay, local_state, config, durpy
+from . import local_state, config, durpy, replay
+from .model import TrainingContext
 from .program import Program
 from .program import normalize_fqn
-from .types import FeatureSpec, AggrSpec, AggregationFunction, FeatureSetSpec, \
-    validate_timedelta, Primitive, DataSourceSpec
+from .types import FeatureSpec, AggrSpec, AggregationFunction, ModelSpec, \
+    validate_timedelta, Primitive, DataSourceSpec, ModelFramework, ModelServer
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict as typing_TypedDict
@@ -155,7 +156,7 @@ def data_source(
 
     @_wrap_decorator_err
     def decorator(cls: TypedDict):
-        if isinstance(cls, typing_TypedDict):
+        if type(cls) == type(typing_TypedDict):
             raise Exception("You should use typing_extensions.TypedDict instead of typing.TypedDict")
         elif type(cls) != type(TypedDict):
             raise Exception("data_source decorator must be used on a class that extends typing_extensions.TypedDict")
@@ -172,6 +173,12 @@ def data_source(
         if hasattr(cls, "__raptor_options"):
             for k, v in cls.__raptor_options.items():
                 options[k] = v
+
+        if "labels" in options:
+            spec.labels = options['labels']
+
+        if "namespace" in options:
+            spec.namespace = options['namespace']
 
         # convert cls to json schema
         spec.schema = create_model_from_typeddict(cls).schema()
@@ -251,7 +258,7 @@ def feature(
     """
     options = {}
 
-    if isinstance(keys, str):
+    if not isinstance(keys, List):
         keys = [keys]
 
     @_wrap_decorator_err
@@ -339,80 +346,123 @@ def feature(
 
 # ** Model **
 
-def feature_set(register=False, options=None):
+def model(
+    keys: Union[str, List[str]],  # required
+    input_features: Union[str, List[str], Callable, List[Callable]],  # required
+    input_labels: Union[str, List[str], Callable, List[Callable]],
+    model_framework: Union[ModelFramework, str],  # first is MVP
+    model_server: Optional[Union[ModelServer, str]] = None,  # first is MVP
+    key_feature: Optional[Union[str, Callable]] = None,  # optional
+    prediction_output_schema: Optional[TypedDict] = None,
+    name: Optional[str] = None,  # set to function name if not provided
+):
     """
-    Register a FeatureSet Definition.
-
-    A feature set definition in the LabSDK is constituted by a function that returns a list of features.
-        You can specify a feature in the list using its FQN or via a variable that hold's the feature definition.
-        When specifying a feature that have aggregations, you **must** specify the feature using its FQN.
-
-    :Example:
-        @feature_set(register=True)
-        def my_feature_set():
-            return [my_feature, "my_other_feature.default[sum]"]
-
-
-    :param register: if True, the feature set will be registered in the LabSDK, and you'll be able to export
-        it's manifest.
-    :param options:
-    :return:
+    Register a Model Definition within the LabSDK.
     """
-    if options is None:
-        options = {}
+    options = {}
 
-    @_wrap_decorator_err
-    def decorator(func):
-        if inspect.signature(func) != inspect.signature(lambda: []):
-            raise Exception(f"{func.__name__} have an invalid signature for a FeatureSet definition")
+    if not isinstance(keys, List):
+        keys = [keys]
+
+    if model_server is not None:
+        model_server = ModelServer.parse(model_server)
+
+    model_framework = ModelFramework.parse(model_framework)
+
+    def normalizeFeatures(features: Union[str, List[str], Callable, List[Callable]]) -> List[str]:
+        if not isinstance(features, List):
+            features = [features]
 
         fts = []
-        for f in func():
+        for f in features:
             if type(f) is str:
                 local_state.feature_spec_by_fqn(f)
                 fts.append(normalize_fqn(f, config.default_namespace))
-            if callable(f):
-                ft = local_state.feature_spec_by_src_name(f.__name__)
-                if ft is None:
-                    raise Exception("Feature not found")
-                if ft.aggr is not None:
-                    raise Exception(
-                        "You must specify a FQN with AggrFn(i.e. `namespace.name+sum`) for aggregated features")
-                fts.append(ft.fqn())
+            elif isinstance(f, Callable):
+                if not hasattr(f, "raptor_spec"):
+                    raise Exception(f"{f.__name__} is not a registered feature")
+                fts.append(f.raptor_spec.fqn())
+            elif isinstance(f, FeatureSpec):
+                fts.append(f.fqn())
+        return fts
+
+    input_features = normalizeFeatures(input_features)
+    input_labels = normalizeFeatures(input_labels)
+    key_feature = normalizeFeatures(key_feature)[0] if key_feature is not None else None
+
+    @_wrap_decorator_err
+    def decorator(func):
+        if len(inspect.signature(func).parameters) != 1:
+            raise Exception(f"{func.__name__} must have a single parameter of type ModelContext")
+
+        spec = ModelSpec()
+        spec.keys = keys
+        spec.description = func.__doc__
+        spec.name = name
+        if name is None:
+            spec.name = func.__name__
+            if spec.name.endswith("_model"):
+                spec.name = spec.name[:-6]
+            if spec.name.endswith("_trainer"):
+                spec.name = spec.name[:-8]
+            if spec.name.endswith("_train"):
+                spec.name = spec.name[:-6]
+            if spec.name.startswith("train_"):
+                spec.name = spec.name[6:]
 
         if hasattr(func, "__raptor_options"):
-            for k, v in func.__raptor_options.items:
+            for k, v in func.__raptor_options.items():
                 options[k] = v
 
-        spec = FeatureSetSpec()
-        spec.name = func.__name__
-        spec.description = func.__doc__
-        spec.features = fts
-
-        if "key_feature" in options:
-            spec.key_feature = options["key_feature"]
+        spec.features = input_features
+        spec.label_features = input_labels
+        spec.key_feature = key_feature
+        spec.model_framework = model_framework
+        spec.model_server = model_server
 
         if "namespace" in options:
             spec.namespace = options["namespace"]
+        if "labels" in options:
+            spec.labels = options["labels"]
 
-        if "timeout" not in options:
-            options["timeout"] = "5s"
+        if "freshness" in options:
+            spec.freshness = options['freshness']["target"]
+            spec.staleness = options['freshness']["invalid_after"]
+            spec.timeout = options['freshness']["latency_sla"]
 
-        spec.timeout = options["timeout"]
-        spec.name = func.__name__
-        spec.description = func.__doc__
+        if spec.freshness is None or spec.staleness is None:
+            raise Exception("You must specify freshness")
 
-        func.raptor_spec = spec
-        func.historical_get = replay.new_historical_get(spec)
-        func.manifest = spec.manifest
-        func.export = spec.manifest
         local_state.register_spec(spec)
 
         if hasattr(func, "__raptor_options"):
             del func.__raptor_options
 
-        if register:
-            local_state.register_spec(spec)
-        return func
+        features_and_labels = replay.new_historical_get(spec)
+
+        def train():
+            for f in (input_features + input_labels + ([key_feature] if key_feature is not None else [])):
+                s = local_state.feature_spec_by_fqn(f)
+                replay.new_replay(s)()
+            model = func(TrainingContext(
+                keys=spec.keys,
+                input_labels=spec.label_features,
+                input_features=spec.features,
+                data_getter=features_and_labels,
+            ))
+            spec.model_framework.save(model, spec)
+            spec._trained_model = model
+            spec._training_code = inspect.getsource(func)
+            return model
+
+        train.raptor_spec = spec
+        train.features_and_labels = features_and_labels
+        train.manifest = spec.manifest
+        train.export = spec.manifest
+        train.keys = spec.keys
+        train.input_labels = spec.label_features
+        train.input_features = spec.features
+
+        return train
 
     return decorator

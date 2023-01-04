@@ -17,7 +17,7 @@ from warnings import warn
 import pandas as pd
 from typing_extensions import TypedDict
 
-from labsdk.raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, feature_set
+from labsdk.raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, model, manifests
 
 
 # getting started code
@@ -35,15 +35,8 @@ class Email(TypedDict("Email", {"from": str})):
     to: str
 
 
-@feature(
-    keys='account_id',
-    data_source=Email,
-)
-@aggregation(
-    function=AggregationFunction.Count,
-    over='10h',
-    granularity='1h'
-)
+@feature(keys='account_id', data_source=Email)
+@aggregation(function=AggregationFunction.Count, over='10h', granularity='1h')
 def emails_10h(this_row: Email, ctx: Context) -> int:
     """email over 10 hours"""
     return 1
@@ -104,18 +97,23 @@ print("### Replayed")
 warn("TBD: how to reply headless?")
 
 
-@feature_set(register=True)
+
+@model(
+    keys=['account_id'],
+    input_features=[
+        "emails_10h+count", "deals_10h+sum", emails_deals
+    ],
+    input_labels=[],
+    model_framework='sklearn',
+)
+@freshness(target='1h', invalid_after='100h')
 def deal_prediction():
-    return "emails_10h+count", "deals_10h+sum", emails_deals
+    # TODO: implement
+    pass
 
 
-@feature_set(register=True)
-def deal_prediction():
-    return "emails_10h+count", "deals_10h+sum", emails_deals
-
-
-print("# Model set")
-df = deal_prediction.historical_get(since=pd.to_datetime('2020-1-1'), until=pd.to_datetime('2022-12-31'))
+print("# Model")
+df = deal_prediction.features_and_labels(since=pd.to_datetime('2020-1-1'), until=pd.to_datetime('2022-12-31'))
 print(df.to_markdown())
 
 
@@ -278,12 +276,21 @@ def commits_30m_greater_2(this_row: Commit, ctx: Context) -> bool:
 commits_30m_greater_2.replay()
 
 
-@raptor.feature_set()
+@model(
+    keys=['account_id'],
+    input_features=[
+        "commits_30m+sum", commits_30m_greater_2
+    ],
+    input_labels=[],
+    model_framework='sklearn',
+)
+@freshness(target='1h', invalid_after='100h')
 def newest():
-    return "commits_30m+sum", commits_30m_greater_2
+    # TODO: implement
+    pass
 
 
-print(raptor.manifests())
+print(manifests())
 
-ret = newest.historical_get(since=pd.to_datetime('2019-12-04 00:00'), until=pd.to_datetime('2023-01-04 00:00'))
+ret = newest.features_and_labels(since=pd.to_datetime('2019-12-04 00:00'), until=pd.to_datetime('2023-01-04 00:00'))
 print(ret)

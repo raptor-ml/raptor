@@ -143,12 +143,12 @@ func main() {
 	}).SetupWithManager(mgr)
 	orFail(err, "unable to create core controller", "controller", "Feature")
 
-	err = (&corectrl.FeatureSetReconciler{
+	err = (&corectrl.ModelReconciler{
 		Reader:        mgr.GetClient(),
 		Scheme:        mgr.GetScheme(),
 		EngineManager: hss,
 	}).SetupWithManager(mgr)
-	orFail(err, "unable to create core controller", "controller", "FeatureSet")
+	orFail(err, "unable to create core controller", "controller", "Model")
 
 	health := func(r *http.Request) error {
 		return state.Ping(r.Context())

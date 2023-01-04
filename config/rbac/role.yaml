@@ -162,7 +162,7 @@ rules:
 - apiGroups:
   - k8s.raptor.ml
   resources:
-  - featuresets
+  - models
   verbs:
   - create
   - delete
@@ -174,7 +174,7 @@ rules:
 - apiGroups:
   - k8s.raptor.ml
   resources:
-  - featuresets/status
+  - models/status
   verbs:
   - get
   - patch

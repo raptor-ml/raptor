@@ -1,4 +1,4 @@
-{{- /*gotype: github.com/raptor-ml/raptor/internal/querybuilder.FeatureSetQueryData */ -}}
+{{- /*gotype: github.com/raptor-ml/raptor/pkg/querybuilder.featureQuery */ -}}
     WITH results as (SELECT FQN,
                             KEYS,
         TIMESTAMP

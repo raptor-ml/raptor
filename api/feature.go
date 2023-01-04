@@ -26,7 +26,7 @@ import (
 	"time"
 )
 
-const FeatureSetBuilder = "featureset"
+const ModelBuilder = "model"
 const HeadlessBuilder = "headless"
 
 // DataSource is a parsed abstracted representation of a manifests.DataSource

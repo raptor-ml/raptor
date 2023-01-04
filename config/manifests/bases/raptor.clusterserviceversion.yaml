@@ -86,28 +86,40 @@ spec:
           multiple functions to calculate the aggregation.
         displayName: Aggregations
         path: builder.aggr
-      - description: PyExp defines a Python expression to use to build the feature-value.
+      - description: Code defines a Python processing code to use to build the feature-value.
         displayName: Python Expression
-        path: builder.pyexp
+        path: builder.code
+      - description: Packages defines the list of python packages to install in the
+          runtime virtualenv.
+        displayName: Packages
+        path: builder.packages
+      - description: Runtime defines the runtime virtualenv to use for running the
+          python computation.
+        displayName: RuntimeManager
+        path: builder.runtime
+      - description: DataSource is a reference for the DataSource that this Feature
+          is associated with
+        displayName: Data Source
+        path: dataSource
+      - description: Name is unique within a namespace to reference a resource.
+        displayName: Resource's Name
+        path: dataSource.name
+      - description: Namespace defines the space within which the resource name must
+          be unique.
+        displayName: Resource's Namespace
+        path: dataSource.namespace
       - description: Freshness defines the age of a feature-value(time since the value
           has set) to consider as *fresh*. Fresh values doesn't require re-ingestion
         displayName: Freshness
         path: freshness
+      - description: Keys defines the list of keys that are required to calculate
+          the feature value.
+        displayName: EncodedKeys
+        path: keys
       - description: Primitive defines the type of the underlying feature-value that
           a Feature should respond with.
         displayName: Primitive Type
         path: primitive
-      - description: DataSource is a reference for the DataSource that this Feature
-          is associated with
-        displayName: Data Source
-        path: source
-      - description: Name is unique within a namespace to reference a resource.
-        displayName: Resource's Name
-        path: source.name
-      - description: Namespace defines the space within which the resource name must
-          be unique.
-        displayName: Resource's Namespace
-        path: source.namespace
       - description: Staleness defines the age of a feature-value(time since the value
           has set) to consider as *stale*. Stale values are not fit for usage, therefore
           will not be returned and will REQUIRE re-ingestion.
@@ -122,10 +134,10 @@ spec:
         displayName: FQN
         path: fqn
       version: v1alpha1
-    - description: FeatureSet is the Schema for the featuresets API
-      displayName: ML FeatureSet
-      kind: FeatureSet
-      name: featuresets.k8s.raptor.ml
+    - description: Model is the Schema for the models API
+      displayName: ML Model
+      kind: Model
+      name: models.k8s.raptor.ml
       resources:
       - kind: Deployment
         name: raptor-controller-core
@@ -135,17 +147,46 @@ spec:
           feature set
         displayName: Features
         path: features
+      - description: Freshness defines the age of a prediction-result(time since the
+          value has set) to consider as *fresh*. Fresh values doesn't require re-ingestion
+        displayName: Freshness
+        path: freshness
       - description: KeyFeature is the feature FQN that is used to align the rest
-          of the features with it timestamp. If this is unset, the first feature in
-          the list will be used.
+          of the features with their timestamp. If this is unset, the first feature
+          in the list will be used.
         displayName: Key Feature FQN
         path: keyFeature
+      - description: Labels is a list of feature FQNs that are used to label the prediction
+          result.
+        displayName: Labels
+        path: labels
+      - description: ModelFramework is the framework used to train the model.
+        displayName: Model Framework
+        path: modelFramework
+      - description: ModelFrameworkVersion is the version of the framework used to
+          train the model.
+        displayName: Model Framework Version
+        path: modelFrameworkVersion
+      - description: ModelServer is the server used to serve the model.
+        displayName: Model Server
+        path: modelServer
+      - description: Staleness defines the age of a prediction-result(time since the
+          value has set) to consider as *stale*. Stale values are not fit for usage,
+          therefore will not be returned and will REQUIRE re-ingestion.
+        displayName: Staleness
+        path: staleness
+      - description: StorageURI is the URI of the model storage.
+        displayName: Storage URI
+        path: storageURI
       - description: Timeout defines the maximum ingestion time allowed to calculate
-          the feature value.
+          the prediction.
         displayName: Timeout
         path: timeout
+      - description: TrainingCode defines the code used to train the model.
+        displayName: Python Expression
+        path: trainingCode
       statusDescriptors:
-      - description: FQN is the Fully Qualified Name for the FeatureSet
+      - description: FQN is the Fully Qualified Name for the Model
         displayName: FQN
         path: fqn
       version: v1alpha1

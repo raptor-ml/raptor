@@ -41,7 +41,7 @@ type featureQuery struct {
 }
 
 type QueryBuilder interface {
-	FeatureSet(ctx context.Context, fs manifests.FeatureSetSpec, getter api.FeatureDescriptorGetter) (query string, err error)
+	FeatureSet(ctx context.Context, fs manifests.ModelSpec, getter api.FeatureDescriptorGetter) (query string, err error)
 	Feature(feature api.FeatureDescriptor) (string, error)
 }
 

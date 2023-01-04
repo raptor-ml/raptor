@@ -1,0 +1,120 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.9.2
+  creationTimestamp: null
+  name: models.k8s.raptor.ml
+spec:
+  group: k8s.raptor.ml
+  names:
+    categories:
+    - datascience
+    kind: Model
+    listKind: ModelList
+    plural: models
+    shortNames:
+    - ftset
+    singular: model
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Model is the Schema for the models API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ModelSpec defines the list of feature FQNs that are enabled
+              for a given feature set
+            properties:
+              features:
+                description: Features is the list of feature FQNs that are enabled
+                  for a given feature set
+                items:
+                  type: string
+                minItems: 2
+                type: array
+              freshness:
+                description: Freshness defines the age of a prediction-result(time
+                  since the value has set) to consider as *fresh*. Fresh values doesn't
+                  require re-ingestion
+                type: string
+              keyFeature:
+                description: KeyFeature is the feature FQN that is used to align the
+                  rest of the features with their timestamp. If this is unset, the
+                  first feature in the list will be used.
+                nullable: true
+                type: string
+              labels:
+                description: Labels is a list of feature FQNs that are used to label
+                  the prediction result.
+                items:
+                  type: string
+                nullable: true
+                type: array
+              modelFramework:
+                description: ModelFramework is the framework used to train the model.
+                type: string
+              modelFrameworkVersion:
+                description: ModelFrameworkVersion is the version of the framework
+                  used to train the model.
+                type: string
+              modelServer:
+                description: ModelServer is the server used to serve the model.
+                enum:
+                - sagemaker
+                type: string
+              staleness:
+                description: Staleness defines the age of a prediction-result(time
+                  since the value has set) to consider as *stale*. Stale values are
+                  not fit for usage, therefore will not be returned and will REQUIRE
+                  re-ingestion.
+                type: string
+              storageURI:
+                description: StorageURI is the URI of the model storage.
+                type: string
+              timeout:
+                description: Timeout defines the maximum ingestion time allowed to
+                  calculate the prediction.
+                nullable: true
+                type: string
+              trainingCode:
+                description: TrainingCode defines the code used to train the model.
+                nullable: true
+                type: string
+            required:
+            - features
+            - freshness
+            - modelFramework
+            - modelFrameworkVersion
+            - modelServer
+            - staleness
+            - storageURI
+            type: object
+          status:
+            description: ModelStatus defines the observed state of Model
+            properties:
+              fqn:
+                description: FQN is the Fully Qualified Name for the Model
+                type: string
+            required:
+            - fqn
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

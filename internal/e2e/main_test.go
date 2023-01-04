@@ -52,8 +52,8 @@ func TestMain(m *testing.M) {
 			imgBasename: *imgBasename,
 			clusterName: kindClusterName,
 		}),
-		envfuncs.CreateKindClusterWithConfig(kindClusterName, "''", "./kind-cluster.yaml"),
-		envfuncs.SetupCRDs("../../config/crd/bases", "*"),
+		envfuncs.CreateKindClusterWithConfig(kindClusterName, "''", "./internal/e2e/kind-cluster.yaml"),
+		envfuncs.SetupCRDs("./config/crd/bases", "*"),
 		SetupCore("system", kindClusterName, *imgBasename, *buildTag),
 	)
 

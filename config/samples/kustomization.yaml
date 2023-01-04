@@ -4,7 +4,7 @@ resources:
   - feature.basic.hello-world.yaml
   - feature.basic.primitives.yaml
   - feature.rest.user-city.yaml
-  - featureset.basic.yaml
+  - model.basic.yaml
   - src.streaming.clicks.yml
   - src.rest.placeholder.yml
 #+kubebuilder:scaffold:manifestskustomizesamples
