@@ -57,7 +57,7 @@ func TestSamples(t *testing.T) {
 			}
 
 			// Use kustomize to preserve the order of the manifests. This is important because the DataSources must be created before the Features.
-			proc := gexe.New().RunProc("kustomize build ./config/samples/")
+			proc := gexe.New().RunProc("kustomize build ../../config/samples/")
 			if err := proc.Err(); err != nil {
 				t.Errorf("failed to run kustomize: %s", err)
 				t.Fail()
