@@ -23,7 +23,7 @@ spec:
         - name: historian
           command:
             - /historian
-          image: historian:latest
+          image: raptor-historian:latest
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
