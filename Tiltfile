@@ -64,6 +64,7 @@ def patch_resources(yaml):
         if resource['kind'] == 'Deployment':
             if resource['metadata']['name'] == 'raptor-controller-core':
                 resource['spec']['replicas'] = 1
+
             resource["spec"]["template"]["spec"]["securityContext"] = {}
             for container in resource['spec']['template']['spec']['containers']:
                 container["securityContext"] = {}
@@ -73,6 +74,10 @@ def patch_resources(yaml):
 
 #### CRD
 k8s_yaml(kustomize('config/crd'), allow_duplicates=True)
+
+base_ignores = ['Tiltfile', './hack', './bin', './config', './.git', './.github', '*.md', './lsp', '.venv']
+go_ignores = base_ignores + ['./labsdk', './runtime']
+py_ignores = base_ignores + ['./cmd', './internal', './pkg']
 
 #### Runtime
 docker_build_with_restart(
@@ -85,6 +90,8 @@ docker_build_with_restart(
         run('cd /app && pip install -r requirements.txt', trigger='./requirements.txt'),
     ],
     entrypoint=["python", "/runtime/runtime.py"],
+    trigger=['runtime/'],
+    ignore=py_ignores,
 )
 
 #### Controllers
@@ -112,6 +119,7 @@ dlv_cmd = [
     '--check-go-version=false',
     "--log",
     '--check-go-version=false',
+    '--continue',
     'exec',
     '--',
 ]
@@ -136,7 +144,7 @@ docker_build_with_restart(
         run(compile_cmd.format(app="core")),
         run('go mod download', trigger=['.go.mod', '.go.sum']),
     ],
-    ignore=['Tiltfile', 'hack', 'labsdk', 'bin', 'config', '.git', '.github', '*.md'],
+    ignore=go_ignores,
 )
 
 ##### Historian
@@ -158,6 +166,7 @@ docker_build_with_restart(
         ]),
         run('go mod download', trigger=['.go.mod', '.go.sum']),
     ],
+    ignore=go_ignores,
 )
 k8s_yaml(patch_resources(kustomize('config/default')), allow_duplicates=True)
 k8s_resource(
