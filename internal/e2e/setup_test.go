@@ -212,7 +212,7 @@ func SetupCore(name, kindClusterName, imgBasename, buildTag string, args ...stri
 			return ctx, fmt.Errorf("failed to create resources client: %w", err)
 		}
 
-		proc := gexe.New().RunProc("kustomize build ./config/default/base")
+		proc := gexe.New().RunProc("kustomize build ../../config/default/base")
 		if err := proc.Err(); err != nil {
 			return ctx, fmt.Errorf("failed to run kustomize: %w", err)
 		}

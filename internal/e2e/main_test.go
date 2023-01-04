@@ -22,6 +22,7 @@ package e2e
 import (
 	"context"
 	"flag"
+	"fmt"
 	"k8s.io/klog/v2"
 	"os"
 	"sigs.k8s.io/e2e-framework/pkg/env"
@@ -46,14 +47,15 @@ func TestMain(m *testing.M) {
 	testEnv = env.NewWithConfig(cfg)
 	kindClusterName := envconf.RandomName("raptor-test", 16)
 
+	fmt.Println(os.Getwd())
 	testEnv.Setup(
 		SetupCfg(extraCfg{
 			buildTag:    *buildTag,
 			imgBasename: *imgBasename,
 			clusterName: kindClusterName,
 		}),
-		envfuncs.CreateKindClusterWithConfig(kindClusterName, "''", "./internal/e2e/kind-cluster.yaml"),
-		envfuncs.SetupCRDs("./config/crd/bases", "*"),
+		envfuncs.CreateKindClusterWithConfig(kindClusterName, "''", "./kind-cluster.yaml"),
+		envfuncs.SetupCRDs("../../config/crd/bases", "*"),
 		SetupCore("system", kindClusterName, *imgBasename, *buildTag),
 	)
 
