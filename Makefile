@@ -125,9 +125,9 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 
 .PHONY: buf-build
 buf-build: buf ## Build protobufs with buf
-	$(BUF) build proto
-	$(BUF) breaking proto --against .
-	cd proto && $(BUF) generate
+	cd api/proto && $(BUF) build
+	cd api/proto && $(BUF) breaking --against .
+	cd api/proto && $(BUF) generate
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.
@@ -139,7 +139,7 @@ test: manifests generate fmt lint envtest ## Run tests.
 
 .PHONY: test-e2e
 test-e2e: docker-build ## Run integration tests.
-	go test -v -timeout 1h ./internal/e2e/... -tags e2e --build-tag=$(VERSION) -v 5
+	go test -v -timeout 1h -tags e2e github.com/raptor-ml/raptor/internal/e2e --args -v 5 --build-tag=$(VERSION)
 
 ##@ Build
 
@@ -165,28 +165,28 @@ docker-build: generate docker-build-runtimes ## Build docker images.
 
 .PHONY: docker-build-runtimes
 docker-build-runtimes: ## Build docker images for runtimes.
-	DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
+	DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
 		--build-arg BASE_PYTHON_IMAGE="python:3.11-alpine"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.11 -t ${RUNTIME_IMG_BASE}:latest-python3.11 \
 		-t ${RUNTIME_IMG_BASE}:${VERSION} -t ${RUNTIME_IMG_BASE}:latest \
 		--target runtime -f ./runtime/Dockerfile .
 
-	DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
+	DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
 		--build-arg BASE_PYTHON_IMAGE="python:3.10-alpine"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.10 -t ${RUNTIME_IMG_BASE}:latest-python3.10 \
 		--target runtime -f ./runtime/Dockerfile .
 
-	DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
+	DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
 		--build-arg BASE_PYTHON_IMAGE="python:3.9-alpine"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.9 -t ${RUNTIME_IMG_BASE}:latest-python3.9 \
 		--target runtime -f ./runtime/Dockerfile .
 
-	DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
+	DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
 		--build-arg BASE_PYTHON_IMAGE="python:3.8-alpine"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.8 -t ${RUNTIME_IMG_BASE}:latest-python3.8 \
 		--target runtime -f ./runtime/Dockerfile .
 
-	DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
+	DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
 		--build-arg BASE_PYTHON_IMAGE="python:3.7-alpine"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.7 -t ${RUNTIME_IMG_BASE}:latest-python3.7 \
 		--target runtime -f ./runtime/Dockerfile .
