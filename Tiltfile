@@ -109,7 +109,7 @@ dlv_cmd = [
     '--headless=true',
     '--only-same-user=false',
     '--accept-multiclient',
-    '--check-go-version=false'
+    '--check-go-version=false',
     "--log",
     '--check-go-version=false',
     'exec',
