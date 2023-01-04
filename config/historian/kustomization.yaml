@@ -5,8 +5,8 @@ generatorOptions:
   disableNameSuffixHash: true
 
 images:
-- name: historian
-  newName: ghcr.io/raptor-ml/raptor-historian
+- name: raptor-historian
+  newName: raptor-historian
   newTag: latest
 
 replicas:

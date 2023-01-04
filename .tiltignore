@@ -1,0 +1,10 @@
+bin/
+.venv
+Makefile
+*.md
+.run/
+.idea/
+.github/
+.git/
+bundle/
+hack/
