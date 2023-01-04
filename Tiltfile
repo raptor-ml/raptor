@@ -119,8 +119,8 @@ dlv_cmd = [
     '--check-go-version=false',
     "--log",
     '--check-go-version=false',
-    '--continue',
     'exec',
+    '--continue',
     '--',
 ]
 
