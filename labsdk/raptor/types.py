@@ -25,6 +25,8 @@ from typing_extensions import TypedDict
 
 from . import durpy, local_state
 from .config import default_namespace
+from .frameworks.huggingface_pipelines import HuggingFacePipelinesFramework
+from .frameworks.sklearn import SklearnFramework
 from .program import Program
 from .yaml import RaptorDumper
 
@@ -131,6 +133,58 @@ class Primitive(Enum):
             return Primitive.TimestampList
         else:
             raise Exception("Primitive type {p} not supported")
+
+
+class ModelServer(Enum):
+    SageMaker = 'sagemaker'
+    Seldon = 'seldon'
+    KServe = 'kserve'
+    VertexAI = 'vertexai'
+    MLFlow = 'mlflow'
+
+    @staticmethod
+    def parse(m):
+        if isinstance(m, ModelServer):
+            return m
+        if isinstance(m, str):
+            for ms in ModelServer:
+                if ms.value == m:
+                    return ms
+        raise Exception(f"Unknown ModelServer {m}")
+
+    def __str__(self):
+        if self != ModelServer.SageMaker:
+            warn(f"ModelServer {self} is not supported yet")
+        return self.value
+
+
+class ModelFramework(Enum):
+    HuggingFacePipelines = 'huggingface-pipelines'
+    Sklearn = 'sklearn'
+    Pytorch = 'pytorch'
+    Tensorflow = 'tensorflow'
+    CatBoost = 'catboost'
+    ONNX = 'onnx'
+    LightGBM = 'lightgbm'
+    XGBoost = 'xgboost'
+    FastAI = 'fastai'
+
+    @staticmethod
+    def parse(m):
+        if isinstance(m, ModelFramework):
+            return m
+        if isinstance(m, str):
+            for e in ModelFramework:
+                if e.value == m:
+                    return e
+        raise Exception(f"Unknown ModelFramework {m}")
+
+    def save(self, model, spec):
+        if self == ModelFramework.HuggingFacePipelines:
+            return HuggingFacePipelinesFramework.save(model, spec)
+        elif self == ModelFramework.Sklearn:
+            return SklearnFramework.save(model, spec)
+        warn(f"ModelFramework {self} not Deployable by Raptor at the moment. Please export your model manually instead")
 
 
 class BuilderSpec(object):
@@ -422,8 +476,8 @@ class DataSourceSpec(yaml.YAMLObject):
 RaptorDumper.add_representer(DataSourceSpec, DataSourceSpec.to_yaml)
 
 
-class FeatureSetSpec(yaml.YAMLObject):
-    yaml_tag = u'!FeatureSetSpec'
+class ModelSpec(yaml.YAMLObject):
+    yaml_tag = u'!ModelSpec'
 
     name: str = None
     namespace: str = None
@@ -431,11 +485,22 @@ class FeatureSetSpec(yaml.YAMLObject):
     labels: dict = {}
     annotations: dict = {}
 
+    keys: [str] = None
+
     freshness: Optional[timedelta] = None
     staleness: timedelta = None
     timeout: timedelta = None
     features: [str] = None
+    label_features: [str] = None
     _key_feature: str = None
+
+    model_framework: ModelFramework = None
+    _model_framework_version: Optional[str] = None
+    ModelServer: Optional[ModelServer] = None
+    _trained_model: Optional[object] = None
+    _training_code: Optional[str] = None
+
+    _model_filename: Optional[str] = None
 
     def fqn(self):
         if self.namespace is None:
@@ -446,30 +511,25 @@ class FeatureSetSpec(yaml.YAMLObject):
         return self.__repr__()
 
     def __repr__(self):
-        return f"FeatureSetSpec({self.fqn()})"
+        return f"ModelSpec({self.fqn()})"
 
     def __setattr__(self, key, value):
-        if key == 'timeout':
-            if isinstance(value, str):
-                value = durpy.from_str(value)
-            elif isinstance(value, timedelta):
-                value = value
-            else:
-                raise Exception(f"Invalid type {type(value)} for {key}")
-        elif key == 'freshness':
-            if value is None or value == '':
+        if key == 'freshness' or key == 'staleness' or key == 'timeout':
+            if value == '' or value is None:
                 value = None
             elif isinstance(value, str):
                 value = durpy.from_str(value)
             elif isinstance(value, timedelta):
                 value = value
+            else:
+                raise Exception(f"Invalid type {type(value)} for {key}")
 
         super().__setattr__(key, value)
 
     @property
     def key_feature(self):
         if self._key_feature is None:
-            return self.features[0]
+            return self.label_features[0]
         return self._key_feature
 
     @key_feature.setter
@@ -477,15 +537,15 @@ class FeatureSetSpec(yaml.YAMLObject):
         self._key_feature = value
 
     def manifest(self):
-        """return a Kubernetes YAML manifest for this FeatureSet definition"""
+        """return a Kubernetes YAML manifest for this Model definition"""
         return yaml.dump(self, sort_keys=False, Dumper=RaptorDumper)
 
     @classmethod
-    def to_yaml(cls, dumper: yaml.dumper.Dumper, data: 'FeatureSetSpec'):
+    def to_yaml(cls, dumper: yaml.dumper.Dumper, data: 'ModelSpec'):
         data.annotations['a8r.io/description'] = data.description
         manifest = {
             "apiVersion": "k8s.raptor.ml/v1alpha1",
-            "kind": "FeatureSet",
+            "kind": "Model",
             "metadata": {
                 "name": _k8s_name(data.name),
                 "namespace": data.namespace,
@@ -493,15 +553,23 @@ class FeatureSetSpec(yaml.YAMLObject):
                 "annotations": data.annotations
             },
             "spec": {
+                "freshness": data.freshness,
+                "staleness": data.staleness,
                 "timeout": data.timeout,
                 "features": data.features,
-                "keyFeature": None if data.key_feature == data.features[0] else data.key_feature
+                "keyFeature": None if data.key_feature == data.features[0] else data.key_feature,
+                "labels": data.label_features,
+                "modelFramework": data.model_framework,
+                "modelFrameworkVersion": data._model_framework_version,
+                "modelServer": data.ModelServer,
+                "storageURI": None if data._model_filename is None else f"$MODEL_URI_PATH/{data._model_filename}",
+                "trainingCode": None if data._training_code is None else data._training_code,
             }
         }
         return dumper.represent_mapping(cls.yaml_tag, manifest, flow_style=cls.yaml_flow_style)
 
 
-RaptorDumper.add_representer(FeatureSetSpec, FeatureSetSpec.to_yaml)
+RaptorDumper.add_representer(ModelSpec, ModelSpec.to_yaml)
 
 
 class Keys(Dict[str, str]):

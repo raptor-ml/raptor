@@ -17,3 +17,4 @@ from .decorators import *
 from .local_state import manifests
 from .program import Context
 from .types import Primitive, AggregationFunction, Keys
+from .model import TrainingContext

@@ -32,7 +32,7 @@ type featureSetQuery struct {
 	KeyFeature    string
 }
 
-func (qb *queryBuilder) FeatureSet(ctx context.Context, fs manifests.FeatureSetSpec, getter api.FeatureDescriptorGetter) (string, error) {
+func (qb *queryBuilder) FeatureSet(ctx context.Context, fs manifests.ModelSpec, getter api.FeatureDescriptorGetter) (string, error) {
 	if fs.KeyFeature == "" {
 		fs.KeyFeature = fs.Features[0]
 	}

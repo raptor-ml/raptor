@@ -43,7 +43,7 @@ func FeatureWithEngine(e api.ExtendedManager, in *manifests.Feature) (*Feature, 
 		}
 	}
 
-	if fd.Builder != "featureset" {
+	if fd.Builder != "model" {
 		prog, err := e.LoadProgram(fd.RuntimeEnv, fd.FQN, in.Spec.Builder.Code, in.Spec.Builder.Packages)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load python program: %w", err)

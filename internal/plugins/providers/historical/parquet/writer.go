@@ -124,7 +124,7 @@ func (bw *baseParquet) Close(ctx context.Context) error {
 	return bw.FlushAll(ctx)
 }
 
-func (bw *baseParquet) BindFeature(fd *api.FeatureDescriptor, fs *manifests.FeatureSetSpec, getter api.FeatureDescriptorGetter) error {
+func (bw *baseParquet) BindFeature(fd *api.FeatureDescriptor, fs *manifests.ModelSpec, getter api.FeatureDescriptorGetter) error {
 	// TODO implement
 	return nil
 }

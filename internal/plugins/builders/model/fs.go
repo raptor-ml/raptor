@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package featureset
+package model
 
 import (
 	"context"
@@ -27,19 +27,19 @@ import (
 )
 
 func init() {
-	const name = api.FeatureSetBuilder
+	const name = api.ModelBuilder
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
 func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, faapi api.FeatureAbstractAPI, engine api.ExtendedManager) error {
-	spec := manifests.FeatureSetSpec{}
+	spec := manifests.ModelSpec{}
 	err := json.Unmarshal(builder.Raw, &spec)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal expression spec: %w", err)
 	}
 
 	if len(spec.Features) < 2 {
-		return fmt.Errorf("featureset must have at least 2 features")
+		return fmt.Errorf("model must have at least 2 features")
 	}
 
 	ns, _, _, _, _, err := api.ParseFQN(fd.FQN)
@@ -51,22 +51,22 @@ func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, fa
 	for i, f := range spec.Features {
 		spec.Features[i], err = api.NormalizeFQN(f, ns)
 		if err != nil {
-			return fmt.Errorf("failed to normalize feature %s in featureset %s: %w", f, fd.FQN, err)
+			return fmt.Errorf("failed to normalize feature %s in model %s: %w", f, fd.FQN, err)
 		}
 	}
 
-	fs := &featureset{engine: engine, features: spec.Features}
+	fs := &model{engine: engine, features: spec.Features}
 	faapi.AddPostGetMiddleware(0, fs.preGetMiddleware)
 	faapi.AddPreSetMiddleware(0, fs.preSetMiddleware)
 	return nil
 }
 
-type featureset struct {
+type model struct {
 	features []string
 	engine   api.Engine
 }
 
-func (fs *featureset) preGetMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
+func (fs *model) preGetMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
 	return func(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, val api.Value) (api.Value, error) {
 		logger := api.LoggerFromContext(ctx)
 		wg := &sync.WaitGroup{}
@@ -98,8 +98,8 @@ func (fs *featureset) preGetMiddleware(next api.MiddlewareHandler) api.Middlewar
 	}
 }
 
-func (fs *featureset) preSetMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
+func (fs *model) preSetMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
 	return func(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, val api.Value) (api.Value, error) {
-		return val, fmt.Errorf("cannot set featureset %s", fd.FQN)
+		return val, fmt.Errorf("cannot set model %s", fd.FQN)
 	}
 }

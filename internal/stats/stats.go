@@ -69,27 +69,43 @@ func init() {
 		fdReqs,
 	)
 }
+
+// IncNumberOfFeatures increments the number of features that are being served by the engine.
 func IncNumberOfFeatures() {
 	numOfFeatures.Inc()
 }
+
+// DecNumberOfFeatures decrements the number of features that are being served by the engine.
 func DecNumberOfFeatures() {
 	numOfFeatures.Dec()
 }
+
+// IncrFeatureGets increments the number of feature `Get` requests.
 func IncrFeatureGets() {
 	featureGets.Inc()
 }
+
+// IncrFeatureSets increments the number of feature `Set` requests.
 func IncrFeatureSets() {
 	featureSets.Inc()
 }
+
+// IncrFeatureUpdates increments the number of feature `Update` requests.
 func IncrFeatureUpdates() {
 	featureUpdates.Inc()
 }
+
+// IncrFeatureAppends increments the number of feature `Append` requests.
 func IncrFeatureAppends() {
 	featureAppends.Inc()
 }
+
+// IncrFeatureIncrements increments the number of feature `Increment` requests.
 func IncrFeatureIncrements() {
 	featureIncrements.Inc()
 }
+
+// IncrFeatureDescriptorReqs increments the number of feature descriptor requests.
 func IncrFeatureDescriptorReqs() {
 	fdReqs.Inc()
 }

@@ -20,10 +20,10 @@ import pandas as pd
 
 from . import config
 from .program import normalize_fqn, fqn_regex
-from .types import FeatureSpec, AggregationFunction, FeatureSetSpec, DataSourceSpec
+from .types import FeatureSpec, AggregationFunction, ModelSpec, DataSourceSpec
 
 # registered features
-Spec = Union[FeatureSpec, FeatureSetSpec, DataSourceSpec]
+Spec = Union[FeatureSpec, ModelSpec, DataSourceSpec]
 spec_registry: List[Spec] = []
 
 

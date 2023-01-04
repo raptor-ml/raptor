@@ -64,7 +64,7 @@ spec:
                     nullable: true
                     type: string
                   code:
-                    description: Code defines a Python expression to use to build
+                    description: Code defines a Python processing code to use to build
                       the feature-value.
                     type: string
                   kind:
