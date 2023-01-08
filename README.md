@@ -190,7 +190,7 @@ Feature Request" to give us some feedback.
 
 **Don't forget to give the project a star! ⭐️**
 
-For more information about contributing code to the project, read the `CONTRIBUTING.md` file.
+For more information about contributing code to the project, read the [`CONTRIBUTING.md`](./CONTRIBUTING.md) file.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
