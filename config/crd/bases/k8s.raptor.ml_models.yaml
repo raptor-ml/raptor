@@ -15,7 +15,7 @@ spec:
     listKind: ModelList
     plural: models
     shortNames:
-    - ftset
+    - model
     singular: model
   scope: Namespaced
   versions:
