@@ -4,35 +4,41 @@ load('ext://restart_process', 'docker_build_with_restart')
 
 deploy_cert_manager()
 
-k8s_custom_deploy(
-    "ingress-nginx",
-    "kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml -o yaml",
-    "kubectl delete -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml",
-    deps=[],
-)
+kind_yaml = decode_yaml_stream(local(
+    'curl https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml 2>/dev/null',
+    quiet=True))
+for o in kind_yaml:
+    if o['kind'] == 'Deployment':
+        o['spec']['template']['spec']['nodeSelector'] = {'kubernetes.io/os': 'linux'}
+kind_yaml = encode_yaml_stream(kind_yaml)
+k8s_yaml(kind_yaml)
+k8s_resource(new_name='ingress-nginx-ns', objects=['ingress-nginx:namespace'], labels=['cluster-services', 'ingress'])
 k8s_resource(
-    "ingress-nginx",
-    port_forwards=["80:80", "443:443"],
-    labels=["cluster-services"]
+    'ingress-nginx-controller',
+    port_forwards=['8080:80', '8443:443'],
+    labels=['cluster-services', 'ingress'],
+    resource_deps=['ingress-nginx-ns'],
 )
+k8s_resource('ingress-nginx-admission-create', resource_deps=['ingress-nginx-ns'], labels=['cluster-services', 'ingress'])
+k8s_resource('ingress-nginx-admission-patch', resource_deps=['ingress-nginx-ns'], labels=['cluster-services', 'ingress'])
 
-helm_repo("ot-helm", "https://ot-container-kit.github.io/helm-charts/", labels=["cluster-services"])
+helm_repo('ot-helm', 'https://ot-container-kit.github.io/helm-charts/', labels=['cluster-services'])
 helm_resource(
-    "redis-operator",
-    "ot-helm/redis-operator",
-    namespace="ot-operators",
-    flags=["--create-namespace"],
-    labels=["cluster-services"],
-    resource_deps=["ot-helm"],
+    'redis-operator',
+    'ot-helm/redis-operator',
+    namespace='ot-operators',
+    flags=['--create-namespace'],
+    labels=['cluster-services'],
+    resource_deps=['ot-helm'],
 )
 
 # Install prometheus-operator
-helm_repo('prometheus-community', 'https://prometheus-community.github.io/helm-charts', labels=["cluster-services"])
+helm_repo('prometheus-community', 'https://prometheus-community.github.io/helm-charts', labels=['cluster-services'])
 helm_resource(
     'prometheus',
     'prometheus-community/kube-prometheus-stack',
     namespace='monitoring',
-    labels=["cluster-services"],
+    labels=['cluster-services'],
     flags=[  ## Remove some components to make prometheus-operator lighter
         '--set', 'kubeApiServer.enabled=false',
         '--set', 'kubeEtcd.enabled=false',
@@ -46,13 +52,13 @@ helm_resource(
     resource_deps=['prometheus-community'],
 )
 
-k8s_yaml("./hack/dev/config/redis.yaml")
+k8s_yaml('./hack/dev/config/redis.yaml')
 k8s_resource(
     objects=['redis-standalone:Redis'],
     new_name='redis',
-    port_forwards=["6379:6379"],
-    labels=["redis", "cluster-services"],
-    resource_deps=["redis-operator"],
+    port_forwards=['6379:6379'],
+    labels=['redis', 'cluster-services'],
+    resource_deps=['redis-operator'],
 )
 
 
@@ -62,12 +68,12 @@ def patch_resources(yaml):
     resources = decode_yaml_stream(yaml)
     for resource in resources:
         if resource['kind'] == 'Deployment':
-            if resource['metadata']['name'] == 'raptor-controller-core':
+            if resource['spec']['replicas'] > 1:
                 resource['spec']['replicas'] = 1
 
-            resource["spec"]["template"]["spec"]["securityContext"] = {}
+            resource['spec']['template']['spec']['securityContext'] = {}
             for container in resource['spec']['template']['spec']['containers']:
-                container["securityContext"] = {}
+                container['securityContext'] = {}
 
     return encode_yaml_stream(resources)
 
@@ -89,13 +95,13 @@ docker_build_with_restart(
         sync('runtime/', '/app'),
         run('cd /app && pip install -r requirements.txt', trigger='./requirements.txt'),
     ],
-    entrypoint=["python", "/runtime/runtime.py"],
+    entrypoint=['python', '/runtime/runtime.py'],
     trigger=['runtime/'],
     ignore=py_ignores,
 )
 
 #### Controllers
-base_dockerfile = """
+base_dockerfile = '''
 FROM golang:1.19 AS build
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
@@ -106,9 +112,9 @@ RUN go mod download
 
 COPY . /workspace
 
-"""
+'''
 
-compile_cmd = """CGO_ENABLED=0 go build -gcflags "all=-N -l" -o /opt/{app} cmd/{app}/*.go"""
+compile_cmd = '''CGO_ENABLED=0 go build -gcflags 'all=-N -l' -o /opt/{app} cmd/{app}/*.go'''
 dlv_cmd = [
     '/go/bin/dlv',
     '--listen=0.0.0.0:2345',
@@ -117,7 +123,7 @@ dlv_cmd = [
     '--only-same-user=false',
     '--accept-multiclient',
     '--check-go-version=false',
-    "--log",
+    '--log',
     '--check-go-version=false',
     'exec',
     '--continue',
@@ -126,22 +132,22 @@ dlv_cmd = [
 
 ##### Core
 docker_build_with_restart(
-    "raptor-core",
+    'raptor-core',
     '.',
-    dockerfile_contents=base_dockerfile + "RUN " + compile_cmd.format(app="core"),
+    dockerfile_contents=base_dockerfile + 'RUN ' + compile_cmd.format(app='core'),
     entrypoint=dlv_cmd + [
         '/opt/core',
-        "--health-probe-bind-address=:8081",
-        "--metrics-bind-address=127.0.0.1:8080",
-        "--leader-elect",
-        "-r=redis-standalone.default:6379",
+        '--health-probe-bind-address=:8081',
+        '--metrics-bind-address=127.0.0.1:8080',
+        '--leader-elect',
+        '-r=redis-standalone.default:6379',
     ],
     live_update=[
         # Copy the binary so it gets restarted.
         sync(
-            ".", "/workspace"
+            '.', '/workspace'
         ),
-        run(compile_cmd.format(app="core")),
+        run(compile_cmd.format(app='core')),
         run('go mod download', trigger=['.go.mod', '.go.sum']),
     ],
     ignore=go_ignores,
@@ -149,16 +155,16 @@ docker_build_with_restart(
 
 ##### Historian
 docker_build_with_restart(
-    "raptor-historian",
+    'raptor-historian',
     '.',
-    dockerfile_contents=base_dockerfile + "RUN " + compile_cmd.format(app="historian"),
-    entrypoint=dlv_cmd + ['/opt/historian', "-r=redis-standalone.default:6379"],
+    dockerfile_contents=base_dockerfile + 'RUN ' + compile_cmd.format(app='historian'),
+    entrypoint=dlv_cmd + ['/opt/historian', '-r=redis-standalone.default:6379'],
     live_update=[
         # Copy the binary so it gets restarted.
         sync(
-            ".", "/workspace"
+            '.', '/workspace'
         ),
-        run(compile_cmd.format(app="historian"), trigger=[
+        run(compile_cmd.format(app='historian'), trigger=[
             'cmd/historian/**',
             'internal/historian/*',
             'internal/plugins/providers/historical/**',
@@ -171,13 +177,13 @@ docker_build_with_restart(
 k8s_yaml(patch_resources(kustomize('config/default')), allow_duplicates=True)
 k8s_resource(
     'raptor-controller-core',
-    port_forwards=["60000:60000", "2345:2345"],
-    labels=["raptor"],
-    resource_deps=["redis"],
+    port_forwards=['60000:60000', '2345:2345'],
+    labels=['raptor'],
+    resource_deps=['redis'],
 )
 k8s_resource(
     'raptor-historian',
-    port_forwards=["2346:2345"],
-    labels=["raptor"],
-    resource_deps=["redis"],
+    port_forwards=['2346:2345'],
+    labels=['raptor'],
+    resource_deps=['redis'],
 )

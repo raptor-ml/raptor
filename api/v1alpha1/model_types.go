@@ -101,7 +101,7 @@ type ModelStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:categories=datascience,shortName=ftset
+// +kubebuilder:resource:categories=datascience,shortName=model
 // +operator-sdk:csv:customresourcedefinitions:displayName="ML Model",resources={{Deployment,v1,raptor-controller-core}}
 
 // Model is the Schema for the models API
