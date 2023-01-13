@@ -52,7 +52,7 @@ helm_resource(
     resource_deps=['prometheus-community'],
 )
 
-k8s_yaml('./hack/dev/config/redis.yaml')
+k8s_yaml('./hack/redis-standalone.yaml')
 k8s_resource(
     objects=['redis-standalone:Redis'],
     new_name='redis',
