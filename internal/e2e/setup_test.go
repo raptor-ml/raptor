@@ -182,7 +182,7 @@ func SetupCore(name, kindClusterName, imgBasename, buildTag string, args ...stri
 			return ctx, fmt.Errorf("failed to setup redis: %w", err)
 		}
 		redisSvc := ctx.Value(redisContextKey(redisName)).(v1.ObjectMeta)
-		args := append(args, fmt.Sprintf("--redis=%s.%s:6379", redisSvc.Name, redisSvc.Namespace))
+		args = append(args, fmt.Sprintf("--redis=%s.%s:6379", redisSvc.Name, redisSvc.Namespace))
 
 		// Upload images to the registry
 		coreImg := fmt.Sprintf("%s-core:%s", imgBasename, buildTag)
