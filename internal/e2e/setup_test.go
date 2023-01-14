@@ -56,7 +56,7 @@ type redisContextKey string
 type raptorContextKey string
 type extraCfgContextKey int
 
-const waitTimeout = 15 * time.Minute
+const waitTimeout = 10 * time.Minute
 const coreReplicas int32 = 2
 
 var supportedRuntimes = []string{"python3.11", "python3.10", "python3.9", "python3.8", "python3.7"}
@@ -241,6 +241,7 @@ func SetupCore(name, kindClusterName, imgBasename, buildTag string, args ...stri
 			return object.(*appsv1.Deployment).Status.ReadyReplicas
 		}, coreReplicas), wait.WithTimeout(waitTimeout))
 		if err != nil {
+			CollectNamespaceLogs(ns, -1)(ctx, cfg)
 			return ctx, fmt.Errorf("failed to wait for Core to be ready: %w", err)
 		}
 
