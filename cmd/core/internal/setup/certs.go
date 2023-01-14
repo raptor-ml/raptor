@@ -30,6 +30,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/open-policy-agent/cert-controller/pkg/rotator"
 	opctrl "github.com/raptor-ml/raptor/internal/operator"
+	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -79,7 +80,7 @@ func Certs(mgr manager.Manager, certsReady chan struct{}) {
 }
 
 const (
-	secretName     = "raptor-webhook-server-cert" //nolint:gosec
+	secretName     = "raptor-webhook-server-cert" //nolint:gosec //pragma: allowlist secret
 	certName       = "raptor-serving-cert"
 	serviceName    = "raptor-webhook-service"
 	caName         = "raptor-ca"
@@ -165,7 +166,7 @@ func certManagerRunnable(client client.Client, scheme *runtime.Scheme, ns string
 					Name: caName,
 					Kind: certApi.IssuerKind,
 				}
-				cert.Spec.SecretName = secretName
+				cert.Spec.SecretName = secretName //pragma: allowlist secret
 				cert.Spec.DNSNames = []string{
 					dnsName(ns),
 					fmt.Sprintf("%s.cluster.local", dnsName(ns))}
@@ -230,7 +231,7 @@ func certsWithCertsController(mgr manager.Manager, ns string, certsReady chan st
 	setupLog.Info("Setting up internal cert rotation")
 
 	err := rotator.AddRotator(mgr, &rotator.CertRotator{
-		SecretKey: types.NamespacedName{
+		SecretKey: types.NamespacedName{ //pragma: allowlist secret
 			Namespace: ns,
 			Name:      secretName,
 		},
@@ -239,8 +240,9 @@ func certsWithCertsController(mgr manager.Manager, ns string, certsReady chan st
 		CAOrganization:         caOrganization,
 		DNSName:                dnsName(ns),
 		IsReady:                certsReady,
-		RestartOnSecretRefresh: true,
+		RestartOnSecretRefresh: true, //pragma: allowlist secret
 		Webhooks:               webhooks,
+		RequireLeaderElection:  viper.GetBool("leader-elect"),
 	})
 	OrFail(err, "unable to set up cert rotation")
 }

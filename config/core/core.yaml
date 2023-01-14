@@ -59,12 +59,14 @@ spec:
               port: 8081
             initialDelaySeconds: 35
             periodSeconds: 20
+            failureThreshold: 10
           readinessProbe:
             httpGet:
               path: /readyz
               port: 8081
-            initialDelaySeconds: 5
+            initialDelaySeconds: 35
             periodSeconds: 20
+            failureThreshold: 10
           resources:
             limits:
               cpu: 500m
@@ -86,11 +88,13 @@ spec:
           readinessProbe:
             exec:
               command: [ "/bin/grpc_health_probe", "-addr=unix:///tmp/this-runtime.sock" ]
-            initialDelaySeconds: 5
+            initialDelaySeconds: 10
+            failureThreshold: 10
           livenessProbe:
             exec:
               command: [ "/bin/grpc_health_probe", "-addr=unix:///tmp/this-runtime.sock" ]
-            initialDelaySeconds: 5
+            initialDelaySeconds: 10
+            failureThreshold: 10
           resources:
             limits:
               cpu: 500m
