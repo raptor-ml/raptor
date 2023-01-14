@@ -56,7 +56,7 @@ type redisContextKey string
 type raptorContextKey string
 type extraCfgContextKey int
 
-const waitTimeout = 10 * time.Minute
+const waitTimeout = 15 * time.Minute
 const coreReplicas int32 = 2
 
 var supportedRuntimes = []string{"python3.11", "python3.10", "python3.9", "python3.8", "python3.7"}
