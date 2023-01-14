@@ -24,7 +24,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.24.1
-	github.com/open-policy-agent/cert-controller v0.5.0
+	github.com/open-policy-agent/cert-controller v0.6.0
 	github.com/prometheus/client_golang v1.14.0
 	github.com/snowflakedb/gosnowflake v1.6.16
 	github.com/spf13/pflag v1.0.5

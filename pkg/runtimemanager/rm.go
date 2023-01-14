@@ -31,6 +31,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"os"
 	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -56,31 +57,32 @@ func New(mgr manager.Manager, namespace string, podname string) (api.RuntimeMana
 		conns:        sync.Map{},
 	}
 
-	checked := false
-check:
+	// discover environments without a manager
 	if mgr == nil || os.Getenv("DEFAULT_RUNTIME") != "" {
-		checked = true
-
 		time.Sleep(2 * time.Second) // wait for the runtimes to start
+
 		rm.defaultEnv = os.Getenv("DEFAULT_RUNTIME")
 
-		// discover runtimes by unix sockets
-		path := "/tmp/raptor/runtime/"
-		suffix := ".sock"
-		matches, err := filepath.Glob(fmt.Sprintf("%s*%s", path, suffix))
-		if err != nil {
-			return nil, fmt.Errorf("failed to discover runtimes: %w", err)
-		}
-		for _, v := range matches {
-			rm.environments[v[len(path):len(v)-len(suffix)]] = v1.Container{}
-		}
-
-		if len(matches) == 0 {
-			if checked {
-				return nil, fmt.Errorf("no runtimes found")
+		checkFn := func() (bool, error) {
+			path := "/tmp/raptor/runtime/"
+			suffix := ".sock"
+			matches, err := filepath.Glob(fmt.Sprintf("%s*%s", path, suffix))
+			if err != nil {
+				return false, fmt.Errorf("failed to discover runtimes: %w", err)
 			}
-			time.Sleep(5 * time.Second)
-			goto check
+			for _, v := range matches {
+				rm.environments[v[len(path):len(v)-len(suffix)]] = v1.Container{}
+			}
+			return len(rm.environments) > 0, nil
+		}
+		if err := wait.ExponentialBackoff(wait.Backoff{
+			Duration: 3 * time.Second,
+			Factor:   2,
+
+			Jitter: 1,
+			Steps:  5,
+		}, checkFn); err != nil {
+			return nil, fmt.Errorf("no runtimes found")
 		}
 
 		return rm, nil
