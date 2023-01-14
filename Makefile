@@ -52,19 +52,7 @@ CORE_IMG_BASE = $(IMAGE_BASE)-core
 RUNTIME_IMG_BASE = $(IMAGE_BASE)-runtime
 HISTORIAN_IMG_BASE = $(IMAGE_BASE)-historian
 
-## Configuring the environment mode
-ENV ?= dev
-ifneq ($(origin PROD),undefined)
-  ENV = prod
-endif
-
-ifeq ($(ENV),prod)
-  CONTEXT ?= gke_raptor-test_europe-west3-a_raptor-test
-  $(info $(shell tput setaf 1)-+-+ PROD MODE -+-+$(shell tput sgr0))
-else
-  CONTEXT ?= kind-raptor
-  $(info $(shell tput setaf 2)+-+- DEV MODE +-+-$(shell tput sgr0))
-endif
+CONTEXT ?= gke_raptor-test_europe-west3-a_raptor-test
 KUBECTL = kubectl --context='${CONTEXT}'
 
 $(info $(shell tput setaf 3)Context: $(shell tput sgr0)$(CONTEXT))
@@ -191,16 +179,6 @@ docker-build-runtimes: ## Build docker images for runtimes.
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.7 -t ${RUNTIME_IMG_BASE}:latest-python3.7 \
 		--target runtime -f ./runtime/Dockerfile .
 
-.PHONY: kind-load
-kind-load: ## Load docker images into kind.
-	kind load docker-image --name raptor ${CORE_IMG_BASE}:${VERSION}
-	kind load docker-image --name raptor ${HISTORIAN_IMG_BASE}:${VERSION}
-	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.11
-	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.10
-	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.9
-	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.8
-	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.7
-
 ##@ Deployment
 
 ifndef ignore-not-found
@@ -243,6 +221,16 @@ installer: manifests kustomize update_images_pre ## Create a kustomization file 
 	chmod +x installer.sh
 	$(KUSTOMIZE) build config/installer | base64 >> installer.sh
 	$(MAKE) update_images_post
+
+.PHONY: kind-load
+kind-load: ## Load docker images into kind.
+	kind load docker-image --name raptor ${CORE_IMG_BASE}:${VERSION}
+	kind load docker-image --name raptor ${HISTORIAN_IMG_BASE}:${VERSION}
+	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.11
+	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.10
+	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.9
+	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.8
+	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.7
 
 ##@ Build Dependencies
 
@@ -295,10 +283,6 @@ bundle: operator-sdk manifests kustomize update_images_pre ## Generate bundle ma
 bundle-build: ## Build the bundle image.
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
-.PHONY: bundle-push
-bundle-push: ## Push the bundle image.
-	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
-
 .PHONY: opm
 OPM = ./bin/opm
 opm: ## Download opm locally if necessary.
@@ -334,11 +318,6 @@ endif
 .PHONY: catalog-build
 catalog-build: opm ## Build a catalog image.
 	$(OPM) index add --container-tool docker --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT)
-
-# Push the catalog image.
-.PHONY: catalog-push
-catalog-push: ## Push a catalog image.
-	$(MAKE) docker-push IMG=$(CATALOG_IMG)
 
 ##@ Development
 
