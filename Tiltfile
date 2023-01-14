@@ -2,37 +2,63 @@ load('ext://helm_resource', 'helm_resource', 'helm_repo')
 load('ext://cert_manager', 'deploy_cert_manager')
 load('ext://restart_process', 'docker_build_with_restart')
 
-deploy_cert_manager()
+## Configs
+config.define_bool('with-cert-manager', usage='Deploy cert-manager')
+config.define_bool('with-ngnix-ingress', usage='Deploy nginx-ingress')
+config.define_bool('init-samples', usage='Deploy sample resources when initializing')
+cfg = config.parse()
 
-kind_yaml = decode_yaml_stream(local(
-    'curl https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml 2>/dev/null',
-    quiet=True))
-for o in kind_yaml:
-    if o['kind'] == 'Deployment':
-        o['spec']['template']['spec']['nodeSelector'] = {'kubernetes.io/os': 'linux'}
-kind_yaml = encode_yaml_stream(kind_yaml)
-k8s_yaml(kind_yaml)
-k8s_resource(new_name='ingress-nginx-ns', objects=['ingress-nginx:namespace'], labels=['cluster-services', 'ingress'])
-k8s_resource(
-    'ingress-nginx-controller',
-    port_forwards=['8080:80', '8443:443'],
-    labels=['cluster-services', 'ingress'],
-    resource_deps=['ingress-nginx-ns'],
-)
-k8s_resource('ingress-nginx-admission-create', resource_deps=['ingress-nginx-ns'], labels=['cluster-services', 'ingress'])
-k8s_resource('ingress-nginx-admission-patch', resource_deps=['ingress-nginx-ns'], labels=['cluster-services', 'ingress'])
+print("👨‍💻👩‍💻Development environment")
+print(' Running with config: %s' % cfg)
 
+if cfg.get('with-cert-manager', False):
+    print("→ Deploying cert-manager")
+    deploy_cert_manager()
+
+if cfg.get('with-ngnix-ingress', False):
+    print("→ Deploying nginx-ingress")
+    kind_yaml = decode_yaml_stream(local(
+        'curl https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml 2>/dev/null',
+        quiet=True, echo_off=True))
+    for o in kind_yaml:
+        if o['kind'] == 'Deployment':
+            o['spec']['template']['spec']['nodeSelector'] = {'kubernetes.io/os': 'linux'}
+    kind_yaml = encode_yaml_stream(kind_yaml)
+    k8s_yaml(kind_yaml)
+    k8s_resource(new_name='ingress-nginx-ns', objects=['ingress-nginx:namespace'],
+                 labels=['cluster-services', 'ingress'])
+    k8s_resource(
+        'ingress-nginx-controller',
+        port_forwards=['8080:80', '8443:443'],
+        labels=['cluster-services', 'ingress'],
+        resource_deps=['ingress-nginx-ns'],
+    )
+    k8s_resource('ingress-nginx-admission-create', resource_deps=['ingress-nginx-ns'],
+                 labels=['cluster-services', 'ingress'])
+    k8s_resource('ingress-nginx-admission-patch', resource_deps=['ingress-nginx-ns'],
+                 labels=['cluster-services', 'ingress'])
+
+print("→ Deploying Redis")
 helm_repo('ot-helm', 'https://ot-container-kit.github.io/helm-charts/', labels=['cluster-services'])
 helm_resource(
     'redis-operator',
     'ot-helm/redis-operator',
     namespace='ot-operators',
     flags=['--create-namespace'],
-    labels=['cluster-services'],
+    labels=['cluster-services', 'redis'],
     resource_deps=['ot-helm'],
+)
+k8s_kind("Redis")
+k8s_yaml('./hack/redis-standalone.yaml')
+k8s_resource(
+    'redis-standalone',
+    port_forwards=['6379:6379'],
+    labels=['redis', 'cluster-services'],
+    resource_deps=['redis-operator'],
 )
 
 # Install prometheus-operator
+print("→ Deploying Prometheus")
 helm_repo('prometheus-community', 'https://prometheus-community.github.io/helm-charts', labels=['cluster-services'])
 helm_resource(
     'prometheus',
@@ -52,17 +78,8 @@ helm_resource(
     resource_deps=['prometheus-community'],
 )
 
-k8s_yaml('./hack/dev/config/redis.yaml')
-k8s_resource(
-    objects=['redis-standalone:Redis'],
-    new_name='redis',
-    port_forwards=['6379:6379'],
-    labels=['redis', 'cluster-services'],
-    resource_deps=['redis-operator'],
-)
-
-
 ### Raptor
+print("🏗️ Building Raptor images")
 
 def patch_resources(yaml):
     resources = decode_yaml_stream(yaml)
@@ -80,6 +97,9 @@ def patch_resources(yaml):
 
 #### CRD
 k8s_yaml(kustomize('config/crd'), allow_duplicates=True)
+k8s_kind("Model")
+k8s_kind("Feature")
+k8s_kind("DataSource")
 
 base_ignores = ['Tiltfile', './hack', './bin', './config', './.git', './.github', '*.md', './lsp', '.venv']
 go_ignores = base_ignores + ['./labsdk', './runtime']
@@ -179,11 +199,21 @@ k8s_resource(
     'raptor-controller-core',
     port_forwards=['60000:60000', '2345:2345'],
     labels=['raptor'],
-    resource_deps=['redis'],
+    resource_deps=['redis-standalone'],
 )
 k8s_resource(
     'raptor-historian',
     port_forwards=['2346:2345'],
     labels=['raptor'],
-    resource_deps=['redis'],
+    resource_deps=['redis-standalone'],
 )
+
+for sample in decode_yaml_stream(kustomize('config/samples')):
+    name = sample['metadata']['name']
+    k8s_yaml(encode_yaml(sample))
+    k8s_resource(
+        name,
+        labels=['raptor-samples'],
+        resource_deps=['raptor-controller-core'],
+        auto_init=cfg.get('init-samples', False),
+    )
