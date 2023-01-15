@@ -336,7 +336,7 @@ func (ce *certsEnsurer) Start(ctx context.Context) error {
 		return true, nil
 	}
 	if err := wait.ExponentialBackoff(wait.Backoff{
-		Duration: 1 * time.Second,
+		Duration: 2 * time.Second,
 		Factor:   2,
 		Jitter:   1,
 		Steps:    10,
