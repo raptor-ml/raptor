@@ -107,12 +107,14 @@ func operatorControllers(mgr manager.Manager, rm api.RuntimeManager) {
 		Scheme:         mgr.GetScheme(),
 		CoreAddr:       coreAddr,
 		RuntimeManager: rm,
+		EventRecorder:  mgr.GetEventRecorderFor("DataSource-controller"),
 	}).SetupWithManager(mgr)
 	OrFail(err, "unable to create controller", "operator", "DataSource")
 
 	err = (&opctrl.ModelReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:        mgr.GetClient(),
+		Scheme:        mgr.GetScheme(),
+		EventRecorder: mgr.GetEventRecorderFor("Model-controller"),
 	}).SetupWithManager(mgr)
 	OrFail(err, "unable to create controller", "operator", "Model")
 

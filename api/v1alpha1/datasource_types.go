@@ -17,11 +17,13 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"strings"
 )
 
 // Important: Run "make" to regenerate code after modifying this file
@@ -73,21 +75,6 @@ type DataSourceSpec struct {
 	Schema json.RawMessage `json:"schema,omitempty"`
 }
 
-// ConfigVar is a name/value pair for the config.
-type ConfigVar struct {
-	// Configuration name
-	Name string `json:"name"`
-	// Configuration value
-	// +optional
-	// +nullable
-	Value string `json:"value,omitempty"`
-	// Configuration value from secret
-	// +optional
-	// +nullable
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors={"urn:alm:descriptor:io.kubernetes:Secret"}
-	SecretKeyRef *corev1.SecretKeySelector `json:"secretKeyRef,omitempty"`
-}
-
 // ResourceReference represents a resource reference. It has enough information to retrieve resource in any namespace.
 // +structType=atomic
 type ResourceReference struct {
@@ -106,8 +93,8 @@ type ResourceReference struct {
 // ObjectKey is a helper function to get a client.ObjectKey from an ObjectReference
 func (in *ResourceReference) ObjectKey() client.ObjectKey {
 	return client.ObjectKey{
-		Name:      in.Name,
-		Namespace: in.Namespace,
+		Name:      strings.ToLower(in.Name),
+		Namespace: strings.ToLower(in.Namespace),
 	}
 }
 
@@ -152,6 +139,11 @@ func (in *DataSource) ResourceReference() ResourceReference {
 		Namespace: in.GetNamespace(),
 		Name:      in.GetName(),
 	}
+}
+
+// ParseConfig parses the config, and extracts the secrets, into a map of key-value pairs
+func (in *DataSource) ParseConfig(ctx context.Context, rdr client.Reader) (ParsedConfig, error) {
+	return parseConfig(ctx, in.Spec.Config, in.GetNamespace(), rdr)
 }
 
 //+kubebuilder:object:root=true

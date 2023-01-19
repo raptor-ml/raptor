@@ -27,6 +27,8 @@ import (
 
 var FeatureAppliers = make(registry[api.FeatureApply])
 var DataSourceReconciler = make(registry[api.DataSourceReconcile])
+var ModelReconciler = make(registry[api.ModelReconcile])
+var ModelControllerOwns = make(registry[api.ModelControllerOwns])
 var Configurers = make(registry[api.BindConfig])
 var StateFactories = make(registry[api.StateFactory])
 var CollectNotifierFactories = make(registry[api.CollectNotifierFactory])

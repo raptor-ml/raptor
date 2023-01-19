@@ -161,6 +161,7 @@ docker_build_with_restart(
         '--metrics-bind-address=127.0.0.1:8080',
         '--leader-elect',
         '-r=redis-standalone.default:6379',
+        '--zap-devel=true',
     ],
     live_update=[
         # Copy the binary so it gets restarted.
@@ -178,7 +179,11 @@ docker_build_with_restart(
     'raptor-historian',
     '.',
     dockerfile_contents=base_dockerfile + 'RUN ' + compile_cmd.format(app='historian'),
-    entrypoint=dlv_cmd + ['/opt/historian', '-r=redis-standalone.default:6379'],
+    entrypoint=dlv_cmd + [
+        '/opt/historian',
+        '-r=redis-standalone.default:6379',
+        '--zap-devel=true',
+    ],
     live_update=[
         # Copy the binary so it gets restarted.
         sync(

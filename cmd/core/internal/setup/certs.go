@@ -317,7 +317,7 @@ func (ce *certsEnsurer) Start(ctx context.Context) error {
 					}
 				}
 			case rotator.CRDConversion:
-				_, found, err := unstructured.NestedString(resource.Object, "spec", "conversion", "webhookClientConfig", "caBundle")
+				_, found, err := unstructured.NestedString(resource.Object, "spec", "conversion", "clientConfig", "caBundle")
 				if err != nil || !found {
 					return false, fmt.Errorf("failed to get caBundle from webhook %s: %w", wh.Name, err)
 				}

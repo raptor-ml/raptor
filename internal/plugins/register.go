@@ -17,11 +17,14 @@ limitations under the License.
 package plugins
 
 import (
-	_ "github.com/raptor-ml/raptor/internal/plugins/builders/model"
 	// register all builder plugins
 	_ "github.com/raptor-ml/raptor/internal/plugins/builders/headless"
+	_ "github.com/raptor-ml/raptor/internal/plugins/builders/model"
 	_ "github.com/raptor-ml/raptor/internal/plugins/builders/rest"
 	_ "github.com/raptor-ml/raptor/internal/plugins/builders/streaming"
+
+	// register all model server plugins
+	_ "github.com/raptor-ml/raptor/internal/plugins/modelservers/sagemaker-ack"
 
 	// register all historical provider plugins
 	_ "github.com/raptor-ml/raptor/internal/plugins/providers/historical/parquet/s3"
