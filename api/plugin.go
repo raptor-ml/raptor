@@ -26,8 +26,8 @@ import (
 )
 
 type Plugins interface {
-	BindConfig | FeatureApply | DataSourceReconcile | StateFactory |
-		CollectNotifierFactory | WriteNotifierFactory |
+	BindConfig | FeatureApply | DataSourceReconcile | ModelReconcile | StateFactory |
+		CollectNotifierFactory | WriteNotifierFactory | ModelControllerOwns |
 		HistoricalWriterFactory
 }
 
@@ -37,8 +37,8 @@ type BindConfig func(set *pflag.FlagSet) error
 // FeatureApply applies changes on the feature abstraction.
 type FeatureApply func(fd FeatureDescriptor, builder manifests.FeatureBuilder, api FeatureAbstractAPI, src ExtendedManager) error
 
-// ReconcileRequest contains metadata for the reconcile.
-type ReconcileRequest struct {
+// DataSourceReconcileRequest contains metadata for the reconcile.
+type DataSourceReconcileRequest struct {
 	DataSource     *manifests.DataSource
 	RuntimeManager RuntimeManager
 	Client         client.Client
@@ -47,10 +47,26 @@ type ReconcileRequest struct {
 }
 
 // DataSourceReconcile is the interface to be implemented by plugins that want to be reconciled in the operator.
-// This is useful for plugins that need to spawn external Feature Ingestion.
+// This is useful for plugins that need to spawn an external Feature Ingestion.
 //
 // It returns ture if the reconciliation has changed the object (and therefore the operator should re-queue).
-type DataSourceReconcile func(ctx context.Context, fd ReconcileRequest) (changed bool, err error)
+type DataSourceReconcile func(ctx context.Context, rr DataSourceReconcileRequest) (changed bool, err error)
+
+// ModelReconcileRequest contains metadata for the reconcile.
+type ModelReconcileRequest struct {
+	Model  *manifests.Model
+	Client client.Client
+	Scheme *runtime.Scheme
+}
+
+// ModelReconcile is the interface to be implemented by plugins that want to be reconciled in the operator.
+// This is useful for plugins that need to spawn an external Model Server.
+//
+// It returns ture if the reconciliation has changed the object (and therefore the operator should re-queue).
+type ModelReconcile func(ctx context.Context, rr ModelReconcileRequest) (changed bool, err error)
+
+// ModelControllerOwns returns the list of objects that the model controller should own.
+type ModelControllerOwns func() []client.Object
 
 // StateFactory is the interface to be implemented by plugins that implements storage providers.
 type StateFactory func(viper *viper.Viper) (State, error)

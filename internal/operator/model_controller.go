@@ -18,20 +18,26 @@ package operator
 
 // +kubebuilder:rbac:groups=k8s.raptor.ml,resources=models,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=k8s.raptor.ml,resources=models/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 
 import (
 	"context"
+	"github.com/raptor-ml/raptor/api"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
+	"github.com/raptor-ml/raptor/pkg/plugins"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"time"
 )
 
 // ModelReconciler reconciles a Feature object
 type ModelReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme        *runtime.Scheme
+	EventRecorder record.EventRecorder
 }
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -43,8 +49,8 @@ func (r *ModelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	logger := log.FromContext(ctx).WithValues("component", "model-operator")
 
 	// Fetch the Feature definition from the Kubernetes API.
-	fs := &manifests.Model{}
-	err := r.Get(ctx, req.NamespacedName, fs)
+	model := &manifests.Model{}
+	err := r.Get(ctx, req.NamespacedName, model)
 	if err != nil {
 		logger.Error(err, "Failed to get Model")
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
@@ -52,10 +58,24 @@ func (r *ModelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		// on deleted requests.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	logger = logger.WithValues("model", fs.FQN())
+	logger = logger.WithValues("model", model.FQN())
 
-	fs.Status.FQN = fs.FQN()
-	if err := r.Status().Update(ctx, fs); err != nil {
+	if p := plugins.ModelReconciler.Get(string(model.Spec.ModelServer)); p != nil {
+		if changed, err := p(log.IntoContext(ctx, logger.WithName("runner")), r.reconcileRequest(model)); err != nil {
+			r.EventRecorder.Eventf(model, "Warning", "ReconcileFailed",
+				"Failed to reconcile Model: %v", err)
+			return ctrl.Result{}, err
+		} else if changed {
+			r.EventRecorder.Event(model, "Normal", "ReconcileSuccess", "Model reconciled successfully")
+			// Ask to requeue after 1 minute in order to give enough time for the
+			// pods be created on the cluster side and the operand be able
+			// to do the next update step accurately.
+			return ctrl.Result{RequeueAfter: time.Minute}, nil
+		}
+	}
+
+	model.Status.FQN = model.FQN()
+	if err := r.Status().Update(ctx, model); err != nil {
 		logger.Error(err, "Failed to update Model status")
 		return ctrl.Result{}, err
 	}
@@ -63,9 +83,23 @@ func (r *ModelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	return ctrl.Result{}, nil
 }
 
+func (r *ModelReconciler) reconcileRequest(model *manifests.Model) api.ModelReconcileRequest {
+	return api.ModelReconcileRequest{
+		Model:  model,
+		Client: r.Client,
+		Scheme: r.Scheme,
+	}
+}
+
 // SetupWithManager sets up the controller with the Controller Manager.
 func (r *ModelReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&manifests.Model{}).
-		Complete(r)
+	bldr := ctrl.NewControllerManagedBy(mgr).For(&manifests.Model{})
+
+	for _, o := range plugins.ModelControllerOwns {
+		for _, t := range o() {
+			bldr = bldr.Owns(t)
+		}
+	}
+
+	return bldr.Complete(r)
 }

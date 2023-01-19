@@ -17,13 +17,15 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"context"
 	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 )
 
 // ModelServer defines the backend inference server for the model.
-// +kubebuilder:validation:Enum=sagemaker
+// +kubebuilder:validation:Enum=sagemaker-ack
 type ModelServer string
 
 // ModelSpec defines the list of feature FQNs that are enabled for a given feature set
@@ -75,15 +77,19 @@ type ModelSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Model Framework Version"
 	ModelFrameworkVersion string `json:"modelFrameworkVersion"`
 
+	// StorageURI is the URI of the model storage.
+	// +kubebuilder:validation:Required
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Storage URI"
+	StorageURI string `json:"storageURI"`
+
 	// ModelServer is the server used to serve the model.
 	// +kubebuilder:validation:Required
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Model Server"
 	ModelServer ModelServer `json:"modelServer"`
 
-	// StorageURI is the URI of the model storage.
-	// +kubebuilder:validation:Required
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Storage URI"
-	StorageURI string `json:"storageURI"`
+	// InferenceConfig is the additional configuration used for the model server.
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Config"
+	InferenceConfig []ConfigVar `json:"inferenceConfig"`
 
 	// TrainingCode defines the code used to train the model.
 	// +optional
@@ -118,6 +124,11 @@ func (in *Model) FQN() string {
 	ns := strings.Replace(in.GetNamespace(), "-", "_", -1)
 	name := strings.Replace(in.GetName(), "-", "_", -1)
 	return fmt.Sprintf("%s.%s", ns, name)
+}
+
+// ParseInferenceConfig parses the inference config, and extracts the secrets, into a map of key-value pairs
+func (in *Model) ParseInferenceConfig(ctx context.Context, rdr client.Reader) (ParsedConfig, error) {
+	return parseConfig(ctx, in.Spec.InferenceConfig, in.GetNamespace(), rdr)
 }
 
 // +kubebuilder:object:root=true

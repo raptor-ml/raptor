@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2022 RaptorML authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +26,7 @@ from typing_extensions import TypedDict
 
 from . import durpy, local_state
 from .config import default_namespace
-from .frameworks.huggingface_pipelines import HuggingFacePipelinesFramework
-from .frameworks.sklearn import SklearnFramework
+from .model import ModelFramework, ModelServer
 from .program import Program
 from .yaml import RaptorDumper
 
@@ -34,14 +34,15 @@ from .yaml import RaptorDumper
 def validate_timedelta(td: timedelta):
     if td.days > 0:
         raise ValueError(
-            f"calendarial durations is not supported. please specify the duration in hours instead. e.g. {td.days} days -> {td.days * 24}h")
+            f'calendarial durations is not supported. please specify the duration in hours instead.'
+            f'e.g. {td.days} days -> {td.days * 24}h')
 
 
 def _k8s_name(name):
     name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     name = re.sub('__([A-Z])', r'_\1', name)
     name = re.sub('([a-z0-9])([A-Z])', r'\1_\2', name)
-    return name.replace("_", "-").lower()
+    return name.replace('_', '-').lower()
 
 
 class AggregationFunction(Enum):
@@ -60,7 +61,7 @@ class AggregationFunction(Enum):
             return a
         if isinstance(a, str):
             return AggregationFunction[a]
-        raise Exception(f"Unknown AggregationFunction {a}")
+        raise Exception(f'Unknown AggregationFunction {a}')
 
     def supports(self, typ):
         if self == AggregationFunction.Unknown:
@@ -82,7 +83,7 @@ class AggregationFunction(Enum):
             return rgb.count()
         if self == AggregationFunction.DistinctCount or self == AggregationFunction.ApproxDistinctCount:
             return rgb.apply(lambda x: pd.Series(x).nunique())
-        raise Exception(f"Unknown AggrFn {self}")
+        raise Exception(f'Unknown AggrFn {self}')
 
     @classmethod
     def to_yaml(cls, dumper: yaml.dumper.Dumper, data: 'AggregationFunction'):
@@ -132,59 +133,7 @@ class Primitive(Enum):
         elif p == '[]timestamp' or p == List[datetime]:
             return Primitive.TimestampList
         else:
-            raise Exception("Primitive type {p} not supported")
-
-
-class ModelServer(Enum):
-    SageMaker = 'sagemaker'
-    Seldon = 'seldon'
-    KServe = 'kserve'
-    VertexAI = 'vertexai'
-    MLFlow = 'mlflow'
-
-    @staticmethod
-    def parse(m):
-        if isinstance(m, ModelServer):
-            return m
-        if isinstance(m, str):
-            for ms in ModelServer:
-                if ms.value == m:
-                    return ms
-        raise Exception(f"Unknown ModelServer {m}")
-
-    def __str__(self):
-        if self != ModelServer.SageMaker:
-            warn(f"ModelServer {self} is not supported yet")
-        return self.value
-
-
-class ModelFramework(Enum):
-    HuggingFacePipelines = 'huggingface-pipelines'
-    Sklearn = 'sklearn'
-    Pytorch = 'pytorch'
-    Tensorflow = 'tensorflow'
-    CatBoost = 'catboost'
-    ONNX = 'onnx'
-    LightGBM = 'lightgbm'
-    XGBoost = 'xgboost'
-    FastAI = 'fastai'
-
-    @staticmethod
-    def parse(m):
-        if isinstance(m, ModelFramework):
-            return m
-        if isinstance(m, str):
-            for e in ModelFramework:
-                if e.value == m:
-                    return e
-        raise Exception(f"Unknown ModelFramework {m}")
-
-    def save(self, model, spec):
-        if self == ModelFramework.HuggingFacePipelines:
-            return HuggingFacePipelinesFramework.save(model, spec)
-        elif self == ModelFramework.Sklearn:
-            return SklearnFramework.save(model, spec)
-        warn(f"ModelFramework {self} not Deployable by Raptor at the moment. Please export your model manually instead")
+            raise Exception('Primitive type {p} not supported')
 
 
 class BuilderSpec(object):
@@ -213,13 +162,13 @@ class ResourceReference:
             else:
                 self.namespace = parts[0]
                 self.name = parts[1]
-        self.name = name
+        self.name = _k8s_name(name)
         self.namespace = namespace
 
     def fqn(self):
         if self.namespace is None:
             return self.name
-        return f"{self.namespace}.{self.name}"
+        return f'{self.namespace}.{self.name}'
 
 
 class AggrSpec:
@@ -242,16 +191,46 @@ def __setattr__(self, key, value):
         elif isinstance(value, timedelta):
             value = value
         else:
-            raise Exception(f"Invalid type {type(value)} for {key}")
+            raise Exception(f'Invalid type {type(value)} for {key}')
 
     super().__setattr__(key, value)
 
 
-class FeatureSpec(yaml.YAMLObject):
-    yaml_tag = u'!FeatureSpec'
-
+class RaptorSpec(yaml.YAMLObject):
     name: str = None
     namespace: str = None
+
+    @classmethod
+    def yaml_tag(cls):
+        return f'!{cls.__class__.__name__}'
+
+    def fqn(self):
+        if self.namespace is None:
+            return f'{default_namespace}.{self.name}'
+        return f'{self.namespace}.{self.name}'
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return f'{self.__class__.name}({self.fqn()})'
+
+    def manifest(self, to_file: bool = False):
+        """
+        Returns the YAML manifest of the RaptorSpec
+        :param to_file: if True, writes the manifest to a file in the
+        :type to_file: bool
+        :return: the YAML manifest
+        """
+        ret = yaml.dump(self, sort_keys=False, Dumper=RaptorDumper)
+        if to_file:
+            typ = self.__class__.__name__.lower().replace('spec', '')
+            with open(f'out/{typ}.{self.fqn().lower()}.yaml', 'w') as f:
+                f.write(ret)
+        return ret
+
+
+class FeatureSpec(RaptorSpec):
     description: str = None
     labels: dict = {}
     annotations: dict = {}
@@ -301,25 +280,25 @@ class FeatureSpec(yaml.YAMLObject):
                     if hasattr(value, 'raptor_spec'):
                         value = value.raptor_spec
                     else:
-                        raise Exception(f"TypedDict {value} does not have raptor_spec")
+                        raise Exception(f'TypedDict {value} does not have raptor_spec')
                 value.features.append(self)
                 self._data_source_spec = value
                 value = ResourceReference(value.name, value.namespace)
             else:
-                raise Exception(f"Invalid type {type(value)} for {key}")
+                raise Exception(f'Invalid type {type(value)} for {key}')
 
             if self._data_source_spec is None and value is not None:
                 warn(
-                    f"DataSource {value.fqn()} not registered locally on the LabSDK. "
-                    f"This will prevent you from replaying this feature locally"
+                    f'DataSource {value.fqn()} not registered locally on the LabSDK. '
+                    f'This will prevent you from replaying this feature locally'
                 )
         elif key == 'program':
             if isinstance(value, Program):
                 pass
             elif callable(value):
-                raise Exception("Function must be parsed first")
+                raise Exception('Function must be parsed first')
             else:
-                raise Exception("program must be a Program")
+                raise Exception('program must be a Program')
         elif key == 'staleness' or key == 'timeout':
             if value == '' or value is None:
                 value = None
@@ -328,24 +307,9 @@ class FeatureSpec(yaml.YAMLObject):
             elif isinstance(value, timedelta):
                 value = value
             else:
-                raise Exception(f"Invalid type {type(value)} for {key}")
+                raise Exception(f'Invalid type {type(value)} for {key}')
 
         super().__setattr__(key, value)
-
-    def fqn(self):
-        if self.namespace is None:
-            return f"{default_namespace}.{self.name}"
-        return f"{self.namespace}.{self.name}"
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
-        return f"FeatureSpec({self.fqn()})"
-
-    def manifest(self):
-        """return a Kubernetes YAML manifest for this Feature definition"""
-        return yaml.dump(self, sort_keys=False, Dumper=RaptorDumper)
 
     @classmethod
     def to_yaml(cls, dumper: yaml.dumper.Dumper, data: 'FeatureSpec'):
@@ -357,25 +321,25 @@ class FeatureSpec(yaml.YAMLObject):
         data.annotations['a8r.io/description'] = data.description
 
         manifest = {
-            "apiVersion": "k8s.raptor.ml/v1alpha1",
-            "kind": "Feature",
-            "metadata": {
-                "name": _k8s_name(data.name),
-                "namespace": data.namespace,
-                "labels": data.labels,
-                "annotations": data.annotations
+            'apiVersion': 'k8s.raptor.ml/v1alpha1',
+            'kind': 'Feature',
+            'metadata': {
+                'name': _k8s_name(data.name),
+                'namespace': data.namespace,
+                'labels': data.labels,
+                'annotations': data.annotations
             },
-            "spec": {
-                "primitive": data.primitive.value,
-                "freshness": data.freshness,
-                "staleness": data.staleness,
-                "timeout": data.timeout,
-                "keys": data.keys,
-                "dataSource": None if data.data_source is None else data.data_source.__dict__,
-                "builder": data.builder.__dict__,
+            'spec': {
+                'primitive': data.primitive.value,
+                'freshness': data.freshness,
+                'staleness': data.staleness,
+                'timeout': data.timeout,
+                'keys': data.keys,
+                'dataSource': None if data.data_source is None else data.data_source.__dict__,
+                'builder': data.builder.__dict__,
             }
         }
-        return dumper.represent_mapping(cls.yaml_tag, manifest, flow_style=cls.yaml_flow_style)
+        return dumper.represent_mapping(cls.yaml_tag(), manifest, flow_style=cls.yaml_flow_style)
 
 
 RaptorDumper.add_representer(FeatureSpec, FeatureSpec.to_yaml)
@@ -400,7 +364,7 @@ class ConfigVar:
         self.value = value
         self.secretKeyRef = secret_key_ref
         if value is None and secret_key_ref is None:
-            raise Exception("Must specify either value or secretKeyRef")
+            raise Exception('Must specify either value or secretKeyRef')
 
 
 class ResourceRequirements:
@@ -412,11 +376,7 @@ class ResourceRequirements:
         self.requests = requests or {}
 
 
-class DataSourceSpec(yaml.YAMLObject):
-    yaml_tag = u'!DataSourceSpec'
-
-    name: str = None
-    namespace: str = None
+class DataSourceSpec(RaptorSpec):
     description: str = None
     labels: dict = {}
     annotations: dict = {}
@@ -433,54 +393,35 @@ class DataSourceSpec(yaml.YAMLObject):
 
     _local_df: pd.DataFrame = None
 
-    def fqn(self):
-        if self.namespace is None:
-            return f"{default_namespace}.{self.name}"
-        return f"{self.namespace}.{self.name}"
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
-        return f"DataSourceSpec({self.fqn()})"
-
-    def manifest(self):
-        """return a Kubernetes YAML manifest for this DataSourceSpec definition"""
-        return yaml.dump(self, sort_keys=False, Dumper=RaptorDumper)
-
     @classmethod
     def to_yaml(cls, dumper: yaml.dumper.Dumper, data: 'DataSourceSpec'):
         data.annotations['a8r.io/description'] = data.description
         manifest = {
-            "apiVersion": "k8s.raptor.ml/v1alpha1",
-            "kind": "DataSource",
-            "metadata": {
-                "name": _k8s_name(data.name),
-                "namespace": data.namespace,
-                "labels": data.labels,
-                "annotations": data.annotations
+            'apiVersion': 'k8s.raptor.ml/v1alpha1',
+            'kind': 'DataSource',
+            'metadata': {
+                'name': _k8s_name(data.name),
+                'namespace': data.namespace,
+                'labels': data.labels,
+                'annotations': data.annotations
             },
-            "spec": {
-                "kind": data.kind,
-                "config": data.config,
-                "keyFields": data.keys,
-                "timestampField": data.timestamp,
-                "replicas": data.replicas,
-                "resources": data.resources,
-                "schema": data.schema
+            'spec': {
+                'kind': data.kind,
+                'config': data.config,
+                'keyFields': data.keys,
+                'timestampField': data.timestamp,
+                'replicas': data.replicas,
+                'resources': data.resources,
+                'schema': data.schema
             }
         }
-        return dumper.represent_mapping(cls.yaml_tag, manifest, flow_style=cls.yaml_flow_style)
+        return dumper.represent_mapping(cls.yaml_tag(), manifest, flow_style=cls.yaml_flow_style)
 
 
 RaptorDumper.add_representer(DataSourceSpec, DataSourceSpec.to_yaml)
 
 
-class ModelSpec(yaml.YAMLObject):
-    yaml_tag = u'!ModelSpec'
-
-    name: str = None
-    namespace: str = None
+class ModelSpec(RaptorSpec):
     description: str = None
     labels: dict = {}
     annotations: dict = {}
@@ -496,22 +437,11 @@ class ModelSpec(yaml.YAMLObject):
 
     model_framework: ModelFramework = None
     _model_framework_version: Optional[str] = None
-    ModelServer: Optional[ModelServer] = None
+    model_server: Optional[ModelServer] = None
     _trained_model: Optional[object] = None
     _training_code: Optional[str] = None
 
     _model_filename: Optional[str] = None
-
-    def fqn(self):
-        if self.namespace is None:
-            return f"{default_namespace}.{self.name}"
-        return f"{self.namespace}.{self.name}"
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
-        return f"ModelSpec({self.fqn()})"
 
     def __setattr__(self, key, value):
         if key == 'freshness' or key == 'staleness' or key == 'timeout':
@@ -522,7 +452,7 @@ class ModelSpec(yaml.YAMLObject):
             elif isinstance(value, timedelta):
                 value = value
             else:
-                raise Exception(f"Invalid type {type(value)} for {key}")
+                raise Exception(f'Invalid type {type(value)} for {key}')
 
         super().__setattr__(key, value)
 
@@ -536,37 +466,41 @@ class ModelSpec(yaml.YAMLObject):
     def key_feature(self, value):
         self._key_feature = value
 
-    def manifest(self):
-        """return a Kubernetes YAML manifest for this Model definition"""
-        return yaml.dump(self, sort_keys=False, Dumper=RaptorDumper)
-
     @classmethod
     def to_yaml(cls, dumper: yaml.dumper.Dumper, data: 'ModelSpec'):
+        inference_config_stub = []
+        for k, v in data.model_server.config.items():
+            if isinstance(v, SecretKeyRef):
+                inference_config_stub.append({'name': k, 'secretKeyRef': {'name': v.name, 'key': v.key}})
+            else:
+                inference_config_stub.append({'name': k, 'value': v})
+
         data.annotations['a8r.io/description'] = data.description
         manifest = {
-            "apiVersion": "k8s.raptor.ml/v1alpha1",
-            "kind": "Model",
-            "metadata": {
-                "name": _k8s_name(data.name),
-                "namespace": data.namespace,
-                "labels": data.labels,
-                "annotations": data.annotations
+            'apiVersion': 'k8s.raptor.ml/v1alpha1',
+            'kind': 'Model',
+            'metadata': {
+                'name': _k8s_name(data.name),
+                'namespace': data.namespace,
+                'labels': data.labels,
+                'annotations': data.annotations
             },
-            "spec": {
-                "freshness": data.freshness,
-                "staleness": data.staleness,
-                "timeout": data.timeout,
-                "features": data.features,
-                "keyFeature": None if data.key_feature == data.features[0] else data.key_feature,
-                "labels": data.label_features,
-                "modelFramework": data.model_framework,
-                "modelFrameworkVersion": data._model_framework_version,
-                "modelServer": data.ModelServer,
-                "storageURI": None if data._model_filename is None else f"$MODEL_URI_PATH/{data._model_filename}",
-                "trainingCode": None if data._training_code is None else data._training_code,
+            'spec': {
+                'freshness': data.freshness,
+                'staleness': data.staleness,
+                'timeout': data.timeout,
+                'features': data.features,
+                'keyFeature': None if data.key_feature == data.features[0] else data.key_feature,
+                'labels': data.label_features,
+                'modelFramework': data.model_framework,
+                'modelFrameworkVersion': data._model_framework_version,
+                'modelServer': data.model_server,
+                'inferenceConfig': inference_config_stub,
+                'storageURI': None if data._model_filename is None else f'$MODEL_BASE_URI/{data._model_filename}',
+                'trainingCode': None if data._training_code is None else data._training_code,
             }
         }
-        return dumper.represent_mapping(cls.yaml_tag, manifest, flow_style=cls.yaml_flow_style)
+        return dumper.represent_mapping(cls.yaml_tag(), manifest, flow_style=cls.yaml_flow_style)
 
 
 RaptorDumper.add_representer(ModelSpec, ModelSpec.to_yaml)
@@ -578,14 +512,14 @@ class Keys(Dict[str, str]):
         for key in spec.keys:
             val = self.get(key)
             if val is None:
-                raise Exception(f"missing key {key}")
+                raise Exception(f'missing key {key}')
             ret.append(val)
-        return ".".join(ret)
+        return '.'.join(ret)
 
     def decode(self, spec: FeatureSpec, encoded_keys: str) -> 'Keys':
-        parts = encoded_keys.split(".")
+        parts = encoded_keys.split('.')
         if len(parts) != len(spec.keys):
-            raise Exception(f"invalid key {encoded_keys}")
+            raise Exception(f'invalid key {encoded_keys}')
         for i, encoded_keys in enumerate(spec.keys):
             self[encoded_keys] = parts[i]
         return self

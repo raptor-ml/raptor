@@ -52,6 +52,43 @@ spec:
                   since the value has set) to consider as *fresh*. Fresh values doesn't
                   require re-ingestion
                 type: string
+              inferenceConfig:
+                description: InferenceConfig is the additional configuration used
+                  for the model server.
+                items:
+                  description: ConfigVar is a name/value pair for the config.
+                  properties:
+                    name:
+                      description: Configuration name
+                      type: string
+                    secretKeyRef:
+                      description: Configuration value from secret
+                      nullable: true
+                      properties:
+                        key:
+                          description: The key of the secret to select from.  Must
+                            be a valid secret key.
+                          type: string
+                        name:
+                          description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                            TODO: Add other useful fields. apiVersion, kind, uid?'
+                          type: string
+                        optional:
+                          description: Specify whether the Secret or its key must
+                            be defined
+                          type: boolean
+                      required:
+                      - key
+                      type: object
+                      x-kubernetes-map-type: atomic
+                    value:
+                      description: Configuration value
+                      nullable: true
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
               keyFeature:
                 description: KeyFeature is the feature FQN that is used to align the
                   rest of the features with their timestamp. If this is unset, the
@@ -75,7 +112,7 @@ spec:
               modelServer:
                 description: ModelServer is the server used to serve the model.
                 enum:
-                - sagemaker
+                - sagemaker-ack
                 type: string
               staleness:
                 description: Staleness defines the age of a prediction-result(time
@@ -98,6 +135,7 @@ spec:
             required:
             - features
             - freshness
+            - inferenceConfig
             - modelFramework
             - modelFrameworkVersion
             - modelServer
