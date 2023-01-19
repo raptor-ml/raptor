@@ -21,6 +21,9 @@ jobs:
       - name: Install google/go-licenses
         run: go install github.com/google/go-licenses@master
         shell: bash
+      - name: Generate necessary files
+        run: make generate
+        shell: bash
       - name: Check for allowed licenses
         run: ./hack/licenses-check-allowed.sh
         shell: bash

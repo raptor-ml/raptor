@@ -11,7 +11,6 @@ on:
       - '**.go'
 
 jobs:
-
   lint:
     name: golangci-lint
     runs-on: ubuntu-latest
@@ -33,6 +32,9 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+      - name: Generate necessary files
+        run: make generate
+        shell: bash
       - name: Run linter
         uses: golangci/golangci-lint-action@v3
         with:
