@@ -28,17 +28,6 @@ import (
 // Bucket TTL = staleness + DeadGracePeriod
 const DeadGracePeriod = time.Minute * 10
 
-func FQNToRealFQN(name string) (string, AggrFn) {
-	ns, name, aggrFn, _, _, err := ParseFQN(name)
-	if err != nil {
-		panic(err)
-	}
-	if aggrFn == "" {
-		return fmt.Sprintf("%s.%s", ns, name), AggrFnUnknown
-	}
-	return fmt.Sprintf("%s.%s", ns, name), StringToAggrFn(aggrFn)
-}
-
 // AggrFn is an aggregation function
 type AggrFn int
 

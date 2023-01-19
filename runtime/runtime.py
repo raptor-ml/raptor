@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #  Copyright (c) 2022 RaptorML authors.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,14 +34,14 @@ uds_path: Union[str, None] = None
 
 
 async def main():
-    runtime_name = "default" if os.environ.get('RUNTIME_NAME') is None else os.environ.get('RUNTIME_NAME')
+    runtime_name = 'default' if os.environ.get('RUNTIME_NAME') is None else os.environ.get('RUNTIME_NAME')
 
-    legal_name = r"^[a0-z9]+[a0-z9_\-]*[a0-z9]+$"
+    legal_name = r'^[a0-z9]+[a0-z9_\-]*[a0-z9]+$'
     if not re.match(legal_name, runtime_name):
-        raise ValueError("RUNTIME_NAME is illegal")
+        raise ValueError('RUNTIME_NAME is illegal')
 
-    core_grpc_url = "/tmp/raptor/core.sock" if os.environ.get("CORE_GRPC_URL") is None else os.environ.get(
-        "CORE_GRPC_URL")
+    core_grpc_url = '/tmp/raptor/core.sock' if os.environ.get('CORE_GRPC_URL') is None else os.environ.get(
+        'CORE_GRPC_URL')
     engine_channel = grpc.insecure_channel(core_grpc_url)
 
     svc = RuntimeServicer(engine_channel=engine_channel)
@@ -55,20 +56,20 @@ async def main():
     ), server)
 
     # This is name convention is using us to discover runtimes from the main container of the pod
-    uds_path = f"/tmp/raptor/runtime/{runtime_name}.sock"
-    if not os.path.exists("/tmp/raptor/runtime"):
-        os.makedirs("/tmp/raptor/runtime")
+    uds_path = f'/tmp/raptor/runtime/{runtime_name}.sock'
+    if not os.path.exists('/tmp/raptor/runtime'):
+        os.makedirs('/tmp/raptor/runtime')
     if os.path.exists(uds_path):
-        warnings.warn(f"Removing existing UDS path: {uds_path}")
+        warnings.warn(f'Removing existing UDS path: {uds_path}')
         os.remove(uds_path)
 
-    server.add_insecure_port(f"unix://{uds_path}")
-    uds_link = "/tmp/this-runtime.sock"
+    server.add_insecure_port(f'unix://{uds_path}')
+    uds_link = '/tmp/this-runtime.sock'
     if os.path.islink(uds_link):
         os.remove(uds_link)
     # We create the link so that the runtime can be easily accessed from the host for health checks
     os.symlink(uds_path, uds_link)
-    logging.info(f"Starting server on {uds_path} or {uds_link}")
+    logging.info(f'Starting server on {uds_path} or {uds_link}')
     await server.start()
     await server.wait_for_termination()
 
@@ -81,7 +82,7 @@ class OneLineExceptionFormatter(logging.Formatter):
     def format(self, record):
         result = super().format(record)
         if record.exc_text:
-            result = result.replace("\n", "")
+            result = result.replace('\n', '')
         return result
 
 
@@ -89,7 +90,7 @@ handler = logging.StreamHandler()
 formatter = OneLineExceptionFormatter(logging.BASIC_FORMAT)
 handler.setFormatter(formatter)
 root = logging.getLogger()
-root.setLevel(os.environ.get("LOGLEVEL", "INFO"))
+root.setLevel(os.environ.get('LOGLEVEL', 'INFO'))
 root.addHandler(handler)
 
 if __name__ == '__main__':
@@ -97,7 +98,7 @@ if __name__ == '__main__':
     try:
         loop.run_until_complete(main())
     except KeyboardInterrupt:
-        logging.error("Terminated by user: Shutting down")
+        logging.error('Terminated by user: Shutting down')
         if server is not None:
             server.stop(5)
         if uds_path is not None:

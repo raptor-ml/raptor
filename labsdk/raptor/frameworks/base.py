@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #  Copyright (c) 2022 RaptorML authors.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +28,7 @@ class BaseModelFramework:
 
     @staticmethod
     def _base_output_path():
-        return f"out/models"
+        return f'out/models'
 
     @staticmethod
     def _create_output_path(path: Optional[str] = None):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2022 RaptorML authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,4 +14,4 @@
 # limitations under the License.
 
 # default namespace
-default_namespace = "default"
+default_namespace = 'default'

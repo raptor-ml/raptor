@@ -110,7 +110,7 @@ func (r *FeatureReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	for _, dep := range prog.Dependencies {
-		ns, n, _, _, _, err := api.ParseFQN(dep)
+		ns, n, _, _, _, err := api.ParseSelector(dep)
 		if err != nil {
 			logger.Error(err, "Failed to parse dependency FQN")
 			return ctrl.Result{}, err

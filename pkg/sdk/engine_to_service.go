@@ -24,6 +24,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"strings"
 )
 
 type serviceServer struct {
@@ -39,7 +40,7 @@ func NewServiceServer(engine api.Engine) coreApi.EngineServiceServer {
 }
 
 func (s *serviceServer) FeatureDescriptor(ctx context.Context, req *coreApi.FeatureDescriptorRequest) (*coreApi.FeatureDescriptorResponse, error) {
-	fd, err := s.engine.FeatureDescriptor(ctx, req.GetFqn())
+	fd, err := s.engine.FeatureDescriptor(ctx, req.GetSelector())
 	if err != nil {
 		if errors.Is(err, api.ErrFeatureNotFound) {
 			return nil, status.Errorf(codes.NotFound, "feature not found")
@@ -52,7 +53,7 @@ func (s *serviceServer) FeatureDescriptor(ctx context.Context, req *coreApi.Feat
 	}, nil
 }
 func (s *serviceServer) Get(ctx context.Context, req *coreApi.GetRequest) (*coreApi.GetResponse, error) {
-	resp, fd, err := s.engine.Get(ctx, req.GetFqn(), req.GetKeys())
+	resp, fd, err := s.engine.Get(ctx, req.GetSelector(), req.GetKeys())
 	if err != nil {
 		if errors.Is(err, api.ErrFeatureNotFound) {
 			return nil, status.Errorf(codes.NotFound, "feature not found")
@@ -64,19 +65,26 @@ func (s *serviceServer) Get(ctx context.Context, req *coreApi.GetRequest) (*core
 	if r, ok := resp.Value.(api.WindowResultMap); ok {
 		if len(fd.Aggr) < 1 {
 			return nil, status.Errorf(codes.InvalidArgument, "the feature is windowed, but requested window function not found."+
-				"please use s request with FullyQualifiedName with an aggregator i.e. `%s+%s`", req.GetFqn(), fd.Aggr[0])
+				"please use s request with FullyQualifiedName with an aggregator i.e. `%s+%s`", req.GetSelector(), fd.Aggr[0])
 		}
 		if len(fd.Aggr) != 1 {
 			return nil, status.Errorf(codes.InvalidArgument, "the feature is windowed, but requested window function not found."+
-				"please use s request with FullyQualifiedName with an aggregator i.e. `%s+%s`", req.GetFqn(), fd.Aggr[0])
+				"please use s request with FullyQualifiedName with an aggregator i.e. `%s+%s`", req.GetSelector(), fd.Aggr[0])
 		}
 		val = r[fd.Aggr[0]]
 	}
 
+	fqn, err := api.NormalizeFQN(req.GetSelector(), "undefined-namespace")
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to normalize fqn: %s", err)
+	}
+	if strings.HasPrefix(fqn, "undefined-namespace") {
+		return nil, status.Errorf(codes.InvalidArgument, "When requesting a feature using gRPC, you must specify the namespace in the FullyQualifiedName.")
+	}
 	ret := &coreApi.GetResponse{
 		Uuid: req.GetUuid(),
 		Value: &coreApi.FeatureValue{
-			Fqn:       req.GetFqn(),
+			Fqn:       fqn,
 			Keys:      req.GetKeys(),
 			Value:     ToAPIValue(val),
 			Timestamp: timestamppb.New(resp.Timestamp),

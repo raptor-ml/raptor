@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2022 RaptorML authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +26,7 @@ from typing_extensions import TypedDict
 from . import local_state, config, durpy, replay
 from .model import TrainingContext
 from .program import Program
-from .program import normalize_fqn
+from .program import normalize_selector
 from .types import FeatureSpec, AggrSpec, AggregationFunction, ModelSpec, \
     validate_timedelta, Primitive, DataSourceSpec, ModelFramework, ModelServer
 
@@ -45,16 +46,16 @@ def _wrap_decorator_err(f):
                                      tb_frame=back_frame,
                                      tb_lasti=back_frame.f_lasti,
                                      tb_lineno=back_frame.f_lineno)
-            raise Exception(f"in {args[0].__name__}: {str(e)}").with_traceback(tb)
+            raise Exception(f'in {args[0].__name__}: {str(e)}').with_traceback(tb)
 
     return wrap
 
 
 @_wrap_decorator_err
 def _opts(func, options: dict):
-    if hasattr(func, "raptor_spec"):
-        raise Exception("option decorators must be before the registration decorator")
-    if not hasattr(func, "__raptor_options"):
+    if hasattr(func, 'raptor_spec'):
+        raise Exception('option decorators must be before the registration decorator')
+    if not hasattr(func, '__raptor_options'):
         func.__raptor_options = {}
 
     for k, v in options.items():
@@ -70,7 +71,7 @@ def namespace(namespace: str):
     """
 
     def decorator(func):
-        return _opts(func, {"namespace": namespace})
+        return _opts(func, {'namespace': namespace})
 
     return decorator
 
@@ -87,9 +88,9 @@ def runtime(
     """
 
     def decorator(func):
-        return _opts(func, {"runtime": {
-            "packages": packages,
-            "env_name": env_name,
+        return _opts(func, {'runtime': {
+            'packages': packages,
+            'env_name': env_name,
         }})
 
     return decorator
@@ -113,10 +114,10 @@ def freshness(
         invalid_after = target
 
     def decorator(func):
-        return _opts(func, {"freshness": {
-            "target": target,
-            "invalid_after": invalid_after,
-            "latency_sla": latency_sla,
+        return _opts(func, {'freshness': {
+            'target': target,
+            'invalid_after': invalid_after,
+            'latency_sla': latency_sla,
         }})
 
     return decorator
@@ -129,7 +130,7 @@ def labels(labels: Dict[str, str]):
     """
 
     def decorator(func):
-        return _opts(func, {"labels": labels})
+        return _opts(func, {'labels': labels})
 
     return decorator
 
@@ -157,9 +158,9 @@ def data_source(
     @_wrap_decorator_err
     def decorator(cls: TypedDict):
         if type(cls) == type(typing_TypedDict):
-            raise Exception("You should use typing_extensions.TypedDict instead of typing.TypedDict")
+            raise Exception('You should use typing_extensions.TypedDict instead of typing.TypedDict')
         elif type(cls) != type(TypedDict):
-            raise Exception("data_source decorator must be used on a class that extends typing_extensions.TypedDict")
+            raise Exception('data_source decorator must be used on a class that extends typing_extensions.TypedDict')
 
         spec = DataSourceSpec()
         spec.keys = keys
@@ -170,14 +171,14 @@ def data_source(
         spec.timestamp = timestamp
         spec._local_df = training_data
 
-        if hasattr(cls, "__raptor_options"):
+        if hasattr(cls, '__raptor_options'):
             for k, v in cls.__raptor_options.items():
                 options[k] = v
 
-        if "labels" in options:
+        if 'labels' in options:
             spec.labels = options['labels']
 
-        if "namespace" in options:
+        if 'namespace' in options:
             spec.namespace = options['namespace']
 
         # convert cls to json schema
@@ -189,7 +190,7 @@ def data_source(
         cls.export = spec.manifest
         local_state.register_spec(spec)
 
-        if hasattr(cls, "__raptor_options"):
+        if hasattr(cls, '__raptor_options'):
             del cls.__raptor_options
 
         return cls
@@ -217,7 +218,7 @@ def aggregation(
     if not isinstance(function, List):
         function = [function]
 
-    for i, f in function:
+    for i, f in enumerate(function):
         if isinstance(f, str):
             function[i] = AggregationFunction.parse(f)
 
@@ -232,8 +233,8 @@ def aggregation(
     def decorator(func):
         for f in function:
             if f == AggregationFunction.Unknown:
-                raise Exception("Unknown aggr function")
-        return _opts(func, {"aggr": AggrSpec(function, over, granularity)})
+                raise Exception('Unknown aggr function')
+        return _opts(func, {'aggr': AggrSpec(function, over, granularity)})
 
     return decorator
 
@@ -270,63 +271,69 @@ def feature(
         if name is None:
             spec.name = func.__name__
 
-        if hasattr(func, "__raptor_options"):
+        if hasattr(func, '__raptor_options'):
             for k, v in func.__raptor_options.items():
                 options[k] = v
 
         spec.data_source = data_source
 
         # append annotations
-        if "labels" in options:
+        if 'labels' in options:
             spec.labels = options['labels']
 
-        if "namespace" in options:
+        if 'namespace' in options:
             spec.namespace = options['namespace']
 
-        if "aggr" in options:
+        if 'aggr' in options:
             spec.freshness = options['aggr'].granularity
             spec.staleness = options['aggr'].over
 
-        if "freshness" in options:
-            spec.freshness = options['freshness']["target"]
-            spec.staleness = options['freshness']["invalid_after"]
-            spec.timeout = options['freshness']["latency_sla"]
+        if 'freshness' in options:
+            spec.freshness = options['freshness']['target']
+            spec.staleness = options['freshness']['invalid_after']
+            spec.timeout = options['freshness']['latency_sla']
 
         if spec.freshness is None or spec.staleness is None:
-            raise Exception("You must specify freshness or aggregation for a feature")
+            raise Exception('You must specify freshness or aggregation for a feature')
 
-        if "runtime" in options:
-            spec.builder.runtime = options['runtime']["env_name"]
-            spec.builder.packages = options['runtime']["packages"]
+        if 'runtime' in options:
+            spec.builder.runtime = options['runtime']['env_name']
+            spec.builder.packages = options['runtime']['packages']
 
         # parse the program
-        def fqn_resolver(obj: str) -> str:
+        def feature_obj_resolver(obj: str) -> str:
+            """
+            Resolve a feature object to its fully qualified name.
+            :param obj:  the object name as defined in the global scope of the feature function.
+            :return: the fully qualified name of the object.
+            """
             frame = inspect.currentframe().f_back.f_back
 
             feat: Union[FeatureSpec, None] = None
             if obj in frame.f_globals:
-                if hasattr(frame.f_globals[obj], "raptor_spec"):
+                if hasattr(frame.f_globals[obj], 'raptor_spec'):
                     feat = frame.f_globals[obj].raptor_spec
             elif obj in frame.f_locals:
-                if hasattr(frame.f_locals[obj], "raptor_spec"):
+                if hasattr(frame.f_locals[obj], 'raptor_spec'):
                     feat = frame.f_locals[obj].raptor_spec
             if feat is None:
-                raise Exception(f"Cannot resolve {obj} to an FQN")
+                raise Exception(f'Cannot resolve {obj} to an FQN')
 
             if feat.aggr is not None:
-                raise Exception("You must specify a FQN with AggrFn(i.e. `namespace.name+sum`) for aggregated features")
+                raise Exception('You must specify a Feature Selector with AggrFn(i.e. `namespace.name+sum`) for '
+                                'aggregated features')
 
             return feat.fqn()
 
-        spec.program = Program(func, fqn_resolver)
+        spec.program = Program(func, feature_obj_resolver)
         spec.primitive = Primitive.parse(spec.program.primitive)
 
         # aggr parsing should be after program parsing
-        if "aggr" in options:
+        if 'aggr' in options:
             for f in options['aggr'].funcs:
                 if not f.supports(spec.primitive):
                     raise Exception(
-                        f"{func.__name__} aggr function {f} not supported for primitive {spec.primitive}")
+                        f'{func.__name__} aggr function {f} not supported for primitive {spec.primitive}')
             spec.aggr = options['aggr']
 
         # register
@@ -336,7 +343,7 @@ def feature(
         func.export = spec.manifest
         local_state.register_spec(spec)
 
-        if hasattr(func, "__raptor_options"):
+        if hasattr(func, '__raptor_options'):
             del func.__raptor_options
 
         return func
@@ -369,31 +376,33 @@ def model(
 
     model_framework = ModelFramework.parse(model_framework)
 
-    def normalizeFeatures(features: Union[str, List[str], Callable, List[Callable]]) -> List[str]:
+    def normalize_features(features: Union[str, List[str], Callable, List[Callable]]) -> List[str]:
         if not isinstance(features, List):
             features = [features]
 
         fts = []
         for f in features:
             if type(f) is str:
-                local_state.feature_spec_by_fqn(f)
-                fts.append(normalize_fqn(f, config.default_namespace))
+                local_state.feature_spec_by_selector(f)
+                fts.append(normalize_selector(f, config.default_namespace))
             elif isinstance(f, Callable):
-                if not hasattr(f, "raptor_spec"):
-                    raise Exception(f"{f.__name__} is not a registered feature")
+                if not hasattr(f, 'raptor_spec'):
+                    raise Exception(f'{f.__name__} is not a registered feature')
+                if f.raptor_spec.aggr is not None:
+                    raise Exception(f'{f.__name__} is an aggregated feature. You must specify a Feature Selector.')
                 fts.append(f.raptor_spec.fqn())
             elif isinstance(f, FeatureSpec):
                 fts.append(f.fqn())
         return fts
 
-    input_features = normalizeFeatures(input_features)
-    input_labels = normalizeFeatures(input_labels)
-    key_feature = normalizeFeatures(key_feature)[0] if key_feature is not None else None
+    input_features = normalize_features(input_features)
+    input_labels = normalize_features(input_labels)
+    key_feature = normalize_features(key_feature)[0] if key_feature is not None else None
 
     @_wrap_decorator_err
     def decorator(func):
         if len(inspect.signature(func).parameters) != 1:
-            raise Exception(f"{func.__name__} must have a single parameter of type ModelContext")
+            raise Exception(f'{func.__name__} must have a single parameter of type ModelContext')
 
         spec = ModelSpec()
         spec.keys = keys
@@ -401,16 +410,16 @@ def model(
         spec.name = name
         if name is None:
             spec.name = func.__name__
-            if spec.name.endswith("_model"):
+            if spec.name.endswith('_model'):
                 spec.name = spec.name[:-6]
-            if spec.name.endswith("_trainer"):
+            if spec.name.endswith('_trainer'):
                 spec.name = spec.name[:-8]
-            if spec.name.endswith("_train"):
+            if spec.name.endswith('_train'):
                 spec.name = spec.name[:-6]
-            if spec.name.startswith("train_"):
+            if spec.name.startswith('train_'):
                 spec.name = spec.name[6:]
 
-        if hasattr(func, "__raptor_options"):
+        if hasattr(func, '__raptor_options'):
             for k, v in func.__raptor_options.items():
                 options[k] = v
 
@@ -420,29 +429,29 @@ def model(
         spec.model_framework = model_framework
         spec.model_server = model_server
 
-        if "namespace" in options:
-            spec.namespace = options["namespace"]
-        if "labels" in options:
-            spec.labels = options["labels"]
+        if 'namespace' in options:
+            spec.namespace = options['namespace']
+        if 'labels' in options:
+            spec.labels = options['labels']
 
-        if "freshness" in options:
-            spec.freshness = options['freshness']["target"]
-            spec.staleness = options['freshness']["invalid_after"]
-            spec.timeout = options['freshness']["latency_sla"]
+        if 'freshness' in options:
+            spec.freshness = options['freshness']['target']
+            spec.staleness = options['freshness']['invalid_after']
+            spec.timeout = options['freshness']['latency_sla']
 
         if spec.freshness is None or spec.staleness is None:
-            raise Exception("You must specify freshness")
+            raise Exception('You must specify freshness')
 
         local_state.register_spec(spec)
 
-        if hasattr(func, "__raptor_options"):
+        if hasattr(func, '__raptor_options'):
             del func.__raptor_options
 
         features_and_labels = replay.new_historical_get(spec)
 
         def train():
             for f in (input_features + input_labels + ([key_feature] if key_feature is not None else [])):
-                s = local_state.feature_spec_by_fqn(f)
+                s = local_state.feature_spec_by_selector(f)
                 replay.new_replay(s)()
             model = func(TrainingContext(
                 keys=spec.keys,

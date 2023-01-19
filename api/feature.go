@@ -139,7 +139,7 @@ func FeatureDescriptorFromManifest(in *manifests.Feature) (*FeatureDescriptor, e
 
 var FQNRegExp = regexp.MustCompile(`(?si)^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\[(?P<encoding>([a-z]+_*[a-z]+))])?$`)
 
-func ParseFQN(fqn string) (namespace, name, aggrFn, version, encoding string, err error) {
+func ParseSelector(fqn string) (namespace, name, aggrFn, version, encoding string, err error) {
 	if !FQNRegExp.MatchString(fqn) {
 		return "", "", "", "", "", fmt.Errorf("invalid FQN: %s", fqn)
 	}
@@ -160,8 +160,21 @@ func ParseFQN(fqn string) (namespace, name, aggrFn, version, encoding string, er
 	return
 }
 
+// NormalizeFQN returns an FQN with the namespace
 func NormalizeFQN(fqn, defaultNamespace string) (string, error) {
-	ns, name, aggrFn, version, enc, err := ParseFQN(fqn)
+	namespace, name, _, _, _, err := ParseSelector(fqn)
+	if err != nil {
+		return "", err
+	}
+	if namespace == "" {
+		namespace = defaultNamespace
+	}
+	return fmt.Sprintf("%s.%s", namespace, name), nil
+}
+
+// NormalizeSelector returns a selector with the default namespace if not specified
+func NormalizeSelector(selector, defaultNamespace string) (string, error) {
+	ns, name, aggrFn, version, enc, err := ParseSelector(selector)
 	if err != nil {
 		return "", err
 	}
