@@ -118,8 +118,14 @@ func whToUnstructured(wh rotator.WebhookInfo) (*unstructured.Unstructured, error
 	return resource, nil
 }
 
-func dnsName(ns string) string {
-	return fmt.Sprintf("%s.%s.svc", serviceName, ns)
+func dnsNames(namespace string) []string {
+	return []string{
+		serviceName,
+		fmt.Sprintf("%s.%s", serviceName, namespace),
+		fmt.Sprintf("%s.%s.svc", serviceName, namespace),
+		fmt.Sprintf("%s.%s.svc.local", serviceName, namespace),
+		fmt.Sprintf("%s.%s.svc.cluster.local", serviceName, namespace),
+	}
 }
 
 func certManagerRunnable(client client.Client, scheme *runtime.Scheme, ns string, isReady chan struct{}) manager.RunnableFunc {
@@ -161,15 +167,13 @@ func certManagerRunnable(client client.Client, scheme *runtime.Scheme, ns string
 				Namespace: ns,
 			}}
 			_, err = ctrl.CreateOrUpdate(ctx, client, cert, func() error {
-				cert.Spec.CommonName = dnsName(ns)
+				cert.Spec.CommonName = dnsNames(ns)[0]
 				cert.Spec.IssuerRef = cmmeta.ObjectReference{
 					Name: caName,
 					Kind: certApi.IssuerKind,
 				}
 				cert.Spec.SecretName = secretName //pragma: allowlist secret
-				cert.Spec.DNSNames = []string{
-					dnsName(ns),
-					fmt.Sprintf("%s.cluster.local", dnsName(ns))}
+				cert.Spec.DNSNames = dnsNames(ns)
 				return nil
 			})
 			if err != nil {
@@ -238,7 +242,8 @@ func certsWithCertsController(mgr manager.Manager, ns string, certsReady chan st
 		CertDir:                certDir,
 		CAName:                 caName,
 		CAOrganization:         caOrganization,
-		DNSName:                dnsName(ns),
+		DNSName:                dnsNames(ns)[0],
+		ExtraDNSNames:          dnsNames(ns)[1:],
 		IsReady:                certsReady,
 		RestartOnSecretRefresh: true, //pragma: allowlist secret
 		Webhooks:               webhooks,
