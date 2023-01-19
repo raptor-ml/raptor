@@ -104,13 +104,16 @@ help: ## Display this help.
 ##@ Development
 
 .PHONY: manifests
-manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
+manifests: pre-build controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=core-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
-.PHONY: generate
-generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
-	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+.PHONY: pre-build
+pre-build: ## Run pre-build actions
 	$(MAKE) -C ./internal/plugins/modelservers/sagemaker-ack get-configs
+
+.PHONY: generate
+generate: pre-build controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 .PHONY: buf-build
 buf-build: buf ## Build protobufs with buf
@@ -119,7 +122,7 @@ buf-build: buf ## Build protobufs with buf
 	cd api/proto && $(BUF) generate
 
 .PHONY: fmt
-fmt: ## Run go fmt against code.
+fmt: pre-build ## Run go fmt against code.
 	go fmt ./...
 
 .PHONY: test
@@ -334,7 +337,7 @@ $(BUF):
 	GOBIN=$(LOCALBIN) go install github.com/bufbuild/buf/cmd/buf@latest
 
 .PHONY: lint
-lint: fmt golangci-lint buf check-license ## Run golangci-lint linter
+lint: pre-build generate fmt golangci-lint buf check-license ## Run golangci-lint linter
 	$(GOLANGCI_LINT) run
 	$(BUF) lint api/proto
 
