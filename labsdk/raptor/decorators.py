@@ -218,7 +218,7 @@ def aggregation(
     if not isinstance(function, List):
         function = [function]
 
-    for i, f in function:
+    for i, f in enumerate(function):
         if isinstance(f, str):
             function[i] = AggregationFunction.parse(f)
 
