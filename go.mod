@@ -32,7 +32,7 @@ require (
 	github.com/vladimirvivien/gexe v0.1.1
 	github.com/xitongsys/parquet-go v1.6.2
 	github.com/xitongsys/parquet-go-source v0.0.0-20221025031416-9877e685ef65
-	go.buf.build/raptor/api-go/raptor/core v1.3.7
+	go.buf.build/raptor/api-go/raptor/core v1.3.8
 	golang.org/x/sync v0.1.0
 	google.golang.org/genproto v0.0.0-20230104163317-caabf589fcbf
 	google.golang.org/grpc v1.51.0

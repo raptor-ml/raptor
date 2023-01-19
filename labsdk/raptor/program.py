@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #  Copyright (c) 2022 RaptorML authors.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,35 +41,49 @@ from typing import List, Dict, Callable, Union, Tuple
 
 from redbaron import RedBaron, DefNode
 
-fqn_regex = re.compile(
-    r"^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\[(?P<encoding>([a-z]+_*[a-z]+))])?$",
+selector_regex = re.compile(
+    r'^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\[(?P<encoding>([a-z]+_*[a-z]+))])?$',
     re.IGNORECASE | re.DOTALL)
 
 primitive = Union[str, int, float, bool, datetime, List[str], List[int], List[float], List[bool], List[datetime], None]
 
 
-def normalize_fqn(fqn, default_namespace="default"):
-    matches = fqn_regex.match(fqn)
+def normalize_fqn(fqn, default_namespace='default'):
+    matches = selector_regex.match(fqn)
     if matches is None:
-        raise Exception(f"Invalid fqn: {fqn}")
-    namespace = matches.group("namespace")
-    name = matches.group("name")
-    aggrFn = matches.group("aggrFn")
-    version = matches.group("version")
-    encoding = matches.group("encoding")
+        raise Exception(f'Invalid selector: {fqn}')
+
+    namespace = matches.group('namespace')
+    name = matches.group('name')
 
     if namespace is None:
         namespace = default_namespace
 
-    extra = ""
-    if aggrFn is not None and aggrFn != "":
-        extra += f"+{aggrFn}"
-    if version is not None and version != "":
-        extra += f"@-{version}"
-    if encoding is not None and encoding != "":
-        extra += f"[{encoding}]"
+    return f'{namespace}.{name}'
 
-    return f"{namespace}.{name}{extra}"
+
+def normalize_selector(selector, default_namespace='default'):
+    matches = selector_regex.match(selector)
+    if matches is None:
+        raise Exception(f'Invalid selector: {selector}')
+    namespace = matches.group('namespace')
+    name = matches.group('name')
+    aggrFn = matches.group('aggrFn')
+    version = matches.group('version')
+    encoding = matches.group('encoding')
+
+    if namespace is None:
+        namespace = default_namespace
+
+    extra = ''
+    if aggrFn is not None and aggrFn != '':
+        extra += f'+{aggrFn}'
+    if version is not None and version != '':
+        extra += f'@-{version}'
+    if encoding is not None and encoding != '':
+        extra += f'[{encoding}]'
+
+    return f'{namespace}.{name}{extra}'
 
 
 _blocked_builtins = [
@@ -87,16 +102,16 @@ _blocked_dataset_packages = [
     'pandas',
 ]
 _blocked_modeling_packages = [
-    "sklearn", "tensorflow", "xgboost", "lightgbm", "catboost", "torch", "torchvision", "torchaudio", "keras", "fastai",
-    "pytorch_lightning", "onnx", "onnxruntime", "onnxruntime_tools", "onnxruntime_training", "onnxruntime_gpu_tensorrt",
-    "scipy", "matplotlib", "scikit-learn", "scikit-image", "onnxruntime-gpu", "Theano-PyMC", "datascience",
-    "imbalanced", "opencv-contrib-python", "opencv-python", "sklearn-pandas", "librosa", "h5py", "PyWavelets",
-    "pmdarima", "sktime", "statsmodels", "pytorch-lightning", "seaborn", "transformers", "theano", "nltk", "hdf5",
+    'sklearn', 'tensorflow', 'xgboost', 'lightgbm', 'catboost', 'torch', 'torchvision', 'torchaudio', 'keras', 'fastai',
+    'pytorch_lightning', 'onnx', 'onnxruntime', 'onnxruntime_tools', 'onnxruntime_training', 'onnxruntime_gpu_tensorrt',
+    'scipy', 'matplotlib', 'scikit-learn', 'scikit-image', 'onnxruntime-gpu', 'Theano-PyMC', 'datascience',
+    'imbalanced', 'opencv-contrib-python', 'opencv-python', 'sklearn-pandas', 'librosa', 'h5py', 'PyWavelets',
+    'pmdarima', 'sktime', 'statsmodels', 'pytorch-lightning', 'seaborn', 'transformers', 'theano', 'nltk', 'hdf5',
 ]
 _blocked_io_packages = [
-    "os", "sys", "subprocess", "shutil", "http", "urllib", "socket", "multiprocessing", "threading",
-    "subprocess", "os", "shutil", "winreg", "requests", "threading", "tempfile", "urllib3", "urllib2", "urllib",
-    "asyncio", "io", "gevent", "grequests", "aiohttp", "uplink", "httpx", "builtins",
+    'os', 'sys', 'subprocess', 'shutil', 'http', 'urllib', 'socket', 'multiprocessing', 'threading',
+    'subprocess', 'os', 'shutil', 'winreg', 'requests', 'threading', 'tempfile', 'urllib3', 'urllib2', 'urllib',
+    'asyncio', 'io', 'gevent', 'grequests', 'aiohttp', 'uplink', 'httpx', 'builtins',
 ]
 
 
@@ -109,7 +124,7 @@ def secure_importer(name, globals=None, locals=None, fromlist=(), level=0):
 
 safe_builtins['__import__'] = secure_importer
 
-_side_effect_ctx_functions = ["get_feature"]
+_side_effect_ctx_functions = ['get_feature', 'get_prediction']
 
 
 class SideEffect:
@@ -139,54 +154,55 @@ class Context:
                  prediction_getter: Callable[[str, Dict[str, str], datetime], Tuple[primitive, datetime]],
                  ):
 
-        parsed = fqn_regex.match(fqn)
+        parsed = selector_regex.match(fqn)
         if parsed is None:
-            raise Exception(f"Invalid FQN. Got: {fqn}")
-        if parsed.group("namespace") is None:
-            raise Exception(f"FQN with a namespace is mandatory when defining a context. Got: {fqn}")
+            raise Exception(f'Invalid FQN. Got: {fqn}')
+        if parsed.group('namespace') is None:
+            raise Exception(f'FQN with a namespace is mandatory when defining a context. Got: {fqn}')
 
-        self.namespace = parsed.group("namespace")
+        self.namespace = parsed.group('namespace')
         self.fqn = fqn
         self.keys = keys
         self.timestamp = timestamp
         self.__feature_getter = feature_getter
         self.__prediction_getter = prediction_getter
 
-    def get_feature(self, fqn: str, keys: Dict[str, str] = None) -> [primitive, datetime]:
+    def get_feature(self, selector: str, keys: Dict[str, str] = None) -> [primitive, datetime]:
         """
         Get feature value for a dependant feature.
 
-        Behind the scenes, the LabSDK will return you the value for the requested FQN and keys
+        Behind the scenes, the LabSDK will return you the value for the requested Feature Selector and keys
         **at the appropriate** timestamp of the request. That means that we'll use the request's timestamp when replying
         features. Cool right? 😎
 
-        :param str fqn: Fully Qualified Name of the feature, including aggregation function if exists.
+        :param str selector: Feature Selector of the feature, including aggregation function if exists.
         :param str keys: the keys(identifiers) we request the value for.
         :return: a tuple of (value, timestamp)
         """
 
         if keys is None:
             keys = self.keys
-        fqn = normalize_fqn(fqn, self.namespace)
-        return self.__feature_getter(fqn, keys, self.timestamp)
+        selector = normalize_selector(selector, self.namespace)
+        return self.__feature_getter(selector, keys, self.timestamp)
 
-    def get_prediction(self, fqn: str, keys: Dict[str, str] = None) -> Tuple[any, datetime]:
+    def get_prediction(self, selector: str, keys: Dict[str, str] = None) -> Tuple[any, datetime]:
         """
         Get the predicted value from a model.
 
-        Behind the scenes, the LabSDK will call the model server and deliver back the prediction from the requested FQN and keys
-        **at the appropriate** timestamp of the request. That means that we'll use the request's timestamp when replying
-        features. Cool right? 😎
+        Behind the scenes, the LabSDK will call the model server and deliver back the prediction from the requested
+        Model's FQN and keys **at the appropriate** timestamp of the request. That means that we'll use the
+        request's timestamp when replying features. Cool right? 😎
 
-        :param str fqn: Fully Qualified Name of the model.
-        :param str keys: the keys(identifiers) we request the value for. By default, the keys of the current context are used.
+        :param str selector: Fully Qualified Name of the model.
+        :param str keys: the keys(identifiers) we request the value for. By default, the keys of the current context are
+         used.
         :return: a tuple of (prediction, timestamp)
         """
 
         if keys is None:
             keys = self.keys
-        fqn = normalize_fqn(fqn, self.namespace)
-        return self.__prediction_getter(fqn, keys, self.timestamp)
+        selector = normalize_selector(selector, self.namespace)
+        return self.__prediction_getter(selector, keys, self.timestamp)
 
 
 class Program:
@@ -200,7 +216,7 @@ class Program:
     code: str
     checksum: bytes
 
-    def __init__(self, code, fqn_resolver: Callable[[str], str] = None):
+    def __init__(self, code, feature_obj_resolver: Callable[[str], str] = None):
         if isinstance(code, Callable):
             code = getsource(code)
         m = hashlib.sha256()
@@ -209,17 +225,17 @@ class Program:
 
         root_node = RedBaron(code)
         if len(root_node) != 1:
-            raise SyntaxError("PythonRuntime supports one function definition")
+            raise SyntaxError('PythonRuntime supports one function definition')
         node = root_node[0]
         if not isinstance(node, DefNode):
-            raise SyntaxError("PythonRuntime only supports function definition")
+            raise SyntaxError('PythonRuntime only supports function definition')
 
         # We must remove any decorators left in the function definition
         if len(node.decorators) > 0:
             node.decorators = []
 
         if len(node.arguments) != 2:
-            raise SyntaxError("Feature function requires exactly 2 arguments: (this_row, context)")
+            raise SyntaxError('Feature function requires exactly 2 arguments: (this_row, context)')
 
         # Remove arguments annotations
         if node.arguments:
@@ -232,52 +248,52 @@ class Program:
             iname = imp.name.value
             if iname in _blocked_dataset_packages:
                 raise SyntaxError(
-                    "🛑 You should not use dataset packages(e.g. Pandas) in a Feature function. "
-                    "Remember: use the reactive mindest - \"work on a row level, but you always have a state\"")
+                    '🛑 You should not use dataset packages(e.g. Pandas) in a Feature function. '
+                    "Remember: use the reactive mindset - \"work on a row level, but you always have a state\"")
 
             if iname in _blocked_modeling_packages:
                 raise SyntaxError("🛑 You shouldn't use modeling packages here. Feature functions are made for "
-                                  "calculating the data toward a dataset for the model.")
+                                  'calculating the data toward a dataset for the model.')
             if iname in _blocked_io_packages:
-                raise SyntaxError("🛑 Importing i/o packages are restricted for Feature functions.")
+                raise SyntaxError('🛑 Importing i/o packages are restricted for Feature functions.')
 
-        for at in node.find_all("call"):
+        for at in node.find_all('call'):
             if at.parent.name.value == node.name:
-                raise SyntaxError("🛑 Recursion is restricted for Feature function")
+                raise SyntaxError('🛑 Recursion is restricted for Feature function')
             if at.parent.name.value == ctx_arg:
                 method = at.parent.value[1].value
                 if method in _side_effect_ctx_functions:
                     args = {}
-                    for arg in at.find_all("call_argument"):
-                        if (arg.index_on_parent == 0 or (arg.target is not None and arg.target.value == "fqn")) \
-                            and arg.value.type != "string":
-                            if fqn_resolver is None:
-                                raise SyntaxError("🛑 You must provide a FQN as a string for this Feature function")
-                            args["fqn"] = fqn_resolver(arg.value.value)
+                    for arg in at.find_all('call_argument'):
+                        if (arg.index_on_parent == 0 or (arg.target is not None and arg.target.value == 'selector')) \
+                                and arg.value.type != 'string':
+                            if feature_obj_resolver is None:
+                                raise SyntaxError('🛑 You must provide a Feature Selector for this Feature function')
+                            args['selector'] = feature_obj_resolver(arg.value.value)
 
                         if arg.target is not None:
                             args[arg.target.value] = arg.value.value
                         args[arg.index_on_parent] = arg.value.value
 
                         self.side_effects.append(
-                            SideEffect(kind=method, args=args, conditional=at.parent_find("if") is not None))
+                            SideEffect(kind=method, args=args, conditional=at.parent_find('if') is not None))
 
         self.name = node.name
         rav = node.return_annotation.name.value
-        rav = "datetime.datetime" if rav == "datetime" else rav
+        rav = 'datetime.datetime' if rav == 'datetime' else rav
 
-        if rav == "List":
+        if rav == 'List':
             itm = node.return_annotation.value.getitem.value.value
             if not isinstance(itm, str):
                 itm = itm.name.value
-            scalar = locate("datetime.datetime" if itm == "datetime" else itm)
+            scalar = locate('datetime.datetime' if itm == 'datetime' else itm)
             self.primitive = List[scalar]
         else:
             self.primitive = locate(rav)
 
         self.code = node.dumps().strip()
-        compiled = compile(self.code, f"<{self.name}>", "exec")
-        glob, loc = {'__builtins__': safe_builtins, "datetime": dt_pkg, "List": List}, {}
+        compiled = compile(self.code, f'<{self.name}>', 'exec')
+        glob, loc = {'__builtins__': safe_builtins, 'datetime': dt_pkg, 'List': List}, {}
         exec(compiled, glob, loc)
 
         self.handler = loc[self.name]

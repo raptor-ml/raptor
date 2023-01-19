@@ -758,6 +758,8 @@ go.buf.build/raptor/api-go/envoyproxy/protoc-gen-validate v1.3.8 h1:NgwD3pWCPtEh
 go.buf.build/raptor/api-go/envoyproxy/protoc-gen-validate v1.3.8/go.mod h1:88DcUfbsM/rfC2hyCZ6SPrko1cVhtmr5d0Vwc6vSbqI=
 go.buf.build/raptor/api-go/raptor/core v1.3.7 h1:WgtVPVG/ynqWUe9ddU3QGMfEFAhRDTQnN3X0ZJon5a0=
 go.buf.build/raptor/api-go/raptor/core v1.3.7/go.mod h1:+HCGR/AYEEcWGH5Yx8ZSP6L6WO5ZpH8+QWw49q5+euE=
+go.buf.build/raptor/api-go/raptor/core v1.3.8 h1:t4MEHsFZbE1012AjFf5jsAJPPzx+8wS7ZBWvP0yLUlo=
+go.buf.build/raptor/api-go/raptor/core v1.3.8/go.mod h1:+HCGR/AYEEcWGH5Yx8ZSP6L6WO5ZpH8+QWw49q5+euE=
 go.opencensus.io v0.15.0/go.mod h1:UffZAU+4sDEINUGP/B7UfBBkq4fqLu9zXAX7ke6CHW0=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=

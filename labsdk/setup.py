@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2022 RaptorML authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,32 +17,32 @@ import os
 
 import setuptools
 
-with open("./README.md", "r") as fh:
+with open('./README.md', 'r') as fh:
     long_description = fh.read()
 
-version = "dev"
-if os.environ.get("BUILD_VERSION") is not None:
-    version = os.environ.get("BUILD_VERSION")
+version = 'dev'
+if os.environ.get('BUILD_VERSION') is not None:
+    version = os.environ.get('BUILD_VERSION')
 
 setuptools.setup(
-    name="raptor-labsdk",
+    name='raptor-labsdk',
     version=version,
-    author="Almog Baku",
-    author_email="almog@raptor.ml",
-    description="",
+    author='Almog Baku',
+    author_email='almog@raptor.ml',
+    description='',
     long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="https://raptor.ml",
+    long_description_content_type='text/markdown',
+    url='https://raptor.ml',
     project_urls={
         'Documentation': 'https://raptor.ml/',
         'Source': 'https://github.com/raptor-ml/raptor',
         'Tracker': 'https://github.com/raptor-ml/raptor/issues',
     },
-    packages=setuptools.find_packages(exclude="_test"),
+    packages=setuptools.find_packages(exclude='_test'),
     classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: Apache Software License",
-        "Operating System :: OS Independent",
+        'Programming Language :: Python :: 3',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: OS Independent',
     ],
     include_package_data=True,
     install_requires=['pandas', 'redbaron', 'typing-extensions', 'pyyaml', 'pydantic'],

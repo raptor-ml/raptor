@@ -14,7 +14,7 @@ option go_package = "github.com/raptor-ml/raptor/core/v1alpha1;coreV1alpha1";
 // GetRequest
 message GetRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
-    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    string selector = 2 [(validate.rules).string.pattern = "(?si)^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\\[(?P<encoding>([a-z]+_*[a-z]+))])?$"];
     map<string, string> keys = 3;
 }
 message GetResponse {
@@ -74,7 +74,7 @@ message UpdateResponse {
 }
 message FeatureDescriptorRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
-    string fqn = 2 [(validate.rules).string.pattern = "(?si)^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\\[(?P<encoding>([a-z]+_*[a-z]+))])?$"];
+    string selector = 2 [(validate.rules).string.pattern = "(?si)^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\\[(?P<encoding>([a-z]+_*[a-z]+))])?$"];
 }
 message FeatureDescriptorResponse {
     string uuid = 1 [(validate.rules).string.uuid = true];
@@ -88,13 +88,13 @@ service EngineService {
         option (google.api.http) = {
             custom: {
                 kind: "HEAD",
-                path: "/{fqn}"
+                path: "/{selector}"
             }
         };
     }
     rpc Get (GetRequest) returns (GetResponse) {
         option (google.api.http) = {
-            get: "/{fqn}"
+            get: "/{selector}"
         };
     }
     rpc Set (SetRequest) returns (SetResponse) {

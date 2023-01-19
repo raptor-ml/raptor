@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #  Copyright (c) 2022 RaptorML authors.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +27,7 @@ from grpc import ServicerContext
 
 from program import Program, Context, SideEffect, primitive
 
-sys.path.append("./proto")
+sys.path.append('./proto')
 
 from proto.raptor.core.v1alpha1 import api_pb2 as core_pb2
 from proto.raptor.core.v1alpha1 import api_pb2_grpc as core_grpc
@@ -63,7 +64,7 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
                     )
 
             for pkg in request.packages:
-                subprocess.run([sys.executable, "-m", "pip", "install", pkg], check=True)
+                subprocess.run([sys.executable, '-m', 'pip', 'install', pkg], check=True)
 
             program = Program(request.program)
             self.programs[request.fqn] = program
@@ -73,13 +74,13 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
                 side_effects=self.py_to_proto_side_effects(program.side_effects)
             )
         except Exception as e:
-            logging.error(f"{request.fqn}: Failed to load program", e)
+            logging.error(f'{request.fqn}: Failed to load program', e)
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, str(e))
             return
 
     async def ExecuteProgram(self, request: api_pb2.ExecuteProgramRequest, context: ServicerContext):
         if request.fqn not in self.programs:
-            context.abort(grpc.StatusCode.NOT_FOUND, "Program not found")
+            context.abort(grpc.StatusCode.NOT_FOUND, 'Program not found')
             return
 
         program: Program = self.programs[request.fqn]
@@ -90,19 +91,19 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
 
         ts = request.timestamp.ToDatetime()
 
-        def feature_getter(fqn: str, keys: Dict[str, str], timestamp: datetime) -> Tuple[primitive, datetime]:
+        def feature_getter(selector: str, keys: Dict[str, str], timestamp: datetime) -> Tuple[primitive, datetime]:
             if timestamp != ts:
-                warnings.warn("Timestamp mismatch")
+                warnings.warn('Timestamp mismatch')
             fg_keys = keys if keys is not None else request.keys
-            req = core_pb2.GetRequest(uuid=str(uuid4()), fqn=fqn, keys=fg_keys)
+            req = core_pb2.GetRequest(uuid=str(uuid4()), selector=selector, keys=fg_keys)
             resp: core_pb2.GetResponse = self.engine.Get(req)
             if resp.uuid != req.uuid:
-                raise Exception("UUID mismatch")
+                raise Exception('UUID mismatch')
 
             return self.proto_value_to_py(resp.value.value), resp.value.timestamp.ToDatetime()
 
-        def prediction_getter(fqn: str, keys: Dict[str, str], timestamp: datetime) -> Tuple[primitive, datetime]:
-            raise NotImplementedError("Prediction getter not implemented")
+        def prediction_getter(selector: str, keys: Dict[str, str], timestamp: datetime) -> Tuple[primitive, datetime]:
+            raise NotImplementedError('Prediction getter not implemented')
 
         data = self.proto_to_dict(request.data)
         program_ctx = Context(
@@ -117,7 +118,7 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
             resp = program.call(data, program_ctx)
             if isinstance(resp, tuple) and len(resp) == 3:
                 if not isinstance(resp[2], datetime):
-                    raise Exception("Timestamp must be a datetime object")
+                    raise Exception('Timestamp must be a datetime object')
                 ts = resp[2]
 
             ret = api_pb2.ExecuteProgramResponse(
@@ -137,11 +138,11 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
                 ur.timestamp.FromDatetime(ts)
                 uresp = self.engine.Update(ur)
                 if uresp.uuid != ur.uuid:
-                    raise Exception("UUID mismatch")
+                    raise Exception('UUID mismatch')
 
             return ret
         except Exception as e:
-            logging.error(f"{request.fqn}: Failed to execute program", e)
+            logging.error(f'{request.fqn}: Failed to execute program', e)
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, str(e))
             return
 

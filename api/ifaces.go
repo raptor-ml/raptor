@@ -62,8 +62,8 @@ func (k *Keys) Decode(encodedKeys string, fd FeatureDescriptor) error {
 // Engine is the main engine of the Core
 // It is responsible for the low-level operation for the features against the feature store
 type Engine interface {
-	FeatureDescriptor(ctx context.Context, FQN string) (FeatureDescriptor, error)
-	Get(ctx context.Context, FQN string, keys Keys) (Value, FeatureDescriptor, error)
+	FeatureDescriptor(ctx context.Context, selector string) (FeatureDescriptor, error)
+	Get(ctx context.Context, selector string, keys Keys) (Value, FeatureDescriptor, error)
 	Set(ctx context.Context, FQN string, keys Keys, val any, ts time.Time) error
 	Append(ctx context.Context, FQN string, keys Keys, val any, ts time.Time) error
 	Incr(ctx context.Context, FQN string, keys Keys, by any, ts time.Time) error
