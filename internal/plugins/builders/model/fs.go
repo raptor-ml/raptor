@@ -42,14 +42,14 @@ func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, fa
 		return fmt.Errorf("model must have at least 2 features")
 	}
 
-	ns, _, _, _, _, err := api.ParseFQN(fd.FQN)
+	ns, _, _, _, _, err := api.ParseSelector(fd.FQN)
 	if err != nil {
 		return err
 	}
 
 	//normalize features
 	for i, f := range spec.Features {
-		spec.Features[i], err = api.NormalizeFQN(f, ns)
+		spec.Features[i], err = api.NormalizeSelector(f, ns)
 		if err != nil {
 			return fmt.Errorf("failed to normalize feature %s in model %s: %w", f, fd.FQN, err)
 		}

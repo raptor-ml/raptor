@@ -40,10 +40,10 @@ func NewGRPCEngine(client coreApi.EngineServiceClient) api.Engine {
 	}
 }
 
-func (e *grpcEngine) FeatureDescriptor(ctx context.Context, fqn string) (api.FeatureDescriptor, error) {
+func (e *grpcEngine) FeatureDescriptor(ctx context.Context, selector string) (api.FeatureDescriptor, error) {
 	req := &coreApi.FeatureDescriptorRequest{
-		Uuid: uuid.NewString(),
-		Fqn:  fqn,
+		Uuid:     uuid.NewString(),
+		Selector: selector,
 	}
 	resp, err := e.client.FeatureDescriptor(ctx, req)
 	if err != nil {
@@ -54,11 +54,11 @@ func (e *grpcEngine) FeatureDescriptor(ctx context.Context, fqn string) (api.Fea
 	}
 	return FromAPIFeatureDescriptor(resp.FeatureDescriptor), nil
 }
-func (e *grpcEngine) Get(ctx context.Context, fqn string, keys api.Keys) (api.Value, api.FeatureDescriptor, error) {
+func (e *grpcEngine) Get(ctx context.Context, selector string, keys api.Keys) (api.Value, api.FeatureDescriptor, error) {
 	req := coreApi.GetRequest{
-		Uuid: uuid.NewString(),
-		Fqn:  fqn,
-		Keys: keys,
+		Uuid:     uuid.NewString(),
+		Selector: selector,
+		Keys:     keys,
 	}
 	ret := api.Value{}
 	resp, err := e.client.Get(ctx, &req)

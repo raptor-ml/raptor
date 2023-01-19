@@ -27,10 +27,10 @@ type Dummy struct {
 	api.RuntimeManager
 }
 
-func (*Dummy) FeatureDescriptor(ctx context.Context, FQN string) (api.FeatureDescriptor, error) {
+func (*Dummy) FeatureDescriptor(ctx context.Context, selector string) (api.FeatureDescriptor, error) {
 	return api.FeatureDescriptor{}, nil
 }
-func (*Dummy) Get(ctx context.Context, FQN string, keys api.Keys) (api.Value, api.FeatureDescriptor, error) {
+func (*Dummy) Get(ctx context.Context, selector string, keys api.Keys) (api.Value, api.FeatureDescriptor, error) {
 	return api.Value{}, api.FeatureDescriptor{}, nil
 }
 func (*Dummy) Set(ctx context.Context, FQN string, keys api.Keys, val any, ts time.Time) error {

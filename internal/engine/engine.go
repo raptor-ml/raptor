@@ -24,6 +24,7 @@ import (
 	"github.com/raptor-ml/raptor/api"
 	"github.com/raptor-ml/raptor/internal/historian"
 	"github.com/raptor-ml/raptor/internal/stats"
+	"strings"
 	"sync"
 	"time"
 )
@@ -86,11 +87,11 @@ func (e *engine) write(ctx context.Context, fqn string, keys api.Keys, val any, 
 	return nil
 }
 
-func (e *engine) Get(ctx context.Context, fqn string, keys api.Keys) (api.Value, api.FeatureDescriptor, error) {
+func (e *engine) Get(ctx context.Context, selector string, keys api.Keys) (api.Value, api.FeatureDescriptor, error) {
 	defer stats.IncrFeatureGets()
 
 	ret := api.Value{Timestamp: time.Now()}
-	f, ctx, cancel, err := e.featureForRequest(ctx, fqn)
+	f, ctx, cancel, err := e.featureForRequest(ctx, selector)
 	if err != nil {
 		return ret, api.FeatureDescriptor{}, err
 	}
@@ -98,14 +99,14 @@ func (e *engine) Get(ctx context.Context, fqn string, keys api.Keys) (api.Value,
 
 	ret, err = e.readPipeline(f).Apply(ctx, keys, ret)
 	if err != nil && !(goerrors.Is(err, context.DeadlineExceeded) && ret.Value != nil && !ret.Fresh) {
-		return ret, f.FeatureDescriptor, fmt.Errorf("failed to GET value for feature %s with keys %s: %w", fqn, keys, err)
+		return ret, f.FeatureDescriptor, fmt.Errorf("failed to GET value for feature %s with keys %s: %w", selector, keys, err)
 	}
 	return ret, f.FeatureDescriptor, nil
 }
 
-func (e *engine) FeatureDescriptor(ctx context.Context, fqn string) (api.FeatureDescriptor, error) {
+func (e *engine) FeatureDescriptor(ctx context.Context, selector string) (api.FeatureDescriptor, error) {
 	defer stats.IncrFeatureDescriptorReqs()
-	f, _, cancel, err := e.featureForRequest(ctx, fqn)
+	f, _, cancel, err := e.featureForRequest(ctx, selector)
 	if err != nil {
 		return api.FeatureDescriptor{}, err
 	}
@@ -113,16 +114,28 @@ func (e *engine) FeatureDescriptor(ctx context.Context, fqn string) (api.Feature
 
 	return f.FeatureDescriptor, nil
 }
-func (e *engine) featureForRequest(ctx context.Context, fqn string) (*Feature, context.Context, context.CancelFunc, error) {
-	fqn, fn := api.FQNToRealFQN(fqn)
+func (e *engine) featureForRequest(ctx context.Context, selector string) (*Feature, context.Context, context.CancelFunc, error) {
+	fqn, err := api.NormalizeFQN(selector, "undefined-namespace")
+	if err != nil {
+		return nil, ctx, nil, fmt.Errorf("failed to normalize Feature Selector `%s` as FQN: %w", selector, err)
+	}
+	if strings.HasPrefix(fqn, "undefined-namespace") {
+		return nil, ctx, nil, fmt.Errorf("namespace is required in Feature Selector `%s`", selector)
+	}
+
+	_, _, aggrFn, _, _, err := api.ParseSelector(selector)
+	if err != nil {
+		return nil, ctx, nil, fmt.Errorf("failed to parse selector %s: %w", selector, err)
+	}
+
 	if f, ok := e.features.Load(fqn); ok {
 		if f, ok := f.(*Feature); ok {
 			ctx, cancel := f.Context(ctx, e.Logger())
-			ctx = api.ContextWithAggrFn(ctx, fn)
+			ctx = api.ContextWithAggrFn(ctx, api.StringToAggrFn(aggrFn))
 			return f, ctx, cancel, nil
 		}
 	}
-	return nil, ctx, nil, fmt.Errorf("%w: %s", api.ErrFeatureNotFound, fqn)
+	return nil, ctx, nil, fmt.Errorf("%w: %s", api.ErrFeatureNotFound, selector)
 }
 
 func (e *engine) Logger() logr.Logger {
