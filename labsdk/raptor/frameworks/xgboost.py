@@ -16,30 +16,31 @@
 from .base import BaseModelFramework
 
 
-class SklearnFramework(BaseModelFramework):
+class XGBoostFramework(BaseModelFramework):
     @staticmethod
     def save(model, spec: 'ModelSpec'):
         try:
             import joblib
-            from sklearn import __version__ as sklearn_version
-            from sklearn.base import BaseEstimator
+            from xgboost import __version__ as xgboost_version
+            from xgboost import Booster
         except ImportError:
-            raise ImportError('Please install joblib and sklearn to use the sklearn framework.\n'
-                              'You can install them using pip: `pip install joblib scikit-learn`')
+            raise ImportError('Please install xgboost to use the xgboost framework.\n'
+                              'You can install them using pip: `pip install xgboost`')
 
-        if not isinstance(model, BaseEstimator):
+        if not isinstance(model, Booster):
             raise TypeError('model must be a sklearn model')
 
         BaseModelFramework._create_output_path()
-        spec._model_framework_version = sklearn_version
+        spec._model_filename = f'{spec.fqn()}_{model.__hash__()}.ubj'
+        spec._model_framework_version = xgboost_version
 
-        base_filename = f'{spec.fqn()}_{model.__hash__()}.job'
-        job_path = f'{BaseModelFramework._base_output_path()}/{base_filename}'
-        joblib.dump(model, job_path)
+        base_filename = f'{spec.fqn()}_{model.__hash__()}.ubj'
+        model_path = f'{BaseModelFramework._base_output_path()}/{base_filename}'
+        model.save_model(model_path)
 
         import shutil, os
-        shutil.make_archive(job_path, 'gztar', BaseModelFramework._base_output_path())
-        os.remove(job_path)
+        shutil.make_archive(model_path, 'gztar', BaseModelFramework._base_output_path())
+        os.remove(model_path)
         spec._model_filename = f'{base_filename}.tar.gz'
 
     @staticmethod

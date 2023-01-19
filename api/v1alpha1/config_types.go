@@ -29,8 +29,22 @@ import (
 	"time"
 )
 
-// +kubebuilder:object:generate=false
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get
+
+// ConfigVar is a name/value pair for the config.
+type ConfigVar struct {
+	// Configuration name
+	Name string `json:"name"`
+	// Configuration value
+	// +optional
+	// +nullable
+	Value string `json:"value,omitempty"`
+	// Configuration value from secret
+	// +optional
+	// +nullable
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,xDescriptors={"urn:alm:descriptor:io.kubernetes:Secret"}
+	SecretKeyRef *corev1.SecretKeySelector `json:"secretKeyRef,omitempty"`
+}
 
 // ParsedConfig is a parsed configuration
 type ParsedConfig map[string]string
@@ -69,13 +83,11 @@ func stringToURLHookFunc(f reflect.Type, t reflect.Type, data interface{}) (inte
 	return url.Parse(dataVal.String())
 }
 
-// ParseConfig parses the config, and extracts the secrets, into a map of key-value pairs
-func (in *DataSource) ParseConfig(ctx context.Context, rdr client.Reader) (ParsedConfig, error) {
+func parseConfig(ctx context.Context, pairs []ConfigVar, ns string, rdr client.Reader) (ParsedConfig, error) {
 	cfg := make(ParsedConfig)
-	cfg["_fqn"] = fmt.Sprintf("%s.%s", in.GetName(), in.GetNamespace())
 
 	g, ctx := errgroup.WithContext(ctx)
-	for _, cv := range in.Spec.Config {
+	for _, cv := range pairs {
 		if cv.Name == "" {
 			continue
 		}
@@ -83,14 +95,14 @@ func (in *DataSource) ParseConfig(ctx context.Context, rdr client.Reader) (Parse
 			cfg[cv.Name] = cv.Value
 			continue
 		}
-		if cv.SecretKeyRef == nil {
+		if cv.SecretKeyRef == nil { //pragma: allowlist secret
 			continue
 		}
 		cv := cv // https://golang.org/doc/faq#closures_and_goroutines
 		g.Go(func() error {
 			secret := &corev1.Secret{}
 			err := rdr.Get(ctx, client.ObjectKey{
-				Namespace: in.GetNamespace(),
+				Namespace: ns,
 				Name:      cv.SecretKeyRef.Name,
 			}, secret)
 			if err != nil {

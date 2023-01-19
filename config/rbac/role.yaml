@@ -108,6 +108,13 @@ rules:
   - update
   - watch
 - apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
   - k8s.raptor.ml
   resources:
   - datasources
@@ -179,3 +186,39 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - sagemaker.services.k8s.aws
+  resources:
+  - endpointconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - sagemaker.services.k8s.aws
+  resources:
+  - endpoints
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - sagemaker.services.k8s.aws
+  resources:
+  - models
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch

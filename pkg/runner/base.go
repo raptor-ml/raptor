@@ -32,7 +32,7 @@ import (
 var distrolessNoRootUser int64 = 65532
 
 type Base interface {
-	Reconcile(ctx context.Context, rr api.ReconcileRequest, src *manifests.DataSource) error
+	Reconcile(ctx context.Context, rr api.DataSourceReconcileRequest, src *manifests.DataSource) error
 }
 type BaseRunner struct {
 	Image           string
@@ -50,7 +50,7 @@ func (r BaseRunner) Reconciler() (api.DataSourceReconcile, error) {
 
 	return r.reconcile, nil
 }
-func (r BaseRunner) reconcile(ctx context.Context, req api.ReconcileRequest) (bool, error) {
+func (r BaseRunner) reconcile(ctx context.Context, req api.DataSourceReconcileRequest) (bool, error) {
 	logger := log.FromContext(ctx).WithName("base")
 
 	deploy := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{
@@ -79,7 +79,7 @@ const (
 	coreGrpcEnvName    = "CORE_GRPC_URL"
 )
 
-func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.ReconcileRequest) {
+func (r BaseRunner) updateDeployment(deploy *appsv1.Deployment, req api.DataSourceReconcileRequest) {
 	labels := map[string]string{
 		"data-source-kind": req.DataSource.Spec.Kind,
 		"data-source":      req.DataSource.GetName(),

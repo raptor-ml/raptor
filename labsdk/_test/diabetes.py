@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #  Copyright (c) 2022 RaptorML authors.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +18,7 @@ import pandas as pd
 from typing_extensions import TypedDict
 
 from labsdk.raptor import Context, data_source, feature, freshness, model, TrainingContext
+from labsdk.raptor.local_state import spec_by_fqn
 
 df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/diabetes.csv')
 df.insert(0, 'id', range(0, len(df)))
@@ -30,7 +32,7 @@ df['BloodPressure'] = df['BloodPressure'].replace(0, df['BloodPressure'].mean())
 df['SkinThickness'] = df['SkinThickness'].replace(0, df['SkinThickness'].mean())
 df['Insulin'] = df['Insulin'].replace(0, df['Insulin'].mean())
 df['BMI'] = df['BMI'].replace(0, df['BMI'].mean())
-df["timestamp"] = pd.to_datetime(datetime.now())  # add timestamp
+df['timestamp'] = pd.to_datetime(datetime.now())  # add timestamp
 
 
 # %%
@@ -108,24 +110,24 @@ def outcome(this_row: Diabetes, ctx: Context) -> int:
 @feature(data_source=Diabetes, keys=['id'])
 @freshness(target='1h', invalid_after='100h')
 def bmi_class(this_row: Diabetes, ctx: Context) -> int:
-    if this_row["BMI"] < 18.5:
+    if this_row['BMI'] < 18.5:
         return -1  # Underweight
-    elif 18.5 <= this_row["BMI"] <= 24.9:
+    elif 18.5 <= this_row['BMI'] <= 24.9:
         return 0  # Normal
-    elif 25 <= this_row["BMI"] <= 29.9:
+    elif 25 <= this_row['BMI'] <= 29.9:
         return 1  # Overweight
-    elif this_row["BMI"] >= 30:
+    elif this_row['BMI'] >= 30:
         return 3  # Obesity
 
 
 @feature(data_source=Diabetes, keys=['id'])
 @freshness(target='1h', invalid_after='100h')
 def insulin_class(this_row: Diabetes, ctx: Context) -> int:
-    if this_row["Insulin"] < 16:
+    if this_row['Insulin'] < 16:
         return -1  # Low
-    elif 16 <= this_row["Insulin"] <= 166:
+    elif 16 <= this_row['Insulin'] <= 166:
         return 0  # Normal
-    elif this_row["Insulin"] >= 166:
+    elif this_row['Insulin'] >= 166:
         return 1  # High
 
 
@@ -139,6 +141,7 @@ def insulin_class(this_row: Diabetes, ctx: Context) -> int:
     ],
     input_labels=[outcome],
     model_framework='sklearn',
+    model_server='sagemaker-ack',
 )
 @freshness(target='1h', invalid_after='100h')
 def diabetes_prediction_train(ctx: TrainingContext):
@@ -171,7 +174,13 @@ y = data[diabetes_prediction_train.input_labels]
 _, x_test, _, y_test = train_test_split(x, y, test_size=0.2, stratify=y, random_state=1234)
 
 y_pred = mymodel.predict(x_test)
-res=classification_report(y_pred, y_test.values.ravel())
+res = classification_report(y_pred, y_test.values.ravel())
 print(res)
-print("Accuracy:", mymodel.score(x_test, y_test.values.ravel()))
-print("done")
+print('Accuracy:', mymodel.score(x_test, y_test.values.ravel()))
+print('done')
+
+# Output
+Diabetes.export(to_file=True)
+diabetes_prediction_train.export(to_file=True)
+for feature in diabetes_prediction_train.raptor_spec.features:
+    spec_by_fqn(fqn=feature).manifest(to_file=True)

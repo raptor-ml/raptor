@@ -21,6 +21,7 @@ package operator
 // +kubebuilder:rbac:groups=k8s.raptor.ml,resources=datasources/finalizers,verbs=update
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=events,verbs=create;patch
 
 import (
 	"context"
@@ -28,6 +29,7 @@ import (
 	"github.com/raptor-ml/raptor/api"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"github.com/raptor-ml/raptor/pkg/plugins"
+	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"time"
 
@@ -44,6 +46,7 @@ type DataSourceReconciler struct {
 	Scheme         *runtime.Scheme
 	CoreAddr       string
 	RuntimeManager api.RuntimeManager
+	EventRecorder  record.EventRecorder
 }
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -101,8 +104,11 @@ func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	if p := plugins.DataSourceReconciler.Get(src.Spec.Kind); p != nil {
 		if changed, err := p(log.IntoContext(ctx, logger.WithName("runner")), r.reconcileRequest(src)); err != nil {
+			r.EventRecorder.Eventf(src, "Warning", "ReconcileFailed",
+				"Failed to reconcile DataSource: %v", err)
 			return ctrl.Result{}, err
 		} else if changed {
+			r.EventRecorder.Event(src, "Normal", "ReconcileSuccess", "DataSource reconciled successfully")
 			// Ask to requeue after 1 minute in order to give enough time for the
 			// pods be created on the cluster side and the operand be able
 			// to do the next update step accurately.
@@ -113,8 +119,8 @@ func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	return ctrl.Result{}, nil
 }
 
-func (r *DataSourceReconciler) reconcileRequest(src *manifests.DataSource) api.ReconcileRequest {
-	return api.ReconcileRequest{
+func (r *DataSourceReconciler) reconcileRequest(src *manifests.DataSource) api.DataSourceReconcileRequest {
+	return api.DataSourceReconcileRequest{
 		DataSource:     src,
 		Client:         r.Client,
 		Scheme:         r.Scheme,

@@ -9,7 +9,7 @@ spec:
   features:
     - hello_world
     - simple_aggr
-  modelServer: sagemaker
+  modelServer: sagemaker-ack
   modelFramework: sklearn
   modelFrameworkVersion: 1.2.0
   storageURI: s3://my-bucket/model

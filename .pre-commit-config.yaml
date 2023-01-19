@@ -48,6 +48,19 @@ repos:
     rev: v1.4.0
     hooks:
       - id: detect-secrets
+        args:
+          - --exclude-files
+          - ^.*/zz_generated\.deepcopy\.go$
+          - --exclude-files
+          - ^.*/.*\.pb\.go$
+          - --exclude-files
+          - ^.*/.*\.pb\..*\.go$
+          - --exclude-files
+          - ^.*/.*\.swagger\.json$
+          - --exclude-files
+          - ^.*/.*_pb2\.py$
+          - --exclude-files
+          - ^.*/.*_pb2_grpc\.py$
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v2.1.1
     hooks:
