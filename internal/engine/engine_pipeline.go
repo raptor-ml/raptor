@@ -30,12 +30,28 @@ func (e *engine) getValueMiddleware() api.Middleware {
 				return next(ctx, fd, keys, val)
 			}
 
-			af, err := api.AggrFnFromContext(ctx)
+			selector, err := api.SelectorFromContext(ctx)
 			if err != nil {
-				return val, err
+				return val, fmt.Errorf("failed to get selector from context: %w", err)
 			}
 
-			v, err := e.state.Get(ctx, fd, keys)
+			_, _, af, ver, _, err := api.ParseSelector(selector)
+			if err != nil {
+				return val, fmt.Errorf("failed to parse selector: %w", err)
+			}
+
+			if ver > 0 {
+				if fd.KeepPrevious == nil {
+					return val, fmt.Errorf("selector specified a previous version, although the feature "+
+						"doesn't support it: %s", selector)
+				}
+				if ver > fd.KeepPrevious.Versions {
+					return val, fmt.Errorf("selector specified a previous version(%d) which is greater than "+
+						"the configured keep_previous (%d): %s", ver, fd.KeepPrevious.Versions, selector)
+				}
+			}
+
+			v, err := e.state.Get(ctx, fd, keys, ver)
 			if err != nil {
 				return val, err
 			}

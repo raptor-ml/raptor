@@ -36,12 +36,9 @@ type FeatureAbstractAPI interface {
 type ContextKey int
 
 const (
-	// ContextKeyAggrFn is a key to store the requested window function in context.
-	ContextKeyAggrFn ContextKey = iota
-
 	// ContextKeyCachePostGet is a key to store the flag to cache in the storage postGet value.
 	// If not set it is defaulting to true.
-	ContextKeyCachePostGet
+	ContextKeyCachePostGet ContextKey = iota
 
 	// ContextKeyCacheFresh is a key to store the flag that indicate if the result from the cache was fresh.
 	ContextKeyCacheFresh
@@ -51,6 +48,9 @@ const (
 
 	// ContextKeyLogger is a key to store a logger.
 	ContextKeyLogger
+
+	// ContextKeySelector is a key to store the requested Feature Selector.
+	ContextKeySelector
 )
 
 // LoggerFromContext returns the logger from the context.
@@ -61,18 +61,17 @@ func LoggerFromContext(ctx context.Context) logr.Logger {
 	}
 	return logr.Logger{}
 }
-func AggrFnFromContext(ctx context.Context) (AggrFn, error) {
-	if ctx == nil {
-		return AggrFnUnknown, ErrInvalidPipelineContext
-	}
 
-	if f, ok := ctx.Value(ContextKeyAggrFn).(AggrFn); ok {
-		return f, nil
-	}
-
-	return AggrFnUnknown, ErrInvalidPipelineContext
+func ContextWithSelector(ctx context.Context, selector string) context.Context {
+	return context.WithValue(ctx, ContextKeySelector, selector)
 }
-func ContextWithAggrFn(ctx context.Context, fn AggrFn) context.Context {
-	ctx = context.WithValue(ctx, ContextKeyAggrFn, fn)
-	return ctx
+func SelectorFromContext(ctx context.Context) (string, error) {
+	if ctx == nil {
+		return "", ErrInvalidPipelineContext
+	}
+	if s, ok := ctx.Value(ContextKeySelector).(string); ok {
+		return s, nil
+	}
+
+	return "", ErrInvalidPipelineContext
 }

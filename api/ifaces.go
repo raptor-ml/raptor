@@ -43,13 +43,16 @@ func (k *Keys) Encode(fd FeatureDescriptor) (string, error) {
 		if !ok {
 			return "", fmt.Errorf("missing key %q", key)
 		}
+		if n := strings.IndexByte(val, ';'); n != -1 {
+			return "", fmt.Errorf("key %q contains invalid character `;`", key)
+		}
 		ret = append(ret, val)
 	}
-	return strings.Join(ret, "."), nil
+	return strings.Join(ret, ";"), nil
 }
 
 func (k *Keys) Decode(encodedKeys string, fd FeatureDescriptor) error {
-	vals := strings.Split(encodedKeys, ".")
+	vals := strings.Split(encodedKeys, ";")
 	if len(vals) != len(fd.Keys) {
 		return fmt.Errorf("expected %d keys, got %d", len(fd.Keys), len(vals))
 	}

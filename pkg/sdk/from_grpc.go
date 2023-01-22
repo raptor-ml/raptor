@@ -71,15 +71,23 @@ func FromAPIAggrFuncs(fs []coreApi.AggrFn) []api.AggrFn {
 	return afs
 }
 func FromAPIFeatureDescriptor(m *coreApi.FeatureDescriptor) api.FeatureDescriptor {
+	var kp *api.KeepPrevious
+	if m.KeepPrevious != nil {
+		kp = &api.KeepPrevious{
+			Versions: uint(m.KeepPrevious.Versions),
+			Over:     m.KeepPrevious.Over.AsDuration(),
+		}
+	}
 	return api.FeatureDescriptor{
-		FQN:        m.Fqn,
-		Primitive:  FromAPIPrimitive(m.Primitive),
-		Aggr:       FromAPIAggrFuncs(m.Aggr),
-		Freshness:  m.Freshness.AsDuration(),
-		Staleness:  m.Staleness.AsDuration(),
-		Timeout:    m.Timeout.AsDuration(),
-		Builder:    m.Builder,
-		DataSource: m.DataSource,
+		FQN:          m.Fqn,
+		Primitive:    FromAPIPrimitive(m.Primitive),
+		Aggr:         FromAPIAggrFuncs(m.Aggr),
+		Freshness:    m.Freshness.AsDuration(),
+		Staleness:    m.Staleness.AsDuration(),
+		Timeout:      m.Timeout.AsDuration(),
+		KeepPrevious: kp,
+		Builder:      m.Builder,
+		DataSource:   m.DataSource,
 	}
 }
 

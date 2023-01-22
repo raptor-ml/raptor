@@ -31,7 +31,7 @@ func init() {
 	plugins.WriteNotifierFactories.Register(pluginName, NotifierFactory[api.WriteNotification])
 }
 func NotifierFactory[T api.Notification](viper *viper.Viper) (api.Notifier[T], error) {
-	rc, err := redisClient(viper)
+	rc, err := redisClient(viper, viper.GetInt("redis-db"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create redis client: %w", err)
 	}

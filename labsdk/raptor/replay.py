@@ -15,13 +15,13 @@
 
 import types as pytypes
 from datetime import datetime, timezone
-from typing import Dict, Tuple, Optional, Union
+from typing import Dict, Tuple, Optional, Union, Callable
 
 import pandas as pd
 from pandas.tseries.frequencies import to_offset
 
 from . import local_state
-from .program import Context, primitive
+from .program import Context, primitive, selector_regex, normalize_fqn
 from .types import FeatureSpec, ModelSpec, Keys, Primitive
 
 
@@ -155,23 +155,70 @@ def _prediction_getter(selector: str, keys: Dict[str, str], timestamp: datetime)
     raise NotImplementedError('TBD')
 
 
-def _feature_getter(selector: str, keys: Dict[str, str], timestamp: datetime) -> Tuple[Optional[primitive], Optional[datetime]]:
-    spec = local_state.feature_spec_by_selector(selector)
-    ts = pd.to_datetime(timestamp)
+def _feature_getter(owner_spec: FeatureSpec) -> Callable[[str, Dict[str, str], datetime], Tuple[primitive, datetime]]:
+    def get(selector: str, keys: Dict[str, str], timestamp: datetime) -> Tuple[Optional[primitive], Optional[datetime]]:
+        spec = local_state.feature_spec_by_selector(selector)
+        ts = pd.to_datetime(timestamp)
 
-    # TODO: refactor this to support bucketing
-    df = local_state.__feature_values
-    df = df.loc[(df['fqn'] == selector) & (df['keys'] == keys) & (df['timestamp'] <= ts)]
+        # TODO: refactor this to support bucketing
+        df = local_state.__feature_values
 
-    if spec.staleness.total_seconds() > 0:
-        df = df.loc[(df['timestamp'] >= ts - spec.staleness)]
+        matches = selector_regex.match(selector)
+        if matches is None:
+            raise Exception(f'Invalid selector: {selector}')
 
-    df = df.sort_values(by=['timestamp'], ascending=False).head(1)
-    if df.empty:
-        return None, None
-    res = df.iloc[0]
+        fqn = normalize_fqn(selector, owner_spec.namespace)
+        if matches.group('aggrFn') is not None:
+            fqn = f'{fqn}+{matches.group("aggrFn")}'
+            if matches.group('version') is not None:
+                raise Exception(f'Cannot specify previous version for aggregated feature: {selector}')
 
-    return res['value'], res['timestamp']
+        version = 0
+        if matches.group('version') is not None:
+            version = int(matches.group('version'))
+            if version < 0:
+                version *= -1
+
+        if version > 0:
+            if spec.keep_previous is None:
+                raise Exception(
+                    f'''selector specified a previous version, although the feature doesn't support it: {selector}'''
+                )
+            if version > spec.keep_previous.versions:
+                raise Exception(
+                    f'selector specified a previous version({version}) which is greater than the configured '
+                    f'keep_previous ({spec.keep_previous.versions}): {selector}'
+                )
+
+        df = df.loc[(df['fqn'] == fqn) & (df['keys'] == keys) & (df['timestamp'] <= ts)]
+
+        if version > 0:
+            df = df.sort_values(by=['timestamp'], ascending=False).head(version + 1)
+            if df.empty:
+                return None, None
+            if len(df) < version:
+                return None, None
+
+            res = df.iloc[version]
+
+            if spec.keep_previous.over.total_seconds() > 0:
+                ts_of_last = df.iloc[0]['timestamp']
+                if res['timestamp'] < ts_of_last - (version * spec.keep_previous.over):
+                    return None, None
+
+            return res['value'], res['timestamp']
+
+        if spec.staleness.total_seconds() > 0:
+            df = df.loc[(df['timestamp'] >= ts - spec.staleness)]
+
+        df = df.sort_values(by=['timestamp'], ascending=False).head(1)
+        if df.empty:
+            return None, None
+        res = df.iloc[0]
+
+        return res['value'], res['timestamp']
+
+    return get
 
 
 def __replay_map(spec: FeatureSpec, timestamp_field: str):
@@ -193,7 +240,7 @@ def __replay_map(spec: FeatureSpec, timestamp_field: str):
                 spec.fqn(),
                 keys=keys,
                 timestamp=ts,
-                feature_getter=_feature_getter,
+                feature_getter=_feature_getter(spec),
                 prediction_getter=_prediction_getter,
             )
         )

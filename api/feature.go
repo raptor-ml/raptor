@@ -22,6 +22,7 @@ import (
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
 	"regexp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -59,11 +60,16 @@ type FeatureDescriptor struct {
 	Freshness    time.Duration `json:"freshness"`
 	Staleness    time.Duration `json:"staleness"`
 	Timeout      time.Duration `json:"timeout"`
+	KeepPrevious *KeepPrevious `json:"keep_previous"`
 	Keys         []string      `json:"keys"`
 	Builder      string        `json:"builder"`
 	RuntimeEnv   string        `json:"runtimeEnv"`
 	DataSource   string        `json:"data_source"`
 	Dependencies []string      `json:"dependencies"`
+}
+type KeepPrevious struct {
+	Versions uint
+	Over     time.Duration
 }
 
 // ValidWindow checks if the feature have aggregation enabled, and if it is valid
@@ -124,6 +130,12 @@ func FeatureDescriptorFromManifest(in *manifests.Feature) (*FeatureDescriptor, e
 		Builder:      strings.ToLower(in.Spec.Builder.Kind),
 		Dependencies: deps,
 	}
+	if in.Spec.KeepPrevious != nil {
+		fd.KeepPrevious = &KeepPrevious{
+			Versions: in.Spec.KeepPrevious.Versions,
+			Over:     in.Spec.KeepPrevious.Over.Duration,
+		}
+	}
 	if in.Spec.DataSource != nil {
 		fd.DataSource = in.Spec.DataSource.FQN()
 	}
@@ -139,9 +151,9 @@ func FeatureDescriptorFromManifest(in *manifests.Feature) (*FeatureDescriptor, e
 
 var FQNRegExp = regexp.MustCompile(`(?si)^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\[(?P<encoding>([a-z]+_*[a-z]+))])?$`)
 
-func ParseSelector(fqn string) (namespace, name, aggrFn, version, encoding string, err error) {
+func ParseSelector(fqn string) (namespace, name string, aggrFn AggrFn, version uint, encoding string, err error) {
 	if !FQNRegExp.MatchString(fqn) {
-		return "", "", "", "", "", fmt.Errorf("invalid FQN: %s", fqn)
+		return "", "", AggrFnUnknown, 0, "", fmt.Errorf("invalid FQN: %s", fqn)
 	}
 
 	match := FQNRegExp.FindStringSubmatch(fqn)
@@ -152,10 +164,21 @@ func ParseSelector(fqn string) (namespace, name, aggrFn, version, encoding strin
 		}
 	}
 
+	var ver = 0
+	if parsedFQN["version"] != "" {
+		ver, err = strconv.Atoi(parsedFQN["version"])
+		if err != nil {
+			return "", "", AggrFnUnknown, 0, "", fmt.Errorf("invalid version: %s", parsedFQN["version"])
+		}
+		if ver < 0 {
+			ver *= -1
+		}
+	}
+
 	namespace = parsedFQN["namespace"]
 	name = parsedFQN["name"]
-	aggrFn = parsedFQN["aggrFn"]
-	version = parsedFQN["version"]
+	aggrFn = StringToAggrFn(parsedFQN["aggrFn"])
+	version = uint(ver)
 	encoding = parsedFQN["encoding"]
 	return
 }
@@ -184,11 +207,11 @@ func NormalizeSelector(selector, defaultNamespace string) (string, error) {
 	}
 
 	other := ""
-	if aggrFn != "" {
+	if aggrFn != AggrFnUnknown {
 		other = fmt.Sprintf("%s+%s", other, aggrFn)
 	}
-	if version != "" {
-		other = fmt.Sprintf("%s@-%s", other, version)
+	if version != 0 {
+		other = fmt.Sprintf("%s@-%d", other, version)
 	}
 	if enc != "" {
 		other = fmt.Sprintf("%s[%s]", other, enc)

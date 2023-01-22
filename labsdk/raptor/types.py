@@ -182,6 +182,19 @@ class AggrSpec:
         self.granularity = granularity
 
 
+class KeepPreviousSpec:
+    versions: int = None
+    over: timedelta = None
+
+    def __init__(self, versions: int, over: timedelta):
+        if versions < 0:
+            versions *= -1
+        if versions == 0:
+            raise Exception('versions must be greater than 0, or do not specify keep_previous')
+        self.versions = versions
+        self.over = over
+
+
 def __setattr__(self, key, value):
     if key == 'granularity':
         if value == '' or value is None:
@@ -240,6 +253,7 @@ class FeatureSpec(RaptorSpec):
     _freshness: Optional[timedelta] = None
     staleness: timedelta = None
     timeout: timedelta = None
+    keep_previous: Optional[KeepPreviousSpec] = None
     keys: [str] = None
 
     data_source: Optional[ResourceReference] = None
@@ -335,6 +349,7 @@ class FeatureSpec(RaptorSpec):
                 'freshness': data.freshness,
                 'staleness': data.staleness,
                 'timeout': data.timeout,
+                'keepPrevious': data.keep_previous,
                 'keys': data.keys,
                 'dataSource': None if data.data_source is None else data.data_source.__dict__,
                 'builder': data.builder.__dict__,
@@ -515,10 +530,10 @@ class Keys(Dict[str, str]):
             if val is None:
                 raise Exception(f'missing key {key}')
             ret.append(val)
-        return '.'.join(ret)
+        return ';'.join(ret)
 
     def decode(self, spec: FeatureSpec, encoded_keys: str) -> 'Keys':
-        parts = encoded_keys.split('.')
+        parts = encoded_keys.split(';')
         if len(parts) != len(spec.keys):
             raise Exception(f'invalid key {encoded_keys}')
         for i, encoded_keys in enumerate(spec.keys):

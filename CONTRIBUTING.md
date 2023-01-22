@@ -179,6 +179,15 @@ extra care for us to be able to review them before merging them. To do this, we 
 
 See the [action files](.github/workflows) to check its tests, and the scripts used on it.
 
+## Changing the protobuf files
+Changes to the protobufs are automatically being pushed to [BSR](https://docs.buf.build/bsr/overview) when merged to master.
+
+That being said, when working locally, you can use the following gists:
+1. rename `dev.go.work` to `go.work`
+2. run `make buf-build` to generate the protobuf files
+
+This will make your environment use the local protobuf files instead of the ones from BSR.
+
 ## Profiling
 
 If you find yourself in a need to profile the app, it's possible by adding the following lines to the `main.go`:
