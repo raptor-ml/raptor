@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # from https://github.com/icholy/durationpy/blob/master/durationpy/duration.py
-# MIT License
+# Licensed under MIT License
 # -*- coding: UTF-8 -*-
 
 import datetime

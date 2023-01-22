@@ -1,13 +1,11 @@
 syntax = "proto3";
 
-package raptor.core.v1alpha1;
+package core.v1alpha1;
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "raptor/core/v1alpha1/types.proto";
 import "validate/validate.proto";
-
-option go_package = "github.com/raptor-ml/raptor/core/v1alpha1;coreV1alpha1";
 
 // +++ Read methods +++
 

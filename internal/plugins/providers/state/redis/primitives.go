@@ -26,23 +26,30 @@ import (
 	"time"
 )
 
-func primitiveKey(fd api.FeatureDescriptor, keys api.Keys) (string, error) {
+func primitiveKey(fd api.FeatureDescriptor, keys api.Keys, version uint) (string, error) {
 	e, err := keys.Encode(fd)
 	if err != nil {
 		return "", fmt.Errorf("failed to encode keys: %w", err)
 	}
-	return fmt.Sprintf("%s:%s", fd.Keys, e), nil
+	ver := ""
+	if version > 0 {
+		ver = fmt.Sprintf("/%d", version)
+	}
+	return fmt.Sprintf("%s:%s%s", fd.Keys, e, ver), nil
 }
 
-func (s *state) Get(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys) (*api.Value, error) {
+func (s *state) Get(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, version uint) (*api.Value, error) {
 	if fd.ValidWindow() {
+		if version != 0 {
+			return nil, fmt.Errorf("version is not supported for windowed features")
+		}
 		return s.getWindow(ctx, fd, keys)
 	}
-	return s.getPrimitive(ctx, fd, keys)
+	return s.getPrimitive(ctx, fd, keys, version)
 }
 
-func (s *state) getPrimitive(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys) (*api.Value, error) {
-	key, err := primitiveKey(fd, keys)
+func (s *state) getPrimitive(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, version uint) (*api.Value, error) {
+	key, err := primitiveKey(fd, keys, version)
 	if err != nil {
 		return nil, err
 	}
@@ -101,6 +108,32 @@ func (s *state) Update(ctx context.Context, fd api.FeatureDescriptor, keys api.K
 	}
 	return s.Append(ctx, fd, keys, value, ts)
 }
+
+func (s *state) keepVersions(ctx context.Context, tx redis.Cmdable, fd api.FeatureDescriptor, keys api.Keys, ts time.Time) error {
+	if fd.KeepPrevious == nil {
+		return nil
+	}
+
+	for i := int(fd.KeepPrevious.Versions) - 1; i >= 0; i-- {
+		oldK, err := primitiveKey(fd, keys, uint(i))
+		if err != nil {
+			return err
+		}
+		newK, err := primitiveKey(fd, keys, uint(i)+1)
+		if err != nil {
+			return err
+		}
+		tx.Copy(ctx, oldK, newK, s.dbID, true)
+		if fd.KeepPrevious.Over == 0 {
+			tx.Persist(ctx, newK)
+		} else {
+			setTimestamp(ctx, tx, newK, ts, time.Duration(i+1)*fd.KeepPrevious.Over)
+		}
+	}
+
+	return nil
+}
+
 func (s *state) Set(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, value any, ts time.Time) error {
 	if fd.ValidWindow() {
 		return s.WindowAdd(ctx, fd, keys, value, ts)
@@ -109,12 +142,15 @@ func (s *state) Set(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys
 		return fmt.Errorf("timestamp %s is too old", ts)
 	}
 
-	key, err := primitiveKey(fd, keys)
+	key, err := primitiveKey(fd, keys, 0)
 	if err != nil {
 		return err
 	}
 
 	tx := s.client.TxPipeline()
+	if err := s.keepVersions(ctx, tx, fd, keys, ts); err != nil {
+		return fmt.Errorf("failed to keep versions while updating value: %w", err)
+	}
 
 	if fd.Primitive.Scalar() {
 		tx.Set(ctx, key, api.ScalarString(value), fd.Staleness)
@@ -145,12 +181,17 @@ func (s *state) Append(ctx context.Context, fd api.FeatureDescriptor, keys api.K
 		return fmt.Errorf("`Append` only supports slices and arrays")
 	}
 
-	key, err := primitiveKey(fd, keys)
+	key, err := primitiveKey(fd, keys, 0)
 	if err != nil {
 		return err
 	}
 
 	tx := s.client.TxPipeline()
+
+	if err := s.keepVersions(ctx, tx, fd, keys, ts); err != nil {
+		return fmt.Errorf("failed to keep versions while updating value: %w", err)
+	}
+
 	tx.RPush(ctx, key, value)
 	if fd.Staleness > 0 {
 		tx.PExpire(ctx, key, fd.Staleness)
@@ -172,12 +213,17 @@ func (s *state) Incr(ctx context.Context, fd api.FeatureDescriptor, keys api.Key
 		return fmt.Errorf("`Ince` only supports sclars")
 	}
 
-	key, err := primitiveKey(fd, keys)
+	key, err := primitiveKey(fd, keys, 0)
 	if err != nil {
 		return err
 	}
 
 	tx := s.client.TxPipeline()
+
+	if err := s.keepVersions(ctx, tx, fd, keys, ts); err != nil {
+		return fmt.Errorf("failed to keep versions while updating value: %w", err)
+	}
+
 	switch v := value.(type) {
 	case int:
 		tx.IncrBy(ctx, key, int64(v))

@@ -36,8 +36,7 @@ func reconcile(ctx context.Context, req api.ModelReconcileRequest) (bool, error)
 		return false, err
 	}
 
-	_, err = req.Client.RESTMapper().RESTMapping(ackModelGVK.GroupKind(), ackModelGVK.Version)
-	if err != nil {
+	if _, err = req.Client.RESTMapper().RESTMapping(ackModelGVK.GroupKind(), ackModelGVK.Version); err != nil {
 		logger.Error(err, "unable to find SageMaker ACK Model")
 		return false, fmt.Errorf("unable to find SageMaker ACK Model: %w", err)
 	}

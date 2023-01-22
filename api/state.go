@@ -56,7 +56,8 @@ type State interface {
 	// Get returns the SimpleValue of the feature.
 	// If the feature is not available, it returns nil.
 	// If the feature is windowed, the returned SimpleValue is a map from window function to SimpleValue.
-	Get(ctx context.Context, fd FeatureDescriptor, keys Keys) (*Value, error)
+	// version indicates the previous version of the feature. If version is 0, the latest version is returned.
+	Get(ctx context.Context, fd FeatureDescriptor, keys Keys, version uint) (*Value, error)
 
 	// Set sets the SimpleValue of the feature.
 	// If the feature's primitive is a List, it replaces the entire list.

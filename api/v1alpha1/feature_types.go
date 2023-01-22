@@ -58,6 +58,11 @@ type FeatureSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Timeout"
 	Timeout metav1.Duration `json:"timeout"`
 
+	// KeepPrevious defines the number of previous values to keep in the history.
+	// +optional
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Keep Previous"
+	KeepPrevious *KeepPrevious `json:"keepPrevious,omitempty"`
+
 	// Keys defines the list of keys that are required to calculate the feature value.
 	// +kubebuilder:validation:Required
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="EncodedKeys"
@@ -73,6 +78,19 @@ type FeatureSpec struct {
 	// +kubebuilder:validation:Required
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Builder"
 	Builder FeatureBuilder `json:"builder"`
+}
+
+type KeepPrevious struct {
+	// Versions defines the number of previous values to keep in the history.
+	// +kubebuilder:validation:Required
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Versions"
+	Versions uint `json:"versions"`
+
+	// Over defines the maximum time period to keep a previous values in the history since the last update.
+	// You can specify `0` to keep the value until the next update.
+	// +kubebuilder:validation:Required
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Over"
+	Over metav1.Duration `json:"over"`
 }
 
 // FeatureBuilder defines a building-block to use to build the feature-value

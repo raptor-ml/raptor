@@ -56,7 +56,7 @@ func (h *historian) dispatchCollect(ctx context.Context, notification api.Collec
 		return fmt.Errorf("failed to decode keys: %w", err)
 	}
 
-	v, err := h.State.Get(ctx, fd, keys)
+	v, err := h.State.Get(ctx, fd, keys, 0)
 	if err != nil {
 		return fmt.Errorf("failed to get state for %s: %w", notification.FQN, err)
 	}

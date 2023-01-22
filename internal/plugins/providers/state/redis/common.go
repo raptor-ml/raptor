@@ -39,13 +39,14 @@ func init() {
 
 type state struct {
 	client redis.UniversalClient
+	dbID   int
 }
 
 func (s *state) Ping(ctx context.Context) error {
 	return s.client.Ping(ctx).Err()
 }
 
-func redisClient(viper *viper.Viper) (redis.UniversalClient, error) {
+func redisClient(viper *viper.Viper, db int) (redis.UniversalClient, error) {
 	// Initialize redis client
 	var redisTLS *tls.Config = nil
 	if viper.GetBool("redis-tls") {
@@ -64,7 +65,7 @@ func redisClient(viper *viper.Viper) (redis.UniversalClient, error) {
 
 	return redis.NewUniversalClient(&redis.UniversalOptions{
 		Addrs:            addrs,
-		DB:               viper.GetInt("redis-db"),
+		DB:               db,
 		Password:         viper.GetString("redis-pass"),
 		Username:         viper.GetString("redis-user"),
 		SentinelUsername: viper.GetString("redis-sentinel-user"),
@@ -76,7 +77,8 @@ func redisClient(viper *viper.Viper) (redis.UniversalClient, error) {
 }
 
 func StateFactory(viper *viper.Viper) (api.State, error) {
-	rc, err := redisClient(viper)
+	dbID := viper.GetInt("redis-db")
+	rc, err := redisClient(viper, dbID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create redis client: %w", err)
 	}
@@ -86,7 +88,7 @@ func StateFactory(viper *viper.Viper) (api.State, error) {
 		return nil, fmt.Errorf("failed to load redis scripts: %w", err)
 	}
 
-	return &state{rc}, nil
+	return &state{client: rc, dbID: dbID}, nil
 }
 func BindConfig(set *pflag.FlagSet) error {
 	set.StringArrayP("redis", "r", []string{}, "Redis servers")

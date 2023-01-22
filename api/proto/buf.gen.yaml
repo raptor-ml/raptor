@@ -1,32 +1,36 @@
 version: v1
 managed:
   enabled: true
+  go_package_prefix:
+    default: "go.buf.build/raptor/api-go/raptor/core"
+    except:
+      - "buf.build/googleapis/googleapis"
+      - "buf.build/envoyproxy/protoc-gen-validate"
 plugins:
-  - remote: buf.build/library/plugins/go
+  - plugin: buf.build/protocolbuffers/go
     out: gen/go
     opt: paths=source_relative
-  - remote: buf.build/library/plugins/go-grpc
+  - plugin: buf.build/grpc/go
     out: gen/go
     opt:
       - paths=source_relative
       - require_unimplemented_servers=false
-  - remote: buf.build/grpc-ecosystem/plugins/grpc-gateway
+  - plugin: buf.build/grpc-ecosystem/gateway
     out: gen/go
     opt:
       - paths=source_relative
       - generate_unbound_methods=true
-  - remote: buf.build/grpc-ecosystem/plugins/openapiv2
+  - plugin: buf.build/grpc-ecosystem/openapiv2
     out: gen/go
     opt:
       - generate_unbound_methods=true
-  - remote: buf.build/jirkad/plugins/protoc-gen-validate
+  - plugin: buf.build/bufbuild/validate-go
     out: gen/go
     opt:
       - paths=source_relative
-      - lang=go
-  - remote: buf.build/protocolbuffers/plugins/python
+  - plugin: buf.build/protocolbuffers/python
     out: gen/python
-  - remote: buf.build/protocolbuffers/plugins/pyi
+  - plugin: buf.build/protocolbuffers/pyi
     out: gen/python
-  - remote: buf.build/grpc/plugins/python
+  - plugin: buf.build/grpc/python
     out: gen/python

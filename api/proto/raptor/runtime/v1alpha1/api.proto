@@ -1,13 +1,11 @@
 syntax = "proto3";
 
-package raptor.runtime.v1alpha1;
+package runtime.v1alpha1;
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "raptor/core/v1alpha1/types.proto";
 import "validate/validate.proto";
-
-option go_package = "github.com/raptor-ml/raptor/core/v1alpha1;coreV1alpha1";
 
 // +++  Program SideEffects +++
 message SideEffect {
@@ -22,13 +20,13 @@ message ExecuteProgramRequest {
     string uuid = 1 [(validate.rules).string.uuid = true];
     string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
     map<string, string> keys = 3;
-    map<string, raptor.core.v1alpha1.Value> data = 4;
+    map<string, core.v1alpha1.Value> data = 4;
     google.protobuf.Timestamp timestamp = 5;
     bool dry_run = 6;
 }
 message ExecuteProgramResponse {
     string uuid = 1 [(validate.rules).string.uuid = true];
-    raptor.core.v1alpha1.Value result = 2;
+    core.v1alpha1.Value result = 2;
     map<string, string> keys = 3;
     google.protobuf.Timestamp timestamp = 4;
 }
@@ -40,7 +38,7 @@ message LoadProgramRequest {
 }
 message LoadProgramResponse {
     string uuid = 1 [(validate.rules).string.uuid = true];
-    raptor.core.v1alpha1.Primitive primitive = 2;
+    core.v1alpha1.Primitive primitive = 2;
     repeated SideEffect side_effects = 3;
 }
 
