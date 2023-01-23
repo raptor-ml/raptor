@@ -31,13 +31,6 @@ from .program import Program
 from .yaml import RaptorDumper
 
 
-def validate_timedelta(td: timedelta):
-    if td.days > 0:
-        raise ValueError(
-            f'calendarial durations is not supported. please specify the duration in hours instead.'
-            f'e.g. {td.days} days -> {td.days * 24}h')
-
-
 def _k8s_name(name):
     name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     name = re.sub('__([A-Z])', r'_\1', name)
@@ -193,6 +186,16 @@ class KeepPreviousSpec:
             raise Exception('versions must be greater than 0, or do not specify keep_previous')
         self.versions = versions
         self.over = over
+
+    @classmethod
+    def to_yaml(cls, dumper: yaml.dumper.Dumper, data: 'KeepPreviousSpec'):
+        return dumper.represent_mapping('', {
+            'versions': data.versions,
+            'over': data.over
+        }, flow_style=yaml.YAMLObject.yaml_flow_style)
+
+
+RaptorDumper.add_representer(KeepPreviousSpec, KeepPreviousSpec.to_yaml)
 
 
 def __setattr__(self, key, value):
@@ -475,7 +478,7 @@ class ModelSpec(RaptorSpec):
     @property
     def key_feature(self):
         if self._key_feature is None:
-            return self.label_features[0]
+            return self.features[0]
         return self._key_feature
 
     @key_feature.setter

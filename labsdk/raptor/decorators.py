@@ -28,7 +28,7 @@ from .model import TrainingContext
 from .program import Program
 from .program import normalize_selector
 from .types import FeatureSpec, AggrSpec, AggregationFunction, ModelSpec, \
-    validate_timedelta, Primitive, DataSourceSpec, ModelFramework, ModelServer, KeepPreviousSpec
+    Primitive, DataSourceSpec, ModelFramework, ModelServer, KeepPreviousSpec
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict as typing_TypedDict
@@ -233,9 +233,6 @@ def aggregation(
     if isinstance(granularity, str):
         granularity = durpy.from_str(granularity)
 
-    validate_timedelta(over)
-    validate_timedelta(granularity)
-
     def decorator(func):
         for f in function:
             if f == AggregationFunction.Unknown:
@@ -259,8 +256,6 @@ def keep_previous(versions: int, over: Union[str, timedelta]):
     if isinstance(over, str):
         over = durpy.from_str(over)
 
-    validate_timedelta(over)
-
     def decorator(func):
         return _opts(func, {'keep_previous': KeepPreviousSpec(versions, over)})
 
@@ -280,7 +275,6 @@ def feature(
     :param keys: a list of indexing keys, indicated the owner of the feature value.
     :param name: the name of the feature. If not provided, the function name will be used.
     :param data_source: the (fully qualified) name of the DataSource.
-    :param keep_previous: Set to keep `versions` previous versions of this feature's value.
 
     :return: a registered Feature Definition
     """
@@ -494,6 +488,7 @@ def model(
             spec._training_code = inspect.getsource(func)
             return model
 
+        train.train = train
         train.raptor_spec = spec
         train.features_and_labels = features_and_labels
         train.manifest = spec.manifest

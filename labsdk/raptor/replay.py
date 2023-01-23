@@ -88,6 +88,8 @@ def new_replay(spec: FeatureSpec):
 
         df['__raptor.ret__'] = df.apply(__replay_map(spec, timestamp_field), axis=1)
         df = df.dropna(subset=['__raptor.ret__'])
+        if df.empty:
+            raise Exception('No data returned from the feature spec.')
         df['__raptor.keys__'] = df.apply(lambda row: Keys({k: row[k] for k in spec.keys}).encode(spec), axis=1)
 
         # flip dataframe to feature_value df
@@ -156,7 +158,7 @@ def _prediction_getter(selector: str, keys: Dict[str, str], timestamp: datetime)
 
 
 def _feature_getter(owner_spec: FeatureSpec) -> Callable[[str, Dict[str, str], datetime], Tuple[primitive, datetime]]:
-    def get(selector: str, keys: Dict[str, str], timestamp: datetime) -> Tuple[Optional[primitive], Optional[datetime]]:
+    def get(selector: str, keys: Keys, timestamp: datetime) -> Tuple[Optional[primitive], Optional[datetime]]:
         spec = local_state.feature_spec_by_selector(selector)
         ts = pd.to_datetime(timestamp)
 
@@ -190,7 +192,7 @@ def _feature_getter(owner_spec: FeatureSpec) -> Callable[[str, Dict[str, str], d
                     f'keep_previous ({spec.keep_previous.versions}): {selector}'
                 )
 
-        df = df.loc[(df['fqn'] == fqn) & (df['keys'] == keys) & (df['timestamp'] <= ts)]
+        df = df.loc[(df['fqn'] == fqn) & (df['keys'] == keys.encode(spec)) & (df['timestamp'] <= ts)]
 
         if version > 0:
             df = df.sort_values(by=['timestamp'], ascending=False).head(version + 1)
@@ -198,7 +200,8 @@ def _feature_getter(owner_spec: FeatureSpec) -> Callable[[str, Dict[str, str], d
                 return None, None
             if len(df) < version:
                 return None, None
-
+            if len(df) < version+1:
+                return None, None
             res = df.iloc[version]
 
             if spec.keep_previous.over.total_seconds() > 0:
@@ -248,7 +251,7 @@ def __replay_map(spec: FeatureSpec, timestamp_field: str):
     return map
 
 
-def new_historical_get(spec):
+def new_historical_get(spec: ModelSpec):
     if not isinstance(spec, ModelSpec):
         raise Exception('Not a Model')
 

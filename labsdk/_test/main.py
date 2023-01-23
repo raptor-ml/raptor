@@ -18,7 +18,8 @@ from warnings import warn
 import pandas as pd
 from typing_extensions import TypedDict
 
-from labsdk.raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, model, manifests
+from labsdk.raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, model, manifests, \
+    keep_previous, TrainingContext
 
 
 # getting started code
@@ -75,7 +76,7 @@ def deals_10h(this_row: Deal, ctx: Context) -> float:
     return this_row['amount']
 
 
-@feature(keys='account_id', data_source=None)
+@feature(keys='account_id', data_source=Deal)
 @freshness(target='-1', invalid_after='-1')
 def emails_deals(_, ctx: Context) -> float:
     """emails/deal[avg] rate over 10 hours"""
@@ -84,6 +85,23 @@ def emails_deals(_, ctx: Context) -> float:
     if e is None or d is None:
         return None
     return e / d
+
+
+@feature(keys='account_id', data_source=Deal)
+@freshness(target='1h', invalid_after='2h')
+@keep_previous(versions=1, over='1h')
+def last_amount(this_row: Deal, ctx: Context) -> float:
+    return this_row['amount']
+
+
+@feature(keys='account_id', data_source=Deal)
+@freshness(target='1h', invalid_after='2h')
+@keep_previous(versions=1, over='1h')
+def diff_with_previous_price(this_row: Deal, ctx: Context) -> float:
+    lv, ts = ctx.get_feature('last_amount@-1')
+    if lv is None:
+        return 0
+    return this_row['amount'] - lv
 
 
 print('# Deals')
@@ -95,32 +113,41 @@ print(deals_10h.replay().to_markdown())
 print(f'## Feature: `emails_deals`')
 print(f'```\n{emails_deals.manifest()}\n```')
 print('### Replayed')
+print(emails_deals.replay().to_markdown())
 warn('TBD: how to reply headless?')
-
+print(f'## Feature: `last_amount`')
+print(f'```\n{last_amount.manifest()}\n```')
+print('### Replayed')
+print(last_amount.replay().to_markdown())
+print(f'## Feature: `diff_with_previous_price`')
+print(f'```\n{diff_with_previous_price.manifest()}\n```')
+print('### Replayed')
+print(diff_with_previous_price.replay().to_markdown())
 
 
 @model(
     keys=['account_id'],
     input_features=[
-        'emails_10h+count', 'deals_10h+sum', emails_deals
+        'emails_10h+count', 'deals_10h+sum', emails_deals, last_amount, diff_with_previous_price
     ],
     input_labels=[],
     model_framework='sklearn',
 )
 @freshness(target='1h', invalid_after='100h')
-def deal_prediction():
+def deal_prediction(ctx: TrainingContext) -> float:
     # TODO: implement
     pass
 
 
 print('# Model')
+m = deal_prediction.train()
 df = deal_prediction.features_and_labels(since=pd.to_datetime('2020-1-1'), until=pd.to_datetime('2022-12-31'))
 print(df.to_markdown())
 
 
 # counters
 @feature(keys='account_id', data_source=Deal)
-@aggregation(function=AggregationFunction.Count, over='999999999999999h', granularity='999999999999999h')
+@aggregation(function=AggregationFunction.Count, over='9999984h', granularity='9999984h')
 def views(this_row: Deal, ctx: Context) -> int:
     return 1
 
