@@ -13,7 +13,7 @@
 
 <br />
 <div align="center">
-  <a href="https://github.com/raptor-ml/raptor">
+  <a href="https://raptor.ml">
     <img src=".github/logo.svg" alt="RaptorML - Production-ready feature engineering" width="300">
   </a>
 
