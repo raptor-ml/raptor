@@ -135,7 +135,6 @@ spec:
             required:
             - features
             - freshness
-            - inferenceConfig
             - modelFramework
             - modelFrameworkVersion
             - modelServer
