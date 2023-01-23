@@ -61,9 +61,25 @@ repos:
           - ^.*/.*_pb2\.py$
           - --exclude-files
           - ^.*/.*_pb2_grpc\.py$
+          - --exclude-files
+          - ^config/.*\.yaml$
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v2.1.1
     hooks:
       - id: conventional-pre-commit
         stages: [ commit-msg ]
         args: [ "feat", "fix", "docs", "style", "refactor", "perf", "test", "build", "ci", "chore", "revert" ]
+  - repo: local
+    hooks:
+      - id: check-headers-for-license
+        name: Check headers for license
+        entry: ./hack/check-headers-for-license.sh
+        language: script
+        pass_filenames: false
+        stages: [ commit ]
+      - id: licenses-check-allowed
+        name: Check licenses are allowed
+        entry: ./hack/licenses-check-allowed.sh
+        language: script
+        pass_filenames: false
+        stages: [ commit ]

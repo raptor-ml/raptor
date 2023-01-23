@@ -41,14 +41,22 @@ def check_valid_feature_selector(spec, selector):
     if not isinstance(spec, FeatureSpec):
         raise Exception(f'`{selector}` is not a feature')
     if spec.fqn() != selector:
-        fn = selector_regex.match(selector)
-        if fn is not None:
-            fn = AggregationFunction(fn.group('aggrFn'))
+        parsed = selector_regex.match(selector)
+        if parsed.group('aggrFn') is not None:
+            fn = AggregationFunction(parsed.group('aggrFn'))
             if spec.aggr is None:
                 err = f'feature `{selector}` is not an aggregated'
                 raise Exception(err)
             if fn not in spec.aggr.funcs:
                 err = f"feature `{spec.fqn()}` doesn't include aggregation `{fn}`"
+                raise Exception(err)
+        elif parsed.group('version') is not None:
+            version = int(parsed.group('version'))
+            if spec.keep_previous is None:
+                err = f'''feature `{selector}` doesn't supports previous versions'''
+                raise Exception(err)
+            if version > spec.keep_previous.versions:
+                err = f'''feature `{selector}` doesn't have version `{version}`'''
                 raise Exception(err)
         else:
             raise Exception(f'Invalid selector. Got: {selector}')

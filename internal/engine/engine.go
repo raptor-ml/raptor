@@ -123,16 +123,11 @@ func (e *engine) featureForRequest(ctx context.Context, selector string) (*Featu
 		return nil, ctx, nil, fmt.Errorf("namespace is required in Feature Selector `%s`", selector)
 	}
 
-	_, _, aggrFn, _, _, err := api.ParseSelector(selector)
-	if err != nil {
-		return nil, ctx, nil, fmt.Errorf("failed to parse selector %s: %w", selector, err)
-	}
-
 	if f, ok := e.features.Load(fqn); ok {
 		if f, ok := f.(*Feature); ok {
-			ctx, cancel := f.Context(ctx, e.Logger())
-			ctx = api.ContextWithAggrFn(ctx, api.StringToAggrFn(aggrFn))
-			return f, ctx, cancel, nil
+			ctx, cancel, err := f.Context(ctx, selector, e.Logger())
+
+			return f, ctx, cancel, err
 		}
 	}
 	return nil, ctx, nil, fmt.Errorf("%w: %s", api.ErrFeatureNotFound, selector)

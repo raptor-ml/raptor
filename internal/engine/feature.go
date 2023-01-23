@@ -67,14 +67,15 @@ func (f *Feature) AddPostSetMiddleware(priority int, fn api.Middleware) {
 }
 
 // Context returns a new context with the feature attached.
-func (f *Feature) Context(ctx context.Context, logger logr.Logger) (context.Context, context.CancelFunc) {
+func (f *Feature) Context(ctx context.Context, selector string, logger logr.Logger) (context.Context, context.CancelFunc, error) {
 	ctx = context.WithValue(ctx, api.ContextKeyLogger, logger)
 
 	cancel := func() {}
 	if f.FeatureDescriptor.Timeout > 0 {
 		ctx, cancel = context.WithTimeout(ctx, time.Duration(float64(f.FeatureDescriptor.Timeout)*0.98))
 	}
-	return ctx, cancel
+
+	return api.ContextWithSelector(ctx, selector), cancel, nil
 }
 
 type mws []mw

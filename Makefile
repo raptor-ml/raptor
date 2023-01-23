@@ -120,6 +120,8 @@ buf-build: buf ## Build protobufs with buf
 	cd api/proto && $(BUF) build
 	cd api/proto && $(BUF) breaking --against .
 	cd api/proto && $(BUF) generate
+	-cd api/proto/gen/go && go mod init go.buf.build/raptor/api-go/raptor/core
+	cd api/proto/gen/go && go mod tidy
 
 .PHONY: fmt
 fmt: pre-build ## Run go fmt against code.
@@ -132,6 +134,20 @@ test: manifests generate fmt lint envtest ## Run tests.
 .PHONY: test-e2e
 test-e2e: docker-build ## Run integration tests.
 	go test -v -timeout 1h -tags e2e github.com/raptor-ml/raptor/internal/e2e --args -v 5 --build-tag=$(VERSION)
+
+.PHONY: check-license-headers
+check-license:  ## Check the licenses and the license header.
+	./hack/check-headers-for-license.sh
+	./hack/licenses-check-allowed.sh
+
+.PHONY: lint
+lint: pre-build generate fmt golangci-lint buf check-license ## Run linters
+	$(GOLANGCI_LINT) run
+	$(BUF) lint api/proto
+
+.PHONY: apidiff
+apidiff: go-apidiff ## Run the go-apidiff to verify any API differences compared with origin/master
+	$(GO_APIDIFF) master --compare-imports --print-compatible --repo-path=.
 
 ##@ Build
 
@@ -323,23 +339,13 @@ endif
 catalog-build: opm ## Build a catalog image.
 	$(OPM) index add --container-tool docker --mode semver --tag $(CATALOG_IMG) --bundles $(BUNDLE_IMGS) $(FROM_INDEX_OPT)
 
-##@ Development
-
-.PHONY: check-license-headers
-check-license:  ## Check the licenses and the license header.
-	./hack/check-headers-for-license.sh
-	./hack/licenses-check-allowed.sh
+##@ Tools
 
 BUF ?= $(LOCALBIN)/buf
 .PHONY: buf
-buf: $(BUF) ## Download buf locally if necessary.
+buf: $(BUF)
 $(BUF):
 	GOBIN=$(LOCALBIN) go install github.com/bufbuild/buf/cmd/buf@latest
-
-.PHONY: lint
-lint: pre-build generate fmt golangci-lint buf check-license ## Run golangci-lint linter
-	$(GOLANGCI_LINT) run
-	$(BUF) lint api/proto
 
 .PHONY: lint-fix
 lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
@@ -353,10 +359,6 @@ golangci-lint:
 		set -e ;\
 		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell dirname $(GOLANGCI_LINT)) $(GOLANGCI_LINT_VERSION) ;\
 	}
-
-.PHONY: apidiff
-apidiff: go-apidiff ## Run the go-apidiff to verify any API differences compared with origin/master
-	$(GO_APIDIFF) master --compare-imports --print-compatible --repo-path=.
 
 GO_APIDIFF = $(LOCALBIN)/go-apidiff
 .PHONY: go-apidiff

@@ -29,15 +29,16 @@
 # This is a shared file between the runtime and the core.
 # Do not import anything from the runtime or core here.
 
+import ast
 import builtins
 import datetime as dt_pkg
 import hashlib
 import importlib
 import re
 from datetime import datetime
-from inspect import getsource
+from inspect import getsource, getsourcefile, getsourcelines
 from pydoc import locate
-from typing import List, Dict, Callable, Union, Tuple
+from typing import List, Dict, Callable, Union, Tuple, Optional
 
 from redbaron import RedBaron, DefNode
 
@@ -216,8 +217,13 @@ class Program:
     code: str
     checksum: bytes
 
+    src_file: Optional[str] = None
+    src_line: Optional[int] = None
+
     def __init__(self, code, feature_obj_resolver: Callable[[str], str] = None):
         if isinstance(code, Callable):
+            self.src_file = getsourcefile(code)
+            self.src_line = getsourcelines(code)[1]
             code = getsource(code)
         m = hashlib.sha256()
         m.update(code.encode('utf-8'))
@@ -232,6 +238,8 @@ class Program:
 
         # We must remove any decorators left in the function definition
         if len(node.decorators) > 0:
+            if self.src_line is not None:
+                self.src_line += len(node.decorators)
             node.decorators = []
 
         if len(node.arguments) != 2:
@@ -266,7 +274,7 @@ class Program:
                     args = {}
                     for arg in at.find_all('call_argument'):
                         if (arg.index_on_parent == 0 or (arg.target is not None and arg.target.value == 'selector')) \
-                                and arg.value.type != 'string':
+                            and arg.value.type != 'string':
                             if feature_obj_resolver is None:
                                 raise SyntaxError('🛑 You must provide a Feature Selector for this Feature function')
                             args['selector'] = feature_obj_resolver(arg.value.value)
@@ -292,7 +300,15 @@ class Program:
             self.primitive = locate(rav)
 
         self.code = node.dumps().strip()
-        compiled = compile(self.code, f'<{self.name}>', 'exec')
+
+        compiled = None
+        if self.src_file is not None and self.src_line is not None:
+            parsed = ast.parse(self.code, filename=self.src_file)
+            ast.increment_lineno(parsed, self.src_line - 1)
+            compiled = compile(parsed, filename=self.src_file, mode='exec')
+        else:
+            compiled = compile(self.code, f'<{self.name}>', 'exec')
+
         glob, loc = {'__builtins__': safe_builtins, 'datetime': dt_pkg, 'List': List}, {}
         exec(compiled, glob, loc)
 

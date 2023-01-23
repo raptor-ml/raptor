@@ -89,6 +89,7 @@ type ModelSpec struct {
 
 	// InferenceConfig is the additional configuration used for the model server.
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Config"
+	// +optional
 	InferenceConfig []ConfigVar `json:"inferenceConfig"`
 
 	// TrainingCode defines the code used to train the model.

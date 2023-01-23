@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #  Copyright (c) 2022 RaptorML authors.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,18 +18,19 @@ from warnings import warn
 import pandas as pd
 from typing_extensions import TypedDict
 
-from labsdk.raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, model, manifests
+from labsdk.raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, model, manifests, \
+    keep_previous, TrainingContext
 
 
 # getting started code
 
 @data_source(
     training_data=pd.read_parquet(
-        "https://gist.github.com/AlmogBaku/a1b331615eaf1284432d2eecc5fe60bc/raw/emails.parquet"),
+        'https://gist.github.com/AlmogBaku/a1b331615eaf1284432d2eecc5fe60bc/raw/emails.parquet'),
     keys=['id', 'account_id'],
     timestamp='event_at',
 )
-class Email(TypedDict("Email", {"from": str})):
+class Email(TypedDict('Email', {'from': str})):
     event_at: datetime
     account_id: str
     subject: str
@@ -42,17 +44,17 @@ def emails_10h(this_row: Email, ctx: Context) -> int:
     return 1
 
 
-print("# Emails")
-print(f"```\n{Email.manifest()}\n```")
-print("## Feature: `emails_10h`")
-print(f"```\n{emails_10h.manifest()}\n```")
-print("### Replayed")
+print('# Emails')
+print(f'```\n{Email.manifest()}\n```')
+print('## Feature: `emails_10h`')
+print(f'```\n{emails_10h.manifest()}\n```')
+print('### Replayed')
 print(emails_10h.replay().to_markdown())
 
 
 @data_source(
     training_data=pd.read_csv(
-        "https://gist.githubusercontent.com/AlmogBaku/a1b331615eaf1284432d2eecc5fe60bc/raw/deals.csv"),
+        'https://gist.githubusercontent.com/AlmogBaku/a1b331615eaf1284432d2eecc5fe60bc/raw/deals.csv'),
     keys=['id', 'account_id'],
     timestamp='event_at',
 )
@@ -71,62 +73,88 @@ class Deal(TypedDict):
 )
 def deals_10h(this_row: Deal, ctx: Context) -> float:
     """sum/avg/min/max of deal amount over 10 hours"""
-    return this_row["amount"]
+    return this_row['amount']
 
 
-@feature(keys='account_id', data_source=None)
+@feature(keys='account_id', data_source=Deal)
 @freshness(target='-1', invalid_after='-1')
 def emails_deals(_, ctx: Context) -> float:
     """emails/deal[avg] rate over 10 hours"""
-    e, _ = ctx.get_feature("emails_10h+count")
-    d, _ = ctx.get_feature("deals_10h+avg")
+    e, _ = ctx.get_feature('emails_10h+count')
+    d, _ = ctx.get_feature('deals_10h+avg')
     if e is None or d is None:
         return None
     return e / d
 
 
-print("# Deals")
-print(f"```\n{Deal.manifest()}\n```")
-print("## Feature: `deals_10h`")
-print(f"```\n{deals_10h.manifest()}\n```")
-print(f"### Replayed")
-print(deals_10h.replay().to_markdown())
-print(f"## Feature: `emails_deals`")
-print(f"```\n{emails_deals.manifest()}\n```")
-print("### Replayed")
-warn("TBD: how to reply headless?")
+@feature(keys='account_id', data_source=Deal)
+@freshness(target='1h', invalid_after='2h')
+@keep_previous(versions=1, over='1h')
+def last_amount(this_row: Deal, ctx: Context) -> float:
+    return this_row['amount']
 
+
+@feature(keys='account_id', data_source=Deal)
+@freshness(target='1h', invalid_after='2h')
+@keep_previous(versions=1, over='1h')
+def diff_with_previous_price(this_row: Deal, ctx: Context) -> float:
+    lv, ts = ctx.get_feature('last_amount@-1')
+    if lv is None:
+        return 0
+    return this_row['amount'] - lv
+
+
+print('# Deals')
+print(f'```\n{Deal.manifest()}\n```')
+print('## Feature: `deals_10h`')
+print(f'```\n{deals_10h.manifest()}\n```')
+print(f'### Replayed')
+print(deals_10h.replay().to_markdown())
+print(f'## Feature: `emails_deals`')
+print(f'```\n{emails_deals.manifest()}\n```')
+print('### Replayed')
+print(emails_deals.replay().to_markdown())
+warn('TBD: how to reply headless?')
+print(f'## Feature: `last_amount`')
+print(f'```\n{last_amount.manifest()}\n```')
+print('### Replayed')
+print(last_amount.replay().to_markdown())
+print(f'## Feature: `diff_with_previous_price`')
+print(f'```\n{diff_with_previous_price.manifest()}\n```')
+print('### Replayed')
+print(diff_with_previous_price.replay().to_markdown())
 
 
 @model(
     keys=['account_id'],
     input_features=[
-        "emails_10h+count", "deals_10h+sum", emails_deals
+        'emails_10h+count', 'deals_10h+sum', emails_deals, last_amount, diff_with_previous_price
     ],
     input_labels=[],
     model_framework='sklearn',
 )
 @freshness(target='1h', invalid_after='100h')
-def deal_prediction():
+def deal_prediction(ctx: TrainingContext) -> float:
     # TODO: implement
     pass
 
 
-print("# Model")
+print('# Model')
+m = deal_prediction.train()
 df = deal_prediction.features_and_labels(since=pd.to_datetime('2020-1-1'), until=pd.to_datetime('2022-12-31'))
 print(df.to_markdown())
 
 
 # counters
 @feature(keys='account_id', data_source=Deal)
-@aggregation(function=AggregationFunction.Count, over='999999999999999h', granularity='999999999999999h')
+@aggregation(function=AggregationFunction.Count, over='9999984h', granularity='9999984h')
 def views(this_row: Deal, ctx: Context) -> int:
     return 1
 
 
-print("# Views")
-print(f"```\n{views.manifest()}\n```")
-print("## Replayed")
+print('# Views')
+print(f'```\n{views.manifest()}\n```')
+print('## Replayed')
 print(views.replay().to_markdown())
 
 # gong
@@ -167,8 +195,8 @@ class CrmRecord(TypedDict):
 @feature(keys='salesman_id', data_source=CrmRecord)
 @aggregation(function=AggregationFunction.DistinctCount, over='8760h', granularity='24h')
 def unique_deals_involvement_annually(this_row: CrmRecord, ctx: Context) -> int:
-    if this_row['action'] == "deal_assigned":
-        return this_row["opportunity_id"]
+    if this_row['action'] == 'deal_assigned':
+        return this_row['opportunity_id']
     return None
 
 
@@ -178,7 +206,7 @@ unique_deals_involvement_annually.replay()
 @feature(keys='salesman_id', data_source=CrmRecord)
 @aggregation(function=AggregationFunction.DistinctCount, over='8760h', granularity='24h')
 def closed_deals_annually(this_row: CrmRecord, ctx: Context) -> int:
-    if this_row['action'] == "deal_closed":
+    if this_row['action'] == 'deal_closed':
         return 1
     return None
 
@@ -189,8 +217,8 @@ closed_deals_annually.replay()
 @feature(keys='salesman_id', data_source=CrmRecord)
 @freshness(target='24h', invalid_after='8760h')
 def salesperson_deals_closes_rate(this_row: CrmRecord, ctx: Context) -> int:
-    udia, _ = ctx.get_feature("unique_deals_involvement_annually+distinct_count")
-    cda, _ = ctx.get_feature("closed_deals_annually+count")
+    udia, _ = ctx.get_feature('unique_deals_involvement_annually+distinct_count')
+    cda, _ = ctx.get_feature('closed_deals_annually+count')
     if udia is None or cda is None:
         return None
     return udia / cda
@@ -260,7 +288,7 @@ unique_tasks_over_2h.replay()
 def commits_30m(this_row: Commit, ctx: Context) -> int:
     """sum/max/count of commits over 30 minutes"""
 
-    return this_row["commit_count"]
+    return this_row['commit_count']
 
 
 commits_30m.replay()
@@ -269,7 +297,7 @@ commits_30m.replay()
 @feature(keys='account_id', data_source=Commit)
 @freshness(target='1m', invalid_after='30m')
 def commits_30m_greater_2(this_row: Commit, ctx: Context) -> bool:
-    res, _ = ctx.get_feature("commits_30m+sum")
+    res, _ = ctx.get_feature('commits_30m+sum')
     return res > 2
 
 
@@ -279,7 +307,7 @@ commits_30m_greater_2.replay()
 @model(
     keys=['account_id'],
     input_features=[
-        "commits_30m+sum", commits_30m_greater_2
+        'commits_30m+sum', commits_30m_greater_2
     ],
     input_labels=[],
     model_framework='sklearn',

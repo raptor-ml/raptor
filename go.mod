@@ -9,7 +9,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.29.6
 	github.com/cert-manager/cert-manager v1.10.1
 	github.com/die-net/lrucache v0.0.0-20220628165024-20a71bc65bf1
-	github.com/envoyproxy/protoc-gen-validate v0.9.1
 	github.com/go-logr/logr v1.2.3
 	github.com/go-logr/zapr v1.2.3
 	github.com/go-redis/redis/v8 v8.11.5
@@ -32,9 +31,8 @@ require (
 	github.com/vladimirvivien/gexe v0.1.1
 	github.com/xitongsys/parquet-go v1.6.2
 	github.com/xitongsys/parquet-go-source v0.0.0-20221025031416-9877e685ef65
-	go.buf.build/raptor/api-go/raptor/core v1.3.8
+	go.buf.build/raptor/api-go/raptor/core v1.3.9
 	golang.org/x/sync v0.1.0
-	google.golang.org/genproto v0.0.0-20230104163317-caabf589fcbf
 	google.golang.org/grpc v1.51.0
 	google.golang.org/protobuf v1.28.1
 	k8s.io/api v0.25.4
@@ -147,6 +145,7 @@ require (
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	gonum.org/v1/gonum v0.11.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/genproto v0.0.0-20230104163317-caabf589fcbf // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect

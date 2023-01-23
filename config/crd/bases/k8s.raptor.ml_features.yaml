@@ -109,6 +109,23 @@ spec:
                   the value has set) to consider as *fresh*. Fresh values doesn't
                   require re-ingestion
                 type: string
+              keepPrevious:
+                description: KeepPrevious defines the number of previous values to
+                  keep in the history.
+                properties:
+                  over:
+                    description: Over defines the maximum time period to keep a previous
+                      values in the history since the last update. You can specify
+                      `0` to keep the value until the next update.
+                    type: string
+                  versions:
+                    description: Versions defines the number of previous values to
+                      keep in the history.
+                    type: integer
+                required:
+                - over
+                - versions
+                type: object
               keys:
                 description: Keys defines the list of keys that are required to calculate
                   the feature value.

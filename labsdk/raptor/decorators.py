@@ -28,7 +28,7 @@ from .model import TrainingContext
 from .program import Program
 from .program import normalize_selector
 from .types import FeatureSpec, AggrSpec, AggregationFunction, ModelSpec, \
-    validate_timedelta, Primitive, DataSourceSpec, ModelFramework, ModelServer
+    Primitive, DataSourceSpec, ModelFramework, ModelServer, KeepPreviousSpec
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict as typing_TypedDict
@@ -106,9 +106,12 @@ def freshness(
     Must be used in conjunction with a feature or model decorator.
     Is placed AFTER the @model or @feature decorator.
 
+    :type target: timedelta or str of the form '2h 3m 4s'
+    :param target: the target freshness of the feature or model.
+    :type invalid_after: timedelta or str of the form '2h 3m 4s'
+    :param invalid_after: the time after which the feature or model is considered stale.
+    :type latency_sla: timedelta or str of the form '2h 3m 4s'
     :param latency_sla: the maximum time allowed for the feature to be computed.
-    :param invalid_after:
-    :type target: object
     """
     if invalid_after is None:
         invalid_after = target
@@ -207,9 +210,12 @@ def aggregation(
 ):
     """
     Register aggregations for the Feature Definition.
+    :type function: AggregationFunction or List[AggregationFunction] or str or List[str]
+    :param function: a list of :func:`AggrFn`.
+    :type over: str or timedelta in the form '2h 3m 4s'
     :param over: the time period over which to aggregate.
+    :type granularity: str or timedelta in the form '2h 3m 4s'
     :param granularity: the granularity of the aggregation (this is overriding the freshness).
-    :param function: a list of :func:`AggrFn`
     """
 
     if isinstance(function, str):
@@ -227,9 +233,6 @@ def aggregation(
     if isinstance(granularity, str):
         granularity = durpy.from_str(granularity)
 
-    validate_timedelta(over)
-    validate_timedelta(granularity)
-
     def decorator(func):
         for f in function:
             if f == AggregationFunction.Unknown:
@@ -239,11 +242,30 @@ def aggregation(
     return decorator
 
 
+def keep_previous(versions: int, over: Union[str, timedelta]):
+    """
+    Keep previous versions of the feature.
+    :type versions: int
+    :param versions: the number of versions to keep (excluding the current value).
+    :type over: str or timedelta in the form '2h 3m 4s'
+    :param over: the maximum time period to keep a previous values in the history since the last update. You can specify
+                    `0` to keep the value until the next update.
+    version is computed.
+    """
+
+    if isinstance(over, str):
+        over = durpy.from_str(over)
+
+    def decorator(func):
+        return _opts(func, {'keep_previous': KeepPreviousSpec(versions, over)})
+
+    return decorator
+
+
 def feature(
     keys: Union[str, List[str]],
     name: Optional[str] = None,  # set to function name if not provided
     data_source: Optional[Union[str, object]] = None,  # set to None for headless
-    keep_previous: Optional[int] = 0,  # Set to keep `versions` previous versions of this feature's value.
 ):
     """
     Register a Feature Definition within the LabSDK.
@@ -253,7 +275,6 @@ def feature(
     :param keys: a list of indexing keys, indicated the owner of the feature value.
     :param name: the name of the feature. If not provided, the function name will be used.
     :param data_source: the (fully qualified) name of the DataSource.
-    :param keep_previous: Set to keep `versions` previous versions of this feature's value.
 
     :return: a registered Feature Definition
     """
@@ -292,6 +313,9 @@ def feature(
             spec.freshness = options['freshness']['target']
             spec.staleness = options['freshness']['invalid_after']
             spec.timeout = options['freshness']['latency_sla']
+
+        if 'keep_previous' in options:
+            spec.keep_previous = options['keep_previous']
 
         if spec.freshness is None or spec.staleness is None:
             raise Exception('You must specify freshness or aggregation for a feature')
@@ -464,6 +488,7 @@ def model(
             spec._training_code = inspect.getsource(func)
             return model
 
+        train.train = train
         train.raptor_spec = spec
         train.features_and_labels = features_and_labels
         train.manifest = spec.manifest

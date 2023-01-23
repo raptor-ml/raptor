@@ -228,7 +228,7 @@ func (s *state) getWindow(ctx context.Context, fd api.FeatureDescriptor, keys ap
 
 func (s *state) WindowAdd(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, value any, ts time.Time) error {
 	bucket := api.BucketName(ts, fd.Freshness)
-	key, err := primitiveKey(fd, keys)
+	key, err := primitiveKey(fd, keys, 0)
 	if err != nil {
 		return err
 	}

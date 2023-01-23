@@ -97,7 +97,10 @@ func (r *ModelReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	for _, o := range plugins.ModelControllerOwns {
 		for _, t := range o() {
-			bldr = bldr.Owns(t)
+			gvk := t.GetObjectKind().GroupVersionKind()
+			if _, err := r.Client.RESTMapper().RESTMapping(gvk.GroupKind(), gvk.Version); err == nil {
+				bldr = bldr.Owns(t)
+			}
 		}
 	}
 
