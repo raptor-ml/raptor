@@ -21,7 +21,9 @@ import pandas as pd
 
 from . import config
 from .program import selector_regex, normalize_fqn
-from .types import FeatureSpec, AggregationFunction, ModelSpec, DataSourceSpec
+from .types.dsrc import DataSourceSpec
+from .types.feature import FeatureSpec, AggregationFunction
+from .types.model import ModelSpec
 
 # registered features
 Spec = Union[FeatureSpec, ModelSpec, DataSourceSpec]

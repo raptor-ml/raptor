@@ -22,7 +22,9 @@ from pandas.tseries.frequencies import to_offset
 
 from . import local_state
 from .program import Context, primitive, selector_regex, normalize_fqn
-from .types import FeatureSpec, ModelSpec, Keys, Primitive
+from .types.feature import FeatureSpec, Keys
+from .types.model import ModelSpec
+from .types.primitives import Primitive
 
 
 def __detect_ts_field(df) -> Optional[str]:
@@ -157,7 +159,8 @@ def _prediction_getter(selector: str, keys: Dict[str, str], timestamp: datetime)
     raise NotImplementedError('TBD')
 
 
-def _feature_getter(owner_spec: FeatureSpec) -> Callable[[str, Dict[str, str], datetime], Tuple[primitive, datetime]]:
+def _feature_getter(owner_spec: FeatureSpec) -> Callable[
+    [str, Keys, datetime], Tuple[Optional[primitive], Optional[datetime]]]:
     def get(selector: str, keys: Keys, timestamp: datetime) -> Tuple[Optional[primitive], Optional[datetime]]:
         spec = local_state.feature_spec_by_selector(selector)
         ts = pd.to_datetime(timestamp)
@@ -200,7 +203,7 @@ def _feature_getter(owner_spec: FeatureSpec) -> Callable[[str, Dict[str, str], d
                 return None, None
             if len(df) < version:
                 return None, None
-            if len(df) < version+1:
+            if len(df) < version + 1:
                 return None, None
             res = df.iloc[version]
 
@@ -275,8 +278,7 @@ def new_historical_get(spec: ModelSpec):
 
         key_feature = spec.key_feature
         _key_feature_spec = local_state.feature_spec_by_selector(key_feature)
-        features = spec.features
-        features += spec.label_features
+        features = spec.features + spec.label_features
 
         if key_feature in features:
             features.remove(key_feature)

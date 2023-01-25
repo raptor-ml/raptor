@@ -18,7 +18,6 @@ import pandas as pd
 from typing_extensions import TypedDict
 
 from labsdk.raptor import Context, data_source, feature, freshness, model, TrainingContext
-from labsdk.raptor.local_state import spec_by_selector
 
 df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/diabetes.csv')
 df.insert(0, 'id', range(0, len(df)))
@@ -182,5 +181,4 @@ print('done')
 # Output
 Diabetes.export(to_file=True)
 diabetes_prediction_train.export(to_file=True)
-for feature in diabetes_prediction_train.raptor_spec.features:
-    spec_by_selector(selector=feature).manifest(to_file=True)
+print('done')
