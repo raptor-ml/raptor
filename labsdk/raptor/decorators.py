@@ -24,11 +24,10 @@ from pydantic import create_model_from_typeddict
 from typing_extensions import TypedDict
 
 from . import local_state, config, durpy, replay
-from .model import TrainingContext
 from .program import Program
 from .program import normalize_selector
-from .types import FeatureSpec, AggrSpec, AggregationFunction, ModelSpec, \
-    Primitive, DataSourceSpec, ModelFramework, ModelServer, KeepPreviousSpec
+from .types import FeatureSpec, AggrSpec, AggregationFunction, Primitive, DataSourceSpec, ModelFramework, ModelServer, \
+    KeepPreviousSpec, ModelImpl
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict as typing_TypedDict
@@ -165,13 +164,11 @@ def data_source(
         elif type(cls) != type(TypedDict):
             raise Exception('data_source decorator must be used on a class that extends typing_extensions.TypedDict')
 
-        spec = DataSourceSpec()
-        spec.keys = keys
-        spec.description = cls.__doc__
-        spec.name = name
+        nonlocal name
         if name is None:
-            spec.name = cls.__name__
-        spec.timestamp = timestamp
+            name = cls.__name__
+
+        spec = DataSourceSpec(name=name, description=cls.__doc__, keys=keys, timestamp=timestamp)
         spec._local_df = training_data
 
         if hasattr(cls, '__raptor_options'):
@@ -285,12 +282,11 @@ def feature(
 
     @_wrap_decorator_err
     def decorator(func):
-        spec = FeatureSpec()
-        spec.keys = keys
-        spec.description = func.__doc__
-        spec.name = name
+        nonlocal name
         if name is None:
-            spec.name = func.__name__
+            name = func.__name__
+
+        spec = FeatureSpec(name=name, description=func.__doc__, keys=keys)
 
         if hasattr(func, '__raptor_options'):
             for k, v in func.__raptor_options.items():
@@ -428,30 +424,28 @@ def model(
         if len(inspect.signature(func).parameters) != 1:
             raise Exception(f'{func.__name__} must have a single parameter of type ModelContext')
 
-        spec = ModelSpec()
-        spec.keys = keys
-        spec.description = func.__doc__
-        spec.name = name
+        nonlocal name
         if name is None:
-            spec.name = func.__name__
-            if spec.name.endswith('_model'):
-                spec.name = spec.name[:-6]
-            if spec.name.endswith('_trainer'):
-                spec.name = spec.name[:-8]
-            if spec.name.endswith('_train'):
-                spec.name = spec.name[:-6]
-            if spec.name.startswith('train_'):
-                spec.name = spec.name[6:]
+            name = func.__name__
+        if name.endswith('_model'):
+            name = name[:-6]
+        if name.endswith('_trainer'):
+            name = name[:-8]
+        if name.endswith('_train'):
+            name = name[:-6]
+        if name.startswith('train_'):
+            name = name[6:]
 
-        if hasattr(func, '__raptor_options'):
-            for k, v in func.__raptor_options.items():
-                options[k] = v
+        spec = ModelImpl(name=name, description=func.__doc__, keys=keys, model_framework=model_framework,
+                         model_server=model_server)
 
         spec.features = input_features
         spec.label_features = input_labels
         spec.key_feature = key_feature
-        spec.model_framework = model_framework
-        spec.model_server = model_server
+
+        if hasattr(func, '__raptor_options'):
+            for k, v in func.__raptor_options.items():
+                options[k] = v
 
         if 'namespace' in options:
             spec.namespace = options['namespace']
@@ -471,32 +465,20 @@ def model(
         if hasattr(func, '__raptor_options'):
             del func.__raptor_options
 
-        features_and_labels = replay.new_historical_get(spec)
+        spec.training_function = func
 
-        def train():
-            for f in (input_features + input_labels + ([key_feature] if key_feature is not None else [])):
-                s = local_state.feature_spec_by_selector(f)
-                replay.new_replay(s)()
-            model = func(TrainingContext(
-                keys=spec.keys,
-                input_labels=spec.label_features,
-                input_features=spec.features,
-                data_getter=features_and_labels,
-            ))
-            spec.model_framework.save(model, spec)
-            spec._trained_model = model
-            spec._training_code = inspect.getsource(func)
-            return model
+        def trainer():
+            return spec.train()
 
-        train.train = train
-        train.raptor_spec = spec
-        train.features_and_labels = features_and_labels
-        train.manifest = spec.manifest
-        train.export = spec.manifest
-        train.keys = spec.keys
-        train.input_labels = spec.label_features
-        train.input_features = spec.features
+        trainer.train = trainer
+        trainer.raptor_spec = spec
+        trainer.features_and_labels = spec.features_and_labels
+        trainer.manifest = spec.manifest
+        trainer.export = spec.export
+        trainer.keys = spec.keys
+        trainer.input_labels = spec.label_features
+        trainer.input_features = spec.features
 
-        return train
+        return trainer
 
     return decorator

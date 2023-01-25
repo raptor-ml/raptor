@@ -45,7 +45,7 @@ setuptools.setup(
         'Operating System :: OS Independent',
     ],
     include_package_data=True,
-    install_requires=['pandas', 'redbaron', 'typing-extensions', 'pyyaml', 'pydantic'],
+    install_requires=['pandas', 'redbaron', 'typing-extensions', 'pyyaml', 'pydantic', 'bentoml', 'attrs'],
     py_modules=['raptor'],
     zip_safe=False,
 

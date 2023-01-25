@@ -1,0 +1,11 @@
+{# Licensed as Apache2 #}
+{# taken from https://github.com/bentoml/aws-sagemaker-deploy/blob/main/bentoctl_sagemaker/sagemaker/template.j2 #}
+
+{% extends bento_base_template %}
+{% block SETUP_BENTO_ENTRYPOINT %}
+EXPOSE 8080
+USER bentoml
+RUN chmod +x {{ bento__path }}/serve
+
+ENV PATH="${PATH}:{{ bento__path }}"
+{% endblock %}

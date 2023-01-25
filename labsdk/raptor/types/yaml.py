@@ -18,7 +18,7 @@ from copy import deepcopy
 
 import yaml
 
-from . import durpy
+from labsdk.raptor import durpy
 
 
 # Raptor YAML Dumper

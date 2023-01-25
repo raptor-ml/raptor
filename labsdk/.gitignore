@@ -6,3 +6,5 @@ bin/
 raptor/pyexp/
 *.egg-info/
 .DS_Store
+
+_test/out/
