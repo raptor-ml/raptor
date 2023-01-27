@@ -132,12 +132,12 @@ class TrainingContext:
 
 
 class ModelSpec(RaptorSpec):
-    keys: [str] = None
+    keys: List[str] = None
     freshness: Optional[timedelta] = None
     staleness: timedelta = None
     timeout: timedelta = None
-    features: [str] = None
-    label_features: [str] = None
+    features: List[str] = None
+    label_features: List[str] = None
 
     key_feature: str = None
 

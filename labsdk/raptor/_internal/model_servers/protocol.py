@@ -12,17 +12,23 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from typing import Dict
+
+from typing import Dict, Union
 
 from bentoml import Bento
 from bentoml._internal.bento.build_config import BentoBuildConfig
 from typing_extensions import Protocol
 
+from ...types.common import SecretKeyRef
+
 
 class ModelServer(Protocol):
+    @classmethod
+    def configurable_envs(cls) -> Dict[str, str]:
+        return {}
 
     @classmethod
-    def inference_config(cls, **kwargs) -> Dict:
+    def inference_config(cls, **kwargs) -> Dict[str, Union[str, SecretKeyRef]]:
         return {}
 
     @classmethod

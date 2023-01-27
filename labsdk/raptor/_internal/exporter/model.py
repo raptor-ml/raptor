@@ -12,6 +12,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+
 import os
 import shutil
 import tempfile
@@ -22,7 +23,6 @@ import bentoml.bentos
 from bentoml import Bento
 from bentoml._internal.bento.build_config import BentoBuildConfig
 
-from ... import local_state
 from ...types.model import ModelFramework, ModelSpec
 
 
@@ -119,17 +119,13 @@ def classify(input_series: np.ndarray) -> np.ndarray:
                     af.flush()
 
             shutil.copytree(bento.path, base_dir, dirs_exist_ok=True)
-            self.spec._model_image = bento.tag.version
+            self.spec._model_image = str(bento.tag)
 
-    def export(self, with_dependent_features: bool = True, with_docker=True):
+    def export(self, with_docker=True):
         if self.model is None:
             self.spec.train()
 
         if with_docker:
             self.create_docker()
-
-        if with_dependent_features:
-            for feature in self.spec.features:
-                local_state.spec_by_selector(selector=feature).manifest(to_file=True)
 
         return self.spec.manifest(True)

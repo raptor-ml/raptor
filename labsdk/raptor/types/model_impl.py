@@ -12,6 +12,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+
 import inspect
 from datetime import timedelta
 from typing import Optional, Callable
@@ -21,6 +22,7 @@ from .common import _k8s_name
 from .model import ModelSpec, TrainingContext
 from .. import local_state, replay, durpy
 from .._internal.exporter import ModelExporter
+from .._internal.exporter.general import GeneralExporter
 
 
 class ModelImpl(ModelSpec):
@@ -56,11 +58,10 @@ class ModelImpl(ModelSpec):
 
         return model
 
-    def export(self, to_file=True, with_dependent_features=True, with_docker=True):
-        if to_file:
-            return self.exporter.export(with_dependent_features=with_dependent_features, with_docker=with_docker)
-
-        return self.manifest()
+    def export(self, with_dependent_features=True, with_dependent_sources=True):
+        GeneralExporter.add_model(self, with_dependent_features=with_dependent_features,
+                                  with_dependent_sources=with_dependent_sources)
+        GeneralExporter.export()
 
     def __setattr__(self, key, value):
         if key == 'freshness' or key == 'staleness' or key == 'timeout':
@@ -90,6 +91,9 @@ class ModelImpl(ModelSpec):
         inference_config_stub = []
 
         if data.model_server is not None and data.model_server.config is not None:
+            for k, v in data.model_server.config.configurable_envs().items():
+                GeneralExporter.add_env(k, v)
+
             for k, v in data.model_server.config.inference_config().items():
                 if isinstance(v, SecretKeyRef):
                     inference_config_stub.append({'name': k, 'secretKeyRef': {'name': v.name, 'key': v.key}})
@@ -97,6 +101,15 @@ class ModelImpl(ModelSpec):
                     inference_config_stub.append({'name': k, 'value': v})
 
         data.annotations['a8r.io/description'] = data.description
+
+        if data._model_filename is not None:
+            GeneralExporter.add_env('MODEL_STORAGE_BASE_URI', '(REQUIRED) The base URI for the model storage'
+                                                              ' (e.g. s3://bucket-name/all_models)')
+
+        if data._model_image is not None:
+            GeneralExporter.add_env('MODEL_IMAGE_REPO_URI', '(REQUIRED) The URI for the model image repository'
+                                                            ' (e.g. 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-model-repo)')
+
         return {
             'apiVersion': 'k8s.raptor.ml/v1alpha1',
             'kind': 'Model',
@@ -117,8 +130,8 @@ class ModelImpl(ModelSpec):
                 'modelFrameworkVersion': data._model_framework_version,
                 'modelServer': data.model_server,
                 'inferenceConfig': inference_config_stub,
-                'storageURI': None if data._model_filename is None else f'$MODEL_BASE_URI/{data._model_filename}',
-                'modelImage': None if data._model_image is None else f'$MODEL_IMAGE_URI:{data._model_image}',
+                'storageURI': None if data._model_filename is None else f'$MODEL_STORAGE_BASE_URI/{data._model_filename}',
+                'modelImage': None if data._model_image is None else f'$MODEL_IMAGE_REPO_URI:{data._model_image}',
                 'trainingCode': inspect.getsource(data.training_function),
             }
         }
