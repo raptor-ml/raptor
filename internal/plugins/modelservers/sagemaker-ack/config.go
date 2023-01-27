@@ -29,17 +29,12 @@ type config struct {
 	// +optional
 	ModelName string `mapstructure:"modelName,omitempty"`
 
-	// ContainerImage is the container image to use for the model
-	// if not specified, the default image for the model framework will be used
-	// +optional
-	ContainerImage string `mapstructure:"containerImage,omitempty"`
-
 	// Region is the AWS region to use for the SageMaker endpoint
-	// +required
+	// +optional
 	Region string `mapstructure:"region"`
 
 	// InstanceType is the instance type to use for the SageMaker endpoint
-	// If not specified, it will default to ml.t2.medium
+	// If not specified, we'll use serverless deployment
 	// +optional
 	InstanceType string `mapstructure:"instanceType"`
 
@@ -58,6 +53,20 @@ type config struct {
 	// the iam:PassRole permission.
 	// +required
 	ExecutionRoleARN string `mapstructure:"executionRoleARN"`
+
+	// ServerlessMaxConcurrency is the maximum number of concurrent invocations for a serverless endpoint
+	// if this is set, we'll use serverless deployment
+	// default is 20
+	// +optional
+	ServerlessMaxConcurrency int `mapstructure:"serverlessMaxConcurrency"`
+
+	// ServerlessMemorySizeInMB is the amount of memory to use for a serverless endpoint
+	// if this is set, we'll use serverless deployment
+	// default is 2048
+	// +optional
+	ServerlessMemorySizeInMB int `mapstructure:"serverlessMemorySizeInMB"`
+
+	serverless bool
 }
 
 func (cfg *config) Parse(ctx context.Context, model *manifests.Model, client client.Reader) error {
@@ -83,18 +92,31 @@ func (cfg *config) Parse(ctx context.Context, model *manifests.Model, client cli
 	if cfg.ModelName == "" {
 		cfg.ModelName = fmt.Sprintf("%s-%s", model.GetNamespace(), model.GetName())
 	}
-	if cfg.ContainerImage == "" {
-		img, err := ImageURI(model.Spec.ModelFramework, cfg.Region, model.Spec.ModelFrameworkVersion)
-		if err != nil {
-			return fmt.Errorf("failed to get default image for model framework: %v", err)
-		}
-		cfg.ContainerImage = img
-	}
-	if cfg.InstanceType == "" {
-		cfg.InstanceType = "ml.t2.medium"
-	}
 	if cfg.InitialInstanceCount == 0 {
 		cfg.InitialInstanceCount = 1
+	}
+
+	//serverless
+	if cfg.InstanceType == "" || cfg.ServerlessMaxConcurrency > 0 || cfg.ServerlessMemorySizeInMB > 0 {
+		cfg.serverless = true
+	}
+	if cfg.ServerlessMaxConcurrency == 0 {
+		cfg.ServerlessMaxConcurrency = 20
+	}
+	if cfg.ServerlessMaxConcurrency > 200 {
+		return fmt.Errorf("serverlessMaxConcurrency must be <= 200")
+	}
+	if cfg.ServerlessMemorySizeInMB == 0 {
+		cfg.ServerlessMemorySizeInMB = 2048
+	}
+	switch cfg.ServerlessMemorySizeInMB {
+	case 1024, 2048, 3072, 4096, 5120, 6144:
+	default:
+		return fmt.Errorf("serverlessMemorySizeInMB must be one of 1024, 2048, 3072, 4096, 5120, 6144")
+	}
+
+	if model.Spec.ModelImage == "" && cfg.Region == "" {
+		return fmt.Errorf("region must be set if model image is not set, so we can detect the correct image")
 	}
 
 	return nil

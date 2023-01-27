@@ -109,6 +109,9 @@ spec:
                 description: ModelFrameworkVersion is the version of the framework
                   used to train the model.
                 type: string
+              modelImage:
+                description: ModelImage is the image used to serve the model.
+                type: string
               modelServer:
                 description: ModelServer is the server used to serve the model.
                 enum:
@@ -139,7 +142,6 @@ spec:
             - modelFrameworkVersion
             - modelServer
             - staleness
-            - storageURI
             type: object
           status:
             description: ModelStatus defines the observed state of Model

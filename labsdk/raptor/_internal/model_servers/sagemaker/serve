@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Licensed as Apache2
+# File taken from https://github.com/bentoml/aws-sagemaker-deploy/blob/main/bentoctl_sagemaker/sagemaker/serve
+
+# This implement the sagemaker serving service shell.  It starts nginx and gunicorn.
+# Parameter               Env Var                      Default Value
+# number of workers       BENTO_SERVER_TIMEOUT         60s
+# timeout                 GUNICORN_WORKER_COUNT        number of cpu cores / 2 + 1
+# api name                API_NAME                     None
+
+import os
+import signal
+import subprocess
+import sys
+
+
+def sigterm_handler(bentoserver_pid):
+    try:
+        os.kill(bentoserver_pid, signal.SIGTERM)
+    except OSError:
+        pass
+
+    sys.exit(0)
+
+
+def start_bentoml_production_server():
+    bento_server = subprocess.Popen(
+        [
+            'bentoml',
+            'serve',
+            '--production',
+            '--port',
+            '8080',
+            'sagemaker_service:svc',
+        ]
+    )
+    signal.signal(signal.SIGTERM, lambda: sigterm_handler(bento_server.pid))
+
+    pids = {bento_server.pid}
+    while True:
+        pid, _ = os.wait()
+        if pid in pids:
+            break
+    print('Inference server exiting')
+    sigterm_handler(bento_server.pid)
+
+
+if __name__ == '__main__':
+    start_bentoml_production_server()

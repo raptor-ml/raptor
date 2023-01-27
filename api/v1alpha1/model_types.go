@@ -78,9 +78,14 @@ type ModelSpec struct {
 	ModelFrameworkVersion string `json:"modelFrameworkVersion"`
 
 	// StorageURI is the URI of the model storage.
-	// +kubebuilder:validation:Required
+	// +optional
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Storage URI"
 	StorageURI string `json:"storageURI"`
+
+	// ModelImage is the image used to serve the model.
+	// +optional
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Model Image"
+	ModelImage string `json:"modelImage"`
 
 	// ModelServer is the server used to serve the model.
 	// +kubebuilder:validation:Required

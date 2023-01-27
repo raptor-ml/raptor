@@ -104,8 +104,22 @@ func updateAckModel(am *unstructured.Unstructured, req api.ModelReconcileRequest
 		return err
 	}
 
-	if err := unstructured.SetNestedField(am.Object, cfg.ContainerImage, "spec", "primaryContainer",
+	image := req.Model.Spec.ModelImage
+	if image == "" {
+		img, err := ImageURI(req.Model.Spec.ModelFramework, cfg.Region, req.Model.Spec.ModelFrameworkVersion)
+		if err != nil {
+			return fmt.Errorf("failed to get default image for model framework: %v", err)
+		}
+		image = img
+	}
+
+	if err := unstructured.SetNestedField(am.Object, image, "spec", "primaryContainer",
 		"image"); err != nil {
+		return err
+	}
+
+	if err := unstructured.SetNestedField(am.Object, "SingleModel", "spec", "primaryContainer",
+		"mode"); err != nil {
 		return err
 	}
 

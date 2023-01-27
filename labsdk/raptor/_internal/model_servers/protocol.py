@@ -12,27 +12,29 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-import os
-from typing import Optional
+
+from typing import Dict, Union
+
+from bentoml import Bento
+from bentoml._internal.bento.build_config import BentoBuildConfig
+from typing_extensions import Protocol
+
+from ...types.common import SecretKeyRef
 
 
-class BaseModelFramework:
-    @staticmethod
-    def save(model, spec: 'ModelSpec'):
-        raise NotImplementedError
+class ModelServer(Protocol):
+    @classmethod
+    def configurable_envs(cls) -> Dict[str, str]:
+        return {}
 
-    @staticmethod
-    def predict(model, spec: 'ModelSpec'):
-        raise NotImplementedError
+    @classmethod
+    def inference_config(cls, **kwargs) -> Dict[str, Union[str, SecretKeyRef]]:
+        return {}
 
+    @classmethod
+    def apply_bento_config(cls, cfg: BentoBuildConfig) -> BentoBuildConfig:
+        return cfg
 
-    @staticmethod
-    def _base_output_path():
-        return f'out/models'
-
-    @staticmethod
-    def _create_output_path(path: Optional[str] = None):
-        if path is None:
-            path = BaseModelFramework._base_output_path()
-        if not os.path.exists(path):
-            os.makedirs(path)
+    @classmethod
+    def post_build(cls, bento: Bento):
+        pass
