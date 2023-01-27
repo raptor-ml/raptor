@@ -15,13 +15,14 @@
 
 import os
 import shutil
-from typing import Dict
+from typing import Dict, Union
 
 import attr
 from bentoml import Bento
 from bentoml._internal.bento.build_config import BentoBuildConfig
 
 from .protocol import ModelServer
+from ...types import SecretKeyRef
 
 
 class Sagemaker(ModelServer):
@@ -30,7 +31,17 @@ class Sagemaker(ModelServer):
     BASE_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'sagemaker')
 
     @classmethod
-    def inference_config(cls, **kwargs) -> Dict:
+    def configurable_envs(cls) -> Dict[str, str]:
+        return {
+            'AWS_REGION': '(OPTIONAL) AWS region. This is required if you want to automatically detect sagemaker image',
+            'AWS_EXECUTION_ROLE_ARN': '(REQUIRED) AWS execution role ARN',
+            'AWS_SERVERLESS_MAX_CONCURRENCY': '(OPTIONAL) AWS serverless max concurrency',
+            'AWS_SERVERLESS_MEMORY_SIZE_IN_MB': '(OPTIONAL) AWS serverless memory size in MB',
+        }
+
+
+    @classmethod
+    def inference_config(cls, **kwargs) -> Dict[str, Union[str, SecretKeyRef]]:
         return {
             'region': '$AWS_REGION',
             'executionRoleARN': '$AWS_EXECUTION_ROLE_ARN',

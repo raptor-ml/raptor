@@ -12,11 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from typing import List, Optional, Dict, Any
 
 import pandas as pd
 
 from .common import _k8s_name, RaptorSpec, ConfigVar, ResourceRequirements
+from .._internal.exporter.general import GeneralExporter
 
 
 class DataSourceSpec(RaptorSpec):
@@ -36,6 +38,10 @@ class DataSourceSpec(RaptorSpec):
         super().__init__(name, *args, **kwargs)
         self.keys = keys or []
         self.timestamp = timestamp
+
+    def export(self):
+        GeneralExporter.add_source(self)
+        GeneralExporter.export()
 
     @classmethod
     def to_yaml_dict(cls, data: 'DataSourceSpec'):

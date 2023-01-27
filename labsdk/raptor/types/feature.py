@@ -26,6 +26,7 @@ from .common import RaptorSpec, ResourceReference, _k8s_name, EnumSpec
 from .dsrc import DataSourceSpec
 from .primitives import Primitive
 from .. import durpy, local_state
+from .._internal.exporter.general import GeneralExporter
 from ..program import Program
 
 
@@ -139,6 +140,10 @@ class FeatureSpec(RaptorSpec):
     def __init__(self, keys=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.keys = keys or []
+
+    def export(self, with_dependent_source=True):
+        GeneralExporter.add_feature(self, with_dependent_source=with_dependent_source)
+        GeneralExporter.export()
 
     @property
     def freshness(self):

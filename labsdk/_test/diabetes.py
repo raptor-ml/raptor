@@ -179,6 +179,5 @@ print('Accuracy:', mymodel.score(x_test, y_test.values.ravel()))
 print('done')
 
 # Output
-Diabetes.export(to_file=True)
-diabetes_prediction_train.export(to_file=True)
+diabetes_prediction_train.export()
 print('done')
