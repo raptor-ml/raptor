@@ -69,7 +69,7 @@ def normalize_selector(selector, default_namespace='default'):
         raise Exception(f'Invalid selector: {selector}')
     namespace = matches.group('namespace')
     name = matches.group('name')
-    aggrFn = matches.group('aggrFn')
+    aggr_fn = matches.group('aggr_fn')
     version = matches.group('version')
     encoding = matches.group('encoding')
 
@@ -77,8 +77,8 @@ def normalize_selector(selector, default_namespace='default'):
         namespace = default_namespace
 
     extra = ''
-    if aggrFn is not None and aggrFn != '':
-        extra += f'+{aggrFn}'
+    if aggr_fn is not None and aggr_fn != '':
+        extra += f'+{aggr_fn}'
     if version is not None and version != '':
         extra += f'@-{version}'
     if encoding is not None and encoding != '':
@@ -151,7 +151,8 @@ class Context:
                  fqn: str,
                  keys: Dict[str, str],
                  timestamp: datetime,
-                 feature_getter: Callable[[str, Dict[str, str], datetime], Tuple[primitive, datetime]],
+                 feature_getter: Callable[
+                     [str, Dict[str, str], datetime], Tuple[Optional[primitive], Optional[datetime]]],
                  prediction_getter: Callable[[str, Dict[str, str], datetime], Tuple[primitive, datetime]],
                  ):
 
