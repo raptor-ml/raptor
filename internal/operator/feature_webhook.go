@@ -137,7 +137,7 @@ func (wh *webhook) ValidateCreate(ctx context.Context, obj runtime.Object) error
 		model := manifests.Model{}
 		objectKey := client.ObjectKey{Namespace: f.GetNamespace(), Name: f.GetName()}
 		err := wh.client.Get(ctx, objectKey, &model)
-		if !apierrors.IsNotFound(err) || err != nil {
+		if err != nil && !apierrors.IsNotFound(err) {
 			return fmt.Errorf("model %s is already exists with the same name, please change the name "+
 				"(due to the fact that models are implemented as features internally)", f.FQN())
 		}
