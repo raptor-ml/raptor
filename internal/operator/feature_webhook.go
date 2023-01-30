@@ -135,7 +135,7 @@ func (wh *webhook) ValidateCreate(ctx context.Context, obj runtime.Object) error
 	// Check if model with the same name already exists
 	if ar, ok := ctx.Value(admissionRequestContextKey).(admission.Request); ok && ar.DryRun == nil || ok && !*ar.DryRun {
 		model := manifests.Model{}
-		objectKey := client.ObjectKey{Namespace: f.Spec.DataSource.Namespace, Name: f.Spec.DataSource.Name}
+		objectKey := client.ObjectKey{Namespace: f.GetNamespace(), Name: f.GetName()}
 		err := wh.client.Get(ctx, objectKey, &model)
 		if !apierrors.IsNotFound(err) || err != nil {
 			return fmt.Errorf("model %s is already exists with the same name, please change the name "+
