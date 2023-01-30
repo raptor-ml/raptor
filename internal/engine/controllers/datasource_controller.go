@@ -79,13 +79,13 @@ func (r *DataSourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		}
 	}
 
-	dci, err := api.DataSourceFromManifest(ctx, src, r.Reader)
+	srci, err := api.DataSourceFromManifest(ctx, src, r.Reader)
 	if err != nil {
 		logger.Error(err, "Failed to get DataSource: %w", err)
 		return ctrl.Result{}, err
 	}
 
-	if err := r.EngineManager.BindDataSource(dci); err != nil {
+	if err := r.EngineManager.BindDataSource(srci); err != nil {
 		logger.Error(err, "Failed to bind DataSource")
 		return ctrl.Result{RequeueAfter: 10 * time.Second}, err
 	}

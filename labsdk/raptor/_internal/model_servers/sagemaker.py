@@ -17,7 +17,7 @@ import os
 import shutil
 from typing import Dict, Union
 
-import attr
+from attr import evolve
 from bentoml import Bento
 from bentoml._internal.bento.build_config import BentoBuildConfig
 
@@ -35,10 +35,13 @@ class Sagemaker(ModelServer):
         return {
             'AWS_REGION': '(OPTIONAL) AWS region. This is required if you want to automatically detect sagemaker image',
             'AWS_EXECUTION_ROLE_ARN': '(REQUIRED) AWS execution role ARN',
-            'AWS_SERVERLESS_MAX_CONCURRENCY': '(OPTIONAL) AWS serverless max concurrency',
-            'AWS_SERVERLESS_MEMORY_SIZE_IN_MB': '(OPTIONAL) AWS serverless memory size in MB',
+            'AWS_SERVERLESS_MAX_CONCURRENCY': '(OPTIONAL) AWS serverless max concurrency. '
+                                              'If this is set,we\'ll create a serverless deployment.',
+            'AWS_SERVERLESS_MEMORY_SIZE_IN_MB': '(OPTIONAL) AWS serverless memory size in MB. '
+                                                'If this is set,we\'ll create a serverless deployment.',
+            'AWS_INFERENCE_INSTANCE_TYPE': '(OPTIONAL) AWS inference instance type to use for the SageMaker endpoint. '
+                                           'If not specified, we\'ll use serverless deployment.',
         }
-
 
     @classmethod
     def inference_config(cls, **kwargs) -> Dict[str, Union[str, SecretKeyRef]]:
@@ -47,12 +50,13 @@ class Sagemaker(ModelServer):
             'executionRoleARN': '$AWS_EXECUTION_ROLE_ARN',
             'serverlessMaxConcurrency': '$AWS_SERVERLESS_MAX_CONCURRENCY',
             'serverlessMemorySizeInMB': '$AWS_SERVERLESS_MEMORY_SIZE_IN_MB',
+            'instanceType': '$AWS_INFERENCE_INSTANCE_TYPE',
         }
 
     @classmethod
     def apply_bento_config(cls, cfg: BentoBuildConfig) -> BentoBuildConfig:
-        docker = attr.evolve(cfg.docker, dockerfile_template=os.path.join(cls.BASE_DIR, 'template.j2'))
-        cfg = attr.evolve(cfg, docker=docker)
+        docker = evolve(cfg.docker, dockerfile_template=os.path.join(cls.BASE_DIR, 'template.j2'))
+        cfg = evolve(cfg, docker=docker)
         return cfg
 
     @classmethod

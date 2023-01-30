@@ -27,8 +27,7 @@ import (
 
 var FeatureAppliers = make(registry[api.FeatureApply])
 var DataSourceReconciler = make(registry[api.DataSourceReconcile])
-var ModelReconciler = make(registry[api.ModelReconcile])
-var ModelControllerOwns = make(registry[api.ModelControllerOwns])
+var ModelServer = make(modelServerRegistry)
 var Configurers = make(registry[api.BindConfig])
 var StateFactories = make(registry[api.StateFactory])
 var CollectNotifierFactories = make(registry[api.CollectNotifierFactory])
@@ -94,4 +93,16 @@ func NewHistoricalWriter(provider string, viper *viper.Viper) (api.HistoricalWri
 		return p(viper)
 	}
 	return nil, fmt.Errorf("historical writer provider `%s` is not registered", provider)
+}
+
+type modelServerRegistry map[string]api.ModelServer
+
+func (r modelServerRegistry) Register(name string, p api.ModelServer) {
+	if _, ok := r[name]; ok {
+		panic(fmt.Errorf("model server `%s` is already registered", name))
+	}
+	r[name] = p
+}
+func (r modelServerRegistry) Get(name string) api.ModelServer {
+	return r[name]
 }

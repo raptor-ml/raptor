@@ -46,7 +46,7 @@ def _cleanup_none(d):
 
 # ignore None fields
 def _none_remove_representer(dumper, data):
-    data = _cleanup_none(deepcopy(data))
+    # data = _cleanup_none(deepcopy(data))
     return dumper.represent_dict(data)
 
 

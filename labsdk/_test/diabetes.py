@@ -176,7 +176,17 @@ y_pred = mymodel.predict(x_test)
 res = classification_report(y_pred, y_test.values.ravel())
 print(res)
 print('Accuracy:', mymodel.score(x_test, y_test.values.ravel()))
-print('done')
+
+print('Test data')
+with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+    print(pd.concat([x_test, y_test], axis=1).head(15))
+
+print('test data as json')
+for i in range(0, 10):
+    print('row:', i)
+    print(x_test.iloc[i].to_json())
+    print('label:', y_test.values.ravel()[i])
+    print('prediction:', mymodel.predict(x_test.iloc[i].to_frame().transpose()))
 
 # Output
 diabetes_prediction_train.export()

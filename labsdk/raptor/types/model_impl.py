@@ -27,7 +27,6 @@ from .._internal.exporter.general import GeneralExporter
 
 class ModelImpl(ModelSpec):
     _key_feature: str = None
-    _model_framework_version: Optional[str] = None
     _model_filename: Optional[str] = None
     _features_and_labels: Callable = None
 
@@ -106,7 +105,7 @@ class ModelImpl(ModelSpec):
             GeneralExporter.add_env('MODEL_STORAGE_BASE_URI', '(REQUIRED) The base URI for the model storage'
                                                               ' (e.g. s3://bucket-name/all_models)')
 
-        if data._model_image is not None:
+        if data._model_tag is not None:
             GeneralExporter.add_env('MODEL_IMAGE_REPO_URI', '(REQUIRED) The URI for the model image repository'
                                                             ' (e.g. 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-model-repo)')
 
@@ -126,12 +125,13 @@ class ModelImpl(ModelSpec):
                 'features': data.features,
                 'keyFeature': None if data.key_feature == data.features[0] else data.key_feature,
                 'labels': data.label_features,
+                'keys': data.keys,
                 'modelFramework': data.model_framework,
-                'modelFrameworkVersion': data._model_framework_version,
+                'modelFrameworkVersion': data.model_framework_version,
                 'modelServer': data.model_server,
                 'inferenceConfig': inference_config_stub,
                 'storageURI': None if data._model_filename is None else f'$MODEL_STORAGE_BASE_URI/{data._model_filename}',
-                'modelImage': None if data._model_image is None else f'$MODEL_IMAGE_REPO_URI:{data._model_image}',
+                'modelImage': None if data._model_tag is None else f'$MODEL_IMAGE_REPO_URI:{data._model_tag}',
                 'trainingCode': inspect.getsource(data.training_function),
             }
         }
