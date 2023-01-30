@@ -65,7 +65,7 @@ type FeatureSpec struct {
 
 	// Keys defines the list of keys that are required to calculate the feature value.
 	// +kubebuilder:validation:Required
-	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="EncodedKeys"
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Keys"
 	Keys []string `json:"keys"`
 
 	// DataSource is a reference for the DataSource that this Feature is associated with

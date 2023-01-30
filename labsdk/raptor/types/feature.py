@@ -22,7 +22,8 @@ import yaml
 from pandas.core.window import RollingGroupby
 from typing_extensions import TypedDict
 
-from .common import RaptorSpec, ResourceReference, _k8s_name, EnumSpec
+from . import RaptorDumper
+from .common import RaptorSpec, ResourceReference, _k8s_name, EnumSpec, RuntimeSpec
 from .dsrc import DataSourceSpec
 from .primitives import Primitive
 from .. import durpy, local_state
@@ -71,18 +72,21 @@ class AggregationFunction(EnumSpec):
         raise Exception(f'Unknown AggrFn {self}')
 
 
-class BuilderSpec(yaml.YAMLObject):
+class BuilderSpec(RuntimeSpec):
     kind: str = None
     code: str = None
-    runtime: Optional[str] = None
-    packages: Optional[List[str]] = None
 
-    def __init__(self, kind: Optional[str], options=None):
+    def __init__(self, runtime: Optional[str] = None, packages: Optional[List[str]] = None, kind: Optional[str] = None,
+                 options=None):
+        super().__init__(runtime=runtime, packages=packages)
         self.kind = kind
         if options is not None:
             """add options to __dict__"""
             for k, v in options.items():
                 setattr(self, k, v)
+
+
+RaptorDumper.add_representer(BuilderSpec, BuilderSpec.to_yaml)
 
 
 class AggrSpec(yaml.YAMLObject):
@@ -132,7 +136,7 @@ class FeatureSpec(RaptorSpec):
 
     data_source: Optional[ResourceReference] = None
     _data_source_spec: Optional[DataSourceSpec] = None
-    builder: BuilderSpec = BuilderSpec(None)
+    builder: BuilderSpec = BuilderSpec()
     aggr: AggrSpec = None
 
     program: Program = None
@@ -234,7 +238,7 @@ class FeatureSpec(RaptorSpec):
                 'keepPrevious': data.keep_previous,
                 'keys': data.keys,
                 'dataSource': None if data.data_source is None else data.data_source.__dict__,
-                'builder': data.builder.__dict__,
+                'builder': data.builder,
             }
         }
 

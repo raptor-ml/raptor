@@ -460,6 +460,10 @@ def model(
         if spec.freshness is None or spec.staleness is None:
             raise Exception('You must specify freshness')
 
+        if 'runtime' in options:
+            spec.runtime.runtime = options['runtime']['env_name']
+            spec.runtime.packages = options['runtime']['packages']
+
         local_state.register_spec(spec)
 
         if hasattr(func, '__raptor_options'):

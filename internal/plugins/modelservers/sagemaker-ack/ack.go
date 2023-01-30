@@ -32,9 +32,10 @@ const name = "sagemaker-ack"
 
 func init() {
 	// Register the plugin
-	plugins.ModelReconciler.Register(name, reconcile)
-	plugins.ModelControllerOwns.Register(name, owns)
+	plugins.ModelServer.Register(name, &ack{})
 }
+
+type ack struct{}
 
 var ackModelGVK = schema.GroupVersionKind{
 	Group:   "sagemaker.services.k8s.aws",
@@ -54,7 +55,7 @@ var ackEndpointGVK = schema.GroupVersionKind{
 	Kind:    "Endpoint",
 }
 
-func owns() []client.Object {
+func (*ack) Owns() []client.Object {
 	var ret []client.Object
 	for _, gvk := range []schema.GroupVersionKind{ackModelGVK, ackEndpointConfigGVK, ackEndpointGVK} {
 		u := &unstructured.Unstructured{}

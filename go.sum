@@ -197,6 +197,8 @@ github.com/aws/aws-sdk-go-v2/service/kms v1.16.3/go.mod h1:QuiHPBqlOFCi4LqdSskYY
 github.com/aws/aws-sdk-go-v2/service/s3 v1.26.3/go.mod h1:g1qvDuRsJY+XghsV6zg00Z4KJ7DtFFCx8fJD2a491Ak=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.29.6 h1:W8pLcSn6Uy0eXgDBUUl8M8Kxv7JCoP68ZKTD04OXLEA=
 github.com/aws/aws-sdk-go-v2/service/s3 v1.29.6/go.mod h1:L2l2/q76teehcW7YEsgsDjqdsDTERJeX3nOMIFlgGUE=
+github.com/aws/aws-sdk-go-v2/service/sagemakerruntime v1.17.0 h1:sahVJ5stt80+IS2x6oxFwDN3GalQwsF/+w2YnKH0V8E=
+github.com/aws/aws-sdk-go-v2/service/sagemakerruntime v1.17.0/go.mod h1:QKMtOqdUUB+GQmXMdiqqKwvM/P2AfG6wnCwLIH8wbDQ=
 github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.15.4/go.mod h1:PJc8s+lxyU8rrre0/4a0pn2wgwiDvOEzoOjcJUBr67o=
 github.com/aws/aws-sdk-go-v2/service/sns v1.17.4/go.mod h1:kElt+uCcXxcqFyc+bQqZPFD9DME/eC6oHBXvFzQ9Bcw=
 github.com/aws/aws-sdk-go-v2/service/sqs v1.18.3/go.mod h1:skmQo0UPvsjsuYYSYMVmrPc1HWCbHUJyrCEp+ZaLzqM=
@@ -754,10 +756,6 @@ github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1
 github.com/zenazn/goji v0.9.0/go.mod h1:7S9M489iMyHBNxwZnk9/EHS098H4/F6TATF2mIxtB1Q=
 go.buf.build/raptor/api-go/envoyproxy/protoc-gen-validate v1.3.8 h1:NgwD3pWCPtEhSegtOIywAvMyVcIKAdgNWAKsQVPRPPI=
 go.buf.build/raptor/api-go/envoyproxy/protoc-gen-validate v1.3.8/go.mod h1:88DcUfbsM/rfC2hyCZ6SPrko1cVhtmr5d0Vwc6vSbqI=
-go.buf.build/raptor/api-go/raptor/core v1.3.9 h1:89cCLLxsWZ5097XPyldrEMZtQHG3+7rEKHx7RHZP3fs=
-go.buf.build/raptor/api-go/raptor/core v1.3.9/go.mod h1:+HCGR/AYEEcWGH5Yx8ZSP6L6WO5ZpH8+QWw49q5+euE=
-go.buf.build/raptor/api-go/raptor/core v1.3.10 h1:0lxXCfhkd0nbSRbAx6T97IBIhS577YgnYJzijxrv4gg=
-go.buf.build/raptor/api-go/raptor/core v1.3.10/go.mod h1:+HCGR/AYEEcWGH5Yx8ZSP6L6WO5ZpH8+QWw49q5+euE=
 go.buf.build/raptor/api-go/raptor/core v1.3.11 h1:JQVN+IoYHQ8ayvteckkHLK4f9DoRYmuzrX4Kuh59E5I=
 go.buf.build/raptor/api-go/raptor/core v1.3.11/go.mod h1:+HCGR/AYEEcWGH5Yx8ZSP6L6WO5ZpH8+QWw49q5+euE=
 go.opencensus.io v0.15.0/go.mod h1:UffZAU+4sDEINUGP/B7UfBBkq4fqLu9zXAX7ke6CHW0=

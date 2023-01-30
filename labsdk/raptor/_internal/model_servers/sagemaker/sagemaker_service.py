@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 # use standalone_load so that the path is not changed back
 # after loading.
-svc = bentoml.load('', standalone_load=True)
+svc = bentoml.load('.', standalone_load=True)
 
 
 class SagemakerMiddleware:
@@ -39,11 +39,14 @@ class SagemakerMiddleware:
                         # only one api, use it
                         api_path, *_ = svc.apis
                         logger.info(
-                            f"'{AWS_CUSTOM_ENDPOINT_HEADER}' not found in request header. Using defualt {api_path} service."
+                            f"'{AWS_CUSTOM_ENDPOINT_HEADER}' not found in request header. Using default {api_path} "
+                            f'service.'
                         )
                     else:
                         logger.error(
-                            f"'{AWS_CUSTOM_ENDPOINT_HEADER}' not found inside request header. If you are directly invoking the Sagemaker Endpoint pass in the '{AWS_CUSTOM_ENDPOINT_HEADER}' with the bentoml service name that you want to invoke."
+                            f"'{AWS_CUSTOM_ENDPOINT_HEADER}' not found inside request header. "
+                            f'If you are directly invoking the Sagemaker Endpoint pass in the '
+                            f"'{AWS_CUSTOM_ENDPOINT_HEADER}' with the bentoml service name that you want to invoke."
                         )
                         raise BentoMLException(
                             f"'{AWS_CUSTOM_ENDPOINT_HEADER}' not found inside request header."
@@ -52,14 +55,17 @@ class SagemakerMiddleware:
                     api_path = req.headers[AWS_CUSTOM_ENDPOINT_HEADER]
                     if api_path not in svc.apis:
                         logger.error(
-                            "API Service passed via the '{AWS_CUSTOM_ENDPOINT_HEADER}' not found in the bentoml service."
+                            "API Service passed via the '{AWS_CUSTOM_ENDPOINT_HEADER}' not found in the bentoml "
+                            'service.'
                         )
                         raise BentoMLException(
-                            "API Service passed via the '{AWS_CUSTOM_ENDPOINT_HEADER}' not found in the bentoml service."
+                            "API Service passed via the '{AWS_CUSTOM_ENDPOINT_HEADER}' not found in the bentoml "
+                            'service.'
                         )
                 scope['path'] = '/' + api_path
 
         await self.app(scope, receive, send)
 
 
+# noinspection PyTypeChecker
 svc.add_asgi_middleware(SagemakerMiddleware)

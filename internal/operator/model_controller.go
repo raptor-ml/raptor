@@ -60,8 +60,8 @@ func (r *ModelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	}
 	logger = logger.WithValues("model", model.FQN())
 
-	if p := plugins.ModelReconciler.Get(string(model.Spec.ModelServer)); p != nil {
-		if changed, err := p(log.IntoContext(ctx, logger.WithName("runner")), r.reconcileRequest(model)); err != nil {
+	if p := plugins.ModelServer.Get(string(model.Spec.ModelServer)); p != nil {
+		if changed, err := p.Reconcile(log.IntoContext(ctx, logger.WithName("runner")), r.reconcileRequest(model)); err != nil {
 			r.EventRecorder.Eventf(model, "Warning", "ReconcileFailed",
 				"Failed to reconcile Model: %v", err)
 			return ctrl.Result{}, err
@@ -95,8 +95,8 @@ func (r *ModelReconciler) reconcileRequest(model *manifests.Model) api.ModelReco
 func (r *ModelReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	bldr := ctrl.NewControllerManagedBy(mgr).For(&manifests.Model{})
 
-	for _, o := range plugins.ModelControllerOwns {
-		for _, t := range o() {
+	for _, o := range plugins.ModelServer {
+		for _, t := range o.Owns() {
 			gvk := t.GetObjectKind().GroupVersionKind()
 			if _, err := r.Client.RESTMapper().RESTMapping(gvk.GroupKind(), gvk.Version); err == nil {
 				bldr = bldr.Owns(t)

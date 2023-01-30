@@ -33,7 +33,7 @@ from warnings import warn
 import pandas as pd
 import yaml
 
-from .common import RaptorSpec, EnumSpec
+from .common import RaptorSpec, EnumSpec, RuntimeSpec
 from .yaml import RaptorDumper
 from .._internal import model_servers
 
@@ -148,7 +148,11 @@ class ModelSpec(RaptorSpec):
     # noinspection PyUnresolvedReferences
     exporter: 'ModelExporter' = None
 
-    _model_image: str = None
+    model_framework_version: str = 'unknown'
+
+    runtime: RuntimeSpec = RuntimeSpec(packages=[])
+
+    _model_tag: str = None
 
     def train(self):
         raise NotImplementedError()

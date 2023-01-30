@@ -26,8 +26,8 @@ import (
 )
 
 type Plugins interface {
-	BindConfig | FeatureApply | DataSourceReconcile | ModelReconcile | StateFactory |
-		CollectNotifierFactory | WriteNotifierFactory | ModelControllerOwns |
+	BindConfig | FeatureApply | DataSourceReconcile | StateFactory |
+		CollectNotifierFactory | WriteNotifierFactory |
 		HistoricalWriterFactory
 }
 
@@ -59,14 +59,12 @@ type ModelReconcileRequest struct {
 	Scheme *runtime.Scheme
 }
 
-// ModelReconcile is the interface to be implemented by plugins that want to be reconciled in the operator.
-// This is useful for plugins that need to spawn an external Model Server.
-//
-// It returns ture if the reconciliation has changed the object (and therefore the operator should re-queue).
-type ModelReconcile func(ctx context.Context, rr ModelReconcileRequest) (changed bool, err error)
-
-// ModelControllerOwns returns the list of objects that the model controller should own.
-type ModelControllerOwns func() []client.Object
+// ModelServer is the interface to be implemented by plugins that implements a Model Server.
+type ModelServer interface {
+	Reconcile(ctx context.Context, rr ModelReconcileRequest) (changed bool, err error)
+	Owns() []client.Object
+	Serve(ctx context.Context, fd FeatureDescriptor, md ModelDescriptor, val Value) (Value, error)
+}
 
 // StateFactory is the interface to be implemented by plugins that implements storage providers.
 type StateFactory func(viper *viper.Viper) (State, error)

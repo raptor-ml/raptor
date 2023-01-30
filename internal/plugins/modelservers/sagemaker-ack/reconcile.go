@@ -25,15 +25,27 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"strings"
 )
 
-func reconcile(ctx context.Context, req api.ModelReconcileRequest) (bool, error) {
+func (*ack) Reconcile(ctx context.Context, req api.ModelReconcileRequest) (bool, error) {
 	logger := log.FromContext(ctx).WithName("ack")
 
+	pc, err := req.Model.ParseInferenceConfig(ctx, req.Client)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse inference config: %v", err)
+	}
+
 	cfg := config{}
-	err := cfg.Parse(ctx, req.Model, req.Client)
+	err = cfg.Parse(pc)
 	if err != nil {
 		return false, err
+	}
+	if req.Model.Spec.ModelImage == "" && cfg.Region == "" {
+		return false, fmt.Errorf("region must be set if model image is not set, so we can detect the correct image")
+	}
+	if cfg.ModelName == "" {
+		cfg.ModelName = strings.ReplaceAll(req.Model.FQN(), ".", "-")
 	}
 
 	if _, err = req.Client.RESTMapper().RESTMapping(ackModelGVK.GroupKind(), ackModelGVK.Version); err != nil {
@@ -99,9 +111,12 @@ func updateAckModel(am *unstructured.Unstructured, req api.ModelReconcileRequest
 	if err := unstructured.SetNestedField(am.Object, cfg.ModelName, "spec", "modelName"); err != nil {
 		return err
 	}
-	if err := unstructured.SetNestedField(am.Object, req.Model.Spec.StorageURI, "spec", "primaryContainer",
-		"modelDataURL"); err != nil {
-		return err
+
+	if req.Model.Spec.StorageURI != "" {
+		if err := unstructured.SetNestedField(am.Object, req.Model.Spec.StorageURI, "spec", "primaryContainer",
+			"modelDataURL"); err != nil {
+			return err
+		}
 	}
 
 	image := req.Model.Spec.ModelImage
@@ -137,14 +152,23 @@ func updateAckEndpointConfig(aec *unstructured.Unstructured, req api.ModelReconc
 		return err
 	}
 
-	if err := unstructured.SetNestedSlice(aec.Object, []any{
-		map[string]any{
-			"modelName":            cfg.ModelName,
-			"variantName":          "Raptor",
-			"initialInstanceCount": int64(cfg.InitialInstanceCount),
-			"instanceType":         cfg.InstanceType,
-		},
-	}, "spec", "productionVariants"); err != nil {
+	productionVariant := map[string]any{
+		"modelName":            cfg.ModelName,
+		"variantName":          "Raptor",
+		"initialInstanceCount": int64(cfg.InitialInstanceCount),
+	}
+	if cfg.serverless {
+		if err := unstructured.SetNestedField(productionVariant, map[string]any{
+			"maxConcurrency": int64(cfg.ServerlessMaxConcurrency),
+			"memorySizeInMB": int64(cfg.ServerlessMemorySizeInMB),
+		}, "serverlessConfig"); err != nil {
+			return err
+		}
+	} else {
+		productionVariant["instanceType"] = cfg.InstanceType
+	}
+
+	if err := unstructured.SetNestedSlice(aec.Object, []any{productionVariant}, "spec", "productionVariants"); err != nil {
 		return err
 	}
 

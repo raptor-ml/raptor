@@ -17,29 +17,28 @@ limitations under the License.
 package sagemaker_ack
 
 import (
-	"context"
 	"fmt"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type config struct {
-	// ModelName is the name of the model in SageMaker
-	// if not set, the name of the Raptor model will be used
+	// ModelName is the name of the model in SageMaker.
+	// if not set, the name of the Raptor model will be used.
 	// +optional
 	ModelName string `mapstructure:"modelName,omitempty"`
 
-	// Region is the AWS region to use for the SageMaker endpoint
+	// Region is the AWS region to use for the SageMaker endpoint.
 	// +optional
 	Region string `mapstructure:"region"`
 
-	// InstanceType is the instance type to use for the SageMaker endpoint
-	// If not specified, we'll use serverless deployment
+	// InstanceType is the instance type to use for the SageMaker endpoint.
+	// If not specified, we'll use serverless deployment.
+	// For more info: https://aws.amazon.com/sagemaker/pricing/instance-types/
 	// +optional
 	InstanceType string `mapstructure:"instanceType"`
 
-	// InitialInstanceCount is the initial number of instances to use for the SageMaker endpoint
-	// If not specified, it will default to 1
+	// InitialInstanceCount is the initial number of instances to use for the SageMaker endpoint.
+	// If not specified, it will default to 1.
 	// +optional
 	InitialInstanceCount int `mapstructure:"initialInstanceCount"`
 
@@ -54,28 +53,23 @@ type config struct {
 	// +required
 	ExecutionRoleARN string `mapstructure:"executionRoleARN"`
 
-	// ServerlessMaxConcurrency is the maximum number of concurrent invocations for a serverless endpoint
-	// if this is set, we'll use serverless deployment
-	// default is 20
+	// ServerlessMaxConcurrency is the maximum number of concurrent invocations for a serverless endpoint.
+	// If this is set, we'll create a serverless deployment.
+	// Default is 20.
 	// +optional
 	ServerlessMaxConcurrency int `mapstructure:"serverlessMaxConcurrency"`
 
-	// ServerlessMemorySizeInMB is the amount of memory to use for a serverless endpoint
-	// if this is set, we'll use serverless deployment
-	// default is 2048
+	// ServerlessMemorySizeInMB is the amount of memory to use for a serverless endpoint.
+	// If this is set, we'll create a serverless deployment.
+	// Default is 2048.
 	// +optional
 	ServerlessMemorySizeInMB int `mapstructure:"serverlessMemorySizeInMB"`
 
 	serverless bool
 }
 
-func (cfg *config) Parse(ctx context.Context, model *manifests.Model, client client.Reader) error {
-	pc, err := model.ParseInferenceConfig(ctx, client)
-	if err != nil {
-		return fmt.Errorf("failed to parse inference config: %v", err)
-	}
-
-	err = pc.Unmarshal(cfg)
+func (cfg *config) Parse(pc manifests.ParsedConfig) error {
+	err := pc.Unmarshal(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to parse ACK Inference config: %v", err)
 	}
@@ -89,9 +83,6 @@ func (cfg *config) Parse(ctx context.Context, model *manifests.Model, client cli
 	}
 
 	// Set defaults
-	if cfg.ModelName == "" {
-		cfg.ModelName = fmt.Sprintf("%s-%s", model.GetNamespace(), model.GetName())
-	}
 	if cfg.InitialInstanceCount == 0 {
 		cfg.InitialInstanceCount = 1
 	}
@@ -113,10 +104,6 @@ func (cfg *config) Parse(ctx context.Context, model *manifests.Model, client cli
 	case 1024, 2048, 3072, 4096, 5120, 6144:
 	default:
 		return fmt.Errorf("serverlessMemorySizeInMB must be one of 1024, 2048, 3072, 4096, 5120, 6144")
-	}
-
-	if model.Spec.ModelImage == "" && cfg.Region == "" {
-		return fmt.Errorf("region must be set if model image is not set, so we can detect the correct image")
 	}
 
 	return nil

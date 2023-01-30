@@ -24,7 +24,7 @@ from ...types.model import ModelSpec
 
 
 class _GeneralExporter:
-    models: Dict[str, 'ModelSpec'] = {}
+    models: Dict[str, ModelSpec] = {}
     features: Dict[str, 'FeatureSpec'] = {}
     sources: Dict[str, 'DataSourceSpec'] = {}
 
@@ -77,9 +77,9 @@ class _GeneralExporter:
             name = name[1:]
         self.envs[name] = description
 
-    def export(self, with_makefile=True):
+    def export(self, with_makefile=True, remove_unused_models=True):
         for _, model in self.models.items():
-            model.exporter.export(with_docker=True)
+            model.exporter.export(with_docker=True, remove_unused_models=remove_unused_models)
 
         for _, feature in self.features.items():
             feature.manifest(to_file=True)

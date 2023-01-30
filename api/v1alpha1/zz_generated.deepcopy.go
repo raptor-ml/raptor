@@ -404,6 +404,11 @@ func (in *ModelSpec) DeepCopyInto(out *ModelSpec) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.Keys != nil {
+		in, out := &in.Keys, &out.Keys
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.InferenceConfig != nil {
 		in, out := &in.InferenceConfig, &out.InferenceConfig
 		*out = make([]ConfigVar, len(*in))

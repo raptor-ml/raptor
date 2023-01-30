@@ -17,40 +17,14 @@ limitations under the License.
 package api
 
 import (
-	"context"
 	"fmt"
 	manifests "github.com/raptor-ml/raptor/api/v1alpha1"
-	"regexp"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strconv"
 	"strings"
 	"time"
 )
 
 const ModelBuilder = "model"
 const HeadlessBuilder = "headless"
-
-// DataSource is a parsed abstracted representation of a manifests.DataSource
-type DataSource struct {
-	FQN    string                 `json:"fqn"`
-	Kind   string                 `json:"kind"`
-	Config manifests.ParsedConfig `json:"config"`
-	// todo Schema
-}
-
-// DataSourceFromManifest returns a DataSource from a manifests.DataSource
-func DataSourceFromManifest(ctx context.Context, src *manifests.DataSource, r client.Reader) (DataSource, error) {
-	pc, err := src.ParseConfig(ctx, r)
-	if err != nil {
-		return DataSource{}, fmt.Errorf("failed to parse config: %w", err)
-	}
-
-	return DataSource{
-		FQN:    src.FQN(),
-		Kind:   src.Spec.Kind,
-		Config: pc,
-	}, nil
-}
 
 // FeatureDescriptor is describing a feature definition for an internal use of the Core.
 type FeatureDescriptor struct {
@@ -147,74 +121,4 @@ func FeatureDescriptorFromManifest(in *manifests.Feature) (*FeatureDescriptor, e
 		return nil, fmt.Errorf("invalid feature specification for windowed feature")
 	}
 	return fd, nil
-}
-
-var FQNRegExp = regexp.MustCompile(`(?si)^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\[(?P<encoding>([a-z]+_*[a-z]+))])?$`)
-
-func ParseSelector(fqn string) (namespace, name string, aggrFn AggrFn, version uint, encoding string, err error) {
-	if !FQNRegExp.MatchString(fqn) {
-		return "", "", AggrFnUnknown, 0, "", fmt.Errorf("invalid FQN: %s", fqn)
-	}
-
-	match := FQNRegExp.FindStringSubmatch(fqn)
-	parsedFQN := make(map[string]string)
-	for i, name := range FQNRegExp.SubexpNames() {
-		if i != 0 && name != "" {
-			parsedFQN[name] = match[i]
-		}
-	}
-
-	var ver = 0
-	if parsedFQN["version"] != "" {
-		ver, err = strconv.Atoi(parsedFQN["version"])
-		if err != nil {
-			return "", "", AggrFnUnknown, 0, "", fmt.Errorf("invalid version: %s", parsedFQN["version"])
-		}
-		if ver < 0 {
-			ver *= -1
-		}
-	}
-
-	namespace = parsedFQN["namespace"]
-	name = parsedFQN["name"]
-	aggrFn = StringToAggrFn(parsedFQN["aggrFn"])
-	version = uint(ver)
-	encoding = parsedFQN["encoding"]
-	return
-}
-
-// NormalizeFQN returns an FQN with the namespace
-func NormalizeFQN(fqn, defaultNamespace string) (string, error) {
-	namespace, name, _, _, _, err := ParseSelector(fqn)
-	if err != nil {
-		return "", err
-	}
-	if namespace == "" {
-		namespace = defaultNamespace
-	}
-	return fmt.Sprintf("%s.%s", namespace, name), nil
-}
-
-// NormalizeSelector returns a selector with the default namespace if not specified
-func NormalizeSelector(selector, defaultNamespace string) (string, error) {
-	ns, name, aggrFn, version, enc, err := ParseSelector(selector)
-	if err != nil {
-		return "", err
-	}
-
-	if ns == "" {
-		ns = defaultNamespace
-	}
-
-	other := ""
-	if aggrFn != AggrFnUnknown {
-		other = fmt.Sprintf("%s+%s", other, aggrFn)
-	}
-	if version != 0 {
-		other = fmt.Sprintf("%s@-%d", other, version)
-	}
-	if enc != "" {
-		other = fmt.Sprintf("%s[%s]", other, enc)
-	}
-	return fmt.Sprintf("%s.%s%s", ns, name, other), nil
 }

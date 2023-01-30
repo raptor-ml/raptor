@@ -7,6 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.18.7
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.7
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.29.6
+	github.com/aws/aws-sdk-go-v2/service/sagemakerruntime v1.17.0
 	github.com/cert-manager/cert-manager v1.10.1
 	github.com/die-net/lrucache v0.0.0-20220628165024-20a71bc65bf1
 	github.com/go-logr/logr v1.2.3

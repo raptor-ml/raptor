@@ -67,6 +67,11 @@ type ModelSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Labels"
 	Labels []string `json:"labels,omitempty"`
 
+	// Keys defines the list of keys that are required to calculate the feature values.
+	// +kubebuilder:validation:Required
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Keys"
+	Keys []string `json:"keys"`
+
 	// ModelFramework is the framework used to train the model.
 	// +kubebuilder:validation:Required
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Model Framework"

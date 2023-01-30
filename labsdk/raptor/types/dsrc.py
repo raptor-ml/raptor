@@ -22,8 +22,8 @@ from .._internal.exporter.general import GeneralExporter
 
 
 class DataSourceSpec(RaptorSpec):
-    kind: str = None
-    config: List[ConfigVar] = None
+    kind: str = 'Stub'
+    config: List[ConfigVar] = []
     schema: Optional[Dict[str, Any]] = None
     keys: List[str] = None
     timestamp: str = None

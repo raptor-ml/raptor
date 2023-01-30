@@ -95,6 +95,12 @@ spec:
                   first feature in the list will be used.
                 nullable: true
                 type: string
+              keys:
+                description: Keys defines the list of keys that are required to calculate
+                  the feature values.
+                items:
+                  type: string
+                type: array
               labels:
                 description: Labels is a list of feature FQNs that are used to label
                   the prediction result.
@@ -138,6 +144,7 @@ spec:
             required:
             - features
             - freshness
+            - keys
             - modelFramework
             - modelFrameworkVersion
             - modelServer
