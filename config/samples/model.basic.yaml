@@ -9,12 +9,17 @@ spec:
   features:
     - hello_world
     - simple_aggr
+  keys:
+    - name
+    - client_id
   modelServer: sagemaker-ack
   modelFramework: sklearn
   modelFrameworkVersion: 1.0-1
   storageURI: s3://my-bucket/model
+  modelImage: 123456789012.dkr.ecr.us-east-1.amazonaws.com/my-model:latest
   inferenceConfig:
     - name: region
       value: us-east-1
     - name: executionRoleARN
       value: arn:aws:iam::123456789012:role/MyRole
+  trainingCode: ~
