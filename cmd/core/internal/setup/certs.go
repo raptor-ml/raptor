@@ -317,32 +317,41 @@ func (ce *certsEnsurer) Start(ctx context.Context) error {
 				for _, w := range whks {
 					whk := w.(map[string]interface{})
 					_, found, err := unstructured.NestedString(w.(map[string]interface{}), "clientConfig", "caBundle")
-					if err != nil || !found {
+					if err != nil {
 						return false, fmt.Errorf("failed to get caBundle for webhook %s(%v): %w", wh.Name, whk["name"], err)
+					}
+					if !found {
+						return false, nil
 					}
 				}
 			case rotator.CRDConversion:
 				_, found, err := unstructured.NestedString(resource.Object, "spec", "conversion", "clientConfig", "caBundle")
-				if err != nil || !found {
+				if err != nil {
 					return false, fmt.Errorf("failed to get caBundle from webhook %s: %w", wh.Name, err)
+				}
+				if !found {
+					return false, nil
 				}
 			case rotator.APIService:
 				_, found, err := unstructured.NestedString(resource.Object, "spec", "caBundle")
-				if err != nil || !found {
+				if err != nil {
 					return false, fmt.Errorf("failed to get caBundle from webhook %s: %w", wh.Name, err)
+				}
+				if !found {
+					return false, nil
 				}
 			}
 		}
 		return true, nil
 	}
 	if err := wait.ExponentialBackoff(wait.Backoff{
-		Duration: 2 * time.Second,
-		Factor:   3,
+		Duration: 1 * time.Second,
+		Factor:   2,
 		Jitter:   1,
-		Steps:    20,
+		Steps:    10,
 	}, checkFn); err != nil {
-		ce.logger.Error(err, "max retries for checking CA Injection")
-		return fmt.Errorf("max retries for checking CA Injection: %w", err)
+		ce.logger.Error(err, "failed checking CA Injection")
+		return fmt.Errorf("failed checking CA Injection: %w", err)
 	}
 	ce.logger.Info("CA injected")
 	close(ce.isReady)
