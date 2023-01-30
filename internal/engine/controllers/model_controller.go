@@ -46,8 +46,8 @@ func (r *ModelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	logger := log.FromContext(ctx).WithValues("component", "model-controller")
 
 	// Fetch the Model definition from the Kubernetes API.
-	fs := &manifests.Model{}
-	err := r.Get(ctx, req.NamespacedName, fs)
+	model := &manifests.Model{}
+	err := r.Get(ctx, req.NamespacedName, model)
 	if err != nil {
 		logger.Error(err, "Failed to get Model")
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
@@ -55,7 +55,7 @@ func (r *ModelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		// on deleted requests.
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	logger = logger.WithValues("model", fs.FQN())
+	logger = logger.WithValues("model", model.FQN())
 
 	// Convert the Model definition to a FeatureDescriptor object.
 	ft := &manifests.Feature{
@@ -64,23 +64,45 @@ func (r *ModelReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 			APIVersion: manifests.GroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fs.Name,
-			Namespace: fs.Namespace,
+			Name:      model.Name,
+			Namespace: model.Namespace,
 		},
 		Spec: manifests.FeatureSpec{
-			Primitive: manifests.PrimitiveType(api.PrimitiveTypeStringList.String()),
-			Timeout:   fs.Spec.Timeout,
+			Primitive:    manifests.PrimitiveType(api.PrimitiveTypeFloat.String()),
+			Freshness:    model.Spec.Freshness,
+			Staleness:    model.Spec.Staleness,
+			Timeout:      model.Spec.Timeout,
+			KeepPrevious: nil,
+			Keys:         model.Spec.Keys,
+			DataSource:   nil,
+			Builder: manifests.FeatureBuilder{
+				Kind: api.ModelBuilder,
+			},
 		},
 	}
-	ft.Spec.Builder.Kind = api.ModelBuilder
-	ft.Spec.Builder.Raw, err = json.Marshal(fs.Spec)
+
+	cfg, err := model.ParseInferenceConfig(ctx, r.Reader)
+	if err != nil {
+		logger.Error(err, "Failed to parse inference config")
+		return ctrl.Result{}, err
+	}
+
+	md := &api.ModelDescriptor{
+		Features:        model.Spec.Features,
+		KeyFeature:      model.Spec.KeyFeature,
+		Keys:            model.Spec.Keys,
+		ModelFramework:  model.Spec.ModelFramework,
+		ModelServer:     string(model.Spec.ModelServer),
+		InferenceConfig: cfg,
+	}
+	ft.Spec.Builder.Raw, err = json.Marshal(md)
 	if err != nil {
 		logger.Error(err, "Failed to marshal features")
 		return ctrl.Result{}, err
 	}
 
 	// examine DeletionTimestamp to determine if object is under deletion
-	if !fs.ObjectMeta.DeletionTimestamp.IsZero() {
+	if !model.ObjectMeta.DeletionTimestamp.IsZero() {
 		// The object is being deleted
 		// Since this controller is used for the internal Core, we don't need to use finalizers
 

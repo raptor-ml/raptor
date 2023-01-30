@@ -20,8 +20,11 @@ from warnings import warn
 
 import bentoml
 import bentoml.bentos
+from attr import evolve
 from bentoml import Bento
 from bentoml._internal.bento.build_config import BentoBuildConfig
+
+from pandas import __version__ as pandas_version
 
 from ...types.model import ModelFramework, ModelSpec
 
@@ -34,9 +37,7 @@ class ModelExporter:
         self.spec = spec
 
     def save(self, model):
-        opts = {
-            'signatures': {'__call__': {'batchable': False}}
-        }
+        opts = {}
         if self.spec.model_framework == ModelFramework.HuggingFace:
             self.model = bentoml.transformers.save_model(self.spec.fqn(), model, **opts)
         elif self.spec.model_framework == ModelFramework.Sklearn:
@@ -65,23 +66,34 @@ class ModelExporter:
             warn(f'ModelFramework {self} not deployable by Raptor at the moment.'
                  'Please export your model manually instead')
 
-    def create_docker(self):
+        if self.spec.runtime.packages is None:
+            self.spec.runtime.packages = []
+        self.spec.runtime.packages.append(f'pandas=={pandas_version}')
+        for k, v in self.model.info.context.framework_versions.items():
+            if self.spec.model_framework_version is None or self.spec.model_framework_version == 'unknown':
+                self.spec.model_framework_version = v
+            self.spec.runtime.packages.append(f'{k}=={v}')
+
+    def create_docker(self, remove_unused_models=True):
         if self.model is None:
             raise Exception('Model not trained yet')
 
         cwd = os.getcwd()
         with tempfile.TemporaryDirectory() as tmpdir, open(os.path.join(tmpdir, 'service.py'), 'w') as f:
             f.write(f'''
-import numpy as np
+from typing import Dict, Any
+
 import bentoml
+import pandas as pd
 from bentoml.io import JSON
 
 model_runner = bentoml.models.get('{self.model.tag}').to_runner()
 svc = bentoml.Service("{self.spec.fqn()}", runners=[model_runner])
 
+
 @svc.api(input=JSON(), output=JSON())
-def classify(input_series: np.ndarray) -> np.ndarray:
-    return model_runner.predict.run(input_series)
+def predict(input_data: Dict[str, Any]) -> Dict[str, Any]:
+    return model_runner.run(pd.DataFrame([input_data]))
     '''.strip('\n'))
             f.flush()
 
@@ -94,12 +106,16 @@ def classify(input_series: np.ndarray) -> np.ndarray:
                 service=os.path.basename(f.name),
             ).with_defaults()
 
+            packages = build_config.python.packages or []
+            build_config = evolve(build_config,
+                                  python=evolve(build_config.python, packages=packages + self.spec.runtime.packages))
+
             if self.spec.model_server is not None and self.spec.model_server.config is not None:
                 build_config = self.spec.model_server.config.apply_bento_config(build_config)
 
             bento = Bento.create(
                 build_config=build_config,
-                version=None,
+                version=self.model.tag.version,
                 build_ctx=os.path.dirname(f.name),
             ).save()
             os.chdir(cwd)  # bentos.build changes cwd. change it back to avoid clashes when we export other outputs
@@ -119,13 +135,20 @@ def classify(input_series: np.ndarray) -> np.ndarray:
                     af.flush()
 
             shutil.copytree(bento.path, base_dir, dirs_exist_ok=True)
-            self.spec._model_image = str(bento.tag)
 
-    def export(self, with_docker=True):
+            if remove_unused_models:
+                models_models_dir = os.path.join(base_dir, 'models', self.model.tag.name)
+                for d in os.listdir(models_models_dir):
+                    if d != self.model.tag.version and os.path.isdir(os.path.join(models_models_dir, d)):
+                        shutil.rmtree(os.path.join(models_models_dir, d))
+
+            self.spec._model_tag = str(bento.tag.version)
+
+    def export(self, with_docker=True, remove_unused_models=True):
         if self.model is None:
             self.spec.train()
 
         if with_docker:
-            self.create_docker()
+            self.create_docker(remove_unused_models=remove_unused_models)
 
         return self.spec.manifest(True)

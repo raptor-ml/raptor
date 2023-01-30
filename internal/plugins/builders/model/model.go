@@ -32,13 +32,13 @@ func init() {
 }
 
 func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, faapi api.FeatureAbstractAPI, engine api.ExtendedManager) error {
-	spec := manifests.ModelSpec{}
-	err := json.Unmarshal(builder.Raw, &spec)
+	md := api.ModelDescriptor{}
+	err := json.Unmarshal(builder.Raw, &md)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal expression spec: %w", err)
 	}
 
-	if len(spec.Features) < 2 {
+	if len(md.Features) < 2 {
 		return fmt.Errorf("model must have at least 2 features")
 	}
 
@@ -48,36 +48,41 @@ func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, fa
 	}
 
 	//normalize features
-	for i, f := range spec.Features {
-		spec.Features[i], err = api.NormalizeSelector(f, ns)
+	for i, f := range md.Features {
+		md.Features[i], err = api.NormalizeSelector(f, ns)
 		if err != nil {
 			return fmt.Errorf("failed to normalize feature %s in model %s: %w", f, fd.FQN, err)
 		}
 	}
 
-	fs := &model{engine: engine, features: spec.Features}
+	fs := &model{engine: engine, md: md}
 	faapi.AddPostGetMiddleware(0, fs.preGetMiddleware)
 	faapi.AddPreSetMiddleware(0, fs.preSetMiddleware)
 	return nil
 }
 
 type model struct {
-	features []string
-	engine   api.Engine
+	md     api.ModelDescriptor
+	engine api.Engine
 }
 
-func (fs *model) preGetMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
+func (m *model) preGetMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
 	return func(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, val api.Value) (api.Value, error) {
+		cache, cacheOk := ctx.Value(api.ContextKeyFromCache).(bool)
+		if cacheOk && cache && val.Fresh {
+			return next(ctx, fd, keys, val)
+		}
+
 		logger := api.LoggerFromContext(ctx)
 		wg := &sync.WaitGroup{}
-		wg.Add(len(fs.features))
+		wg.Add(len(m.md.Features))
 
 		ret := api.Value{}
 		results := make(map[string]api.Value)
-		for _, fqn := range fs.features {
+		for _, fqn := range m.md.Features {
 			go func(fqn string, wg *sync.WaitGroup) {
 				defer wg.Done()
-				val, _, err := fs.engine.Get(ctx, fqn, keys)
+				val, _, err := m.engine.Get(ctx, fqn, keys)
 				if err != nil {
 					logger.Error(err, "failed to get feature %s", fqn)
 					return
@@ -94,12 +99,20 @@ func (fs *model) preGetMiddleware(next api.MiddlewareHandler) api.MiddlewareHand
 		wg.Wait()
 		ret.Value = results
 
-		return ret, nil
+		if ms := plugins.ModelServer.Get(m.md.ModelServer); ms != nil {
+			val, err := ms.Serve(ctx, fd, m.md, val)
+			if err != nil {
+				return val, err
+			}
+			return next(ctx, fd, keys, val)
+		}
+
+		return next(ctx, fd, keys, val)
 	}
 }
 
-func (fs *model) preSetMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
+func (m *model) preSetMiddleware(next api.MiddlewareHandler) api.MiddlewareHandler {
 	return func(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, val api.Value) (api.Value, error) {
-		return val, fmt.Errorf("cannot set model %s", fd.FQN)
+		return val, fmt.Errorf("cannot set data to model %s", fd.FQN)
 	}
 }

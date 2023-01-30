@@ -16,7 +16,7 @@
 import os
 import re
 from enum import Enum
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 import yaml
 
@@ -113,6 +113,15 @@ class EnumSpec(Enum):
 
 
 RaptorDumper.add_multi_representer(EnumSpec, EnumSpec.to_yaml)
+
+
+class RuntimeSpec(yaml.YAMLObject):
+    runtime: Optional[str] = None
+    packages: Optional[List[str]] = None
+
+    def __init__(self, runtime: Optional[str] = None, packages: Optional[List[str]] = None):
+        self.runtime = runtime
+        self.packages = packages
 
 
 class ResourceReference(yaml.YAMLObject):
