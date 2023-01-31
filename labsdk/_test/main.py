@@ -76,7 +76,7 @@ def deals_10h(this_row: Deal, ctx: Context) -> float:
     return this_row['amount']
 
 
-@feature(keys='account_id', data_source=Deal)
+@feature(keys='account_id', sourceless_markers_df=Deal.raptor_spec.local_df)
 @freshness(target='-1', invalid_after='-1')
 def emails_deals(_, ctx: Context) -> float:
     """emails/deal[avg] rate over 10 hours"""
@@ -94,9 +94,8 @@ def last_amount(this_row: Deal, ctx: Context) -> float:
     return this_row['amount']
 
 
-@feature(keys='account_id', data_source=Deal)
+@feature(keys='account_id', sourceless_markers_df=Deal.raptor_spec.local_df)
 @freshness(target='1h', invalid_after='2h')
-@keep_previous(versions=1, over='1h')
 def diff_with_previous_price(this_row: Deal, ctx: Context) -> float:
     lv, ts = ctx.get_feature('last_amount@-1')
     if lv is None:
@@ -114,7 +113,7 @@ print(f'## Feature: `emails_deals`')
 print(f'```\n{emails_deals.manifest()}\n```')
 print('### Replayed')
 print(emails_deals.replay().to_markdown())
-warn('TBD: how to reply headless?')
+warn('TBD: how to reply sourceless?')
 print(f'## Feature: `last_amount`')
 print(f'```\n{last_amount.manifest()}\n```')
 print('### Replayed')

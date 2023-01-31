@@ -24,7 +24,7 @@ import (
 )
 
 const ModelBuilder = "model"
-const HeadlessBuilder = "headless"
+const SourcelessBuilder = "sourceless"
 
 // FeatureDescriptor is describing a feature definition for an internal use of the Core.
 type FeatureDescriptor struct {
@@ -114,7 +114,7 @@ func FeatureDescriptorFromManifest(in *manifests.Feature) (*FeatureDescriptor, e
 		fd.DataSource = in.Spec.DataSource.FQN()
 	}
 	if fd.Builder == "" {
-		fd.Builder = HeadlessBuilder
+		fd.Builder = SourcelessBuilder
 	}
 
 	if len(fd.Aggr) > 0 && !fd.ValidWindow() {

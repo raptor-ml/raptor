@@ -14,7 +14,6 @@
 #  limitations under the License.
 
 import datetime
-from copy import deepcopy
 
 import yaml
 
@@ -31,6 +30,11 @@ class RaptorDumper(yaml.SafeDumper):
     def ignore_aliases(self, data): return True
 
     def process_tag(self): return None
+
+
+RaptorDumper.yaml_representers = yaml.SafeDumper.yaml_representers
+RaptorDumper.yaml_multi_representers = yaml.SafeDumper.yaml_multi_representers
+RaptorDumper.add_multi_representer(yaml.YAMLObject, yaml.YAMLObject.to_yaml)
 
 
 def _cleanup_none(d):

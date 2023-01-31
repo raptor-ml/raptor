@@ -50,8 +50,21 @@ def __detect_ts_field(df) -> Optional[str]:
         return 'event_datetime'
     elif 'event_ts' in df.columns:
         return 'event_ts'
-    else:
-        return None
+
+    # Try to detect the timestamp field by data type
+    for col in df.columns:
+        try:
+            if isinstance(df[col].iloc[0], (pd.Timestamp, pd.DatetimeIndex, datetime)):
+                return col
+            elif isinstance(df[col].iloc[0], str):
+                try:
+                    pd.to_datetime(df[col].iloc[0])
+                    return col
+                except (ValueError, TypeError):
+                    pass
+        except (KeyError, IndexError):
+            pass
+    return None
 
 
 def __detect_headers_field(df) -> Optional[str]:
@@ -63,13 +76,18 @@ def __detect_headers_field(df) -> Optional[str]:
 
 def new_replay(spec: FeatureSpec):
     def _replay(store_locally=True):
-        dsrc = spec._data_source_spec
-        if dsrc is None:
+        df: pd.DataFrame = None
+        timestamp_field: str = None
+
+        if spec.data_source_spec is not None:
+            dsrc = spec.data_source_spec
+            df = dsrc.local_df.copy()
+            timestamp_field = dsrc.timestamp
+        elif spec.sourceless_df is not None:
+            df = spec.sourceless_df.copy()
+        else:
             raise ValueError('Cannot replay feature spec without data source that was registered in the LabSDK.')
 
-        df = dsrc._local_df.copy()
-
-        timestamp_field = dsrc.timestamp
         if timestamp_field is None:
             timestamp_field = __detect_ts_field(df)
             if timestamp_field is None:

@@ -23,7 +23,6 @@ import bentoml.bentos
 from attr import evolve
 from bentoml import Bento
 from bentoml._internal.bento.build_config import BentoBuildConfig
-
 from pandas import __version__ as pandas_version
 
 from ...types.model import ModelFramework, ModelSpec
