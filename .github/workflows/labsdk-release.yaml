@@ -48,7 +48,7 @@ jobs:
       - name: Make changelog for the dist code
         working-directory: ./labsdk/
         run: |
-          echo "{{ needs.version.outputs.changelog }}" > CHANGELOG.md
+          echo "${{ needs.version.outputs.changelog }}" > CHANGELOG.md
       - name: Build SDist
         working-directory: ./labsdk/
         env:
