@@ -18,6 +18,7 @@ import sys
 import types
 from datetime import timedelta
 from typing import Union, List, Dict, Optional, Callable
+from warnings import warn
 
 from pandas import DataFrame
 from pydantic import create_model_from_typeddict
@@ -28,6 +29,8 @@ from .program import Program
 from .program import normalize_selector
 from .types import FeatureSpec, AggrSpec, AggregationFunction, Primitive, DataSourceSpec, ModelFramework, ModelServer, \
     KeepPreviousSpec, ModelImpl
+from .types.dsrc_config_stubs.protocol import SourceProductionConfig
+from .types.dsrc_config_stubs.rest import RestConfig
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict as typing_TypedDict
@@ -142,14 +145,19 @@ def labels(labels: Dict[str, str]):
 # TODO
 def data_source(
     training_data: DataFrame,  # training data
-
     keys: Optional[Union[str, List[str]]] = None,
     name: Optional[str] = None,  # inferred from class name
     timestamp: Optional[str] = None,  # what column has the timestamp
-    production_data: Optional[object] = None,  # production data
+    production_config: Optional[SourceProductionConfig] = None,  # production stub configuration
 ):
     """
     Register a DataSource for the FeatureDefinition.
+    :param training_data: DataFrame of training data. This should reflect the schema of the data source in production.
+    :param keys: list of columns that are keys.
+    :param name: name of the data source. Defaults to the class name.
+    :param timestamp: name of the timestamp column. If not specified, the timestamp is inferred from the training data.
+    :type production_config: this is a stub for the production configuration. It is not used in training, but is helpful
+            for making sense of the source, the production behavior, and a preparation for the production deployment.
     """
 
     options = {}
@@ -168,7 +176,8 @@ def data_source(
         if name is None:
             name = cls.__name__
 
-        spec = DataSourceSpec(name=name, description=cls.__doc__, keys=keys, timestamp=timestamp)
+        spec = DataSourceSpec(name=name, description=cls.__doc__, keys=keys, timestamp=timestamp,
+                              production_config=production_config)
         spec.local_df = training_data
 
         if hasattr(cls, '__raptor_options'):
@@ -308,6 +317,9 @@ def feature(
         if 'aggr' in options:
             spec.freshness = options['aggr'].granularity
             spec.staleness = options['aggr'].over
+            if data_source is not None and isinstance(data_source, RestConfig):
+                warn('Beware: aggregations for REST might not behave as you expect. '
+                     'Read the documentation for more info.')
 
         if 'freshness' in options:
             spec.freshness = options['freshness']['target']

@@ -145,11 +145,11 @@ class ResourceReference(yaml.YAMLObject):
         return f'{self.namespace}.{self.name}'
 
 
-class SecretKeyRef:
+class SecretKeyRef(yaml.YAMLObject):
     name: str = None
     key: str = None
 
-    def __init__(self, name, key):
+    def __init__(self, name:str, key:str):
         self.name = name
         self.key = key
 

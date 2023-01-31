@@ -17,13 +17,13 @@ from typing import List, Optional, Dict, Any
 
 import pandas as pd
 
-from .common import _k8s_name, RaptorSpec, ConfigVar, ResourceRequirements
+from .common import _k8s_name, RaptorSpec, ResourceRequirements, SecretKeyRef
+from .dsrc_config_stubs.protocol import SourceProductionConfig
 from .._internal.exporter.general import GeneralExporter
 
 
 class DataSourceSpec(RaptorSpec):
-    kind: str = 'Stub'
-    config: List[ConfigVar] = []
+    production_config: SourceProductionConfig = None,
     schema: Optional[Dict[str, Any]] = None
     keys: List[str] = None
     timestamp: str = None
@@ -34,10 +34,14 @@ class DataSourceSpec(RaptorSpec):
 
     local_df: pd.DataFrame = None
 
-    def __init__(self, name, keys=None, timestamp=None, *args, **kwargs):
+    def __init__(self, name, keys=None, timestamp=None, production_config: Optional[SourceProductionConfig] = None,
+                 *args, **kwargs):
         super().__init__(name, *args, **kwargs)
         self.keys = keys or []
         self.timestamp = timestamp
+        if production_config is None:
+            production_config = SourceProductionConfig()
+        self.production_config = production_config
 
     def export(self):
         GeneralExporter.add_source(self)
@@ -46,6 +50,19 @@ class DataSourceSpec(RaptorSpec):
     @classmethod
     def to_yaml_dict(cls, data: 'DataSourceSpec'):
         data.annotations['a8r.io/description'] = data.description
+
+        config = []
+
+        if data.production_config is not None:
+            for k, v in data.production_config.configurable_envs().items():
+                GeneralExporter.add_env(k, v)
+
+            for k, v in data.production_config.config().items():
+                if isinstance(v, SecretKeyRef):
+                    config.append({'name': k, 'secretKeyRef': {'name': v.name, 'key': v.key}})
+                else:
+                    config.append({'name': k, 'value': v})
+
         return {
             'apiVersion': 'k8s.raptor.ml/v1alpha1',
             'kind': 'DataSource',
@@ -56,8 +73,8 @@ class DataSourceSpec(RaptorSpec):
                 'annotations': data.annotations
             },
             'spec': {
-                'kind': data.kind,
-                'config': data.config,
+                'kind': data.production_config.kind(),
+                'config': config,
                 'keyFields': data.keys,
                 'timestampField': data.timestamp,
                 'replicas': data.replicas,
