@@ -83,6 +83,8 @@ def new_replay(spec: FeatureSpec):
             dsrc = spec.data_source_spec
             df = dsrc.local_df.copy()
             timestamp_field = dsrc.timestamp
+            if spec.keys is None:
+                spec.keys = dsrc.keys
         elif spec.sourceless_df is not None:
             df = spec.sourceless_df.copy()
         else:
@@ -93,9 +95,6 @@ def new_replay(spec: FeatureSpec):
             if timestamp_field is None:
                 raise Exception('No `timestamp` field detected for the dataframe.\n'
                                 '   Please specify using the `timestamp_field` argument of the `DataSource`.')
-
-        if spec.keys is None:
-            spec.keys = dsrc.keys
 
         if spec.keys is None:
             raise Exception('No key fields defined for the dataframe.\n'
