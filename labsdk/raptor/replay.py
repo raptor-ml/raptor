@@ -15,8 +15,9 @@
 
 import types as pytypes
 from datetime import datetime, timezone
-from typing import Dict, Tuple, Optional, Union, Callable
+from typing import Tuple, Optional, Union, Callable
 
+import bentoml
 import pandas as pd
 from pandas.tseries.frequencies import to_offset
 
@@ -76,8 +77,8 @@ def __detect_headers_field(df) -> Optional[str]:
 
 def new_replay(spec: FeatureSpec):
     def _replay(store_locally=True):
-        df: pd.DataFrame = None
-        timestamp_field: str = None
+        df: Optional[pd.DataFrame] = None
+        timestamp_field: Optional[str] = None
 
         if spec.data_source_spec is not None:
             dsrc = spec.data_source_spec
@@ -87,7 +88,8 @@ def new_replay(spec: FeatureSpec):
                 spec.keys = dsrc.keys
         elif spec.sourceless_df is not None:
             df = spec.sourceless_df.copy()
-        else:
+
+        if df is None:
             raise ValueError('Cannot replay feature spec without data source that was registered in the LabSDK.')
 
         if timestamp_field is None:
@@ -172,14 +174,40 @@ def new_replay(spec: FeatureSpec):
     return replay
 
 
-def _prediction_getter(selector: str, keys: Dict[str, str], timestamp: datetime) -> Tuple[primitive, datetime]:
-    raise NotImplementedError('TBD')
+def _prediction_getter(owner_spec: FeatureSpec) -> Callable[[str, Keys, datetime], Tuple[primitive, datetime]]:
+    def get(selector: str, keys: Keys, timestamp: datetime) -> Tuple[primitive, datetime]:
+        spec = local_state.spec_by_selector(selector)
+        if spec is None:
+            raise Exception(f'Model not found: {selector}')
+        if not isinstance(spec, ModelSpec):
+            raise Exception(f'Spec found, but not a model: {selector}')
+
+        model: bentoml.Model = spec.exporter.get_model()
+        if model is None:
+            raise Exception(f'Model not found: {selector}')
+
+        ts = pd.to_datetime(timestamp)
+        data = {}
+        for fqn in spec.features:
+            fg = _feature_getter(owner_spec)
+            value, _ = fg(fqn, keys, ts)
+            data[fqn] = value
+
+        df = pd.DataFrame([data])
+        return model.to_runner().run(df), ts
+
+    return get
 
 
 def _feature_getter(owner_spec: FeatureSpec) -> Callable[
     [str, Keys, datetime], Tuple[Optional[primitive], Optional[datetime]]]:
     def get(selector: str, keys: Keys, timestamp: datetime) -> Tuple[Optional[primitive], Optional[datetime]]:
-        spec = local_state.feature_spec_by_selector(selector)
+        spec = local_state.spec_by_selector(selector)
+        if spec is None:
+            raise Exception(f'Feature not found: {selector}')
+        if isinstance(spec, ModelSpec):
+            return _prediction_getter(owner_spec)(selector, keys, timestamp)
+
         ts = pd.to_datetime(timestamp)
 
         # TODO: refactor this to support bucketing
@@ -264,7 +292,7 @@ def __replay_map(spec: FeatureSpec, timestamp_field: str):
                 keys=keys,
                 timestamp=ts,
                 feature_getter=_feature_getter(spec),
-                prediction_getter=_prediction_getter,
+                prediction_getter=_prediction_getter(spec),
             )
         )
 

@@ -23,6 +23,7 @@ import bentoml.bentos
 from attr import evolve
 from bentoml import Bento
 from bentoml._internal.bento.build_config import BentoBuildConfig
+from bentoml.exceptions import NotFound
 from pandas import __version__ as pandas_version
 
 from ...types.model import ModelFramework, ModelSpec
@@ -34,6 +35,25 @@ class ModelExporter:
 
     def __init__(self, spec: ModelSpec):
         self.spec = spec
+
+    def get_model(self):
+        if self.model is not None:
+            return self.model
+
+        # check if out/models/fqn exists
+        # if so, load it
+        model_path = os.path.join(os.getcwd(), 'out', 'models', self.spec.fqn(), 'models', self.spec.fqn())
+        if os.path.exists(os.path.join(model_path, 'latest')):
+            with open(os.path.join(model_path, 'latest'), 'r') as f:
+                version = f.read()
+                try:
+                    self.model = bentoml.models.get(f'{self.spec.fqn()}:{version}')
+                except NotFound:
+                    self.model = bentoml.models.import_model(os.path.join(model_path, version), 'folder')
+
+                return self.model
+
+        return None
 
     def save(self, model):
         opts = {}
@@ -74,7 +94,7 @@ class ModelExporter:
             self.spec.runtime.packages.append(f'{k}=={v}')
 
     def create_docker(self, remove_unused_models=True):
-        if self.model is None:
+        if self.get_model() is None:
             raise Exception('Model not trained yet')
 
         cwd = os.getcwd()

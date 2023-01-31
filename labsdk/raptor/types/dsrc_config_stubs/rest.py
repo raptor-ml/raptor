@@ -15,8 +15,8 @@
 
 from typing import Dict, Union
 
-from labsdk.raptor import SourceProductionConfig
-from labsdk.raptor.types import SecretKeyRef
+from .protocol import SourceProductionConfig
+from ..common import SecretKeyRef
 
 
 class RestConfig(SourceProductionConfig):

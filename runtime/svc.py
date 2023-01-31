@@ -25,7 +25,7 @@ import grpc
 from google.protobuf.internal.containers import MessageMap
 from grpc import ServicerContext
 
-from program import Program, Context, SideEffect, primitive
+from program import Program, Context, SideEffect, primitive, normalize_selector, selector_regex
 
 sys.path.append('./proto')
 
@@ -85,25 +85,38 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
 
         program: Program = self.programs[request.fqn]
 
+        matches = selector_regex.match(request.fqn)
+        namespace = matches.group('namespace')
+
         keys = {}
         for key, value in request.keys.items():
             keys[key] = value
 
         ts = request.timestamp.ToDatetime()
 
-        def feature_getter(selector: str, keys: Dict[str, str], timestamp: datetime) -> Tuple[primitive, datetime]:
+        def feature_request(selector: str, keys: Dict[str, str], timestamp: datetime) -> core_pb2.GetResponse:
             if timestamp != ts:
                 warnings.warn('Timestamp mismatch')
+
+            selector = normalize_selector(selector, namespace)
             fg_keys = keys if keys is not None else request.keys
             req = core_pb2.GetRequest(uuid=str(uuid4()), selector=selector, keys=fg_keys)
             resp: core_pb2.GetResponse = self.engine.Get(req)
             if resp.uuid != req.uuid:
                 raise Exception('UUID mismatch')
 
+            return resp
+
+        def feature_getter(selector: str, keys: Dict[str, str], timestamp: datetime) -> Tuple[primitive, datetime]:
+            resp: core_pb2.GetResponse = feature_request(selector, keys, timestamp)
             return self.proto_value_to_py(resp.value.value), resp.value.timestamp.ToDatetime()
 
         def prediction_getter(selector: str, keys: Dict[str, str], timestamp: datetime) -> Tuple[primitive, datetime]:
-            raise NotImplementedError('Prediction getter not implemented')
+            resp: core_pb2.GetResponse = feature_request(selector, keys, timestamp)
+            if resp.feature_descriptor.builder != 'model':
+                raise Exception(f'{selector} is not a model')
+
+            return self.proto_value_to_py(resp.value.value), resp.value.timestamp.ToDatetime()
 
         data = self.proto_to_dict(request.data)
         program_ctx = Context(
