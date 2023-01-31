@@ -35,107 +35,7 @@ jobs:
           git-path: 'labsdk'
           tag-prefix: 'LabSDK-v'
           fallback-version: '0.1.4'
-
-  build_wheels:
-    needs: [ version ]
-    name: "${{ needs.version.outputs.version }}: cp${{ matrix.python }}-${{ matrix.platform_id }}"
-    runs-on: ${{ matrix.os }}
-    strategy:
-      # Ensure that a wheel builder finishes even if another fails
-      fail-fast: false
-      matrix:
-        include:
-          # Window 64 bit
-          - { "os": "windows-latest", "python": 37, "platform_id": "win_amd64", arch: "AMD64" }
-          - { "os": "windows-latest", "python": 38, "platform_id": "win_amd64", arch: "AMD64" }
-          - { "os": "windows-latest", "python": 39, "platform_id": "win_amd64", arch: "AMD64" }
-          - { "os": "windows-latest", "python": 310, "platform_id": "win_amd64", arch: "AMD64" }
-          - { "os": "windows-latest", "python": 311, "platform_id": "win_amd64", arch: "AMD64" }
-
-          # Linux 64 bit #aarch64=arm64 i686=386
-          - { "os": "ubuntu-latest", "python": 37, "platform_id": "manylinux_x86_64", arch: "x86_64" }
-          - { "os": "ubuntu-latest", "python": 37, "platform_id": "manylinux_aarch64", arch: "aarch64" }
-          - { "os": "ubuntu-latest", "python": 38, "platform_id": "manylinux_x86_64", arch: "x86_64" }
-          - { "os": "ubuntu-latest", "python": 38, "platform_id": "manylinux_aarch64", arch: "aarch64" }
-          - { "os": "ubuntu-latest", "python": 39, "platform_id": "manylinux_x86_64", arch: "x86_64" }
-          - { "os": "ubuntu-latest", "python": 39, "platform_id": "manylinux_aarch64", arch: "aarch64" }
-          - { "os": "ubuntu-latest", "python": 310, "platform_id": "manylinux_x86_64", arch: "x86_64" }
-          - { "os": "ubuntu-latest", "python": 310, "platform_id": "manylinux_aarch64", arch: "aarch64" }
-          - { "os": "ubuntu-latest", "python": 311, "platform_id": "manylinux_x86_64", arch: "x86_64" }
-          - { "os": "ubuntu-latest", "python": 311, "platform_id": "manylinux_aarch64", arch: "aarch64" }
-
-          # MacOS
-          - { "os": "macos-latest", "python": 37, "platform_id": "macosx_x86_64", arch: "x86_64" }
-          - { "os": "macos-latest", "python": 38, "platform_id": "macosx_x86_64", arch: "x86_64" }
-          - { "os": "macos-latest", "python": 38, "platform_id": "macosx_arm64", arch: "arm64" }
-          - { "os": "macos-latest", "python": 39, "platform_id": "macosx_x86_64", arch: "x86_64" }
-          - { "os": "macos-latest", "python": 39, "platform_id": "macosx_arm64", arch: "arm64" }
-          - { "os": "macos-latest", "python": 310, "platform_id": "macosx_x86_64", arch: "x86_64" }
-          - { "os": "macos-latest", "python": 310, "platform_id": "macosx_arm64", arch: "arm64" }
-          - { "os": "macos-latest", "python": 311, "platform_id": "macosx_x86_64", arch: "x86_64" }
-          - { "os": "macos-latest", "python": 311, "platform_id": "macosx_arm64", arch: "arm64" }
-    steps:
-      - name: Setup Go environment
-        if: runner.os != 'Linux'
-        uses: actions/setup-go@v3
-        with:
-          go-version: '^1.19'
-
-      - uses: actions/setup-python@v3
-
-      - name: Set up QEMU
-        if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v1
-        with:
-          platforms: all
-
-      - name: Windows- Install unix compatibility utility
-        if: runner.os == 'Windows'
-        uses: cygwin/cygwin-install-action@master
-        with:
-          packages: mingw64-x86_64-gcc-core
-
-      - name: Windows- Fix GCC
-        if: runner.os == 'Windows'
-        run: cp C:\cygwin\bin\x86_64-w64-mingw32-gcc.exe C:\cygwin\bin\gcc.exe
-
-      - name: Set base64 flags
-        if: runner.os != 'macOS'
-        id: base64_flags
-        run: echo "::set-output name=flags::-w0"
-      - name: Encode platform data
-        id: platform_data
-        run: |
-          echo "::set-output name=data::$(echo '${{ toJSON(matrix) }}' | base64 ${{steps.base64_flags.outputs.flags}})"
-
-      - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel
-
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Build wheels
-        run: python -m cibuildwheel labsdk --output-dir wheelhouse
-        env:
-          CIBW_BUILD: cp${{ matrix.python }}-${{ matrix.platform_id }}
-          CIBW_ARCHS: ${{ matrix.arch }}
-
-          CIBW_BEFORE_ALL_LINUX: curl -L https://git.io/vQhTU | bash -s -- --version 1.18.3
-          CIBW_ENVIRONMENT: BUILD_MATRIX="${{ steps.platform_data.outputs.data }}" BUILD_VERSION="${{ needs.version.outputs.version }}"
-          CIBW_ENVIRONMENT_LINUX: BUILD_MATRIX="${{ steps.platform_data.outputs.data }}" BUILD_VERSION="${{ needs.version.outputs.version }}" PATH=$PATH:/$HOME/.go/bin
-          CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path labsdk/raptor/pyexp -w {dest_dir} {wheel}"
-
-          CIBW_MANYLINUX_X86_64_IMAGE: 'manylinux_2_24'
-          CIBW_MANYLINUX_AARCH64_IMAGE: 'manylinux_2_24'
-          CIBW_MANYLINUX_I686_IMAGE: 'manylinux_2_24'
-
-          CIBW_BUILD_VERBOSITY: 1
-
-      - uses: actions/upload-artifact@v2
-        with:
-          path: ./wheelhouse/*.whl
-  make_sdist:
+  build_dist:
     needs: [ version ]
     name: Make SDist
     runs-on: ubuntu-latest
@@ -153,13 +53,15 @@ jobs:
         working-directory: ./labsdk/
         env:
           BUILD_VERSION: "${{ needs.version.outputs.version }}"
-        run: pipx run build --sdist
+        run: pipx run build --sdist --wheel
       - uses: actions/upload-artifact@v2
         with:
-          path: ./labsdk/dist/*.tar.gz
+          path: |
+            ./labsdk/dist/*.tar.gz
+            ./labsdk/dist/*.whl
   release:
     name: "Release and publish the version"
-    needs: [ version, build_wheels, make_sdist ]
+    needs: [ version, build_dist ]
     runs-on: ubuntu-latest
     steps:
       - name: "Fetch the artifacts"
