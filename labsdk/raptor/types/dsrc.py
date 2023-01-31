@@ -32,7 +32,7 @@ class DataSourceSpec(RaptorSpec):
 
     features: List[RaptorSpec] = []
 
-    _local_df: pd.DataFrame = None
+    local_df: pd.DataFrame = None
 
     def __init__(self, name, keys=None, timestamp=None, *args, **kwargs):
         super().__init__(name, *args, **kwargs)

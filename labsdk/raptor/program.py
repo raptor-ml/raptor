@@ -69,7 +69,7 @@ def normalize_selector(selector, default_namespace='default'):
         raise Exception(f'Invalid selector: {selector}')
     namespace = matches.group('namespace')
     name = matches.group('name')
-    aggr_fn = matches.group('aggr_fn')
+    aggr_fn = matches.group('aggrFn')
     version = matches.group('version')
     encoding = matches.group('encoding')
 

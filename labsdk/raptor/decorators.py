@@ -169,7 +169,7 @@ def data_source(
             name = cls.__name__
 
         spec = DataSourceSpec(name=name, description=cls.__doc__, keys=keys, timestamp=timestamp)
-        spec._local_df = training_data
+        spec.local_df = training_data
 
         if hasattr(cls, '__raptor_options'):
             for k, v in cls.__raptor_options.items():
@@ -262,7 +262,8 @@ def keep_previous(versions: int, over: Union[str, timedelta]):
 def feature(
     keys: Union[str, List[str]],
     name: Optional[str] = None,  # set to function name if not provided
-    data_source: Optional[Union[str, object]] = None,  # set to None for headless
+    data_source: Optional[Union[str, object]] = None,  # set to None for sourceless
+    sourceless_markers_df: Optional[DataFrame] = None,  # timestamp and keys markers for training sourceless features
 ):
     """
     Register a Feature Definition within the LabSDK.
@@ -272,6 +273,8 @@ def feature(
     :param keys: a list of indexing keys, indicated the owner of the feature value.
     :param name: the name of the feature. If not provided, the function name will be used.
     :param data_source: the (fully qualified) name of the DataSource.
+    :param sourceless_markers_df: a DataFrame with the timestamp and keys markers for training sourceless features. It
+            a timestamp column, and a column for each key.
 
     :return: a registered Feature Definition
     """
@@ -293,6 +296,7 @@ def feature(
                 options[k] = v
 
         spec.data_source = data_source
+        spec.sourceless_df = sourceless_markers_df
 
         # append annotations
         if 'labels' in options:

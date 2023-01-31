@@ -26,15 +26,12 @@
 #  limitations under the License.
 import os
 from datetime import timedelta
-from enum import Enum
 from typing import List, Callable, Optional
 from warnings import warn
 
 import pandas as pd
-import yaml
 
 from .common import RaptorSpec, EnumSpec, RuntimeSpec
-from .yaml import RaptorDumper
 from .._internal import model_servers
 
 os.environ.setdefault('BENTOML_HOME', os.path.join(os.path.expanduser('~'), '.raptor', 'bentoml'))
@@ -75,7 +72,7 @@ class ModelServer(EnumSpec):
         return None
 
 
-class ModelFramework(Enum):
+class ModelFramework(EnumSpec):
     HuggingFace = 'huggingface'
     Sklearn = 'sklearn'
     Pytorch = 'pytorch'
@@ -98,13 +95,6 @@ class ModelFramework(Enum):
                 if e.value == m:
                     return e
         raise Exception(f'Unknown ModelFramework {m}')
-
-    @classmethod
-    def to_yaml(cls, dumper: yaml.dumper.Dumper, data: 'ModelFramework'):
-        return dumper.represent_scalar('!ModelFramework', data.value)
-
-
-RaptorDumper.add_representer(ModelFramework, ModelFramework.to_yaml)
 
 
 class TrainingContext:

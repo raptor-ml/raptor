@@ -22,7 +22,6 @@ import yaml
 from pandas.core.window import RollingGroupby
 from typing_extensions import TypedDict
 
-from . import RaptorDumper
 from .common import RaptorSpec, ResourceReference, _k8s_name, EnumSpec, RuntimeSpec
 from .dsrc import DataSourceSpec
 from .primitives import Primitive
@@ -86,9 +85,6 @@ class BuilderSpec(RuntimeSpec):
                 setattr(self, k, v)
 
 
-RaptorDumper.add_representer(BuilderSpec, BuilderSpec.to_yaml)
-
-
 class AggrSpec(yaml.YAMLObject):
     funcs: [AggregationFunction] = None
     over: timedelta = None
@@ -135,7 +131,8 @@ class FeatureSpec(RaptorSpec):
     keys: [str] = None
 
     data_source: Optional[ResourceReference] = None
-    _data_source_spec: Optional[DataSourceSpec] = None
+    data_source_spec: Optional[DataSourceSpec] = None
+    sourceless_df: Optional[pd.DataFrame] = None
     builder: BuilderSpec = BuilderSpec()
     aggr: AggrSpec = None
 
@@ -172,10 +169,10 @@ class FeatureSpec(RaptorSpec):
             if value is None:
                 pass
             elif isinstance(value, ResourceReference):
-                self._data_source_spec = local_state.spec_by_selector(value.fqn())
+                self.data_source_spec = local_state.spec_by_selector(value.fqn())
             elif isinstance(value, str):
                 value = ResourceReference(value)
-                self._data_source_spec = local_state.spec_by_selector(value.fqn())
+                self.data_source_spec = local_state.spec_by_selector(value.fqn())
             elif type(value) == type(TypedDict) or isinstance(value, DataSourceSpec):
                 if type(value) == type(TypedDict):
                     if hasattr(value, 'raptor_spec'):
@@ -183,12 +180,12 @@ class FeatureSpec(RaptorSpec):
                     else:
                         raise Exception(f'TypedDict {value} does not have raptor_spec')
                 value.features.append(self)
-                self._data_source_spec = value
+                self.data_source_spec = value
                 value = ResourceReference(value.name, value.namespace)
             else:
                 raise Exception(f'Invalid type {type(value)} for {key}')
 
-            if self._data_source_spec is None and value is not None:
+            if self.data_source_spec is None and value is not None:
                 warn(
                     f'DataSource {value.fqn()} not registered locally on the LabSDK. '
                     f'This will prevent you from replaying this feature locally'
