@@ -107,7 +107,8 @@ class ModelImpl(ModelSpec):
 
         if data._model_tag is not None:
             GeneralExporter.add_env('MODEL_IMAGE_REPO_URI', '(REQUIRED) The URI for the model image repository'
-                                                            ' (e.g. 123456789012.dkr.ecr.us-west-2.amazonaws.com/my-model-repo)')
+                                                            '(e.g. 123456789012.dkr.ecr.us-west-2.amazonaws.com/my'
+                                                            '-model-repo)')
 
         return {
             'apiVersion': 'k8s.raptor.ml/v1alpha1',
@@ -130,7 +131,8 @@ class ModelImpl(ModelSpec):
                 'modelFrameworkVersion': data.model_framework_version,
                 'modelServer': data.model_server,
                 'inferenceConfig': inference_config_stub,
-                'storageURI': None if data._model_filename is None else f'$MODEL_STORAGE_BASE_URI/{data._model_filename}',
+                'storageURI': None if data._model_filename is None else f'$MODEL_STORAGE_BASE_URI/'
+                                                                        f'{data._model_filename}',
                 'modelImage': None if data._model_tag is None else f'$MODEL_IMAGE_REPO_URI:{data._model_tag}',
                 'trainingCode': inspect.getsource(data.training_function),
             }

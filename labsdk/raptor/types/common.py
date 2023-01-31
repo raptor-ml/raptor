@@ -149,7 +149,7 @@ class SecretKeyRef(yaml.YAMLObject):
     name: str = None
     key: str = None
 
-    def __init__(self, name:str, key:str):
+    def __init__(self, name: str, key: str):
         self.name = name
         self.key = key
 
