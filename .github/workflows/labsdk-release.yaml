@@ -76,6 +76,8 @@ jobs:
           password: ${{ secrets.PYPI_TOKEN }}
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.BOT_PAT }}
       - name: Update changelog
         shell: bash
         run: |
