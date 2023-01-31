@@ -37,7 +37,7 @@ jobs:
           fallback-version: '0.1.4'
   build_dist:
     needs: [ version ]
-    name: Make SDist
+    name: Build distributions - source and wheel
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
