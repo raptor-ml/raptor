@@ -113,7 +113,9 @@ func (rest *config) getMiddleware(next api.MiddlewareHandler) api.MiddlewareHand
 		}
 
 		u := strings.ReplaceAll(rest.URL, "{keys}", keys.String())
-		//todo: add support for specific key placeholder
+		for _, k := range keys {
+			u = strings.ReplaceAll(u, "{key:"+k+"}", keys[k])
+		}
 
 		req, err := http.NewRequest(rest.Method, u, body)
 		if err != nil {
