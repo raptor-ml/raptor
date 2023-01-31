@@ -1,4 +1,4 @@
-## [0.2.2](https://github.com/raptor-ml/raptor/compare/LabSDK-v0.2.1...LabSDK-v0.2.2) (2023-01-31)
+## [0.2.2](https://github.com/raptor-ml/raptor/compare/LabSDK-v0.2.1...LabSDK-v0.1.4) (2023-01-31)
 
 
 ### Bug Fixes
