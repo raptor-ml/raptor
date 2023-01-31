@@ -114,7 +114,7 @@ func (e *engine) FeatureDescriptor(ctx context.Context, selector string) (api.Fe
 
 	return f.FeatureDescriptor, nil
 }
-func (e *engine) featureForRequest(ctx context.Context, selector string) (*Feature, context.Context, context.CancelFunc, error) {
+func (e *engine) featureForRequest(ctx context.Context, selector string) (*FeaturePipeliner, context.Context, context.CancelFunc, error) {
 	fqn, err := api.NormalizeFQN(selector, "undefined-namespace")
 	if err != nil {
 		return nil, ctx, nil, fmt.Errorf("failed to normalize Feature Selector `%s` as FQN: %w", selector, err)
@@ -124,7 +124,7 @@ func (e *engine) featureForRequest(ctx context.Context, selector string) (*Featu
 	}
 
 	if f, ok := e.features.Load(fqn); ok {
-		if f, ok := f.(*Feature); ok {
+		if f, ok := f.(*FeaturePipeliner); ok {
 			ctx, cancel, err := f.Context(ctx, selector, e.Logger())
 
 			return f, ctx, cancel, err

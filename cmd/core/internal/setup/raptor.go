@@ -123,7 +123,7 @@ func operatorControllers(mgr manager.Manager, rm api.RuntimeManager) {
 		Scheme:         mgr.GetScheme(),
 		RuntimeManager: rm,
 	}).SetupWithManager(mgr)
-	OrFail(err, "unable to create controller", "operator", "Feature")
+	OrFail(err, "unable to create controller", "operator", "FeaturePipeliner")
 
 	if !viper.GetBool("no-webhooks") {
 		opctrl.SetupFeatureWebhook(mgr, updatesAllowed, rm)
