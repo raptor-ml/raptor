@@ -29,12 +29,12 @@ func init() {
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
-func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.ExtendedManager) error {
+func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, pl api.Pipeliner, engine api.ExtendedManager) error {
 	e := mw{engine}
 	if fd.Freshness <= 0 {
-		api.AddPreGetMiddleware(0, e.getMiddleware)
+		pl.AddPreGetMiddleware(0, e.getMiddleware)
 	} else {
-		api.AddPostGetMiddleware(0, e.getMiddleware)
+		pl.AddPostGetMiddleware(0, e.getMiddleware)
 	}
 	return nil
 }

@@ -24,8 +24,8 @@ import (
 	"time"
 )
 
-// Feature is a Core's feature abstraction.
-type Feature struct {
+// FeaturePipeliner is a Core's engine feature abstraction. It contains the FD and the pipelines.
+type FeaturePipeliner struct {
 	api.FeatureDescriptor
 
 	preGet  mws
@@ -35,7 +35,7 @@ type Feature struct {
 }
 
 // AddPreGetMiddleware adds a pre-get hook to the feature abstraction.
-func (f *Feature) AddPreGetMiddleware(priority int, fn api.Middleware) {
+func (f *FeaturePipeliner) AddPreGetMiddleware(priority int, fn api.Middleware) {
 	if fn == nil {
 		return
 	}
@@ -43,7 +43,7 @@ func (f *Feature) AddPreGetMiddleware(priority int, fn api.Middleware) {
 }
 
 // AddPostGetMiddleware adds a post-get hook to the feature abstraction.
-func (f *Feature) AddPostGetMiddleware(priority int, fn api.Middleware) {
+func (f *FeaturePipeliner) AddPostGetMiddleware(priority int, fn api.Middleware) {
 	if fn == nil {
 		return
 	}
@@ -51,7 +51,7 @@ func (f *Feature) AddPostGetMiddleware(priority int, fn api.Middleware) {
 }
 
 // AddPreSetMiddleware adds a pre-set hook to the feature abstraction.
-func (f *Feature) AddPreSetMiddleware(priority int, fn api.Middleware) {
+func (f *FeaturePipeliner) AddPreSetMiddleware(priority int, fn api.Middleware) {
 	if fn == nil {
 		return
 	}
@@ -59,7 +59,7 @@ func (f *Feature) AddPreSetMiddleware(priority int, fn api.Middleware) {
 }
 
 // AddPostSetMiddleware adds a post-set hook to the feature abstraction.
-func (f *Feature) AddPostSetMiddleware(priority int, fn api.Middleware) {
+func (f *FeaturePipeliner) AddPostSetMiddleware(priority int, fn api.Middleware) {
 	if fn == nil {
 		return
 	}
@@ -67,7 +67,7 @@ func (f *Feature) AddPostSetMiddleware(priority int, fn api.Middleware) {
 }
 
 // Context returns a new context with the feature attached.
-func (f *Feature) Context(ctx context.Context, selector string, logger logr.Logger) (context.Context, context.CancelFunc, error) {
+func (f *FeaturePipeliner) Context(ctx context.Context, selector string, logger logr.Logger) (context.Context, context.CancelFunc, error) {
 	ctx = context.WithValue(ctx, api.ContextKeyLogger, logger)
 
 	cancel := func() {}

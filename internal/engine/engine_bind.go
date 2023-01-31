@@ -24,15 +24,15 @@ import (
 	"github.com/raptor-ml/raptor/pkg/plugins"
 )
 
-// FeatureWithEngine converts the k8s Feature CRD to the internal engine implementation.
+// FeatureWithEngine converts the k8s manifests.Feature CRD to the internal engine implementation and wraps it in a pipeliner.
 // This is useful as a standalone function for validating features.
-func FeatureWithEngine(e api.ExtendedManager, in *manifests.Feature) (*Feature, error) {
+func FeatureWithEngine(e api.ExtendedManager, in *manifests.Feature) (*FeaturePipeliner, error) {
 	fd, err := api.FeatureDescriptorFromManifest(in)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse FeatureDescriptor from CR: %w", err)
 	}
 
-	ft := Feature{
+	ft := FeaturePipeliner{
 		FeatureDescriptor: *fd,
 	}
 
@@ -64,7 +64,7 @@ func FeatureWithEngine(e api.ExtendedManager, in *manifests.Feature) (*Feature, 
 	return &ft, nil
 }
 
-// BindFeature converts the k8s Feature CRD to the internal implementation, and adds it to the engine.
+// BindFeature converts the k8s manifests.Feature CRD to the internal implementation, and adds it to the engine.
 func (e *engine) BindFeature(in *manifests.Feature) error {
 	ft, err := FeatureWithEngine(e, in)
 	if err != nil {
@@ -80,7 +80,7 @@ func (e *engine) UnbindFeature(fqn string) error {
 	return nil
 }
 
-func (e *engine) bindFeature(f *Feature) error {
+func (e *engine) bindFeature(f *FeaturePipeliner) error {
 	defer stats.IncNumberOfFeatures()
 	if e.HasFeature(f.FQN) {
 		return fmt.Errorf("%w: %s", api.ErrFeatureAlreadyExists, f.FQN)

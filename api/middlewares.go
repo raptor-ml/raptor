@@ -24,8 +24,8 @@ import (
 type Middleware func(next MiddlewareHandler) MiddlewareHandler
 type MiddlewareHandler func(ctx context.Context, fd FeatureDescriptor, keys Keys, val Value) (Value, error)
 
-// FeatureAbstractAPI is the interface that plugins can use to modify the Core's feature abstraction on creation time
-type FeatureAbstractAPI interface {
+// Pipeliner is the interface that plugins can use to modify the Core's feature pipelines on creation time
+type Pipeliner interface {
 	AddPreGetMiddleware(priority int, fn Middleware)
 	AddPostGetMiddleware(priority int, fn Middleware)
 	AddPreSetMiddleware(priority int, fn Middleware)
