@@ -55,7 +55,7 @@ type config struct {
 
 var httpMemoryCache = lrucache.New(500<<(10*2), 60*15) // 500MB; 15min
 
-func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, api api.FeatureAbstractAPI, engine api.ExtendedManager) error {
+func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, pl api.Pipeliner, engine api.ExtendedManager) error {
 	if fd.DataSource == "" {
 		return fmt.Errorf("DataSource must be set for `%s` builder", name)
 	}
@@ -93,9 +93,9 @@ func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, ap
 	}
 
 	if fd.Freshness <= 0 {
-		api.AddPreGetMiddleware(0, cfg.getMiddleware)
+		pl.AddPreGetMiddleware(0, cfg.getMiddleware)
 	} else {
-		api.AddPostGetMiddleware(0, cfg.getMiddleware)
+		pl.AddPostGetMiddleware(0, cfg.getMiddleware)
 	}
 	return nil
 }

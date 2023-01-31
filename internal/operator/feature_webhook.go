@@ -116,7 +116,7 @@ func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
 			}
 		}
 		if f.Spec.Builder.Kind == "" {
-			f.Spec.Builder.Kind = api.HeadlessBuilder
+			f.Spec.Builder.Kind = api.SourcelessBuilder
 		}
 
 		if f.Spec.Builder.AggrGranularity.Milliseconds() > 0 && len(f.Spec.Builder.Aggr) > 0 {

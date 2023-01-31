@@ -85,7 +85,7 @@ func (e *engine) getValueMiddleware() api.Middleware {
 	}
 }
 
-func (e *engine) cachePostGetMiddleware(f *Feature) api.Middleware {
+func (e *engine) cachePostGetMiddleware(f *FeaturePipeliner) api.Middleware {
 	return func(next api.MiddlewareHandler) api.MiddlewareHandler {
 		return func(ctx context.Context, fd api.FeatureDescriptor, keys api.Keys, val api.Value) (api.Value, error) {
 			// If the value is nil, we should not cache the value.
@@ -121,13 +121,13 @@ func (e *engine) cachePostGetMiddleware(f *Feature) api.Middleware {
 	}
 }
 
-func (e *engine) readPipeline(f *Feature) Pipeline {
+func (e *engine) readPipeline(f *FeaturePipeliner) Pipeline {
 	return Pipeline{
 		Middlewares:       append(append(f.preGet.Middlewares(), e.getValueMiddleware()), append(f.postGet.Middlewares(), e.cachePostGetMiddleware(f))...),
 		FeatureDescriptor: f.FeatureDescriptor,
 	}
 }
-func (e *engine) writePipeline(f *Feature, method api.StateMethod) Pipeline {
+func (e *engine) writePipeline(f *FeaturePipeliner, method api.StateMethod) Pipeline {
 	return Pipeline{
 		Middlewares:       append(append(f.preSet.Middlewares(), e.setMiddleware(method)), f.postSet.Middlewares()...),
 		FeatureDescriptor: f.FeatureDescriptor,

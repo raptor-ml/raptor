@@ -31,7 +31,7 @@ func init() {
 	plugins.FeatureAppliers.Register(name, FeatureApply)
 }
 
-func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, faapi api.FeatureAbstractAPI, engine api.ExtendedManager) error {
+func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, pl api.Pipeliner, engine api.ExtendedManager) error {
 	md := api.ModelDescriptor{}
 	err := json.Unmarshal(builder.Raw, &md)
 	if err != nil {
@@ -56,8 +56,8 @@ func FeatureApply(fd api.FeatureDescriptor, builder manifests.FeatureBuilder, fa
 	}
 
 	fs := &model{engine: engine, md: md}
-	faapi.AddPostGetMiddleware(0, fs.preGetMiddleware)
-	faapi.AddPreSetMiddleware(0, fs.preSetMiddleware)
+	pl.AddPostGetMiddleware(0, fs.preGetMiddleware)
+	pl.AddPreSetMiddleware(0, fs.preSetMiddleware)
 	return nil
 }
 

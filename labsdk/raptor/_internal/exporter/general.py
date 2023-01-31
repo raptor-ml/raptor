@@ -66,8 +66,8 @@ class _GeneralExporter:
 
     def add_feature(self, feature: 'FeatureSpec', with_dependent_source=True):
         self.features[feature.fqn()] = feature
-        if with_dependent_source and feature._data_source_spec is not None:
-            self.add_source(feature._data_source_spec)
+        if with_dependent_source and feature.data_source_spec is not None:
+            self.add_source(feature.data_source_spec)
 
     def add_source(self, source: 'DataSourceSpec'):
         self.sources[source.fqn()] = source

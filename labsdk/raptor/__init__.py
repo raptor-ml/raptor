@@ -17,4 +17,4 @@ from .config import *
 from .decorators import *
 from .local_state import manifests
 from .program import Context
-from labsdk.raptor.types.model import TrainingContext
+from .types.model import TrainingContext

@@ -35,7 +35,7 @@ type Plugins interface {
 type BindConfig func(set *pflag.FlagSet) error
 
 // FeatureApply applies changes on the feature abstraction.
-type FeatureApply func(fd FeatureDescriptor, builder manifests.FeatureBuilder, api FeatureAbstractAPI, src ExtendedManager) error
+type FeatureApply func(fd FeatureDescriptor, builder manifests.FeatureBuilder, pl Pipeliner, src ExtendedManager) error
 
 // DataSourceReconcileRequest contains metadata for the reconcile.
 type DataSourceReconcileRequest struct {
