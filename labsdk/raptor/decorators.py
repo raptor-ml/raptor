@@ -142,7 +142,6 @@ def labels(labels: Dict[str, str]):
 
 # ** Data Source **
 
-# TODO
 def data_source(
     training_data: DataFrame,  # training data
     keys: Optional[Union[str, List[str]]] = None,
@@ -240,8 +239,8 @@ def aggregation(
         granularity = durpy.from_str(granularity)
 
     def decorator(func):
-        for f in function:
-            if f == AggregationFunction.Unknown:
+        for fn in function:
+            if fn == AggregationFunction.Unknown:
                 raise Exception('Unknown aggr function')
         return _opts(func, {'aggr': AggrSpec(function, over, granularity)})
 
