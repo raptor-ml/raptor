@@ -34,7 +34,7 @@ jobs:
           git-push: 'false'
           git-path: 'labsdk'
           tag-prefix: 'LabSDK-v'
-          fallback-version: '0.1.4'
+          fallback-version: '0.2.1'
   build_dist:
     needs: [ version ]
     name: Build distributions - source and wheel
