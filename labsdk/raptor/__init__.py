@@ -18,3 +18,6 @@ from .decorators import *
 from .local_state import manifests
 from .program import Context
 from .types.model import TrainingContext
+from .types.feature import AggregationFunction
+from .types.primitives import Primitive
+from .types.dsrc_config_stubs import *

@@ -13,13 +13,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 from datetime import datetime
-from warnings import warn
 
 import pandas as pd
 from typing_extensions import TypedDict
 
 from labsdk.raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, model, manifests, \
-    keep_previous, TrainingContext
+    keep_previous, TrainingContext, StreamingConfig
 
 
 # getting started code
@@ -29,6 +28,7 @@ from labsdk.raptor import data_source, Context, feature, aggregation, Aggregatio
         'https://gist.github.com/AlmogBaku/a1b331615eaf1284432d2eecc5fe60bc/raw/emails.parquet'),
     keys=['id', 'account_id'],
     timestamp='event_at',
+    production_config=StreamingConfig(kind='kafka'),
 )
 class Email(TypedDict('Email', {'from': str})):
     event_at: datetime
@@ -113,7 +113,6 @@ print(f'## Feature: `emails_deals`')
 print(f'```\n{emails_deals.manifest()}\n```')
 print('### Replayed')
 print(emails_deals.replay().to_markdown())
-warn('TBD: how to reply sourceless?')
 print(f'## Feature: `last_amount`')
 print(f'```\n{last_amount.manifest()}\n```')
 print('### Replayed')
