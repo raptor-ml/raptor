@@ -70,7 +70,7 @@ jobs:
           set -euo pipefail
           go test -v -timeout 1h -json -tags e2e github.com/raptor-ml/raptor/internal/e2e --args -v 5 -build-tag=$(git rev-parse --short HEAD) 2>&1 | tee /tmp/gotest.log | gotestfmt
       - name: Upload test log
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: test-log
