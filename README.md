@@ -13,15 +13,17 @@
 
 <br />
 <div align="center">
-  <a href="https://raptor.ml">
-    <img src=".github/logo.svg" alt="RaptorML - Production-ready feature engineering" width="300">
-  </a>
+    <a href="https://raptor.ml">
+        <img src=".github/logo.svg" alt="RaptorML - Production-ready feature engineering" width="300">
+    </a>
 
-<h3 align="center">Serverless feature engineering - from notebook to production</h3>
+<h3 align="center"><p>From notebook to production</p>Compile your data science to production-ready artifacts</h3>
+<br />
 
   <p align="center">
-    Build production-ready ML features, directly from your notebook, without being a software engineer. <br />
-    Focus on <strong>data science</strong>, RaptorML will take care of the engineering overhead.
+    Raptor simplifies deploying data science work from a notebook to production; it compiles your python research
+    code and takes care of the engineering concerns like scalability and reliability on Kubernetes. Focus on
+    the <strong>data science</strong>, RaptorML will take care of the engineering overhead.
     <br />
     <br />
     <a href="https://raptor.ml"><strong>Explore the docs »</strong></a>
@@ -39,11 +41,23 @@
 
 ## 🧐 What is Raptor?
 
-With Raptor, data scientists can stop waiting for others to build production-ready version of their work. Instead,
-slightly
-tweak your Python code and write your features' code in a notebook. Then, export the features to Kubernetes, and
-RaptorML will take care of the production and engineering concerns (such as scale, high availability, authentication,
-caching, monitoring, etc.)
+Raptor **turns any data scientist into an ML engineer** without learning software engineering.
+
+It's made for applied data scientists and ML engineers who want to build operational models and ML-driven functionality
+without the hassle of the infrastructure development, and **focus on the business logic and the research instead.**
+
+With Raptor, data scientists can stop waiting for others to build a "production version" of their work. Instead,
+slightly tweak your Python research code and export it as Kubernetes artifacts. Then, Raptor will take care of the
+production and engineering concerns (such as scale, high availability, authentication, caching,
+monitoring, etc.)
+
+Behind the scenes, Raptor is compiling your Python code into Kubernetes resources and deploying them to your cluster.
+It handles the data-processing and feature calculation in a way that is optimized for production, deploys the model to
+model servers such as Sagemaker or Docker containers, connects to your data sources, and more. Notably, Raptor is
+leveraging Kubernetes, and it's ecosystem to take care engineering best-practices such as scalability, high
+availability,
+and more. This way, Raptor integrates with your existing infrastructure and tools and allows you to connect with the
+rest of your organization's R&D.
 
 [![Colab][colab-button]][colab-url]
 
@@ -56,6 +70,8 @@ caching, monitoring, etc.)
 
 ### ⭐️ Key Features
 
+* **Easy to use**<br/>
+  Raptor is designed to be easy to use. You can start using it in 5 minutes.
 * **Same code for both training and production**<br/>
   You can run the same Raptor compatible features in training and production and prevent the *training serving skew*.
 * **Real-Time / On-demand feature calculation**<br/>
@@ -63,24 +79,29 @@ caching, monitoring, etc.)
 * **Caching and storing**<br/>
   Raptor is utilizing an integrated "Reversed Feature-Store" to cache the calculation results and take snapshots of the
   data to cold storage for historical purposes (such as re-training).
-* **Pluggable**<br/>
-  Raptor is highly-pluggable. You can even bring your own storage implementation.
-* **Kubernetes Native and Best-practices Standards**<br/>
+* **Compile data science work into production-ready artifacts**<br/>
   Raptor is implementing by-design best-practices functionalities of Kubernetes solutions such as leader-election,
   scaling, health, auto-recovery, monitoring, logging, and more.
+* **Connect the ML research to the RND team**<br/>
+  Raptor is extending your existing DevOps tools and infrastructure, and it's not replacing them. This way, you can
+  connect your ML research to the rest of your organization's R&D ecosystem and utilize the existing tools such as
+  CI/CD, monitoring, etc.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 💡 How does it work?
 
-Raptor allows you to write your ML features in a way that can be translated for production purposes.
-Features in Raptor are composed a declarative part(via Python's decorators) and a function code. This way, we can
-instruct the "Raptor Core" to implement the "declarative part" and optimize the implementation for production.
+The work with Raptor starts in your research phase, in your notebook, or in your favorite IDE. Raptor allows you to
+write
+your ML work in a way that is translatable for production purposes.
+Assets in Raptor are composed of a declarative part(via Python's decorators) and a function code. This way, "Raptor
+Core" can translate the heavy-lifting engineering concerns(such as aggregations or caching), implement the
+"declarative part", and optimize the implementation for production.
 
 ![Features are composed from a declarative part and a function code][feature-py-def]
 
-After you are satisfied with the results, you can "export" these definitions to Kubernetes and deploy them using
-standard tools; Once deployed, Raptor Core(the server-side part) is extending Kubernetes with the ability to
+After you are satisfied with the results or your research, "export" these definitions to Kubernetes and deploy them
+using standard tools; Once deployed, Raptor Core(the server-side part) is extending Kubernetes with the ability to
 implement them. It takes care of the engineering concerns by managing and controlling Kubernetes-native resources such
 as deployments to connect your production data sources and run your business logic at scale.
 
@@ -119,40 +140,70 @@ the [OperatorHub Installation method](https://operatorhub.io/operator/raptor).
 
 ## 🌍 "Hello World" feature
 
-We know, you played with [the quick starter][colab-url] already, but let's paste here some "hello world" code
-for the lazy bastard out there 👹
-
-_For more examples, please refer to the [Documentation][docs-url]_
-
-### Hello world using the LabSDK
-
-The following code will create a feature that will return `Hello <name>!` when called, where <name> is the `entity_id`
-passed as an argument via the `**kwargs` parameter.
-
 ```python
-@raptor.register(str, freshness="1m", staleness="15m")
-def hello_world(**req: RaptorRequest):
-    return "hello " + req["entity_id"] + "!"
+@feature(keys='name')
+@freshness(target='-1', invalid_after='-1')
+def emails_deals(_, ctx: Context) -> float:
+    return f"hello world {ctx.keys['name']}!"
 ```
 
-To train our data with it, we can "replay" the feature with the following code:
+## 🐍 Full example
 
 ```python
 import pandas as pd
+from typing_extensions import TypedDict
+from labsdk.raptor import *
 
-df = pd.DataFrame({"entity_id": ["John", "Jane", "Joe"]})
-hello_world.replay(df)
+
+@data_source(
+    training_data=pd.read_csv(
+        'https://gist.githubusercontent.com/AlmogBaku/8be77c2236836177b8e54fa8217411f2/raw/hello_world_transactions.csv'),
+    keys=['customer_id'],
+    production_config=StreamingConfig()
+)
+class BankTransaction(TypedDict):
+    customer_id: int
+    amount: float
+    timestamp: str
+
+
+# Define features
+@feature(keys='customer_id', data_source=BankTransaction)
+@aggregation(function=AggregationFunction.Sum, over='10h', granularity='1h')
+def total_spend(this_row: BankTransaction, ctx: Context) -> float:
+    """total spend by a customer in the last hour"""
+    return this_row['amount']
+
+
+@feature(keys='customer_id', data_source=BankTransaction)
+@freshness(target='5h', invalid_after='1d')
+def amount(this_row: BankTransaction, ctx: Context) -> float:
+    """total spend by a customer in the last hour"""
+    return this_row['amount']
+
+
+# Train the model
+@model(
+    keys=['customer_id'],
+    input_features=['total_spend+sum'],
+    input_labels=[amount],
+    model_framework='sklearn',
+    model_server='sagemaker-ack',
+)
+@freshness(target='1h', invalid_after='100h')
+def amount_prediction(ctx: TrainingContext):
+    from sklearn.linear_model import LinearRegression
+
+    df = ctx.features_and_labels()
+
+    trainer = LinearRegression()
+    trainer.fit(df[ctx.input_features], df[ctx.input_labels])
+
+    return trainer
 ```
 
-To export the feature to Kubernetes, we can use the `manifest()` method:
-
-```python
-print(hello_world.manifest())
-```
-
-Then, we can deploy the generated manifest to the cluster
-using [`kubectl`](https://kubernetes.io/docs/reference/kubectl/) or with our CI/CD.
-
+Then, we can deploy the generated resources to Kubernetes using `kubectl` or instructing the DevOps team to integrate
+the generated `Makefile` into the existing CI/CD pipeline.
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
@@ -161,14 +212,26 @@ using [`kubectl`](https://kubernetes.io/docs/reference/kubectl/) or with our CI/
 
 ## 🏔 Roadmap
 
-- [x] Redis state provider
-- [x] Snowflake historical storage plugin
 - [ ] S3 historical storage plugins
     - [x] S3 storing
     - [ ] S3 fetching data - Spark
-- [ ] KServe Integration
-- [ ] Seldon Integration
-- [ ] Scheduler builder
+- [ ] Deploy models to model servers
+    - [x] Sagemaker ACK
+    - [ ] Seldon
+    - [ ] Kubeflow
+    - [ ] KFServing
+    - [ ] Standalone
+- [ ] Large-scale training
+- [ ] Support more data sources
+    - [x] Kafka
+    - [x] GCP Pub/Sub
+    - [x] Rest
+    - [ ] Snowflake
+    - [ ] BigQuery
+    - [ ] gRPC
+    - [ ] Redis
+    - [ ] Postgres
+    - [ ] GraphQL
 
 See the [open issues](https://github.com/raptor-ml/raptor/issues) for a full list of proposed features (and known
 issues)
@@ -209,36 +272,47 @@ Distributed under the Apache2 License. Read the `LICENSE` file for more informat
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 [godoc-shield]: https://pkg.go.dev/badge/github.com/raptor-ml/raptor.svg
+
 [godoc-url]: https://pkg.go.dev/github.com/raptor-ml/raptor
 
 [contributors-shield]: https://img.shields.io/github/contributors/raptor-ml/raptor.svg?style=flat
+
 [contributors-url]: https://github.com/raptor-ml/raptor/graphs/contributors
 
 [forks-shield]: https://img.shields.io/github/forks/raptor-ml/raptor.svg?style=flat
+
 [forks-url]: https://github.com/raptor-ml/raptor/network/members
 
 [stars-shield]: https://img.shields.io/github/stars/raptor-ml/raptor.svg?style=flat
+
 [stars-url]: https://github.com/raptor-ml/raptor/stargazers
 
 [issues-shield]: https://img.shields.io/github/issues/raptor-ml/raptor.svg?style=flat
+
 [issues-url]: https://github.com/raptor-ml/raptor/issues
 
 [e2e-tests-shield]: https://img.shields.io/github/workflow/status/raptor-ml/raptor/Integration%20Tests?label=Tests
+
 [e2e-tests-url]: https://github.com/raptor-ml/raptor/actions/workflows/test-e2e.yml
 
 [license-shield]: https://img.shields.io/github/license/raptor-ml/raptor.svg?style=flat
+
 [license-url]: https://github.com/raptor-ml/raptor/blob/master/LICENSE.txt
 
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat&logo=linkedin&colorB=555
+
 [linkedin-url]: https://linkedin.com/company/raptor-ml
 
 [go-report-card-shield]: https://goreportcard.com/badge/github.com/raptor-ml/raptor
+
 [go-report-card-url]: https://goreportcard.com/report/github.com/raptor-ml/raptor
 
 [best-practices-shield]: https://bestpractices.coreinfrastructure.org/projects/6406/badge
+
 [best-practices-url]: https://bestpractices.coreinfrastructure.org/projects/6406
 
 [colab-button]: https://img.shields.io/badge/-Getting%20started%20with%20Colab-blue?style=for-the-badge&logo=googlecolab
+
 [colab-url]: https://colab.research.google.com/github/raptor-ml/docs/blob/master/docs/guides/getting-started-with-labsdk.ipynb
 
 [docs-url]: https://raptor.ml/
