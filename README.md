@@ -17,7 +17,7 @@
         <img src=".github/logo.svg" alt="RaptorML - Production-ready feature engineering" width="300">
     </a>
 
-<h3 align="center"><p>From notebook to production</p>Compile your data science to production-ready artifacts</h3>
+<h3 align="center"><p>From notebook to production</p>Transform your data science to production-ready artifacts</h3>
 <br />
 
   <p align="center">
@@ -46,27 +46,30 @@ Raptor **turns any data scientist into an ML engineer** without learning softwar
 It's made for applied data scientists and ML engineers who want to build operational models and ML-driven functionality
 without the hassle of the infrastructure development, and **focus on the business logic and the research instead.**
 
-With Raptor, data scientists can stop waiting for others to build a "production version" of their work. Instead,
-slightly tweak your Python research code and export it as Kubernetes artifacts. Then, Raptor will take care of the
-production and engineering concerns (such as scale, high availability, authentication, caching,
-monitoring, etc.)
+With Raptor, data scientists can tweak their Python research code and export it. Then, Raptor will take care of the
+production and engineering concerns (such as scale, high availability, authentication, caching, monitoring, etc.)
 
-Behind the scenes, Raptor is compiling your Python code into Kubernetes resources and deploying them to your cluster.
-It handles the data-processing and feature calculation in a way that is optimized for production, deploys the model to
-model servers such as Sagemaker or Docker containers, connects to your data sources, and more. Notably, Raptor is
-leveraging Kubernetes, and it's ecosystem to take care engineering best-practices such as scalability, high
-availability,
-and more. This way, Raptor integrates with your existing infrastructure and tools and allows you to connect with the
-rest of your organization's R&D.
+Once your artifacts deployed to Kubernetes, Raptor take cares of the data-processing and feature calculation in a way
+that is optimized for production, deploys the model to model servers such as Sagemaker or Docker containers, connects to
+your *production* data sources, and more.
 
 [![Colab][colab-button]][colab-url]
 
-### 😍 Why people *love* Raptor?
+### 😍 Why people *love* Raptor? and how does it change their lives?
 
-* **Data Scientists** love Raptor because it's _easy to use_ and let them make _impact_ with their work _swiftly_.
-  No more excuses from other teams!
-* **DevOps teams** love Raptor because it's **built on top of Kubernetes**, leveraging their standard stack, and it's
-  *ridiculously* easy to deploy and manage (because of Kubernetes, duh?).
+With Raptor, data scientists can stop waiting for others to build a "production version" of their work. Instead, they
+can focus on the research and model development and export their work to production; while Raptor takes care of the
+rest.
+
+Traditionally, when s data scientist wants to deploy and integrate their work into to product, they need to assist
+Software Engineers to help them translate their work into a "production-ready version": connecting to the production
+data sources and streams, containerizing the model, creating scaling and high-availability architecture, developing the
+API, writing deployment scripts, and more. Furthermore, after the deployment, if there's a bug or a change in the data -
+Who is responsible for fixing it? The data scientist? The software engineer? The DevOps team?
+
+With Raptor, data scientists can focus on research and model development and export their work to production and that's
+it. From that point on - the data scientist is responsible for the model(yes, if there is a bug or a change), and Raptor
+is responsible for the rest.
 
 ### ⭐️ Key Features
 
@@ -92,11 +95,11 @@ rest of your organization's R&D.
 ## 💡 How does it work?
 
 The work with Raptor starts in your research phase, in your notebook, or in your favorite IDE. Raptor allows you to
-write
-your ML work in a way that is translatable for production purposes.
+write your ML work in a way that is translatable for production purposes.
+
 Assets in Raptor are composed of a declarative part(via Python's decorators) and a function code. This way, "Raptor
-Core" can translate the heavy-lifting engineering concerns(such as aggregations or caching), implement the
-"declarative part", and optimize the implementation for production.
+Core" can translate the heavy-lifting engineering concerns(such as aggregations or caching), implement the "declarative
+part", and optimize the implementation for production.
 
 ![Features are composed from a declarative part and a function code][feature-py-def]
 
