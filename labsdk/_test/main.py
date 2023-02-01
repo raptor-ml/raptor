@@ -44,6 +44,13 @@ def emails_10h(this_row: Email, ctx: Context) -> int:
     return 1
 
 
+@feature(keys='account_id', data_source=Email)
+@aggregation(function=AggregationFunction.Avg, over='10h', granularity='1h')
+def question_marks_10h(this_row: Email, ctx: Context) -> int:
+    """question marks over 10 hours"""
+    return this_row['subject'].count('?')
+
+
 print('# Emails')
 print(f'```\n{Email.manifest()}\n```')
 print('## Feature: `emails_10h`')
