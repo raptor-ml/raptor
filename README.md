@@ -200,6 +200,8 @@ def amount_prediction(ctx: TrainingContext):
     trainer.fit(df[ctx.input_features], df[ctx.input_labels])
 
     return trainer
+
+amount_prediction.export()
 ```
 
 Then, we can deploy the generated resources to Kubernetes using `kubectl` or instructing the DevOps team to integrate
