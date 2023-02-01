@@ -57,19 +57,9 @@ your *production* data sources, and more.
 
 ### 😍 Why people *love* Raptor? and how does it change their lives?
 
-With Raptor, data scientists can stop waiting for others to build a "production version" of their work. Instead, they
-can focus on the research and model development and export their work to production; while Raptor takes care of the
-rest.
+Before Raptor, data scientists had to work closely with software engineers to translate their models into production-ready code, connect to data sources, transform their data with Flink/Spark or even Java, create APIs, dockerizing the model, handle scaling and high availability, and more.
 
-Traditionally, when s data scientist wants to deploy and integrate their work into to product, they need to assist
-Software Engineers to help them translate their work into a "production-ready version": connecting to the production
-data sources and streams, containerizing the model, creating scaling and high-availability architecture, developing the
-API, writing deployment scripts, and more. Furthermore, after the deployment, if there's a bug or a change in the data -
-Who is responsible for fixing it? The data scientist? The software engineer? The DevOps team?
-
-With Raptor, data scientists can focus on research and model development and export their work to production and that's
-it. From that point on - the data scientist is responsible for the model(yes, if there is a bug or a change), and Raptor
-is responsible for the rest.
+With Raptor, data scientists can focus *only* on their research and model development, then export their work to production. Raptor takes care of the rest, including connecting to data sources, transforming the data, deploying and connecting the model, etc. This means data scientists can focus on what they do best, and Raptor handles the rest.
 
 ### ⭐️ Key Features
 
