@@ -1,3 +1,14 @@
+## [0.2.5](https://github.com/raptor-ml/raptor/compare/LabSDK-v0.2.4...LabSDK-v0.2.5) (2023-02-01)
+
+
+### Bug Fixes
+
+* **labsdk:** add missing files to wheel ([#264](https://github.com/raptor-ml/raptor/issues/264)) ([da50ef5](https://github.com/raptor-ml/raptor/commit/da50ef5c2e94a58d45613f2f3abe5eae93bc1ccd))
+
+
+
+
+
 ## [0.2.4](https://github.com/raptor-ml/raptor/compare/LabSDK-v0.2.3...LabSDK-v0.2.4) (2023-02-01)
 
 
