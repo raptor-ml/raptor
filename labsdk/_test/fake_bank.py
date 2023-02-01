@@ -44,7 +44,7 @@ transactions_df = pd.DataFrame({
 
 # Raptor
 from typing_extensions import TypedDict
-from labsdk.raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, model, \
+from ..raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, model, \
     TrainingContext, StreamingConfig
 
 

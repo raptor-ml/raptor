@@ -17,7 +17,7 @@ from datetime import datetime
 import pandas as pd
 from typing_extensions import TypedDict
 
-from labsdk.raptor import Context, data_source, feature, freshness, model, TrainingContext
+from ..raptor import Context, data_source, feature, freshness, model, TrainingContext
 
 df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/diabetes.csv')
 df.insert(0, 'id', range(0, len(df)))
