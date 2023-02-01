@@ -1,3 +1,14 @@
+## [0.2.4](https://github.com/raptor-ml/raptor/compare/LabSDK-v0.2.3...LabSDK-v0.2.4) (2023-02-01)
+
+
+### Bug Fixes
+
+* **LabSDK:** imports must be relative ([#263](https://github.com/raptor-ml/raptor/issues/263)) ([1c21f58](https://github.com/raptor-ml/raptor/commit/1c21f5821164d3b0fb05f4bd7b0111bb5b38b5e3))
+
+
+
+
+
 ## [0.2.3](https://github.com/raptor-ml/raptor/compare/LabSDK-v0.2.2...LabSDK-v0.2.3) (2023-02-01)
 
 
