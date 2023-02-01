@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import os.path
 import types as pytypes
 from datetime import datetime, timezone
 from typing import Tuple, Optional, Union, Callable
@@ -127,7 +127,7 @@ def new_replay(spec: FeatureSpec):
             return feature_values
 
         # aggregations
-        feature_values = feature_values.set_index('timestamp')
+        feature_values = feature_values.set_index('timestamp').sort_index()
         win = to_offset(spec.staleness)
         fields = []
 
@@ -137,10 +137,12 @@ def new_replay(spec: FeatureSpec):
             val_field = 'f_value'
 
         # TODO: refactor this to use bucketing
+        fvg = feature_values.groupby(['keys']).rolling(win)[val_field]
+
         for aggr in spec.aggr.funcs:
             f = f'{spec.fqn()}+{aggr.value}'
-            feature_values[f] = aggr.apply(feature_values.groupby(['keys']).rolling(win)[val_field]). \
-                reset_index(0, drop=True)
+            result = aggr.apply(fvg).reset_index(0).rename(columns={'value': f})
+            feature_values = feature_values.merge(result, on=['timestamp', 'keys'], how='left')
             fields.append(f)
 
         if 'f_value' in feature_values.columns:
@@ -164,7 +166,9 @@ def new_replay(spec: FeatureSpec):
             return _replay(store_locally)
 
         except Exception as e:
-            back_frame = e.__traceback__.tb_frame.f_back
+            back_frame = e.__traceback__.tb_frame
+            while back_frame.f_code.co_filename.startswith(os.path.dirname(__file__)):
+                back_frame = back_frame.f_back
             tb = pytypes.TracebackType(tb_next=None,
                                        tb_frame=back_frame,
                                        tb_lasti=back_frame.f_lasti,
@@ -375,7 +379,9 @@ def new_historical_get(spec: ModelSpec):
         try:
             return _historical_get(since, until)
         except Exception as e:
-            back_frame = e.__traceback__.tb_frame.f_back.f_back
+            back_frame = e.__traceback__.tb_frame
+            while back_frame.f_code.co_filename.startswith(os.path.dirname(__file__)):
+                back_frame = back_frame.f_back
             tb = pytypes.TracebackType(tb_next=None,
                                        tb_frame=back_frame,
                                        tb_lasti=back_frame.f_lasti,
