@@ -25,7 +25,7 @@ from typing import TypedDict
 
 import pandas as pd
 
-from labsdk.raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, model, \
+from ..raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, model, \
     TrainingContext, StreamingConfig
 
 
