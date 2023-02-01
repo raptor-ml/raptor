@@ -14,7 +14,7 @@
 #  limitations under the License.
 from typing import Dict, Union
 
-from labsdk.raptor.types import SecretKeyRef
+from ..common import SecretKeyRef
 
 
 class SourceProductionConfig:

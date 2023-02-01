@@ -17,7 +17,7 @@ from datetime import datetime
 import pandas as pd
 from typing_extensions import TypedDict
 
-from labsdk.raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, model, manifests, \
+from ..raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, model, manifests, \
     keep_previous, TrainingContext, StreamingConfig
 
 
