@@ -25,7 +25,7 @@ from labsdk.raptor import data_source, Context, feature, aggregation, Aggregatio
 
 @data_source(
     training_data=pd.read_parquet(
-        'https://gist.github.com/AlmogBaku/a1b331615eaf1284432d2eecc5fe60bc/raw/emails.parquet'),
+        'https://gist.github.com/AlmogBaku/8be77c2236836177b8e54fa8217411f2/raw/emails.parquet'),
     keys=['id', 'account_id'],
     timestamp='event_at',
     production_config=StreamingConfig(kind='kafka'),
@@ -54,7 +54,7 @@ print(emails_10h.replay().to_markdown())
 
 @data_source(
     training_data=pd.read_csv(
-        'https://gist.githubusercontent.com/AlmogBaku/a1b331615eaf1284432d2eecc5fe60bc/raw/deals.csv'),
+        'https://gist.githubusercontent.com/AlmogBaku/8be77c2236836177b8e54fa8217411f2/raw/deals.csv'),
     keys=['id', 'account_id'],
     timestamp='event_at',
 )
