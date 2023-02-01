@@ -17,7 +17,7 @@ import datetime
 
 import yaml
 
-from labsdk.raptor import durpy
+from .. import durpy
 
 
 # Raptor YAML Dumper
