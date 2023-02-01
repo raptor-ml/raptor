@@ -30,7 +30,7 @@ jobs:
           release-count: '1'
           skip-version-file: 'true'
           skip-commit: 'true'
-          skip-pull: 'true'
+          skip-git-pull: 'true'
           git-push: 'false'
           git-path: 'labsdk'
           tag-prefix: 'LabSDK-v'
@@ -54,7 +54,7 @@ jobs:
         env:
           BUILD_VERSION: "${{ needs.version.outputs.version }}"
         run: pipx run build --sdist --wheel
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           path: |
             ./labsdk/dist/*.tar.gz
@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Fetch the artifacts"
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: artifact
           path: dist

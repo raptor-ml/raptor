@@ -29,9 +29,9 @@ jobs:
         id: bundle_channel
         run: |
           if [ "${{ github.event.inputs.prerelease }}" == "true" ]; then
-            echo "::set-output name=channel::alpha"
+            echo "channel=alpha" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=channel::stable"
+            echo "channel=stable" >> $GITHUB_OUTPUT
           fi
         shell: bash
       - name: Conventional Changelog Action
@@ -41,7 +41,7 @@ jobs:
           release-count: '1'
           skip-version-file: 'true'
           skip-commit: 'true'
-          skip-pull: 'true'
+          skip-git-pull: 'true'
           git-push: 'false'
           git-path: ". '!:labsdk'"
           tag-prefix: 'v'
