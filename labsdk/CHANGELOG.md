@@ -1,3 +1,14 @@
+## [0.2.3](https://github.com/raptor-ml/raptor/compare/LabSDK-v0.2.2...LabSDK-v0.2.3) (2023-02-01)
+
+
+### Bug Fixes
+
+* bug with aggr on non sorted data ([#261](https://github.com/raptor-ml/raptor/issues/261)) ([d7d964c](https://github.com/raptor-ml/raptor/commit/d7d964ca167f5987db503b1b7b770560f6f89301))
+
+
+
+
+
 ## [0.2.2](https://github.com/raptor-ml/raptor/compare/LabSDK-v0.2.2...LabSDK-v0.1.4) (2023-01-31)
 
 
