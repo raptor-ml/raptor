@@ -53,61 +53,61 @@ class Diabetes(TypedDict):
 # %%
 
 @feature(data_source=Diabetes, keys=['id'])
-@freshness(target='1h', invalid_after='100h')
+@freshness(max_age='1h', max_stale='100h')
 def pregnancies(this_row: Diabetes, ctx: Context) -> int:
     return this_row['Pregnancies']
 
 
 @feature(data_source=Diabetes, keys=['id'])
-@freshness(target='1h', invalid_after='100h')
+@freshness(max_age='1h', max_stale='100h')
 def glucose(this_row: Diabetes, ctx: Context) -> int:
     return this_row['Glucose']
 
 
 @feature(data_source=Diabetes, keys=['id'])
-@freshness(target='1h', invalid_after='100h')
+@freshness(max_age='1h', max_stale='100h')
 def blood_pressure(this_row: Diabetes, ctx: Context) -> int:
     return this_row['BloodPressure']
 
 
 @feature(data_source=Diabetes, keys=['id'])
-@freshness(target='1h', invalid_after='100h')
+@freshness(max_age='1h', max_stale='100h')
 def skin_thickness(this_row: Diabetes, ctx: Context) -> int:
     return this_row['SkinThickness']
 
 
 @feature(data_source=Diabetes, keys=['id'])
-@freshness(target='1h', invalid_after='100h')
+@freshness(max_age='1h', max_stale='100h')
 def insulin(this_row: Diabetes, ctx: Context) -> int:
     return this_row['Insulin']
 
 
 @feature(data_source=Diabetes, keys=['id'])
-@freshness(target='1h', invalid_after='100h')
+@freshness(max_age='1h', max_stale='100h')
 def bmi(this_row: Diabetes, ctx: Context) -> float:
     return this_row['BMI']
 
 
 @feature(data_source=Diabetes, keys=['id'])
-@freshness(target='1h', invalid_after='100h')
+@freshness(max_age='1h', max_stale='100h')
 def diabetes_pedigree_function(this_row: Diabetes, ctx: Context) -> float:
     return this_row['DiabetesPedigreeFunction']
 
 
 @feature(data_source=Diabetes, keys=['id'])
-@freshness(target='1h', invalid_after='100h')
+@freshness(max_age='1h', max_stale='100h')
 def age(this_row: Diabetes, ctx: Context) -> int:
     return this_row['Age']
 
 
 @feature(data_source=Diabetes, keys=['id'])
-@freshness(target='1h', invalid_after='100h')
+@freshness(max_age='1h', max_stale='100h')
 def outcome(this_row: Diabetes, ctx: Context) -> int:
     return this_row['Outcome']
 
 
 @feature(data_source=Diabetes, keys=['id'])
-@freshness(target='1h', invalid_after='100h')
+@freshness(max_age='1h', max_stale='100h')
 def bmi_class(this_row: Diabetes, ctx: Context) -> int:
     if this_row['BMI'] < 18.5:
         return -1  # Underweight
@@ -120,7 +120,7 @@ def bmi_class(this_row: Diabetes, ctx: Context) -> int:
 
 
 @feature(data_source=Diabetes, keys=['id'])
-@freshness(target='1h', invalid_after='100h')
+@freshness(max_age='1h', max_stale='100h')
 def insulin_class(this_row: Diabetes, ctx: Context) -> int:
     if this_row['Insulin'] < 16:
         return -1  # Low
@@ -142,7 +142,7 @@ def insulin_class(this_row: Diabetes, ctx: Context) -> int:
     model_framework='sklearn',
     model_server='sagemaker-ack',
 )
-@freshness(target='1h', invalid_after='100h')
+@freshness(max_age='1h', max_stale='100h')
 def diabetes_prediction_train(ctx: TrainingContext):
     from sklearn.model_selection import train_test_split
     from sklearn.ensemble import RandomForestClassifier

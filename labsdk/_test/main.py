@@ -77,7 +77,7 @@ def deals_10h(this_row: Deal, ctx: Context) -> float:
 
 
 @feature(keys='account_id', sourceless_markers_df=Deal.raptor_spec.local_df)
-@freshness(target='-1', invalid_after='-1')
+@freshness(max_age='-1', max_stale='-1')
 def emails_deals(_, ctx: Context) -> float:
     """emails/deal[avg] rate over 10 hours"""
     e, _ = ctx.get_feature('emails_10h+count')
@@ -88,14 +88,14 @@ def emails_deals(_, ctx: Context) -> float:
 
 
 @feature(keys='account_id', data_source=Deal)
-@freshness(target='1h', invalid_after='2h')
+@freshness(max_age='1h', max_stale='2h')
 @keep_previous(versions=1, over='1h')
 def last_amount(this_row: Deal, ctx: Context) -> float:
     return this_row['amount']
 
 
 @feature(keys='account_id', sourceless_markers_df=Deal.raptor_spec.local_df)
-@freshness(target='1h', invalid_after='2h')
+@freshness(max_age='1h', max_stale='2h')
 def diff_with_previous_price(this_row: Deal, ctx: Context) -> float:
     lv, ts = ctx.get_feature('last_amount@-1')
     if lv is None:
@@ -132,7 +132,7 @@ print(diff_with_previous_price.replay().to_markdown())
     model_framework='sklearn',
     model_server='sagemaker-ack',
 )
-@freshness(target='1h', invalid_after='100h')
+@freshness(max_age='1h', max_stale='100h')
 def deal_prediction(ctx: TrainingContext) -> float:
     from xgboost import XGBClassifier
     from sklearn.model_selection import train_test_split
@@ -236,7 +236,7 @@ closed_deals_annually.replay()
 
 
 @feature(keys='salesman_id', data_source=CrmRecord)
-@freshness(target='24h', invalid_after='8760h')
+@freshness(max_age='24h', max_stale='8760h')
 def salesperson_deals_closes_rate(this_row: CrmRecord, ctx: Context) -> int:
     udia, _ = ctx.get_feature('unique_deals_involvement_annually+distinct_count')
     cda, _ = ctx.get_feature('closed_deals_annually+count')
@@ -285,7 +285,7 @@ class Commit(TypedDict):
 
 
 @feature(keys='account_id', data_source=Commit)
-@freshness(target='1m', invalid_after='10m')
+@freshness(max_age='1m', max_stale='10m')
 def subject(this_row: Commit, ctx: Context) -> str:
     return this_row['subject']
 
@@ -316,7 +316,7 @@ commits_30m.replay()
 
 
 @feature(keys='account_id', data_source=Commit)
-@freshness(target='1m', invalid_after='30m')
+@freshness(max_age='1m', max_stale='30m')
 def commits_30m_greater_2(this_row: Commit, ctx: Context) -> bool:
     res, _ = ctx.get_feature('commits_30m+sum')
     return res > 2
@@ -333,7 +333,7 @@ commits_30m_greater_2.replay()
     input_labels=[],
     model_framework='sklearn',
 )
-@freshness(target='1h', invalid_after='100h')
+@freshness(max_age='1h', max_stale='100h')
 def newest():
     # TODO: implement
     pass
