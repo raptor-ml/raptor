@@ -53,9 +53,9 @@ monitoring, and all other backend concerns.
 
 ## 😍 Why people *love* Raptor? and how does it change their lives?
 
-Before Raptor, data scientists had to work closely with software engineers to translate their models into
-production-ready code, connect to data sources, transform their data with Flink/Spark or even Java, create APIs,
-dockerizing the model, handle scaling and high availability, and more.
+Before Raptor, data scientists had to work closely with backend engineers to build a "production version" of their work: 
+connect to data sources, transform their data with Flink/Spark or even Java, create APIs, dockerizing the model, handle 
+scaling and high availability, and more.
 
 With Raptor, data scientists can focus *only* on their research and model development, then export their work to
 production. Raptor takes care of the rest, including connecting to data sources, transforming the data, deploying and
