@@ -131,7 +131,7 @@ def emails_deals(_, ctx: Context) -> float:
 ```python
 import pandas as pd
 from typing_extensions import TypedDict
-from labsdk.raptor import *
+from raptor import *
 
 
 @data_source(
