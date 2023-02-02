@@ -1,6 +1,5 @@
 <div id="top"></div>
 
-[![PyPi][pypi-shield]][pypi-url]
 [![Go Report Card][go-report-card-shield]][go-report-card-url]
 [![Go Reference][godoc-shield]][godoc-url]
 [![E2E Tests][e2e-tests-shield]][e2e-tests-url]
@@ -267,10 +266,6 @@ Distributed under the Apache2 License. Read the `LICENSE` file for more informat
 ## 👫 Joining the community
 
 <p align="right">(<a href="#top">back to top</a>)</p>
-
-[pypi-shield]: https://badge.fury.io/py/raptor-labsdk.svg
-
-[pypi-url]: https://pypi.org/project/raptor-labsdk/
 
 [godoc-shield]: https://pkg.go.dev/badge/github.com/raptor-ml/raptor.svg
 
