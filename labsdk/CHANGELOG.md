@@ -1,3 +1,14 @@
+## [0.2.7](https://github.com/raptor-ml/raptor/compare/LabSDK-v0.2.6...LabSDK-v0.2.7) (2023-02-02)
+
+
+### Bug Fixes
+
+* bug with new freshness props ([d10b880](https://github.com/raptor-ml/raptor/commit/d10b88003abc737943b58b33cb61808ccb70c188))
+
+
+
+
+
 ## 0.2.6 (2023-02-02)
 
 
