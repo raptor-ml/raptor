@@ -51,7 +51,7 @@ monitoring, and all other backend concerns.
 
 [![Colab][colab-button]][colab-url]
 
-### 😍 Why people *love* Raptor? and how does it change their lives?
+## 😍 Why people *love* Raptor? and how does it change their lives?
 
 Before Raptor, data scientists had to work closely with software engineers to translate their models into
 production-ready code, connect to data sources, transform their data with Flink/Spark or even Java, create APIs,
@@ -61,7 +61,7 @@ With Raptor, data scientists can focus *only* on their research and model develo
 production. Raptor takes care of the rest, including connecting to data sources, transforming the data, deploying and
 connecting the model, etc. This means data scientists can focus on what they do best, and Raptor handles the rest.
 
-### ⭐️ Key Features
+## ⭐️ Key Features
 
 * **Easy to use**: Raptor is user-friendly and can be started within 5 minutes.
 * **Eliminate serving/training skew**: You can use the same code for training and production to avoid training serving
@@ -95,16 +95,18 @@ deployments to connect your production data sources and run your business logic 
 
 You can read more about Raptor's architecture in [the docs][docs-url].
 
-## ⚡️ Quick start
+<p align="right">(<a href="#top">back to top</a>)</p>
 
-Raptor's LabSDK is the quickest and most popular way to develop RaptorML compatible features.
+## 🚀 Getting Started
+
+Raptor's LabSDK is the quickest and most popular way to develop models that are ready for production.
 
 [![Colab][colab-button]][colab-url]
 
-The LabSDK allows you to write Raptor-compatible features using Python and "convert" them to Kubernetes resources.
-This way, in most of the use-cases, you can iterate and play with your data.
+Using the LabSDK, you can write your models and features in Python, and export them to Kubernetes resources. This way,
+you can iterate and play with your data in your notebook or IDE and focus on what you do best.
 
-### Installing the LabSDK
+### 🐍️ Installing the LabSDK
 
 The LabSDK is available on [PyPI](https://pypi.org/project/raptor-labsdk/), so you can install it using pip. It's
 recommended to use a virtual environment.
@@ -124,7 +126,7 @@ def emails_deals(_, ctx: Context) -> float:
     return f"hello world {ctx.keys['name']}!"
 ```
 
-### 🐍 Full example
+### ⚡ Full example
 
 ```python
 import pandas as pd
@@ -193,10 +195,11 @@ You only need to install Raptor *when deploying to production* (or staging).
 
 Learn more about production installation at [the docs][docs-url].
 
-#### Prerequisites
+### 🏗️ Prerequisites
 
 1. Kubernetes cluster
 2. Redis server (> 2.8.9)
+3. Optional: Snowflake or S3 bucket (to record historical data for retraining purposes)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
