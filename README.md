@@ -140,7 +140,7 @@ def emails_deals(_, ctx: Context) -> float:
 ```python
 import pandas as pd
 from typing_extensions import TypedDict
-from labsdk.raptor import *
+from labsdk.raptor import data_source, feature, aggregation, model, freshness, AggregationFunction, StreamingConfig, TrainingContext, Context
 
 
 @data_source(
@@ -151,6 +151,7 @@ from labsdk.raptor import *
 )
 class BankTransaction(TypedDict):
     customer_id: int
+    transaction_id: int
     amount: float
     timestamp: str
 
@@ -163,10 +164,10 @@ def total_spend(this_row: BankTransaction, ctx: Context) -> float:
     return this_row['amount']
 
 
-@feature(keys='customer_id', data_source=BankTransaction)
+@feature(keys='transaction_id', data_source=BankTransaction)
 @freshness(max_age='5h', max_stale='1d')
 def amount(this_row: BankTransaction, ctx: Context) -> float:
-    """total spend by a customer in the last hour"""
+    """spend for each transaction"""
     return this_row['amount']
 
 
