@@ -41,62 +41,57 @@
 
 ## 🧐 What is Raptor?
 
-Raptor **turns any data scientist into an ML engineer** without learning software engineering.
+Raptor enables data scientists and ML engineers to build and deploy operational models and ML-driven functionality,
+**without learning backend engineering**.
 
-It's made for applied data scientists and ML engineers who want to build operational models and ML-driven functionality
-without the hassle of the infrastructure development, and **focus on the business logic and the research instead.**
-
-With Raptor, data scientists can tweak their Python research code and export it. Then, Raptor will take care of the
-production and engineering concerns (such as scale, high availability, authentication, caching, monitoring, etc.)
-
-Once your artifacts deployed to Kubernetes, Raptor take cares of the data-processing and feature calculation in a way
-that is optimized for production, deploys the model to model servers such as Sagemaker or Docker containers, connects to
-your *production* data sources, and more.
+With Raptor, you can export your Python research code as standard production artifacts, and deploy them to Kubernetes.
+Once you deployed, Raptor optimize data processing and feature calculation for production, deploy models
+to Sagemaker or Docker containers, connect to your production data sources, scaling, high availability, caching,
+monitoring, and all other backend concerns.
 
 [![Colab][colab-button]][colab-url]
 
 ### 😍 Why people *love* Raptor? and how does it change their lives?
 
-Before Raptor, data scientists had to work closely with software engineers to translate their models into production-ready code, connect to data sources, transform their data with Flink/Spark or even Java, create APIs, dockerizing the model, handle scaling and high availability, and more.
+Before Raptor, data scientists had to work closely with software engineers to translate their models into
+production-ready code, connect to data sources, transform their data with Flink/Spark or even Java, create APIs,
+dockerizing the model, handle scaling and high availability, and more.
 
-With Raptor, data scientists can focus *only* on their research and model development, then export their work to production. Raptor takes care of the rest, including connecting to data sources, transforming the data, deploying and connecting the model, etc. This means data scientists can focus on what they do best, and Raptor handles the rest.
+With Raptor, data scientists can focus *only* on their research and model development, then export their work to
+production. Raptor takes care of the rest, including connecting to data sources, transforming the data, deploying and
+connecting the model, etc. This means data scientists can focus on what they do best, and Raptor handles the rest.
 
 ### ⭐️ Key Features
 
-* **Easy to use**<br/>
-  Raptor is designed to be easy to use. You can start using it in 5 minutes.
-* **Same code for both training and production**<br/>
-  You can run the same Raptor compatible features in training and production and prevent the *training serving skew*.
-* **Real-Time / On-demand feature calculation**<br/>
-  Raptor is optimizing features to be calculated at the time of the request.
-* **Caching and storing**<br/>
-  Raptor is utilizing an integrated "Reversed Feature-Store" to cache the calculation results and take snapshots of the
-  data to cold storage for historical purposes (such as re-training).
-* **Compile data science work into production-ready artifacts**<br/>
-  Raptor is implementing by-design best-practices functionalities of Kubernetes solutions such as leader-election,
-  scaling, health, auto-recovery, monitoring, logging, and more.
-* **Connect the ML research to the RND team**<br/>
-  Raptor is extending your existing DevOps tools and infrastructure, and it's not replacing them. This way, you can
-  connect your ML research to the rest of your organization's R&D ecosystem and utilize the existing tools such as
-  CI/CD, monitoring, etc.
+* **Easy to use**: Raptor is user-friendly and can be started within 5 minutes.
+* **Eliminate serving/training skew**: You can use the same code for training and production to avoid training serving
+  skew.
+* **Real-time/on-demand**: Raptor optimizes feature calculations and predictions to be performed at the time of request.
+* **Seamless Caching and storage**: Raptor uses an integrated caching system, and store your historical data for
+  training purposes. So you won't need any other data storage system such as "Feature Store".
+* **Turns data science work into production artifacts**: Raptor implements best-practice functionalities of Kubernetes
+  solutions, such as scaling, health, auto-recovery, monitoring, logging, and more.
+* **Integrates with R&D team**: Raptor extends existing DevOps tools and infrastructure and allows you to connect your
+  ML
+  research to the rest of your organization's R&D ecosystem, utilizing tools such as CI/CD and monitoring.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 💡 How does it work?
 
-The work with Raptor starts in your research phase, in your notebook, or in your favorite IDE. Raptor allows you to
-write your ML work in a way that is translatable for production purposes.
+The work with Raptor starts in your research phase in your notebook or IDE. Raptor allows you to write your ML work in a
+translatable way for production purposes.
 
-Assets in Raptor are composed of a declarative part(via Python's decorators) and a function code. This way, "Raptor
-Core" can translate the heavy-lifting engineering concerns(such as aggregations or caching), implement the "declarative
-part", and optimize the implementation for production.
+Models and Features in Raptor are composed of a declarative part(via Python's decorators) and a function code. This
+way, Raptor can translate the heavy-lifting engineering concerns(such as aggregations or caching) by implementing the
+"declarative part", and optimize the implementation for production.
 
 ![Features are composed from a declarative part and a function code][feature-py-def]
 
-After you are satisfied with the results or your research, "export" these definitions to Kubernetes and deploy them
-using standard tools; Once deployed, Raptor Core(the server-side part) is extending Kubernetes with the ability to
-implement them. It takes care of the engineering concerns by managing and controlling Kubernetes-native resources such
-as deployments to connect your production data sources and run your business logic at scale.
+After you are satisfied with your research results, "export" these definitions, and deploy it to Kubernetes using
+standard tools; Once deployed, Raptor Core(the server-side part) is extending Kubernetes with the ability to implement
+them. It takes care of the engineering concerns by managing and controlling Kubernetes-native resources such as
+deployments to connect your production data sources and run your business logic at scale.
 
 You can read more about Raptor's architecture in [the docs][docs-url].
 
