@@ -200,7 +200,6 @@ Learn more about production installation at [the docs][docs-url].
 1. Kubernetes cluster
 2. Redis server (> 2.8.9)
 3. Optional: Snowflake or S3 bucket (to record historical data for retraining purposes)
-
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
