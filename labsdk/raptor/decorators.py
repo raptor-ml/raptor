@@ -473,9 +473,9 @@ def model(
             spec.labels = options['labels']
 
         if 'freshness' in options:
-            spec.freshness = options['freshness']['target']
-            spec.staleness = options['freshness']['invalid_after']
-            spec.timeout = options['freshness']['latency_sla']
+            spec.freshness = options['freshness']['max_age']
+            spec.staleness = options['freshness']['max_stale']
+            spec.timeout = options['freshness']['timeout']
 
         if spec.freshness is None or spec.staleness is None:
             raise Exception('You must specify freshness')
