@@ -67,7 +67,7 @@ def last_price(this_row: Purchase, ctx: Context) -> float:
     model_framework='xgboost',
     model_server='sagemaker-ack',
 )
-@freshness(target='1h', invalid_after='100h')
+@freshness(max_age='1h', max_stale='100h')
 def purchase_prediction(ctx: TrainingContext) -> float:
     from xgboost import XGBRegressor
     from sklearn.model_selection import train_test_split

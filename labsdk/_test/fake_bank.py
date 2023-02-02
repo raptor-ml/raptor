@@ -68,7 +68,7 @@ def total_spend(this_row: BankTransaction, ctx: Context) -> float:
 
 
 @feature(keys='customer_id', data_source=BankTransaction)
-@freshness(target='5h', invalid_after='1d')
+@freshness(max_age='5h', max_stale='1d')
 def amount(this_row: BankTransaction, ctx: Context) -> float:
     """total spend by a customer in the last hour"""
     return this_row['amount']
@@ -82,7 +82,7 @@ def amount(this_row: BankTransaction, ctx: Context) -> float:
     model_framework='sklearn',
     model_server='sagemaker-ack',
 )
-@freshness(target='1h', invalid_after='100h')
+@freshness(max_age='1h', max_stale='100h')
 def amount_prediction(ctx: TrainingContext):
     from sklearn.linear_model import LinearRegression
 

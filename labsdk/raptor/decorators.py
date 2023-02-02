@@ -99,30 +99,35 @@ def runtime(
 
 
 def freshness(
-    target: Union[str, timedelta],
-    invalid_after: Optional[Union[str, timedelta]] = None,  # defaults to == target
-    latency_sla: Optional[Union[str, timedelta]] = timedelta(seconds=2),  # defaults to 2 seconds
+    max_age: Union[str, timedelta],
+    max_stale: Optional[Union[str, timedelta]] = None,  # defaults to == max_age
+    timeout: Optional[Union[str, timedelta]] = timedelta(seconds=1),  # defaults to 1 seconds
 ):
     """
-    Set the freshness, staleness, and latency of a feature or model.
+    Set the freshness policy, and timeout of a feature or model.
     Must be used in conjunction with a feature or model decorator.
     Is placed AFTER the @model or @feature decorator.
 
-    :type target: timedelta or str of the form '2h 3m 4s'
-    :param target: the target freshness of the feature or model.
-    :type invalid_after: timedelta or str of the form '2h 3m 4s'
-    :param invalid_after: the time after which the feature or model is considered stale.
-    :type latency_sla: timedelta or str of the form '2h 3m 4s'
-    :param latency_sla: the maximum time allowed for the feature to be computed.
+    Feature or Model values are considered fresh if they are younger than the `max_age`.
+    If the value is older than `max_age`, we'll try to recompute it with a timeout of `timeout`.
+    If we fail to recompute the value within `timeout`, we'll return the stale value as long as it is younger than
+    `max_stale`.
+
+    :type max_age: timedelta or str of the form '2h 3m 4s'
+    :param max_age: the target freshness of the feature or model.
+    :type max_stale: timedelta or str of the form '2h 3m 4s'
+    :param max_stale: the time after which the feature or model is considered stale. defaults to == max_age
+    :type timeout: timedelta or str of the form '2h 3m 4s'
+    :param timeout: the maximum time allowed for the feature to be computed. defaults to 1 second.
     """
-    if invalid_after is None:
-        invalid_after = target
+    if max_stale is None:
+        max_stale = max_age
 
     def decorator(func):
         return _opts(func, {'freshness': {
-            'target': target,
-            'invalid_after': invalid_after,
-            'latency_sla': latency_sla,
+            'max_age': max_age,
+            'max_stale': max_stale,
+            'timeout': timeout,
         }})
 
     return decorator
@@ -321,9 +326,9 @@ def feature(
                      'Read the documentation for more info.')
 
         if 'freshness' in options:
-            spec.freshness = options['freshness']['target']
-            spec.staleness = options['freshness']['invalid_after']
-            spec.timeout = options['freshness']['latency_sla']
+            spec.freshness = options['freshness']['max_age']
+            spec.staleness = options['freshness']['max_stale']
+            spec.timeout = options['freshness']['timeout']
 
         if 'keep_previous' in options:
             spec.keep_previous = options['keep_previous']
