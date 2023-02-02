@@ -104,29 +104,18 @@ Raptor's LabSDK is the quickest and most popular way to develop RaptorML compati
 The LabSDK allows you to write Raptor-compatible features using Python and "convert" them to Kubernetes resources.
 This way, in most of the use-cases, you can iterate and play with your data.
 
-### Production Installation
+### Installing the LabSDK
 
-**Raptor installation is not required for training purposes**.
-You only need to install Raptor *when deploying to production* (or staging).
+The LabSDK is available on [PyPI](https://pypi.org/project/raptor-labsdk/), so you can install it using pip. It's
+recommended to use a virtual environment.
 
-Learn more about production installation at [the docs][docs-url].
-
-#### Prerequisites
-
-1. Kubernetes cluster
-
-   (You can use [Kind](https://kind.sigs.k8s.io/) to install Raptor locally)
-2. `kubectl` installed and configured to your cluster.
-3. Redis server (> 2.8.9)
-
-### Installation
-
-The easiest way to install Raptor is to use
-the [OperatorHub Installation method](https://operatorhub.io/operator/raptor).
+```console
+pip install raptor-labsdk
+```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-## 🌍 "Hello World" feature
+### 🌍 "Hello World" feature
 
 ```python
 @feature(keys='name')
@@ -135,7 +124,7 @@ def emails_deals(_, ctx: Context) -> float:
     return f"hello world {ctx.keys['name']}!"
 ```
 
-## 🐍 Full example
+### 🐍 Full example
 
 ```python
 import pandas as pd
@@ -195,6 +184,20 @@ amount_prediction.export()
 
 Then, we can deploy the generated resources to Kubernetes using `kubectl` or instructing the DevOps team to integrate
 the generated `Makefile` into the existing CI/CD pipeline.
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+## ⎈ Production Installation
+
+**Raptor installation is not required for training purposes**.
+You only need to install Raptor *when deploying to production* (or staging).
+
+Learn more about production installation at [the docs][docs-url].
+
+#### Prerequisites
+
+1. Kubernetes cluster
+2. Redis server (> 2.8.9)
+
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
