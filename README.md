@@ -313,6 +313,6 @@ Distributed under the Apache2 License. Read the `LICENSE` file for more informat
 
 [docs-url]: https://raptor.ml/
 
-[product-screenshot]: .github/demo.svg
+[product-screenshot]: .github/demo.gif
 
 [feature-py-def]: .github/feature-py-def.png
