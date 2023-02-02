@@ -1,3 +1,40 @@
+## 0.2.6 (2023-02-02)
+
+
+### Bug Fixes
+
+* bug with aggr on non sorted data ([#261](https://github.com/raptor-ml/raptor/issues/261)) ([0e0362f](https://github.com/raptor-ml/raptor/commit/0e0362f81606094a00693b3a96f96aeb2dd52afc))
+* bugs with the previous_versions ([bbfa913](https://github.com/raptor-ml/raptor/commit/bbfa91387b56d4cec22c8cca968b041e062e5aad))
+* change typo in labsdk Readme ([4e59d83](https://github.com/raptor-ml/raptor/commit/4e59d8352bc5f407074221aed82506c4605a8192))
+* headless -> sourceless + sourceless replay ([13b85b9](https://github.com/raptor-ml/raptor/commit/13b85b9dd21b6b1d0828670e9c75ef4c113912c5)), closes [#242](https://github.com/raptor-ml/raptor/issues/242) [#249](https://github.com/raptor-ml/raptor/issues/249)
+* key recovery should be done when dsrc info available ([d99ba0b](https://github.com/raptor-ml/raptor/commit/d99ba0b30d7ea6ce6cd019f114e5537ce06b3a6f))
+* **labsdk:** add missing files to wheel ([#264](https://github.com/raptor-ml/raptor/issues/264)) ([460b21c](https://github.com/raptor-ml/raptor/commit/460b21c064b21f2f4891cd488ff9e5f98a8f0fd8))
+* **LabSDK:** imports must be relative ([#263](https://github.com/raptor-ml/raptor/issues/263)) ([abff245](https://github.com/raptor-ml/raptor/commit/abff2459aba9ab6f9a3f685cb59770310b7a3e60))
+* **LabSDK:** refactor pyexp compilation and fix runtime errors ([#133](https://github.com/raptor-ml/raptor/issues/133)) ([c8c6602](https://github.com/raptor-ml/raptor/commit/c8c6602cbb9d8ffd32b2e9942518626186a08c0e))
+* model deployment ([6706f81](https://github.com/raptor-ml/raptor/commit/6706f81db6c2c270c1851e6dce26185e0ec66daa))
+* Python Program enhancements ([7ef22c3](https://github.com/raptor-ml/raptor/commit/7ef22c308dd4d1a915266a412523db437603fb92))
+* Readme ([496669c](https://github.com/raptor-ml/raptor/commit/496669c7aa642107f1f9f055c64e0b669edf61b0))
+* refactor bugs ([#185](https://github.com/raptor-ml/raptor/issues/185)) ([c668fb1](https://github.com/raptor-ml/raptor/commit/c668fb1b98144e531c40b889acbaef6e315e051c))
+* **runtime:** fix multiple bugs with the runtime ([00f017c](https://github.com/raptor-ml/raptor/commit/00f017c60a2d4070957faf37dcd8f5afecf8f868))
+
+
+### Features
+
+* add keep_previous ([8226296](https://github.com/raptor-ml/raptor/commit/8226296ee7b5a55f313877b694c466630c972a90))
+* add source stub config ([44095f8](https://github.com/raptor-ml/raptor/commit/44095f831009ec3f99990c013ee12bb786dee419))
+* allow modeling with raptor ([#210](https://github.com/raptor-ml/raptor/issues/210)) ([025711b](https://github.com/raptor-ml/raptor/commit/025711bfa3f427405de31d03788d6bcb340f1176))
+* create makefile when exporting ([8fa1ed0](https://github.com/raptor-ml/raptor/commit/8fa1ed004d9762f37fed481aa4a281831796720b))
+* create model containers from LabSDK ([808b1c6](https://github.com/raptor-ml/raptor/commit/808b1c65a2d85d215d9932ccc44e112dfa43889f))
+* create primitive type ([9948580](https://github.com/raptor-ml/raptor/commit/9948580d343f078f3fbb129f01eeb897a81c326d))
+* deploy models to aws using ACK ([#228](https://github.com/raptor-ml/raptor/issues/228)) ([fe510af](https://github.com/raptor-ml/raptor/commit/fe510af1f8b8bc125db760b7d80e3cef2052445f))
+* get_prediction ([65434cf](https://github.com/raptor-ml/raptor/commit/65434cf2e741dfa0bcb2fdff07f645aa99cd990c))
+* make debugger experience with labsdk slick :) ([35d6a48](https://github.com/raptor-ml/raptor/commit/35d6a48041547b6c848c48283a2a6a2c2c2e18ce))
+* **runtime:** add checksum check to programs to prevent multiple loading of the same program ([c8b9e4e](https://github.com/raptor-ml/raptor/commit/c8b9e4ef6d0248874fcff79c001273310d62058b))
+
+
+
+
+
 ## [0.2.5](https://github.com/raptor-ml/raptor/compare/LabSDK-v0.2.4...LabSDK-v0.2.5) (2023-02-01)
 
 
