@@ -48,6 +48,7 @@ class ModelImpl(ModelSpec):
             replay.new_replay(s)()
 
         model = self.training_function(TrainingContext(
+            fqn=self.fqn(),
             keys=self.keys,
             input_labels=self.label_features,
             input_features=self.features,

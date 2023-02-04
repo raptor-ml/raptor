@@ -68,7 +68,7 @@ def _opts(func, options: dict):
 # ** Shared **
 def namespace(namespace: str):
     """
-    Register a namespace for the Feature Definition.
+    Register a namespace for the asset.
     :param namespace: namespace name
     """
 
@@ -83,7 +83,7 @@ def runtime(
     env_name: Optional[str],  # the Raptor virtual environment name
 ):
     """
-    Register the runtime environment for the Feature Definition.
+    Register the runtime environment for the asset.
     :param packages:
     :param env_name:
     :return:
@@ -135,7 +135,7 @@ def freshness(
 
 def labels(labels: Dict[str, str]):
     """
-    Register labels for the Feature Definition.
+    Register labels for the asset.
     :param labels: a dictionary of tags.
     """
 
@@ -155,7 +155,7 @@ def data_source(
     production_config: Optional[SourceProductionConfig] = None,  # production stub configuration
 ):
     """
-    Register a DataSource for the FeatureDefinition.
+    Register a DataSource for the Feature Definition.
     :param training_data: DataFrame of training data. This should reflect the schema of the data source in production.
     :param keys: list of columns that are keys.
     :param name: name of the data source. Defaults to the class name.
@@ -397,14 +397,31 @@ def model(
     keys: Union[str, List[str]],  # required
     input_features: Union[str, List[str], Callable, List[Callable]],  # required
     input_labels: Union[str, List[str], Callable, List[Callable]],
-    model_framework: Union[ModelFramework, str],  # first is MVP
-    model_server: Optional[Union[ModelServer, str]] = None,  # first is MVP
+    model_framework: Union[ModelFramework, str],
+    model_server: Optional[Union[ModelServer, str]] = None,
     key_feature: Optional[Union[str, Callable]] = None,  # optional
     prediction_output_schema: Optional[TypedDict] = None,
     name: Optional[str] = None,  # set to function name if not provided
 ):
     """
     Register a Model Definition within the LabSDK.
+    :type keys: str or list of str
+    :param keys: the keys of the model. The keys are required for fetching the features.
+    :type input_features: str or list of str or callable or list of callable
+    :param input_features: the features that are used as input to the model.
+    :type input_labels: str or list of str or callable or list of callable
+    :param input_labels: the labels that are used as input to the model.
+    :type model_framework: ModelFramework or str
+    :param model_framework: the model framework used to train the model.
+    :type model_server: ModelServer or str
+    :param model_server: the model server used to serve the model.
+    :type key_feature: str or callable
+    :param key_feature: the feature that is used for joining the features together.
+    :type prediction_output_schema: TypedDict
+    :param prediction_output_schema: the schema of the prediction output.
+    :type name: str
+    :param name: the name of the model. If not provided, the name will be the function name.
+    :return: a training function with provided context.
     """
     options = {}
 
