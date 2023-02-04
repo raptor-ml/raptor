@@ -102,13 +102,15 @@ class TrainingContext:
     Context of the model request.
     """
 
+    fqn: str = None
     keys: List[str] = []
     input_features: List[str] = []
     input_labels: List[str] = []
     _data_getter: Callable[[], pd.DataFrame] = None
 
-    def __init__(self, keys: List[str], input_features: List[str], input_labels: List[str],
+    def __init__(self, fqn:str, keys: List[str], input_features: List[str], input_labels: List[str],
                  data_getter: Callable[[], pd.DataFrame]):
+        self.fqn = fqn
         self.keys = keys
         self.input_features = input_features
         self.input_labels = input_labels
@@ -143,6 +145,9 @@ class ModelSpec(RaptorSpec):
     runtime: RuntimeSpec = RuntimeSpec(packages=[])
 
     _model_tag: str = None
+
+    def export(self, with_dependent_features=True, with_dependent_sources=True):
+        pass
 
     def train(self):
         raise NotImplementedError()

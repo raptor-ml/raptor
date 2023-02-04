@@ -44,7 +44,7 @@ from redbaron import RedBaron, DefNode
 
 selector_regex = re.compile(
     r'^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\[(?P<encoding>([a-z]+_*[a-z]+))])?$',
-    re.IGNORECASE | re.DOTALL)
+    re.IGNORECASE)
 
 primitive = Union[str, int, float, bool, datetime, List[str], List[int], List[float], List[bool], List[datetime], None]
 

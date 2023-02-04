@@ -65,11 +65,28 @@ func (k *Keys) Decode(encodedKeys string, fd FeatureDescriptor) error {
 // Engine is the main engine of the Core
 // It is responsible for the low-level operation for the features against the feature store
 type Engine interface {
+	// FeatureDescriptor returns the FeatureDescriptor for the given FQN
 	FeatureDescriptor(ctx context.Context, selector string) (FeatureDescriptor, error)
+	// Get returns the value for the given FQN and keys
+	// If the feature is not available, it returns nil.
+	// If the feature is windowed, the returned Value is a map from window function to Value.
 	Get(ctx context.Context, selector string, keys Keys) (Value, FeatureDescriptor, error)
+	// Set sets the raw value for the given FQN and keys
+	// If the feature's primitive is a List, it replaces the entire list.
+	// If the feature is windowed, it is aliased to WindowAdd instead of Set.
 	Set(ctx context.Context, FQN string, keys Keys, val any, ts time.Time) error
+	// Append appends to the raw value for the given FQN and keys
+	// If the feature's primitive is NOT a List it will throw an error.
 	Append(ctx context.Context, FQN string, keys Keys, val any, ts time.Time) error
+	// Incr increments the raw value of the feature.
+	// If the feature's primitive is NOT a Scalar it will throw an error.
+	// It returns the updated value in the state, and an error if occurred.
 	Incr(ctx context.Context, FQN string, keys Keys, by any, ts time.Time) error
+	// Update is the common function to update a feature SimpleValue.
+	// Under the hood, it utilizes lower-level functions depending on the type of the feature.
+	//  - Set for Scalars
+	//	- Append for Lists
+	//  - WindowAdd for Windows
 	Update(ctx context.Context, FQN string, keys Keys, val any, ts time.Time) error
 }
 type FeatureDescriptorGetter func(ctx context.Context, FQN string) (FeatureDescriptor, error)
