@@ -64,18 +64,7 @@ With Raptor, data scientists can focus *only* on their research and model develo
 production. Raptor takes care of the rest, including connecting to data sources, transforming the data, deploying and
 connecting the model, etc. This means data scientists can focus on what they do best, and Raptor handles the rest.
 
-## 🚀 Getting Started
-
-To start, install [Raptor LabSDK](https://pypi.org/project/raptor-labsdk/). The LabSDK is a Python package that help
-you develop models and features in a notebooks or IDEs.
-
-```console
-pip install raptor-labsdk
-```
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-## ⭐️ Key Features
+### ⭐️ Key Features
 
 * **Easy to use**: Raptor is user-friendly and can be started within 5 minutes.
 * **Eliminate serving/training skew**: You can use the same code for training and production to avoid training serving
@@ -90,6 +79,15 @@ pip install raptor-labsdk
   research to the rest of your organization's R&D ecosystem, utilizing tools such as CI/CD and monitoring.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
+
+## 🚀 Getting Started
+
+To start, install [Raptor LabSDK](https://pypi.org/project/raptor-labsdk/). The LabSDK is a Python package that help
+you develop models and features in a notebooks or IDEs.
+
+```console
+pip install raptor-labsdk
+```
 
 ### ⚡ Quick Example
 
