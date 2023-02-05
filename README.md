@@ -75,7 +75,23 @@ pip install raptor-labsdk
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-### ⚡ Full example
+## ⭐️ Key Features
+
+* **Easy to use**: Raptor is user-friendly and can be started within 5 minutes.
+* **Eliminate serving/training skew**: You can use the same code for training and production to avoid training serving
+  skew.
+* **Real-time/on-demand**: Raptor optimizes feature calculations and predictions to be performed at the time of request.
+* **Seamless Caching and storage**: Raptor uses an integrated caching system, and store your historical data for
+  training purposes. So you won't need any other data storage system such as "Feature Store".
+* **Turns data science work into production artifacts**: Raptor implements best-practice functionalities of Kubernetes
+  solutions, such as scaling, health, auto-recovery, monitoring, logging, and more.
+* **Integrates with R&D team**: Raptor extends existing DevOps tools and infrastructure and allows you to connect your
+  ML
+  research to the rest of your organization's R&D ecosystem, utilizing tools such as CI/CD and monitoring.
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+### ⚡ Quick Example
 
 ```python
 import pandas as pd
@@ -128,22 +144,6 @@ amount_prediction.export() # Export to production 🎉
 
 This will generate a bunch of artifacts in the `out` directory. The `out` directory also includes a `Makefile` that can
 be used for integration in any CI/CD pipeline, or even invoked manually.
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-## ⭐️ Key Features
-
-* **Easy to use**: Raptor is user-friendly and can be started within 5 minutes.
-* **Eliminate serving/training skew**: You can use the same code for training and production to avoid training serving
-  skew.
-* **Real-time/on-demand**: Raptor optimizes feature calculations and predictions to be performed at the time of request.
-* **Seamless Caching and storage**: Raptor uses an integrated caching system, and store your historical data for
-  training purposes. So you won't need any other data storage system such as "Feature Store".
-* **Turns data science work into production artifacts**: Raptor implements best-practice functionalities of Kubernetes
-  solutions, such as scaling, health, auto-recovery, monitoring, logging, and more.
-* **Integrates with R&D team**: Raptor extends existing DevOps tools and infrastructure and allows you to connect your
-  ML
-  research to the rest of your organization's R&D ecosystem, utilizing tools such as CI/CD and monitoring.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
