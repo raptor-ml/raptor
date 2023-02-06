@@ -37,7 +37,7 @@
   </p>
 </div>
 
-[![RaptorML Screen Shot][product-screenshot]][docs-url]
+[![RaptorML Screen Shot][product-screenshot]][colab-url]
 
 ## 🧐 What is Raptor?
 
@@ -56,9 +56,11 @@ monitoring, and all other backend concerns.
 **Raptor is made by and for data scientists and ML engineers**. We know how hard it is to build and deploy models to be
 an integral part of your products, and we want to make it easier.
 
-Before Raptor, data scientists had to work closely with backend engineers to build a "production version" of their work: 
-connect to data sources, transform their data with Flink/Spark or even Java, create APIs, dockerizing the model, handle 
+Before Raptor, data scientists had to work closely with backend engineers to build a "production version" of their work:
+connect to data sources, transform their data with Flink/Spark or even Java, create APIs, dockerizing the model, handle
 scaling and high availability, and more.
+
+![High-level view of Raptor](.github/simplified-high-level.png)
 
 With Raptor, data scientists can focus *only* on their research and model development, then export their work to
 production. Raptor takes care of the rest, including connecting to data sources, transforming the data, deploying and
@@ -66,7 +68,6 @@ connecting the model, etc. This means data scientists can focus on what they do 
 
 ### ⭐️ Key Features
 
-* **Easy to use**: Raptor is user-friendly and can be started within 5 minutes.
 * **Eliminate serving/training skew**: You can use the same code for training and production to avoid training serving
   skew.
 * **Real-time/on-demand**: Raptor optimizes feature calculations and predictions to be performed at the time of request.
@@ -96,8 +97,10 @@ import pandas as pd
 from typing_extensions import TypedDict
 from raptor import *
 
+
 @data_source(
-    training_data=pd.read_csv('https://gist.githubusercontent.com/AlmogBaku/8be77c2236836177b8e54fa8217411f2/raw/hello_world_transactions.csv'),
+    training_data=pd.read_csv(
+        'https://gist.githubusercontent.com/AlmogBaku/8be77c2236836177b8e54fa8217411f2/raw/hello_world_transactions.csv'),
     production_config=StreamingConfig()
 )
 class BankTransaction(TypedDict):
@@ -113,6 +116,7 @@ def total_spend(this_row: BankTransaction, ctx: Context) -> float:
     """total spend by a customer in the last hour"""
     return this_row['amount']
 
+
 @feature(keys='customer_id', data_source=BankTransaction)
 @freshness(max_age='5h', max_stale='1d')
 def amount(this_row: BankTransaction, ctx: Context) -> float:
@@ -121,7 +125,7 @@ def amount(this_row: BankTransaction, ctx: Context) -> float:
 
 
 # Train the model 🤓
-@model(   
+@model(
     keys='customer_id',
     input_features=['total_spend+sum'],
     input_labels=[amount],
@@ -137,13 +141,40 @@ def amount_prediction(ctx: TrainingContext):
     return trainer
 
 
-amount_prediction.export() # Export to production 🎉
+amount_prediction.export()  # Export to production 🎉
 ```
 
 This will generate a bunch of artifacts in the `out` directory. The `out` directory also includes a `Makefile` that can
 be used for integration in any CI/CD pipeline, or even invoked manually.
 
+[![Colab][colab-button-expand]][colab-url]
+
 <p align="right">(<a href="#top">back to top</a>)</p>
+
+## 🥊 How does Raptor different than ___ ?
+
+### MLOps platforms (MLFlow, Kubeflow, Metaflow, Sagemaker, VertexAI, etc.)
+
+Traditional MLOps platforms are focused on managing the ML resources lifecycle, and are not designed for building
+operational
+models and features. Raptor is designed for building operational models and features, and can be integrated with MLOps
+platforms.
+
+### Feature Stores (Hopsworks, Feast, etc.)
+
+Feature store is a data storage system that stores pre-computed features for training and online purposes. That means
+that you need to orchestrate the pre-computation of the features, store them, connect them to your model, and write
+ad-hoc backend code.
+
+Raptor takes a radically different approach. You focus on the model, and Raptor takes care of the rest. Raptor has a
+built-in caching system that allows you to achieve similar results to a feature store, but without the need to
+orchestrate the data pipeline and the model deployment directly.
+
+### Model Servers (Sagemaker, BentoML, KServe, etc.)
+
+Model servers are designed for serving models in production. They are not designed for building models and features for
+production. In fact, Raptor integrates seamlessly with Model Servers(such as Sagemaker, BentoML, etc.) to serve your
+models.
 
 ## 💡 How does it work?
 
@@ -285,7 +316,8 @@ Distributed under the Apache2 License. Read the `LICENSE` file for more informat
 
 [best-practices-url]: https://bestpractices.coreinfrastructure.org/projects/6406
 
-[colab-button]: https://img.shields.io/badge/-Getting%20started%20with%20Colab-blue?style=for-the-badge&logo=googlecolab
+[colab-button]: https://img.shields.io/badge/-Getting_started_with_Colab-blue?style=for-the-badge&logo=googlecolab
+[colab-button-expand]: https://img.shields.io/badge/-see_advanced_example_notebook-blue?style=for-the-badge&logo=googlecolab
 
 [colab-url]: https://colab.research.google.com/github/raptor-ml/docs/blob/master/docs/guides/getting-started-with-labsdk.ipynb
 
