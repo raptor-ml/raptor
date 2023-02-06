@@ -199,7 +199,7 @@ Learn more about production installation at [the docs][docs-url].
 
 ### 🏗️ Prerequisites
 
-1. Kubernetes cluster
+1. Kubernetes cluster (including EKS, GKE, etc.)
 2. Redis server (> 2.8.9)
 3. Optional: Snowflake or S3 bucket (to record historical data for retraining purposes)
 
@@ -216,6 +216,7 @@ Learn more about production installation at [the docs][docs-url].
     - [ ] S3 fetching data - Spark
 - [ ] Deploy models to model servers
     - [x] Sagemaker ACK
+    - [ ] VertexAI
     - [ ] Seldon
     - [ ] Kubeflow
     - [ ] KFServing
