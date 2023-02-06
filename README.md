@@ -71,7 +71,7 @@ connecting the model, etc. This means data scientists can focus on what they do 
 * **Eliminate serving/training skew**: You can use the same code for training and production to avoid training serving
   skew.
 * **Real-time/on-demand**: Raptor optimizes feature calculations and predictions to be performed at the time of request.
-* **Seamless Caching and storage**: Raptor uses an integrated caching system, and store your historical data for
+* **Seamless caching and storage**: Raptor uses an integrated caching system, and store your historical data for
   training purposes. So you won't need any other data storage system such as "Feature Store".
 * **Turns data science work into production artifacts**: Raptor implements best-practice functionalities of Kubernetes
   solutions, such as scaling, health, auto-recovery, monitoring, logging, and more.
