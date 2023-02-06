@@ -94,20 +94,17 @@ pip install raptor-labsdk
 
 ```python
 import pandas as pd
-from typing_extensions import TypedDict
 from raptor import *
-
+from typing_extensions import TypedDict
 
 @data_source(
-    training_data=pd.read_csv(
-        'https://gist.githubusercontent.com/AlmogBaku/8be77c2236836177b8e54fa8217411f2/raw/hello_world_transactions.csv'),
+    training_data=pd.read_csv('https://gist.githubusercontent.com/AlmogBaku/8be77c2236836177b8e54fa8217411f2/raw/hello_world_transactions.csv'),
     production_config=StreamingConfig()
 )
 class BankTransaction(TypedDict):
     customer_id: str
     amount: float
     timestamp: str
-
 
 # Define features 🧪
 @feature(keys='customer_id', data_source=BankTransaction)
@@ -116,13 +113,11 @@ def total_spend(this_row: BankTransaction, ctx: Context) -> float:
     """total spend by a customer in the last hour"""
     return this_row['amount']
 
-
 @feature(keys='customer_id', data_source=BankTransaction)
 @freshness(max_age='5h', max_stale='1d')
 def amount(this_row: BankTransaction, ctx: Context) -> float:
     """total spend by a customer in the last hour"""
     return this_row['amount']
-
 
 # Train the model 🤓
 @model(
@@ -139,7 +134,6 @@ def amount_prediction(ctx: TrainingContext):
     trainer = LinearRegression()
     trainer.fit(df[ctx.input_features], df[ctx.input_labels])
     return trainer
-
 
 amount_prediction.export()  # Export to production 🎉
 ```
