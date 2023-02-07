@@ -29,7 +29,7 @@
     <a href="https://raptor.ml"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://colab.research.google.com/github/raptor-ml/docs/blob/master/docs/guides/getting-started-with-labsdk.ipynb">Getting started in 5 minutes</a>
+    <a href="https://colab.research.google.com/github/raptor-ml/docs/blob/master/docs/docs/getting-started.ipynb">Getting started in 5 minutes</a>
     ·
     <a href="https://github.com/raptor-ml/raptor/issues">Report a Bug</a>
     ·
@@ -45,8 +45,8 @@ Raptor enables data scientists and ML engineers to build and deploy operational 
 **without learning backend engineering**.
 
 With Raptor, you can export your Python research code as standard production artifacts, and deploy them to Kubernetes.
-Once you deployed, Raptor optimize data processing and feature calculation for production, deploy models
-to Sagemaker or Docker containers, connect to your production data sources, scaling, high availability, caching,
+Once you deployed, Raptor optimizes data processing and feature calculation for production, deploys models
+to Sagemaker or Docker containers, and connects to your production data sources, scaling, high availability, caching,
 monitoring, and all other backend concerns.
 
 [![Colab][colab-button]][colab-url]
@@ -70,21 +70,21 @@ connecting the model, etc. This means data scientists can focus on what they do 
 
 * **Eliminate serving/training skew**: You can use the same code for training and production to avoid training serving
   skew.
-* **Real-time/on-demand**: Raptor optimizes feature calculations and predictions to be performed at the time of request.
+* **Real-time/on-demand**: Raptor optimizes feature calculations and predictions to be performed at the time of the
+  request.
 * **Seamless caching and storage**: Raptor uses an integrated caching system, and store your historical data for
   training purposes. So you won't need any other data storage system such as "Feature Store".
 * **Turns data science work into production artifacts**: Raptor implements best-practice functionalities of Kubernetes
   solutions, such as scaling, health, auto-recovery, monitoring, logging, and more.
 * **Integrates with R&D team**: Raptor extends existing DevOps tools and infrastructure and allows you to connect your
-  ML
-  research to the rest of your organization's R&D ecosystem, utilizing tools such as CI/CD and monitoring.
+  ML  research to the rest of your organization's R&D ecosystem, utilizing tools such as CI/CD and monitoring.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 🚀 Getting Started
 
 To start, install [Raptor LabSDK](https://pypi.org/project/raptor-labsdk/). The LabSDK is a Python package that help
-you develop models and features in a notebooks or IDEs.
+you develop models and features in notebooks or IDEs.
 
 ```console
 pip install raptor-labsdk
@@ -97,14 +97,17 @@ import pandas as pd
 from raptor import *
 from typing_extensions import TypedDict
 
+
 @data_source(
-    training_data=pd.read_csv('https://gist.githubusercontent.com/AlmogBaku/8be77c2236836177b8e54fa8217411f2/raw/hello_world_transactions.csv'),
+    training_data=pd.read_csv(
+        'https://gist.githubusercontent.com/AlmogBaku/8be77c2236836177b8e54fa8217411f2/raw/hello_world_transactions.csv'),
     production_config=StreamingConfig()
 )
 class BankTransaction(TypedDict):
     customer_id: str
     amount: float
     timestamp: str
+
 
 # Define features 🧪
 @feature(keys='customer_id', data_source=BankTransaction)
@@ -113,11 +116,13 @@ def total_spend(this_row: BankTransaction, ctx: Context) -> float:
     """total spend by a customer in the last hour"""
     return this_row['amount']
 
+
 @feature(keys='customer_id', data_source=BankTransaction)
 @freshness(max_age='5h', max_stale='1d')
 def amount(this_row: BankTransaction, ctx: Context) -> float:
     """total spend by a customer in the last hour"""
     return this_row['amount']
+
 
 # Train the model 🤓
 @model(
@@ -135,6 +140,7 @@ def amount_prediction(ctx: TrainingContext):
     trainer.fit(df[ctx.input_features], df[ctx.input_labels])
     return trainer
 
+
 amount_prediction.export()  # Export to production 🎉
 ```
 
@@ -149,7 +155,7 @@ be used for integration in any CI/CD pipeline, or even invoked manually.
 
 ### MLOps platforms (MLFlow, Kubeflow, Metaflow, Sagemaker, VertexAI, etc.)
 
-Traditional MLOps platforms are focused on managing the ML resources lifecycle, and are not designed for building
+Traditional MLOps platforms are focused on managing the ML resources lifecycle and are not designed for building
 operational
 models and features. Raptor is designed for building operational models and features, and can be integrated with MLOps
 platforms.
@@ -157,11 +163,11 @@ platforms.
 ### Feature Stores (Hopsworks, Feast, etc.)
 
 Feature store is a data storage system that stores pre-computed features for training and online purposes. That means
-that you need to orchestrate the pre-computation of the features, store them, connect them to your model, and write
-ad-hoc backend code.
+you need to orchestrate the pre-computation of the features, store them, connect them to your model, and write ad-hoc
+backend code.
 
 Raptor takes a radically different approach. You focus on the model, and Raptor takes care of the rest. Raptor has a
-built-in caching system that allows you to achieve similar results to a feature store, but without the need to
+built-in caching system that allows you to achieve similar results to a feature store but without the need to
 orchestrate the data pipeline and the model deployment directly.
 
 ### Model Servers (Sagemaker, BentoML, KServe, etc.)
@@ -177,7 +183,7 @@ translatable way for production purposes.
 
 Models and Features in Raptor are composed of a declarative part(via Python's decorators) and a function code. This
 way, Raptor can translate the heavy-lifting engineering concerns(such as aggregations or caching) by implementing the
-"declarative part", and optimize the implementation for production.
+"declarative part", and optimizing the implementation for production.
 
 ![Features are composed from a declarative part and a function code][feature-py-def]
 
@@ -312,9 +318,10 @@ Distributed under the Apache2 License. Read the `LICENSE` file for more informat
 [best-practices-url]: https://bestpractices.coreinfrastructure.org/projects/6406
 
 [colab-button]: https://img.shields.io/badge/-Getting_started_with_Colab-blue?style=for-the-badge&logo=googlecolab
+
 [colab-button-expand]: https://img.shields.io/badge/-see_advanced_example_notebook-blue?style=for-the-badge&logo=googlecolab
 
-[colab-url]: https://colab.research.google.com/github/raptor-ml/docs/blob/master/docs/guides/getting-started-with-labsdk.ipynb
+[colab-url]: https://colab.research.google.com/github/raptor-ml/docs/blob/master/docs/docs/getting-started.ipynb
 
 [docs-url]: https://raptor.ml/
 
