@@ -296,6 +296,23 @@ def feature(
     if not isinstance(keys, List):
         keys = [keys]
 
+    if data_source is not None:
+        if hasattr(data_source, 'raptor_spec'):
+            if not isinstance(data_source.raptor_spec, DataSourceSpec):
+                raise Exception(
+                    'data_source decorator must be used on a class that extends typing_extensions.TypedDict')
+        elif not isinstance(data_source, str):
+            raise Exception('data_source must be a string or a DataSource class')
+
+    if sourceless_markers_df is not None:
+        if hasattr(sourceless_markers_df, 'raptor_spec'):
+            if isinstance(sourceless_markers_df.raptor_spec, DataSourceSpec):
+                sourceless_markers_df = sourceless_markers_df.raptor_spec.local_df
+            else:
+                raise Exception('sourceless_markers_df must be a pandas.DataFrame or a DataSource class')
+        elif not isinstance(sourceless_markers_df, DataFrame):
+            raise Exception('sourceless_markers_df must be a pandas.DataFrame or a DataSource class')
+
     @_wrap_decorator_err
     def decorator(func):
         nonlocal name
