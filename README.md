@@ -21,9 +21,9 @@
 <br />
 
   <p align="center">
-    Raptor simplifies deploying data science work from a notebook to production; it compiles your python research
-    code and takes care of the engineering concerns like scalability and reliability on Kubernetes. Focus on
-    the <strong>data science</strong>, RaptorML will take care of the engineering overhead.
+    Raptor simplifies deploying data science work from a notebook to production; it <strong>compiles</strong> your
+    python research code and takes care of the engineering concerns like scalability and reliability on Kubernetes.
+    Focus on the <strong>data science</strong>, RaptorML will take care of the engineering overhead.
     <br />
     <br />
     <a href="https://raptor.ml"><strong>Explore the docs »</strong></a>
