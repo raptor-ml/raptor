@@ -83,18 +83,27 @@ func Run(cfg *rest.Config, kc client.Client, usageReporting bool, logger logr.Lo
 			nodes = len(nl.Items)
 		}
 
+		consts := prometheus.Labels{
+			"instance_id":  InstanceID,
+			"version":      version.Version,
+			"go_version":   version.GoVersion,
+			"architecture": version.Architecture,
+			"os":           version.OS,
+			"k8s_version":  k8sVer,
+			"node_count":   fmt.Sprintf("%d", nodes),
+		}
+
+		if UID != "" {
+			consts["uid"] = UID
+		} else {
+			consts["anon_id"] = getAnonID(kc)
+		}
+
 		metrics.Registry.MustRegister(prometheus.NewGaugeFunc(
 			prometheus.GaugeOpts{
-				Name: "metadata_info",
-				Help: "Metadata information includes the version of the application, the instance id and the uid",
-				ConstLabels: prometheus.Labels{
-					"version":      version.Version,
-					"go_version":   version.GoVersion,
-					"architecture": version.Architecture,
-					"os":           version.OS,
-					"k8s_version":  k8sVer,
-					"node_count":   fmt.Sprintf("%d", nodes),
-				},
+				Name:        "metadata_info",
+				Help:        "Metadata information includes the version of the application, the instance id and the uid",
+				ConstLabels: consts,
 			},
 			func() float64 { return 1 },
 		))
@@ -106,13 +115,12 @@ func Run(cfg *rest.Config, kc client.Client, usageReporting bool, logger logr.Lo
 		wait.UntilWithContext(ctx, func(ctx context.Context) {
 			pr := push.New(usageAPI, "core").
 				Gatherer(metrics.Registry).
-				Client(&http.Client{Timeout: 5 * time.Minute}).
-				Grouping("instance_id", InstanceID)
-			if UID != "" {
-				pr.Grouping("uid", UID)
-			} else {
-				pr.Grouping("anon_id", getAnonID(kc))
+				Client(&http.Client{Timeout: 5 * time.Minute})
+
+			for k, v := range consts {
+				pr = pr.Grouping(k, v)
 			}
+
 			if err := pr.Push(); err != nil {
 				logger.V(-1).Info("failed to push metrics to usage server", "err", err)
 			}
