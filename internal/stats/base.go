@@ -85,7 +85,7 @@ func Run(cfg *rest.Config, kc client.Client, usageReporting bool, logger logr.Lo
 
 		consts := prometheus.Labels{
 			"instance_id":  InstanceID,
-			"version":      version.Version,
+			"app_version":  version.Version,
 			"go_version":   version.GoVersion,
 			"architecture": version.Architecture,
 			"os":           version.OS,
@@ -101,9 +101,9 @@ func Run(cfg *rest.Config, kc client.Client, usageReporting bool, logger logr.Lo
 
 		metrics.Registry.MustRegister(prometheus.NewGaugeFunc(
 			prometheus.GaugeOpts{
-				Name:        "metadata_info",
-				Help:        "Metadata information includes the version of the application, the instance id and the uid",
-				ConstLabels: consts,
+				Name:        "core_init",
+				Help:        "Core initialization",
+				ConstLabels: prometheus.Labels{},
 			},
 			func() float64 { return 1 },
 		))
