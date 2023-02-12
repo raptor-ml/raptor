@@ -25,12 +25,16 @@ from typing_extensions import TypedDict
 from .common import RaptorSpec, ResourceReference, _k8s_name, EnumSpec, RuntimeSpec
 from .dsrc import DataSourceSpec
 from .primitives import Primitive
-from .. import durpy, local_state
+from .. import local_state
+from .._internal import durpy
 from .._internal.exporter.general import GeneralExporter
 from ..program import Program
 
 
 class AggregationFunction(EnumSpec):
+    """
+    AggregationFunction is the function used to aggregate the data.
+    """
     Unknown = 'unknown'
     Sum = 'sum'
     Avg = 'avg'
@@ -110,6 +114,9 @@ class AggrSpec(yaml.YAMLObject):
 
 
 class KeepPreviousSpec(yaml.YAMLObject):
+    """
+    KeepPreviousSpec is the specification for how many previous versions of a feature to keep.
+    """
     versions: int = None
     over: timedelta = None
 
@@ -123,6 +130,9 @@ class KeepPreviousSpec(yaml.YAMLObject):
 
 
 class FeatureSpec(RaptorSpec):
+    """
+    FeatureSpec is the specification for a feature.
+    """
     primitive: Primitive = None
     _freshness: Optional[timedelta] = None
     staleness: timedelta = None
@@ -241,6 +251,11 @@ class FeatureSpec(RaptorSpec):
 
 
 class Keys(Dict[str, str]):
+    """
+    Keys is a dictionary of keys and values for a feature.
+
+    It is used to encode and decode keys for a feature.
+    """
     def encode(self, spec: FeatureSpec) -> str:
         ret: List[str] = []
         for key in spec.keys:

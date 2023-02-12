@@ -13,6 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+The LabSDK provides a set of decorators that can be used to configure the assets in a way that can be translated to an
+optimized production-ready solution by Raptor.
+"""
+
 import inspect
 import sys
 import types
@@ -24,7 +29,8 @@ from pandas import DataFrame
 from pydantic import create_model_from_typeddict
 from typing_extensions import TypedDict
 
-from . import local_state, config, durpy, replay
+from . import local_state, config, replay
+from ._internal import durpy
 from .program import Program
 from .program import normalize_selector
 from .types import FeatureSpec, AggrSpec, AggregationFunction, Primitive, DataSourceSpec, ModelFramework, ModelServer, \

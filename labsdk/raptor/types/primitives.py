@@ -20,6 +20,9 @@ from . import EnumSpec
 
 
 class Primitive(EnumSpec):
+    """
+    Primitive types supported by RaptorML.
+    """
     String = 'string'
     Integer = 'int'
     Float = 'float'

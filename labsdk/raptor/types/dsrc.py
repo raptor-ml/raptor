@@ -23,7 +23,15 @@ from .._internal.exporter.general import GeneralExporter
 
 
 class DataSourceSpec(RaptorSpec):
-    production_config: SourceProductionConfig = None,
+    """
+    DataSourceSpec is the specification of a data source.
+
+    :param name: name of the data source
+    :param keys: list of keys of the data source
+    :param timestamp: name of the timestamp column
+    :param production_config: production configuration type. It will be used to generate a stub configuration.
+    """
+    production_config: SourceProductionConfig = None
     schema: Optional[Dict[str, Any]] = None
     keys: List[str] = None
     timestamp: str = None

@@ -38,6 +38,9 @@ os.environ.setdefault('BENTOML_HOME', os.path.join(os.path.expanduser('~'), '.ra
 
 
 class ModelServer(EnumSpec):
+    """
+    Model server to use for deployment
+    """
     SageMakerACK = 'sagemaker-ack'
     Seldon = 'seldon'
     KServe = 'kserve'
@@ -73,6 +76,9 @@ class ModelServer(EnumSpec):
 
 
 class ModelFramework(EnumSpec):
+    """
+    Framework used to train the model
+    """
     HuggingFace = 'huggingface'
     Sklearn = 'sklearn'
     Pytorch = 'pytorch'
@@ -124,6 +130,23 @@ class TrainingContext:
 
 
 class ModelSpec(RaptorSpec):
+    """
+    Specification of a model
+
+    :param keys: List of keys to use for training
+    :param freshness: How fresh the data should be
+    :param staleness: How stale the data can be
+    :param timeout: How long to wait for data
+    :param features: List of features to use for training
+    :param label_features: List of label features to use for training
+    :param key_feature: Feature to use as key
+    :param model_framework: Framework used to train the model
+    :param model_server: Model server to use for deployment
+    :param training_function: Function to use for training
+    :param exporter: Exporter to use for exporting the model
+    :param model_framework_version: Version of the model framework
+    :param runtime: Runtime to use for training
+    """
     keys: List[str] = None
     freshness: Optional[timedelta] = None
     staleness: timedelta = None

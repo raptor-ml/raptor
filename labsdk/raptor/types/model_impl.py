@@ -20,7 +20,8 @@ from typing import Optional, Callable
 from . import SecretKeyRef
 from .common import _k8s_name
 from .model import ModelSpec, TrainingContext
-from .. import local_state, replay, durpy
+from .. import local_state, replay
+from .._internal import durpy
 from .._internal.exporter import ModelExporter
 from .._internal.exporter.general import GeneralExporter
 

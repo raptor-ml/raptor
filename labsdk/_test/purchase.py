@@ -25,14 +25,13 @@ from typing import TypedDict
 
 import pandas as pd
 
-from ..raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, model, \
+from labsdk.raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, model, \
     TrainingContext, StreamingConfig
 
 
 # Data source for the purchase history data
 @data_source(
-    training_data=pd.read_parquet(
-        'https://gist.github.com/AlmogBaku/a1b331615eaf1284432d2eecc5fe60bc/raw/purchases.parquet'),
+    training_data=pd.read_parquet('purchases.parquet'),
     keys=['id', 'customer_id'],
     timestamp='purchase_at',
     production_config=StreamingConfig(kind='kafka'),
@@ -89,7 +88,7 @@ def purchase_prediction(ctx: TrainingContext) -> float:
     accuracy = xgb_model.score(X_test, y_test)
 
     # Make sure the model has a minimum accuracy of 0.6
-    if accuracy < 0.6:
+    if accuracy < 0.7:
         raise Exception('Accuracy is below 0.7')
 
     return xgb_model
