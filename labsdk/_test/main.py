@@ -17,7 +17,7 @@ from datetime import datetime
 import pandas as pd
 from typing_extensions import TypedDict
 
-from ..raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, model, manifests, \
+from labsdk.raptor import data_source, Context, feature, aggregation, AggregationFunction, freshness, model, manifests, \
     keep_previous, TrainingContext, StreamingConfig
 
 
@@ -155,6 +155,9 @@ def deal_prediction(ctx: TrainingContext) -> float:
     xgb_model = XGBClassifier()
 
     # Fit the model to the training data
+    from sklearn.preprocessing import LabelEncoder
+    le = LabelEncoder()
+    y_train = le.fit_transform(y_train)
     xgb_model.fit(X_train, y_train)
 
     # Evaluate the model on the testing data
