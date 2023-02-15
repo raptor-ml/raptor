@@ -1,3 +1,19 @@
+# [0.3.0](https://github.com/raptor-ml/raptor/compare/LabSDK-v0.2.7...LabSDK-v0.3.0) (2023-02-15)
+
+
+### Bug Fixes
+
+* **labsdk:** durpy should be internal ([#277](https://github.com/raptor-ml/raptor/issues/277)) ([3d69d40](https://github.com/raptor-ml/raptor/commit/3d69d4023556fe5341ab9431b08d3eb9b66997fc))
+
+
+### Features
+
+* allow specifying sourceless markers from dsrc ([#274](https://github.com/raptor-ml/raptor/issues/274)) ([5125017](https://github.com/raptor-ml/raptor/commit/5125017647d787076bf6838b70570a588eb89116))
+
+
+
+
+
 ## [0.2.7](https://github.com/raptor-ml/raptor/compare/LabSDK-v0.2.6...LabSDK-v0.2.7) (2023-02-02)
 
 
