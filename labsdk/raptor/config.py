@@ -13,5 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# default namespace
+"""
+Configuration for Raptor's Lab SDK.
+"""
+
 default_namespace = 'default'
+"""
+The default namespace to use for Raptor's Lab SDK.
+"""

@@ -136,7 +136,7 @@ print(diff_with_previous_price.replay().to_markdown())
         'emails_10h+count', 'deals_10h+sum', emails_deals, diff_with_previous_price
     ],
     input_labels=[last_amount],
-    model_framework='sklearn',
+    model_framework='xgboost',
     model_server='sagemaker-ack',
 )
 @freshness(max_age='1h', max_stale='100h')

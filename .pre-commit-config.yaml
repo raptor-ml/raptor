@@ -28,7 +28,6 @@ repos:
       - id: trailing-whitespace
       - id: check-ast
       - id: check-builtin-literals
-      - id: check-docstring-first
       - id: debug-statements
       - id: double-quote-string-fixer
       - id: fix-encoding-pragma

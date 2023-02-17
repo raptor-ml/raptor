@@ -17,35 +17,34 @@
         <img src=".github/logo.svg" alt="RaptorML - Production-ready feature engineering" width="300">
     </a>
 
-<h3 align="center"><p>From notebook to production</p>Transform your data science to production-ready artifacts</h3>
+<h3 align="center">
+    <p>From notebook to production</p>
+    Transform your data science to production-ready artifacts
+</h3>
 <br />
 
-  <p align="center">
-    Raptor simplifies deploying data science work from a notebook to production; it <strong>compiles</strong> your
-    python research code and takes care of the engineering concerns like scalability and reliability on Kubernetes.
-    Focus on the <strong>data science</strong>, RaptorML will take care of the engineering overhead.
-    <br />
-    <br />
-    <a href="https://raptor.ml"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://colab.research.google.com/github/raptor-ml/docs/blob/master/docs/docs/getting-started.ipynb">Getting started in 5 minutes</a>
-    ·
-    <a href="https://github.com/raptor-ml/raptor/issues">Report a Bug</a>
-    ·
-    <a href="https://github.com/raptor-ml/raptor/issues">Request a Feature</a>
-  </p>
+Raptor frees data scientists and ML engineers to build and deploy operational models and ML-driven functionality,
+*without learning backend* engineering.
+
+It <strong>compiles</strong> your python research code to production artifacts, and takes care of the engineering
+concerns such as scalability and reliability using best-practices on Kubernetes.
+
+[**Explore the docs »**][docs-url]
+
+[**Getting started in 5 minutes »**][colab-url] · [Report a Bug][issues-url] · [Request a Feature][issues-url]
+
 </div>
 
 [![RaptorML Screen Shot][product-screenshot]][colab-url]
 
 ## 🧐 What is Raptor?
 
-Raptor enables data scientists and ML engineers to build and deploy operational models and ML-driven functionality,
-**without learning backend engineering**.
+Raptor frees data scientists and ML engineers to **focus on the data science and research work**, and build operational
+models and ML-driven functionality **without learning backend engineering**. Focus on what you're good at, increase your
+end-to-end velocity, and **close the gap between research and production**.
 
-With Raptor, you can export your Python research code as standard production artifacts, and deploy them to Kubernetes.
-Once you deployed, Raptor optimizes data processing and feature calculation for production, deploys models
+With Raptor, you can export your Python research code as **standard production artifacts**, and deploy them to
+Kubernetes. Once they deployed, Raptor optimizes data processing and feature calculation for production, deploys models
 to Sagemaker or Docker containers, and connects to your production data sources, scaling, high availability, caching,
 monitoring, and all other backend concerns.
 
@@ -68,6 +67,8 @@ connecting the model, etc. This means data scientists can focus on what they do 
 
 ### ⭐️ Key Features
 
+* **Focus on _your_ work**: Raptor frees data scientists and ML engineers to focus on the model, without
+  learning backend engineering. Stop worrying about the engineering concerns, and focus on what you're good at.
 * **Eliminate serving/training skew**: You can use the same code for training and production to avoid training serving
   skew.
 * **Real-time/on-demand**: Raptor optimizes feature calculations and predictions to be performed at the time of the
@@ -77,7 +78,7 @@ connecting the model, etc. This means data scientists can focus on what they do 
 * **Turns data science work into production artifacts**: Raptor implements best-practice functionalities of Kubernetes
   solutions, such as scaling, health, auto-recovery, monitoring, logging, and more.
 * **Integrates with R&D team**: Raptor extends existing DevOps tools and infrastructure and allows you to connect your
-  ML  research to the rest of your organization's R&D ecosystem, utilizing tools such as CI/CD and monitoring.
+  ML research to the rest of your organization's R&D ecosystem, utilizing tools such as CI/CD and monitoring.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -239,8 +240,7 @@ Learn more about production installation at [the docs][docs-url].
     - [ ] Postgres
     - [ ] GraphQL
 
-See the [open issues](https://github.com/raptor-ml/raptor/issues) for a full list of proposed features (and known
-issues)
+See the [open issues](issues-url]) for a full list of proposed features (and known issues)
 .
 
 <p align="right">(<a href="#top">back to top</a>)</p>
@@ -257,7 +257,7 @@ are **greatly appreciated** (not only code! but also documenting, blogging, or g
 Please fork the repo and create a pull request if you have a suggestion. You can also simply open an issue and choose "
 Feature Request" to give us some feedback.
 
-**Don't forget to give the project a star! ⭐️**
+**Don't forget to give the project [a star](#top)! ⭐️**
 
 For more information about contributing code to the project, read the [`CONTRIBUTING.md`](./CONTRIBUTING.md) file.
 
@@ -274,6 +274,11 @@ Distributed under the Apache2 License. Read the `LICENSE` file for more informat
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## 👫 Joining the community
+
+You can join the Raptor community on [Slack](https://raptor.ml/community), follow us
+on [Twitter](https://twitter.com/RaptorML), and participate in the issues and pull requests.
+
+**Don't forget to give the project [a star](#top)! ⭐️**
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
