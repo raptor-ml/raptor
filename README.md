@@ -26,8 +26,8 @@
 Raptor frees data scientists and ML engineers to build and deploy operational models and ML-driven functionality,
 *without learning backend* engineering.
 
-It <strong>compiles</strong> your python research code to production artifacts, and takes care of the engineering
-concerns such as scalability and reliability using best-practices on Kubernetes.
+It **compiles** your python research code to production artifacts, and takes care of the engineering concerns such as
+scalability and reliability using best-practices on Kubernetes.
 
 [**Explore the docs »**][docs-url]
 
@@ -275,8 +275,8 @@ Distributed under the Apache2 License. Read the `LICENSE` file for more informat
 
 ## 👫 Joining the community
 
-You can join the Raptor community on [Slack](https://raptor.ml/community), follow us
-on [Twitter](https://twitter.com/RaptorML), and participate in the issues and pull requests.
+You can join the Raptor community on [Slack][community], follow us
+on [Twitter][twitter], and participate in the issues and pull requests.
 
 **Don't forget to give the project [a star](#top)! ⭐️**
 
@@ -333,3 +333,7 @@ on [Twitter](https://twitter.com/RaptorML), and participate in the issues and pu
 [product-screenshot]: .github/demo.gif
 
 [feature-py-def]: .github/feature-py-def.png
+
+[community]: https://raptor.ml/docs/community
+
+[twitter]: https://twitter.com/RaptorML
