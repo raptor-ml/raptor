@@ -75,7 +75,14 @@ def _opts(func, options: dict):
 def namespace(namespace: str):
     """
     Register a namespace for the asset.
-    :param namespace: namespace name
+    :type namespace: str
+    :param namespace: the name of namespace to attach the asset to.
+
+    **Example**:
+
+    ```python
+    @namespace('my_namespace')
+    ```
     """
 
     def decorator(func):
@@ -90,9 +97,16 @@ def runtime(
 ):
     """
     Register the runtime environment for the asset.
-    :param packages:
-    :param env_name:
-    :return:
+    :type packages: list of str
+    :param packages: list of PIP installable packages. You can specify a version pip notation, e.g. 'numpy==1.19.5' or
+        'numpy>=1.19.5'.
+    :type env_name: str
+    :param env_name: the name of the runtime virtual environment name. The environment should be pre-configured in
+        the Raptor Core installation by your DevOps. Defaults to the 'default' runtime if not specified.
+
+    **Example**:
+
+    >>> @runtime(packages=['numpy==1.21.1', 'phonenumbers'], env_name='default')
     """
 
     def decorator(func):
@@ -110,9 +124,9 @@ def freshness(
     timeout: Optional[Union[str, timedelta]] = timedelta(seconds=1),  # defaults to 1 seconds
 ):
     """
-    Set the freshness policy, and timeout of a feature or model.
-    Must be used in conjunction with a feature or model decorator.
-    Is placed AFTER the @model or @feature decorator.
+    Set the freshness policy, and timeout of a feature or model. It is required so Raptor will be able to match the
+    production behaviour with the development behaviour.
+    This decorator must be used in conjunction with a feature or model decorator.
 
     Feature or Model values are considered fresh if they are younger than the `max_age`.
     If the value is older than `max_age`, we'll try to recompute it with a timeout of `timeout`.
@@ -120,11 +134,19 @@ def freshness(
     `max_stale`.
 
     :type max_age: timedelta or str of the form '2h 3m 4s'
-    :param max_age: the target freshness of the feature or model.
+    :param max_age: the maximum age of a feature or model value. If the calculated value is older than `max_age`, we'll
+        try to recompute the value.
     :type max_stale: timedelta or str of the form '2h 3m 4s'
-    :param max_stale: the time after which the feature or model is considered stale. defaults to == max_age
+    :param max_stale: the time after which the feature or model is considered stale. If the
+        value is older than `max_stale`, we'll return `None`. Defaults to `max_age`.
     :type timeout: timedelta or str of the form '2h 3m 4s'
     :param timeout: the maximum time allowed for the feature to be computed. defaults to 1 second.
+
+    **Example**:
+
+    ```python
+    @freshness(max_age='1h', max_stale='2h', timeout='10s')
+    ```
     """
     if max_stale is None:
         max_stale = max_age
@@ -142,7 +164,14 @@ def freshness(
 def labels(labels: Dict[str, str]):
     """
     Register labels for the asset.
+    :type labels: dict<str,str> (key, value)
     :param labels: a dictionary of tags.
+
+    **Example**:
+
+    ```python
+    @labels({'owner': '@AlmogBaku', 'team': 'search'})
+    ```
     """
 
     def decorator(func):
@@ -161,13 +190,52 @@ def data_source(
     production_config: Optional[SourceProductionConfig] = None,  # production stub configuration
 ):
     """
-    Register a DataSource for the Feature Definition.
+    Register a DataSource asset. The data source is a class that represents the schema of the data source in production.
+    It is used to validate the data source in production and to connect the data source to the feature and model assets.
+
+    **Class signature**:
+
+    This decorator should wrap a class that inherits from `typing_extensions.TypedDict`, the class content is optional
+    and should reflect the schema of the data source.
+
+
+    :type training_data: DataFrame
     :param training_data: DataFrame of training data. This should reflect the schema of the data source in production.
+    :type keys: str or list of str
     :param keys: list of columns that are keys.
+    :type name: str
     :param name: name of the data source. Defaults to the class name.
+    :type timestamp: str
     :param timestamp: name of the timestamp column. If not specified, the timestamp is inferred from the training data.
+    :type production_config: SourceProductionConfig
     :type production_config: this is a stub for the production configuration. It is not used in training, but is helpful
             for making sense of the source, the production behavior, and a preparation for the production deployment.
+            To connect the data source to the production data source, your DevOps should configure the production
+            configuration later, with the generated stub.
+
+    :returns:
+    A wrapped class with additional methods and properties:
+        - `raptor_spec` - the Raptor specification object.
+        - `manifest(to_file: bool = False)` - a function that returns the data source manifest. If `to_file` is True,
+            the manifest is written to a file.
+        - `export()` - a function that exports the data source to the `out` directory.
+
+    **Example**:
+
+    ```python
+    @data_source(
+        training_data=pd.read_csv('deals.csv'),
+        keys=['id', 'account_id'],
+        timestamp='event_at',
+    )
+    class Deal(typing_extensions.TypedDict):
+        id: int
+        event_at: pd.Timestamp
+        account_id: str
+        amount: float
+        currency: str
+        is_win: bool
+    ```
     """
 
     options = {}
@@ -225,13 +293,23 @@ def aggregation(
     granularity: Union[str, timedelta, None],
 ):
     """
-    Register aggregations for the Feature Definition.
+    Registers aggregations for the Feature Definition.
     :type function: AggregationFunction or List[AggregationFunction] or str or List[str]
     :param function: a list of :func:`AggrFn`.
     :type over: str or timedelta in the form '2h 3m 4s'
     :param over: the time period over which to aggregate.
     :type granularity: str or timedelta in the form '2h 3m 4s'
-    :param granularity: the granularity of the aggregation (this is overriding the freshness).
+    :param granularity: the granularity of the aggregation (this is overriding the freshness' `max_age`).
+
+    **Example**:
+
+    ```python
+    @aggregation(
+       function=['sum', 'count', 'avg'],
+       over='1d',
+       granularity='1h',
+    )
+    ```
     """
 
     if isinstance(function, str):
@@ -266,7 +344,12 @@ def keep_previous(versions: int, over: Union[str, timedelta]):
     :type over: str or timedelta in the form '2h 3m 4s'
     :param over: the maximum time period to keep a previous values in the history since the last update. You can specify
                     `0` to keep the value until the next update.
-    version is computed.
+
+    **Example**:
+
+    ```python
+    @keep_previous(versions=3, over='1d')
+    ```
     """
 
     if isinstance(over, str):
@@ -285,17 +368,47 @@ def feature(
     sourceless_markers_df: Optional[DataFrame] = None,  # timestamp and keys markers for training sourceless features
 ):
     """
-    Register a Feature Definition within the LabSDK.
+    Registers a Feature Definition within the LabSDK.
 
-    A feature definition is a Python handler function that process a calculation request and calculates
+    A feature definition is a Python handler function that process a calculation request and calculates the feature
+    value.
 
+
+    **Feature signature**:
+
+    The function signature of a feature definition must accept two arguments:
+
+    1. `this_row` - A dictionary of the current row (this is reflects the schema of the data source).
+    2. `Context` - A dictionary of the context. See [Context](/docs/how-it-works/features/context) for
+       more details.
+
+    It must use a return type annotation to indicate the primitive type of the feature value.
+
+    :type keys: str or List[str]
     :param keys: a list of indexing keys, indicated the owner of the feature value.
+    :type name: str
     :param name: the name of the feature. If not provided, the function name will be used.
-    :param data_source: the (fully qualified) name of the DataSource.
+    :type data_source: str or DataSource object
+    :param data_source: the (fully qualified) name of the DataSource or a reference to the DataSource object.
+    :type sourceless_markers_df: DataFrame
     :param sourceless_markers_df: a DataFrame with the timestamp and keys markers for training sourceless features. It
             a timestamp column, and a column for each key.
 
-    :return: a registered Feature Definition
+    :rtype: function
+    :returns:
+    It returns a wrapped function with a few additional methods/properties:
+        * `raptor_spec` - The Raptor specification of the feature.
+        * `replay()` - A function that can be used to replay the feature calculation using the training sata of the source.
+        * `manifest(to_file=False)` - A function that returns the manifest of the feature.
+        * `export(with_dependent_source=True)` - A function that exports the feature to `out` directory.
+
+    **Example**:
+    ```python
+    @feature(keys='account_id', data_source=Deal)
+    @freshness(max_age='1h', max_stale='2h')
+    def last_amount(this_row: Deal, ctx: Context) -> float:
+        return this_row['amount']
+    ```
     """
     options = {}
 
@@ -428,6 +541,12 @@ def model(
 ):
     """
     Register a Model Definition within the LabSDK.
+
+    **Function Signature**:
+
+    This decorator should wrap a training function that returns a trained model.
+    The function signature of a model definition must accept `TrainingContext` as an argument.
+
     :type keys: str or list of str
     :param keys: the keys of the model. The keys are required for fetching the features.
     :type input_features: str or list of str or callable or list of callable
@@ -444,7 +563,45 @@ def model(
     :param prediction_output_schema: the schema of the prediction output.
     :type name: str
     :param name: the name of the model. If not provided, the name will be the function name.
-    :return: a training function with provided context.
+
+    :rtype: class
+    :returns:
+    a wrapped function `train()` that runs your training function with the `TrainingContext` provided.
+
+    It also provides a few new methods/properties to the returned function:
+
+    * `raptor_spec` - The Raptor spec of the model.
+    * `train()` - The training function.
+    * `features_and_labels()` - A function that returns a DataFrame of the features and labels.
+    * `manifest(to_file=False)` - A function that returns the manifest of the model.
+    * `export(with_dependent_features=True, with_dependent_sources=True)` - A function that exports the model to the `out` directory.
+    * `keys` - the keys of the model.
+    * `input_features` - the input features of the model.
+    * `input_labels` - the input labels of the model.
+
+    :rtype: function
+
+    **Example**:
+
+    ```python
+    @model(
+        keys=['customer_id'],
+        input_features=['total_spend+sum'],
+        input_labels=[amount],
+        model_framework='sklearn',
+        model_server='sagemaker-ack',
+    )
+    @freshness(max_age='1h', max_stale='100h')
+    def amount_prediction(ctx: TrainingContext):
+        from sklearn.linear_model import LinearRegression
+
+        df = ctx.features_and_labels()
+
+        trainer = LinearRegression()
+        trainer.fit(df[ctx.input_features], df[ctx.input_labels])
+
+        return trainer
+    ```
     """
     options = {}
 

@@ -275,8 +275,8 @@ Distributed under the Apache2 License. Read the `LICENSE` file for more informat
 
 ## 👫 Joining the community
 
-You can join the Raptor community on [Slack](https://raptor.ml/community), follow us
-on [Twitter](https://twitter.com/RaptorML), and participate in the issues and pull requests.
+You can join the Raptor community on [Slack][community], follow us
+on [Twitter][twitter], and participate in the issues and pull requests.
 
 **Don't forget to give the project [a star](#top)! ⭐️**
 
@@ -333,3 +333,7 @@ on [Twitter](https://twitter.com/RaptorML), and participate in the issues and pu
 [product-screenshot]: .github/demo.gif
 
 [feature-py-def]: .github/feature-py-def.png
+
+[community]: https://raptor.ml/docs/community
+
+[twitter]: https://twitter.com/RaptorML
