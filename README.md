@@ -26,8 +26,8 @@
 Raptor frees data scientists and ML engineers to build and deploy operational models and ML-driven functionality,
 *without learning backend* engineering.
 
-It <strong>compiles</strong> your python research code to production artifacts, and takes care of the engineering
-concerns such as scalability and reliability using best-practices on Kubernetes.
+It **compiles** your python research code to production artifacts, and takes care of the engineering concerns such as
+scalability and reliability using best-practices on Kubernetes.
 
 [**Explore the docs »**][docs-url]
 
