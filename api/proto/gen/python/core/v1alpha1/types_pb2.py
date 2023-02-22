@@ -16,7 +16,7 @@ from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__
 from validate import validate_pb2 as validate_dot_validate__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x19\x63ore/v1alpha1/types.proto\x12\x14raptor.core.v1alpha1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17validate/validate.proto\"\xe0\x01\n\x06Scalar\x12#\n\x0cstring_value\x18\x01 \x01(\tH\x00R\x0bstringValue\x12\x1d\n\tint_value\x18\x02 \x01(\x05H\x00R\x08intValue\x12!\n\x0b\x66loat_value\x18\x03 \x01(\x01H\x00R\nfloatValue\x12\x1f\n\nbool_value\x18\x04 \x01(\x08H\x00R\tboolValue\x12\x45\n\x0ftimestamp_value\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.TimestampH\x00R\x0etimestampValueB\x07\n\x05value\"<\n\x04List\x12\x34\n\x06values\x18\x01 \x03(\x0b\x32\x1c.raptor.core.v1alpha1.ScalarR\x06values\"\x90\x01\n\x05Value\x12\x41\n\x0cscalar_value\x18\x01 \x01(\x0b\x32\x1c.raptor.core.v1alpha1.ScalarH\x00R\x0bscalarValue\x12;\n\nlist_value\x18\x02 \x01(\x0b\x32\x1a.raptor.core.v1alpha1.ListH\x00R\tlistValueB\x07\n\x05value\"C\n\x0fObjectReference\x12\x12\n\x04name\x18\x01 \x01(\tR\x04name\x12\x1c\n\tnamespace\x18\x02 \x01(\tR\tnamespace\"Y\n\x0cKeepPrevious\x12\x1a\n\x08versions\x18\x01 \x01(\rR\x08versions\x12-\n\x04over\x18\x02 \x01(\x0b\x32\x19.google.protobuf.DurationR\x04over\"\xdc\x04\n\x11\x46\x65\x61tureDescriptor\x12>\n\x03\x66qn\x18\x01 \x01(\tB,\xfa\x42)r\'2%(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$R\x03\x66qn\x12G\n\tprimitive\x18\x02 \x01(\x0e\x32\x1f.raptor.core.v1alpha1.PrimitiveB\x08\xfa\x42\x05\x82\x01\x02\x10\x01R\tprimitive\x12\x41\n\x04\x61ggr\x18\x03 \x03(\x0e\x32\x1c.raptor.core.v1alpha1.AggrFnB\x0f\xfa\x42\x0c\x92\x01\t\x18\x01\"\x05\x82\x01\x02\x10\x01R\x04\x61ggr\x12\x37\n\tfreshness\x18\x04 \x01(\x0b\x32\x19.google.protobuf.DurationR\tfreshness\x12\x37\n\tstaleness\x18\x05 \x01(\x0b\x32\x19.google.protobuf.DurationR\tstaleness\x12\x33\n\x07timeout\x18\x06 \x01(\x0b\x32\x19.google.protobuf.DurationR\x07timeout\x12L\n\rkeep_previous\x18\x07 \x01(\x0b\x32\".raptor.core.v1alpha1.KeepPreviousH\x00R\x0ckeepPrevious\x88\x01\x01\x12\x12\n\x04keys\x18\x08 \x03(\tR\x04keys\x12\x18\n\x07\x62uilder\x18\x0f \x01(\tR\x07\x62uilder\x12\x1f\n\x0b\x64\x61ta_source\x18\x10 \x01(\tR\ndataSource\x12\x1f\n\x0bruntime_env\x18\x11 \x01(\tR\nruntimeEnvB\x10\n\x0e_keep_previousJ\x04\x08\t\x10\x0f\"\xcc\x02\n\x0c\x46\x65\x61tureValue\x12>\n\x03\x66qn\x18\x01 \x01(\tB,\xfa\x42)r\'2%(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$R\x03\x66qn\x12@\n\x04keys\x18\x02 \x03(\x0b\x32,.raptor.core.v1alpha1.FeatureValue.KeysEntryR\x04keys\x12\x31\n\x05value\x18\x03 \x01(\x0b\x32\x1b.raptor.core.v1alpha1.ValueR\x05value\x12\x38\n\ttimestamp\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\ttimestamp\x12\x14\n\x05\x66resh\x18\x05 \x01(\x08R\x05\x66resh\x1a\x37\n\tKeysEntry\x12\x10\n\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n\x05value\x18\x02 \x01(\tR\x05value:\x02\x38\x01*\x9d\x02\n\tPrimitive\x12\x19\n\x15PRIMITIVE_UNSPECIFIED\x10\x00\x12\x14\n\x10PRIMITIVE_STRING\x10\x01\x12\x15\n\x11PRIMITIVE_INTEGER\x10\x02\x12\x13\n\x0fPRIMITIVE_FLOAT\x10\x03\x12\x12\n\x0ePRIMITIVE_BOOL\x10\x04\x12\x17\n\x13PRIMITIVE_TIMESTAMP\x10\x05\x12\x19\n\x15PRIMITIVE_STRING_LIST\x10\n\x12\x1a\n\x16PRIMITIVE_INTEGER_LIST\x10\x0b\x12\x18\n\x14PRIMITIVE_FLOAT_LIST\x10\x0c\x12\x17\n\x13PRIMITIVE_BOOL_LIST\x10\r\x12\x1c\n\x18PRIMITIVE_TIMESTAMP_LIST\x10\x0e*x\n\x06\x41ggrFn\x12\x17\n\x13\x41GGR_FN_UNSPECIFIED\x10\x00\x12\x0f\n\x0b\x41GGR_FN_SUM\x10\x01\x12\x0f\n\x0b\x41GGR_FN_AVG\x10\x02\x12\x0f\n\x0b\x41GGR_FN_MAX\x10\x03\x12\x0f\n\x0b\x41GGR_FN_MIN\x10\x04\x12\x11\n\rAGGR_FN_COUNT\x10\x05\x42\xe1\x01\n\x18\x63om.raptor.core.v1alpha1B\nTypesProtoP\x01ZGgithub.com/raptor-ml/raptor/api/proto/gen/go/core/v1alpha1;corev1alpha1\xa2\x02\x03RCX\xaa\x02\x14Raptor.Core.V1alpha1\xca\x02\x14Raptor\\Core\\V1alpha1\xe2\x02 Raptor\\Core\\V1alpha1\\GPBMetadata\xea\x02\x16Raptor::Core::V1alpha1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x19\x63ore/v1alpha1/types.proto\x12\rcore.v1alpha1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17validate/validate.proto\"\xe0\x01\n\x06Scalar\x12#\n\x0cstring_value\x18\x01 \x01(\tH\x00R\x0bstringValue\x12\x1d\n\tint_value\x18\x02 \x01(\x05H\x00R\x08intValue\x12!\n\x0b\x66loat_value\x18\x03 \x01(\x01H\x00R\nfloatValue\x12\x1f\n\nbool_value\x18\x04 \x01(\x08H\x00R\tboolValue\x12\x45\n\x0ftimestamp_value\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.TimestampH\x00R\x0etimestampValueB\x07\n\x05value\"5\n\x04List\x12-\n\x06values\x18\x01 \x03(\x0b\x32\x15.core.v1alpha1.ScalarR\x06values\"\x82\x01\n\x05Value\x12:\n\x0cscalar_value\x18\x01 \x01(\x0b\x32\x15.core.v1alpha1.ScalarH\x00R\x0bscalarValue\x12\x34\n\nlist_value\x18\x02 \x01(\x0b\x32\x13.core.v1alpha1.ListH\x00R\tlistValueB\x07\n\x05value\"C\n\x0fObjectReference\x12\x12\n\x04name\x18\x01 \x01(\tR\x04name\x12\x1c\n\tnamespace\x18\x02 \x01(\tR\tnamespace\"Y\n\x0cKeepPrevious\x12\x1a\n\x08versions\x18\x01 \x01(\rR\x08versions\x12-\n\x04over\x18\x02 \x01(\x0b\x32\x19.google.protobuf.DurationR\x04over\"\xc7\x04\n\x11\x46\x65\x61tureDescriptor\x12>\n\x03\x66qn\x18\x01 \x01(\tB,\xfa\x42)r\'2%(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$R\x03\x66qn\x12@\n\tprimitive\x18\x02 \x01(\x0e\x32\x18.core.v1alpha1.PrimitiveB\x08\xfa\x42\x05\x82\x01\x02\x10\x01R\tprimitive\x12:\n\x04\x61ggr\x18\x03 \x03(\x0e\x32\x15.core.v1alpha1.AggrFnB\x0f\xfa\x42\x0c\x92\x01\t\x18\x01\"\x05\x82\x01\x02\x10\x01R\x04\x61ggr\x12\x37\n\tfreshness\x18\x04 \x01(\x0b\x32\x19.google.protobuf.DurationR\tfreshness\x12\x37\n\tstaleness\x18\x05 \x01(\x0b\x32\x19.google.protobuf.DurationR\tstaleness\x12\x33\n\x07timeout\x18\x06 \x01(\x0b\x32\x19.google.protobuf.DurationR\x07timeout\x12\x45\n\rkeep_previous\x18\x07 \x01(\x0b\x32\x1b.core.v1alpha1.KeepPreviousH\x00R\x0ckeepPrevious\x88\x01\x01\x12\x12\n\x04keys\x18\x08 \x03(\tR\x04keys\x12\x18\n\x07\x62uilder\x18\x0f \x01(\tR\x07\x62uilder\x12\x1f\n\x0b\x64\x61ta_source\x18\x10 \x01(\tR\ndataSource\x12\x1f\n\x0bruntime_env\x18\x11 \x01(\tR\nruntimeEnvB\x10\n\x0e_keep_previousJ\x04\x08\t\x10\x0f\"\xbe\x02\n\x0c\x46\x65\x61tureValue\x12>\n\x03\x66qn\x18\x01 \x01(\tB,\xfa\x42)r\'2%(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$R\x03\x66qn\x12\x39\n\x04keys\x18\x02 \x03(\x0b\x32%.core.v1alpha1.FeatureValue.KeysEntryR\x04keys\x12*\n\x05value\x18\x03 \x01(\x0b\x32\x14.core.v1alpha1.ValueR\x05value\x12\x38\n\ttimestamp\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\ttimestamp\x12\x14\n\x05\x66resh\x18\x05 \x01(\x08R\x05\x66resh\x1a\x37\n\tKeysEntry\x12\x10\n\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n\x05value\x18\x02 \x01(\tR\x05value:\x02\x38\x01*\x9d\x02\n\tPrimitive\x12\x19\n\x15PRIMITIVE_UNSPECIFIED\x10\x00\x12\x14\n\x10PRIMITIVE_STRING\x10\x01\x12\x15\n\x11PRIMITIVE_INTEGER\x10\x02\x12\x13\n\x0fPRIMITIVE_FLOAT\x10\x03\x12\x12\n\x0ePRIMITIVE_BOOL\x10\x04\x12\x17\n\x13PRIMITIVE_TIMESTAMP\x10\x05\x12\x19\n\x15PRIMITIVE_STRING_LIST\x10\n\x12\x1a\n\x16PRIMITIVE_INTEGER_LIST\x10\x0b\x12\x18\n\x14PRIMITIVE_FLOAT_LIST\x10\x0c\x12\x17\n\x13PRIMITIVE_BOOL_LIST\x10\r\x12\x1c\n\x18PRIMITIVE_TIMESTAMP_LIST\x10\x0e*x\n\x06\x41ggrFn\x12\x17\n\x13\x41GGR_FN_UNSPECIFIED\x10\x00\x12\x0f\n\x0b\x41GGR_FN_SUM\x10\x01\x12\x0f\n\x0b\x41GGR_FN_AVG\x10\x02\x12\x0f\n\x0b\x41GGR_FN_MAX\x10\x03\x12\x0f\n\x0b\x41GGR_FN_MIN\x10\x04\x12\x11\n\rAGGR_FN_COUNT\x10\x05\x42\xbd\x01\n\x11\x63om.core.v1alpha1B\nTypesProtoP\x01ZGgithub.com/raptor-ml/raptor/api/proto/gen/go/core/v1alpha1;corev1alpha1\xa2\x02\x03\x43XX\xaa\x02\rCore.V1alpha1\xca\x02\rCore\\V1alpha1\xe2\x02\x19\x43ore\\V1alpha1\\GPBMetadata\xea\x02\x0e\x43ore::V1alpha1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -24,7 +24,7 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'core.v1alpha1.types_pb2', _
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  DESCRIPTOR._serialized_options = b'\n\030com.raptor.core.v1alpha1B\nTypesProtoP\001ZGgithub.com/raptor-ml/raptor/api/proto/gen/go/core/v1alpha1;corev1alpha1\242\002\003RCX\252\002\024Raptor.Core.V1alpha1\312\002\024Raptor\\Core\\V1alpha1\342\002 Raptor\\Core\\V1alpha1\\GPBMetadata\352\002\026Raptor::Core::V1alpha1'
+  DESCRIPTOR._serialized_options = b'\n\021com.core.v1alpha1B\nTypesProtoP\001ZGgithub.com/raptor-ml/raptor/api/proto/gen/go/core/v1alpha1;corev1alpha1\242\002\003CXX\252\002\rCore.V1alpha1\312\002\rCore\\V1alpha1\342\002\031Core\\V1alpha1\\GPBMetadata\352\002\016Core::V1alpha1'
   _FEATUREDESCRIPTOR.fields_by_name['fqn']._options = None
   _FEATUREDESCRIPTOR.fields_by_name['fqn']._serialized_options = b'\372B)r\'2%(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$'
   _FEATUREDESCRIPTOR.fields_by_name['primitive']._options = None
@@ -35,24 +35,24 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _FEATUREVALUE_KEYSENTRY._serialized_options = b'8\001'
   _FEATUREVALUE.fields_by_name['fqn']._options = None
   _FEATUREVALUE.fields_by_name['fqn']._serialized_options = b'\372B)r\'2%(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$'
-  _globals['_PRIMITIVE']._serialized_start=1680
-  _globals['_PRIMITIVE']._serialized_end=1965
-  _globals['_AGGRFN']._serialized_start=1967
-  _globals['_AGGRFN']._serialized_end=2087
-  _globals['_SCALAR']._serialized_start=142
-  _globals['_SCALAR']._serialized_end=366
-  _globals['_LIST']._serialized_start=368
-  _globals['_LIST']._serialized_end=428
-  _globals['_VALUE']._serialized_start=431
-  _globals['_VALUE']._serialized_end=575
-  _globals['_OBJECTREFERENCE']._serialized_start=577
-  _globals['_OBJECTREFERENCE']._serialized_end=644
-  _globals['_KEEPPREVIOUS']._serialized_start=646
-  _globals['_KEEPPREVIOUS']._serialized_end=735
-  _globals['_FEATUREDESCRIPTOR']._serialized_start=738
-  _globals['_FEATUREDESCRIPTOR']._serialized_end=1342
-  _globals['_FEATUREVALUE']._serialized_start=1345
-  _globals['_FEATUREVALUE']._serialized_end=1677
-  _globals['_FEATUREVALUE_KEYSENTRY']._serialized_start=1622
-  _globals['_FEATUREVALUE_KEYSENTRY']._serialized_end=1677
+  _globals['_PRIMITIVE']._serialized_start=1617
+  _globals['_PRIMITIVE']._serialized_end=1902
+  _globals['_AGGRFN']._serialized_start=1904
+  _globals['_AGGRFN']._serialized_end=2024
+  _globals['_SCALAR']._serialized_start=135
+  _globals['_SCALAR']._serialized_end=359
+  _globals['_LIST']._serialized_start=361
+  _globals['_LIST']._serialized_end=414
+  _globals['_VALUE']._serialized_start=417
+  _globals['_VALUE']._serialized_end=547
+  _globals['_OBJECTREFERENCE']._serialized_start=549
+  _globals['_OBJECTREFERENCE']._serialized_end=616
+  _globals['_KEEPPREVIOUS']._serialized_start=618
+  _globals['_KEEPPREVIOUS']._serialized_end=707
+  _globals['_FEATUREDESCRIPTOR']._serialized_start=710
+  _globals['_FEATUREDESCRIPTOR']._serialized_end=1293
+  _globals['_FEATUREVALUE']._serialized_start=1296
+  _globals['_FEATUREVALUE']._serialized_end=1614
+  _globals['_FEATUREVALUE_KEYSENTRY']._serialized_start=1559
+  _globals['_FEATUREVALUE_KEYSENTRY']._serialized_end=1614
 # @@protoc_insertion_point(module_scope)

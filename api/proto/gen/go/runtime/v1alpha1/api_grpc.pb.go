@@ -36,7 +36,7 @@ func NewRuntimeServiceClient(cc grpc.ClientConnInterface) RuntimeServiceClient {
 
 func (c *runtimeServiceClient) LoadProgram(ctx context.Context, in *LoadProgramRequest, opts ...grpc.CallOption) (*LoadProgramResponse, error) {
 	out := new(LoadProgramResponse)
-	err := c.cc.Invoke(ctx, "/raptor.runtime.v1alpha1.RuntimeService/LoadProgram", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/runtime.v1alpha1.RuntimeService/LoadProgram", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (c *runtimeServiceClient) LoadProgram(ctx context.Context, in *LoadProgramR
 
 func (c *runtimeServiceClient) ExecuteProgram(ctx context.Context, in *ExecuteProgramRequest, opts ...grpc.CallOption) (*ExecuteProgramResponse, error) {
 	out := new(ExecuteProgramResponse)
-	err := c.cc.Invoke(ctx, "/raptor.runtime.v1alpha1.RuntimeService/ExecuteProgram", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/runtime.v1alpha1.RuntimeService/ExecuteProgram", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func _RuntimeService_LoadProgram_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/raptor.runtime.v1alpha1.RuntimeService/LoadProgram",
+		FullMethod: "/runtime.v1alpha1.RuntimeService/LoadProgram",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RuntimeServiceServer).LoadProgram(ctx, req.(*LoadProgramRequest))
@@ -110,7 +110,7 @@ func _RuntimeService_ExecuteProgram_Handler(srv interface{}, ctx context.Context
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/raptor.runtime.v1alpha1.RuntimeService/ExecuteProgram",
+		FullMethod: "/runtime.v1alpha1.RuntimeService/ExecuteProgram",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RuntimeServiceServer).ExecuteProgram(ctx, req.(*ExecuteProgramRequest))
@@ -122,7 +122,7 @@ func _RuntimeService_ExecuteProgram_Handler(srv interface{}, ctx context.Context
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var RuntimeService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "raptor.runtime.v1alpha1.RuntimeService",
+	ServiceName: "runtime.v1alpha1.RuntimeService",
 	HandlerType: (*RuntimeServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

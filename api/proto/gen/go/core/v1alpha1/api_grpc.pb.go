@@ -40,7 +40,7 @@ func NewEngineServiceClient(cc grpc.ClientConnInterface) EngineServiceClient {
 
 func (c *engineServiceClient) FeatureDescriptor(ctx context.Context, in *FeatureDescriptorRequest, opts ...grpc.CallOption) (*FeatureDescriptorResponse, error) {
 	out := new(FeatureDescriptorResponse)
-	err := c.cc.Invoke(ctx, "/raptor.core.v1alpha1.EngineService/FeatureDescriptor", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/core.v1alpha1.EngineService/FeatureDescriptor", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (c *engineServiceClient) FeatureDescriptor(ctx context.Context, in *Feature
 
 func (c *engineServiceClient) Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error) {
 	out := new(GetResponse)
-	err := c.cc.Invoke(ctx, "/raptor.core.v1alpha1.EngineService/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/core.v1alpha1.EngineService/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (c *engineServiceClient) Get(ctx context.Context, in *GetRequest, opts ...g
 
 func (c *engineServiceClient) Set(ctx context.Context, in *SetRequest, opts ...grpc.CallOption) (*SetResponse, error) {
 	out := new(SetResponse)
-	err := c.cc.Invoke(ctx, "/raptor.core.v1alpha1.EngineService/Set", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/core.v1alpha1.EngineService/Set", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (c *engineServiceClient) Set(ctx context.Context, in *SetRequest, opts ...g
 
 func (c *engineServiceClient) Append(ctx context.Context, in *AppendRequest, opts ...grpc.CallOption) (*AppendResponse, error) {
 	out := new(AppendResponse)
-	err := c.cc.Invoke(ctx, "/raptor.core.v1alpha1.EngineService/Append", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/core.v1alpha1.EngineService/Append", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (c *engineServiceClient) Append(ctx context.Context, in *AppendRequest, opt
 
 func (c *engineServiceClient) Incr(ctx context.Context, in *IncrRequest, opts ...grpc.CallOption) (*IncrResponse, error) {
 	out := new(IncrResponse)
-	err := c.cc.Invoke(ctx, "/raptor.core.v1alpha1.EngineService/Incr", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/core.v1alpha1.EngineService/Incr", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (c *engineServiceClient) Incr(ctx context.Context, in *IncrRequest, opts ..
 
 func (c *engineServiceClient) Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error) {
 	out := new(UpdateResponse)
-	err := c.cc.Invoke(ctx, "/raptor.core.v1alpha1.EngineService/Update", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/core.v1alpha1.EngineService/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func _EngineService_FeatureDescriptor_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/raptor.core.v1alpha1.EngineService/FeatureDescriptor",
+		FullMethod: "/core.v1alpha1.EngineService/FeatureDescriptor",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EngineServiceServer).FeatureDescriptor(ctx, req.(*FeatureDescriptorRequest))
@@ -166,7 +166,7 @@ func _EngineService_Get_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/raptor.core.v1alpha1.EngineService/Get",
+		FullMethod: "/core.v1alpha1.EngineService/Get",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EngineServiceServer).Get(ctx, req.(*GetRequest))
@@ -184,7 +184,7 @@ func _EngineService_Set_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/raptor.core.v1alpha1.EngineService/Set",
+		FullMethod: "/core.v1alpha1.EngineService/Set",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EngineServiceServer).Set(ctx, req.(*SetRequest))
@@ -202,7 +202,7 @@ func _EngineService_Append_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/raptor.core.v1alpha1.EngineService/Append",
+		FullMethod: "/core.v1alpha1.EngineService/Append",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EngineServiceServer).Append(ctx, req.(*AppendRequest))
@@ -220,7 +220,7 @@ func _EngineService_Incr_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/raptor.core.v1alpha1.EngineService/Incr",
+		FullMethod: "/core.v1alpha1.EngineService/Incr",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EngineServiceServer).Incr(ctx, req.(*IncrRequest))
@@ -238,7 +238,7 @@ func _EngineService_Update_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/raptor.core.v1alpha1.EngineService/Update",
+		FullMethod: "/core.v1alpha1.EngineService/Update",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EngineServiceServer).Update(ctx, req.(*UpdateRequest))
@@ -250,7 +250,7 @@ func _EngineService_Update_Handler(srv interface{}, ctx context.Context, dec fun
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var EngineService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "raptor.core.v1alpha1.EngineService",
+	ServiceName: "core.v1alpha1.EngineService",
 	HandlerType: (*EngineServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

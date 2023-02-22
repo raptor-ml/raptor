@@ -147,7 +147,7 @@ func RegisterRuntimeServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raptor.runtime.v1alpha1.RuntimeService/LoadProgram", runtime.WithHTTPPathPattern("/program"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/runtime.v1alpha1.RuntimeService/LoadProgram", runtime.WithHTTPPathPattern("/program"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -172,7 +172,7 @@ func RegisterRuntimeServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raptor.runtime.v1alpha1.RuntimeService/ExecuteProgram", runtime.WithHTTPPathPattern("/program/{fqn}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/runtime.v1alpha1.RuntimeService/ExecuteProgram", runtime.WithHTTPPathPattern("/program/{fqn}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -236,7 +236,7 @@ func RegisterRuntimeServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raptor.runtime.v1alpha1.RuntimeService/LoadProgram", runtime.WithHTTPPathPattern("/program"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/runtime.v1alpha1.RuntimeService/LoadProgram", runtime.WithHTTPPathPattern("/program"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -258,7 +258,7 @@ func RegisterRuntimeServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raptor.runtime.v1alpha1.RuntimeService/ExecuteProgram", runtime.WithHTTPPathPattern("/program/{fqn}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/runtime.v1alpha1.RuntimeService/ExecuteProgram", runtime.WithHTTPPathPattern("/program/{fqn}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
