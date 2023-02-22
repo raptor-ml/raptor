@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package raptor.core.v1alpha1;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+message Scalar {
+    oneof value {
+        string string_value = 1;
+        int32 int_value = 2;
+        double float_value = 3;
+        bool bool_value = 4;
+        google.protobuf.Timestamp timestamp_value = 5;
+    }
+}
+
+message List {
+    repeated Scalar values = 1;
+}
+message Value {
+    oneof value {
+        Scalar scalar_value = 1;
+        List list_value = 2;
+    }
+}
+enum Primitive {
+    PRIMITIVE_UNSPECIFIED = 0;
+    PRIMITIVE_STRING = 1;
+    PRIMITIVE_INTEGER = 2;
+    PRIMITIVE_FLOAT = 3;
+    PRIMITIVE_BOOL = 4;
+    PRIMITIVE_TIMESTAMP = 5;
+    // 6-9 Reserved for future use.
+    PRIMITIVE_STRING_LIST = 10;
+    PRIMITIVE_INTEGER_LIST = 11;
+    PRIMITIVE_FLOAT_LIST = 12;
+    PRIMITIVE_BOOL_LIST = 13;
+    PRIMITIVE_TIMESTAMP_LIST = 14;
+}
+
+enum AggrFn {
+    AGGR_FN_UNSPECIFIED = 0;
+    AGGR_FN_SUM = 1;
+    AGGR_FN_AVG = 2;
+    AGGR_FN_MAX = 3;
+    AGGR_FN_MIN = 4;
+    AGGR_FN_COUNT = 5;
+}
+
+message ObjectReference {
+    string name = 1;
+    string namespace = 2;
+}
+message KeepPrevious {
+    uint32 versions = 1;
+    google.protobuf.Duration over = 2;
+}
+message FeatureDescriptor {
+    string fqn = 1 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    Primitive primitive = 2 [(validate.rules).enum.defined_only = true];
+    repeated AggrFn aggr = 3 [
+        (validate.rules).repeated.items.enum.defined_only = true,
+        (validate.rules).repeated.unique = true
+    ];
+    google.protobuf.Duration freshness = 4;
+    google.protobuf.Duration staleness = 5;
+    google.protobuf.Duration timeout = 6;
+    optional KeepPrevious keep_previous = 7;
+    repeated string keys = 8;
+
+    reserved 9 to 14; // Reserved for future use.
+
+    string builder = 15;
+    string data_source = 16;
+    string runtime_env = 17;
+}
+message FeatureValue {
+    string fqn = 1 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    map<string, string> keys = 2;
+    Value value = 3;
+    google.protobuf.Timestamp timestamp = 4;
+    bool fresh = 5;
+}
