@@ -1,0 +1,545 @@
+swagger: "2.0"
+info:
+  title: core/v1alpha1/types.proto
+  version: version not set
+tags:
+  - name: EngineService
+  - name: RuntimeService
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /{fqn}/append:
+    post:
+      operationId: EngineService_Append
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1alpha1AppendResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: fqn
+          in: path
+          required: true
+          type: string
+        - name: uuid
+          in: query
+          required: false
+          type: string
+        - name: value.stringValue
+          in: query
+          required: false
+          type: string
+        - name: value.intValue
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: value.floatValue
+          in: query
+          required: false
+          type: number
+          format: double
+        - name: value.boolValue
+          in: query
+          required: false
+          type: boolean
+        - name: value.timestampValue
+          in: query
+          required: false
+          type: string
+          format: date-time
+        - name: timestamp
+          in: query
+          required: false
+          type: string
+          format: date-time
+      tags:
+        - EngineService
+  /{fqn}/incr:
+    post:
+      operationId: EngineService_Incr
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1alpha1IncrResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: fqn
+          in: path
+          required: true
+          type: string
+        - name: uuid
+          in: query
+          required: false
+          type: string
+        - name: value.stringValue
+          in: query
+          required: false
+          type: string
+        - name: value.intValue
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: value.floatValue
+          in: query
+          required: false
+          type: number
+          format: double
+        - name: value.boolValue
+          in: query
+          required: false
+          type: boolean
+        - name: value.timestampValue
+          in: query
+          required: false
+          type: string
+          format: date-time
+        - name: timestamp
+          in: query
+          required: false
+          type: string
+          format: date-time
+      tags:
+        - EngineService
+  /{selector}:
+    get:
+      operationId: EngineService_Get
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1alpha1GetResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: selector
+          in: path
+          required: true
+          type: string
+        - name: uuid
+          in: query
+          required: false
+          type: string
+      tags:
+        - EngineService
+    post:
+      operationId: EngineService_Update
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1alpha1UpdateResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: selector
+          in: path
+          required: true
+          type: string
+        - name: uuid
+          in: query
+          required: false
+          type: string
+        - name: value.scalarValue.stringValue
+          in: query
+          required: false
+          type: string
+        - name: value.scalarValue.intValue
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: value.scalarValue.floatValue
+          in: query
+          required: false
+          type: number
+          format: double
+        - name: value.scalarValue.boolValue
+          in: query
+          required: false
+          type: boolean
+        - name: value.scalarValue.timestampValue
+          in: query
+          required: false
+          type: string
+          format: date-time
+        - name: timestamp
+          in: query
+          required: false
+          type: string
+          format: date-time
+      tags:
+        - EngineService
+    put:
+      operationId: EngineService_Set
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1alpha1SetResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: selector
+          in: path
+          required: true
+          type: string
+        - name: uuid
+          in: query
+          required: false
+          type: string
+        - name: value.scalarValue.stringValue
+          in: query
+          required: false
+          type: string
+        - name: value.scalarValue.intValue
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: value.scalarValue.floatValue
+          in: query
+          required: false
+          type: number
+          format: double
+        - name: value.scalarValue.boolValue
+          in: query
+          required: false
+          type: boolean
+        - name: value.scalarValue.timestampValue
+          in: query
+          required: false
+          type: string
+          format: date-time
+        - name: timestamp
+          in: query
+          required: false
+          type: string
+          format: date-time
+      tags:
+        - EngineService
+    head:
+      operationId: EngineService_FeatureDescriptor
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1alpha1FeatureDescriptorResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: selector
+          in: path
+          required: true
+          type: string
+        - name: uuid
+          in: query
+          required: false
+          type: string
+      tags:
+        - EngineService
+  /program:
+    post:
+      operationId: RuntimeService_LoadProgram
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1alpha1LoadProgramResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1alpha1LoadProgramRequest'
+      tags:
+        - RuntimeService
+  /program/{fqn}:
+    post:
+      operationId: RuntimeService_ExecuteProgram
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1alpha1ExecuteProgramResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: fqn
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              uuid:
+                type: string
+              keys:
+                type: object
+                additionalProperties:
+                  type: string
+              data:
+                type: object
+                additionalProperties:
+                  $ref: '#/definitions/v1alpha1Value'
+              timestamp:
+                type: string
+                format: date-time
+              dryRun:
+                type: boolean
+      tags:
+        - RuntimeService
+definitions:
+  protobufAny:
+    type: object
+    properties:
+      '@type':
+        type: string
+    additionalProperties: {}
+  rpcStatus:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      details:
+        type: array
+        items:
+          $ref: '#/definitions/protobufAny'
+  v1alpha1AggrFn:
+    type: string
+    enum:
+      - AGGR_FN_UNSPECIFIED
+      - AGGR_FN_SUM
+      - AGGR_FN_AVG
+      - AGGR_FN_MAX
+      - AGGR_FN_MIN
+      - AGGR_FN_COUNT
+    default: AGGR_FN_UNSPECIFIED
+  v1alpha1AppendResponse:
+    type: object
+    properties:
+      uuid:
+        type: string
+      timestamp:
+        type: string
+        format: date-time
+  v1alpha1ExecuteProgramResponse:
+    type: object
+    properties:
+      uuid:
+        type: string
+      result:
+        $ref: '#/definitions/v1alpha1Value'
+      keys:
+        type: object
+        additionalProperties:
+          type: string
+      timestamp:
+        type: string
+        format: date-time
+  v1alpha1FeatureDescriptor:
+    type: object
+    properties:
+      fqn:
+        type: string
+      primitive:
+        $ref: '#/definitions/v1alpha1Primitive'
+      aggr:
+        type: array
+        items:
+          $ref: '#/definitions/v1alpha1AggrFn'
+      freshness:
+        type: string
+      staleness:
+        type: string
+      timeout:
+        type: string
+      keepPrevious:
+        $ref: '#/definitions/v1alpha1KeepPrevious'
+      keys:
+        type: array
+        items:
+          type: string
+      builder:
+        type: string
+      dataSource:
+        type: string
+      runtimeEnv:
+        type: string
+  v1alpha1FeatureDescriptorResponse:
+    type: object
+    properties:
+      uuid:
+        type: string
+      featureDescriptor:
+        $ref: '#/definitions/v1alpha1FeatureDescriptor'
+  v1alpha1FeatureValue:
+    type: object
+    properties:
+      fqn:
+        type: string
+      keys:
+        type: object
+        additionalProperties:
+          type: string
+      value:
+        $ref: '#/definitions/v1alpha1Value'
+      timestamp:
+        type: string
+        format: date-time
+      fresh:
+        type: boolean
+  v1alpha1GetResponse:
+    type: object
+    properties:
+      uuid:
+        type: string
+      value:
+        $ref: '#/definitions/v1alpha1FeatureValue'
+      featureDescriptor:
+        $ref: '#/definitions/v1alpha1FeatureDescriptor'
+  v1alpha1IncrResponse:
+    type: object
+    properties:
+      uuid:
+        type: string
+      timestamp:
+        type: string
+        format: date-time
+  v1alpha1KeepPrevious:
+    type: object
+    properties:
+      versions:
+        type: integer
+        format: int64
+      over:
+        type: string
+  v1alpha1List:
+    type: object
+    properties:
+      values:
+        type: array
+        items:
+          $ref: '#/definitions/v1alpha1Scalar'
+  v1alpha1LoadProgramRequest:
+    type: object
+    properties:
+      uuid:
+        type: string
+      fqn:
+        type: string
+      program:
+        type: string
+      packages:
+        type: array
+        items:
+          type: string
+  v1alpha1LoadProgramResponse:
+    type: object
+    properties:
+      uuid:
+        type: string
+      primitive:
+        $ref: '#/definitions/v1alpha1Primitive'
+      sideEffects:
+        type: array
+        items:
+          $ref: '#/definitions/v1alpha1SideEffect'
+  v1alpha1Primitive:
+    type: string
+    enum:
+      - PRIMITIVE_UNSPECIFIED
+      - PRIMITIVE_STRING
+      - PRIMITIVE_INTEGER
+      - PRIMITIVE_FLOAT
+      - PRIMITIVE_BOOL
+      - PRIMITIVE_TIMESTAMP
+      - PRIMITIVE_STRING_LIST
+      - PRIMITIVE_INTEGER_LIST
+      - PRIMITIVE_FLOAT_LIST
+      - PRIMITIVE_BOOL_LIST
+      - PRIMITIVE_TIMESTAMP_LIST
+    default: PRIMITIVE_UNSPECIFIED
+    description: ' - PRIMITIVE_STRING_LIST: 6-9 Reserved for future use.'
+  v1alpha1Scalar:
+    type: object
+    properties:
+      stringValue:
+        type: string
+      intValue:
+        type: integer
+        format: int32
+      floatValue:
+        type: number
+        format: double
+      boolValue:
+        type: boolean
+      timestampValue:
+        type: string
+        format: date-time
+  v1alpha1SetResponse:
+    type: object
+    properties:
+      uuid:
+        type: string
+      timestamp:
+        type: string
+        format: date-time
+  v1alpha1SideEffect:
+    type: object
+    properties:
+      kind:
+        type: string
+      args:
+        type: object
+        additionalProperties:
+          type: string
+      conditional:
+        type: boolean
+    title: +++  Program SideEffects +++
+  v1alpha1UpdateResponse:
+    type: object
+    properties:
+      uuid:
+        type: string
+      timestamp:
+        type: string
+        format: date-time
+  v1alpha1Value:
+    type: object
+    properties:
+      scalarValue:
+        $ref: '#/definitions/v1alpha1Scalar'
+      listValue:
+        $ref: '#/definitions/v1alpha1List'

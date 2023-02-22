@@ -18,7 +18,7 @@ package sdk
 
 import (
 	"github.com/raptor-ml/raptor/api"
-	coreApi "go.buf.build/raptor/api-go/raptor/core/raptor/core/v1alpha1"
+	coreApi "github.com/raptor-ml/raptor/api/proto/gen/go/core/v1alpha1"
 )
 
 func FromAPIPrimitive(p coreApi.Primitive) api.PrimitiveType {

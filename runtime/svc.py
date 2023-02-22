@@ -29,11 +29,11 @@ from program import Program, Context, SideEffect, primitive, normalize_selector,
 
 sys.path.append('./proto')
 
-from proto.raptor.core.v1alpha1 import api_pb2 as core_pb2
-from proto.raptor.core.v1alpha1 import api_pb2_grpc as core_grpc
-from proto.raptor.core.v1alpha1 import types_pb2 as types_pb2
-from proto.raptor.runtime.v1alpha1 import api_pb2
-from proto.raptor.runtime.v1alpha1 import api_pb2_grpc
+from proto.core.v1alpha1 import api_pb2 as core_pb2
+from proto.core.v1alpha1 import api_pb2_grpc as core_grpc
+from proto.core.v1alpha1 import types_pb2 as types_pb2
+from proto.runtime.v1alpha1 import api_pb2
+from proto.runtime.v1alpha1 import api_pb2_grpc
 
 
 class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
@@ -144,7 +144,7 @@ class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
             if not request.dry_run:
                 ur = core_pb2.UpdateRequest(
                     uuid=str(uuid4()),
-                    fqn=request.fqn,
+                    selector=request.fqn,
                     keys=ret.keys,
                     value=ret.result,
                 )

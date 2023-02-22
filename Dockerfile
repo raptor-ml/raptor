@@ -12,6 +12,8 @@ ARG LDFLAGS
 WORKDIR /workspace
 COPY go.mod /workspace
 COPY go.sum /workspace
+COPY api/proto/gen/go/go.mod /workspace/api/proto/gen/go/go.mod
+COPY api/proto/gen/go/go.sum /workspace/api/proto/gen/go/go.sum
 RUN go mod download
 COPY . /workspace
 

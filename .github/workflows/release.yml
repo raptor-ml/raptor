@@ -80,7 +80,7 @@ jobs:
 
           git add CHANGELOG.md
           git commit -m "chore(release): ${{ steps.version.outputs.version }}" CHANGELOG.md
-          git push -f
+          git push
       - name: Tag
         uses: actions/github-script@v6
         with:

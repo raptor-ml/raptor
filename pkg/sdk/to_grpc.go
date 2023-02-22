@@ -19,7 +19,7 @@ package sdk
 import (
 	"fmt"
 	"github.com/raptor-ml/raptor/api"
-	coreApi "go.buf.build/raptor/api-go/raptor/core/raptor/core/v1alpha1"
+	coreApi "github.com/raptor-ml/raptor/api/proto/gen/go/core/v1alpha1"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"reflect"

@@ -2,7 +2,7 @@ version: v1
 managed:
   enabled: true
   go_package_prefix:
-    default: "go.buf.build/raptor/api-go/raptor/core"
+    default: "github.com/raptor-ml/raptor/api/proto/gen/go"
     except:
       - "buf.build/googleapis/googleapis"
       - "buf.build/envoyproxy/protoc-gen-validate"
@@ -24,6 +24,9 @@ plugins:
     out: gen/go
     opt:
       - generate_unbound_methods=true
+      - output_format=yaml
+      - use_go_templates=true
+      - allow_merge=true
   - plugin: buf.build/bufbuild/validate-go
     out: gen/go
     opt:

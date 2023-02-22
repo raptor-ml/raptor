@@ -20,7 +20,7 @@ import (
 	"context"
 	"errors"
 	"github.com/raptor-ml/raptor/api"
-	coreApi "go.buf.build/raptor/api-go/raptor/core/raptor/core/v1alpha1"
+	coreApi "github.com/raptor-ml/raptor/api/proto/gen/go/core/v1alpha1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -96,7 +96,7 @@ func (s *serviceServer) Get(ctx context.Context, req *coreApi.GetRequest) (*core
 }
 
 func (s *serviceServer) Set(ctx context.Context, req *coreApi.SetRequest) (*coreApi.SetResponse, error) {
-	err := s.engine.Set(ctx, req.GetFqn(), req.GetKeys(), FromValue(req.Value), req.Timestamp.AsTime())
+	err := s.engine.Set(ctx, req.GetSelector(), req.GetKeys(), FromValue(req.Value), req.Timestamp.AsTime())
 	if err != nil {
 		if errors.Is(err, api.ErrFeatureNotFound) {
 			return nil, status.Errorf(codes.NotFound, "feature not found")
@@ -135,7 +135,7 @@ func (s *serviceServer) Incr(ctx context.Context, req *coreApi.IncrRequest) (*co
 	}, nil
 }
 func (s *serviceServer) Update(ctx context.Context, req *coreApi.UpdateRequest) (*coreApi.UpdateResponse, error) {
-	err := s.engine.Update(ctx, req.GetFqn(), req.GetKeys(), FromValue(req.Value), req.Timestamp.AsTime())
+	err := s.engine.Update(ctx, req.GetSelector(), req.GetKeys(), FromValue(req.Value), req.Timestamp.AsTime())
 	if err != nil {
 		if errors.Is(err, api.ErrFeatureNotFound) {
 			return nil, status.Errorf(codes.NotFound, "feature not found")
