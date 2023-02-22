@@ -465,7 +465,7 @@ func RegisterEngineServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raptor.core.v1alpha1.EngineService/FeatureDescriptor", runtime.WithHTTPPathPattern("/{selector}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/core.v1alpha1.EngineService/FeatureDescriptor", runtime.WithHTTPPathPattern("/{selector}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -490,7 +490,7 @@ func RegisterEngineServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raptor.core.v1alpha1.EngineService/Get", runtime.WithHTTPPathPattern("/{selector}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/core.v1alpha1.EngineService/Get", runtime.WithHTTPPathPattern("/{selector}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -515,7 +515,7 @@ func RegisterEngineServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raptor.core.v1alpha1.EngineService/Set", runtime.WithHTTPPathPattern("/{selector}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/core.v1alpha1.EngineService/Set", runtime.WithHTTPPathPattern("/{selector}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -540,7 +540,7 @@ func RegisterEngineServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raptor.core.v1alpha1.EngineService/Append", runtime.WithHTTPPathPattern("/{fqn}/append"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/core.v1alpha1.EngineService/Append", runtime.WithHTTPPathPattern("/{fqn}/append"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -565,7 +565,7 @@ func RegisterEngineServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raptor.core.v1alpha1.EngineService/Incr", runtime.WithHTTPPathPattern("/{fqn}/incr"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/core.v1alpha1.EngineService/Incr", runtime.WithHTTPPathPattern("/{fqn}/incr"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -590,7 +590,7 @@ func RegisterEngineServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raptor.core.v1alpha1.EngineService/Update", runtime.WithHTTPPathPattern("/{selector}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/core.v1alpha1.EngineService/Update", runtime.WithHTTPPathPattern("/{selector}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -654,7 +654,7 @@ func RegisterEngineServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raptor.core.v1alpha1.EngineService/FeatureDescriptor", runtime.WithHTTPPathPattern("/{selector}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/core.v1alpha1.EngineService/FeatureDescriptor", runtime.WithHTTPPathPattern("/{selector}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -676,7 +676,7 @@ func RegisterEngineServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raptor.core.v1alpha1.EngineService/Get", runtime.WithHTTPPathPattern("/{selector}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/core.v1alpha1.EngineService/Get", runtime.WithHTTPPathPattern("/{selector}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -698,7 +698,7 @@ func RegisterEngineServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raptor.core.v1alpha1.EngineService/Set", runtime.WithHTTPPathPattern("/{selector}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/core.v1alpha1.EngineService/Set", runtime.WithHTTPPathPattern("/{selector}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -720,7 +720,7 @@ func RegisterEngineServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raptor.core.v1alpha1.EngineService/Append", runtime.WithHTTPPathPattern("/{fqn}/append"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/core.v1alpha1.EngineService/Append", runtime.WithHTTPPathPattern("/{fqn}/append"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -742,7 +742,7 @@ func RegisterEngineServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raptor.core.v1alpha1.EngineService/Incr", runtime.WithHTTPPathPattern("/{fqn}/incr"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/core.v1alpha1.EngineService/Incr", runtime.WithHTTPPathPattern("/{fqn}/incr"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -764,7 +764,7 @@ func RegisterEngineServiceHandlerClient(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raptor.core.v1alpha1.EngineService/Update", runtime.WithHTTPPathPattern("/{selector}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/core.v1alpha1.EngineService/Update", runtime.WithHTTPPathPattern("/{selector}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return

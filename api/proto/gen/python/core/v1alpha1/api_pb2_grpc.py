@@ -17,32 +17,32 @@ class EngineServiceStub(object):
             channel: A grpc.Channel.
         """
         self.FeatureDescriptor = channel.unary_unary(
-                '/raptor.core.v1alpha1.EngineService/FeatureDescriptor',
+                '/core.v1alpha1.EngineService/FeatureDescriptor',
                 request_serializer=core_dot_v1alpha1_dot_api__pb2.FeatureDescriptorRequest.SerializeToString,
                 response_deserializer=core_dot_v1alpha1_dot_api__pb2.FeatureDescriptorResponse.FromString,
                 )
         self.Get = channel.unary_unary(
-                '/raptor.core.v1alpha1.EngineService/Get',
+                '/core.v1alpha1.EngineService/Get',
                 request_serializer=core_dot_v1alpha1_dot_api__pb2.GetRequest.SerializeToString,
                 response_deserializer=core_dot_v1alpha1_dot_api__pb2.GetResponse.FromString,
                 )
         self.Set = channel.unary_unary(
-                '/raptor.core.v1alpha1.EngineService/Set',
+                '/core.v1alpha1.EngineService/Set',
                 request_serializer=core_dot_v1alpha1_dot_api__pb2.SetRequest.SerializeToString,
                 response_deserializer=core_dot_v1alpha1_dot_api__pb2.SetResponse.FromString,
                 )
         self.Append = channel.unary_unary(
-                '/raptor.core.v1alpha1.EngineService/Append',
+                '/core.v1alpha1.EngineService/Append',
                 request_serializer=core_dot_v1alpha1_dot_api__pb2.AppendRequest.SerializeToString,
                 response_deserializer=core_dot_v1alpha1_dot_api__pb2.AppendResponse.FromString,
                 )
         self.Incr = channel.unary_unary(
-                '/raptor.core.v1alpha1.EngineService/Incr',
+                '/core.v1alpha1.EngineService/Incr',
                 request_serializer=core_dot_v1alpha1_dot_api__pb2.IncrRequest.SerializeToString,
                 response_deserializer=core_dot_v1alpha1_dot_api__pb2.IncrResponse.FromString,
                 )
         self.Update = channel.unary_unary(
-                '/raptor.core.v1alpha1.EngineService/Update',
+                '/core.v1alpha1.EngineService/Update',
                 request_serializer=core_dot_v1alpha1_dot_api__pb2.UpdateRequest.SerializeToString,
                 response_deserializer=core_dot_v1alpha1_dot_api__pb2.UpdateResponse.FromString,
                 )
@@ -123,7 +123,7 @@ def add_EngineServiceServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'raptor.core.v1alpha1.EngineService', rpc_method_handlers)
+            'core.v1alpha1.EngineService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
@@ -143,7 +143,7 @@ class EngineService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/raptor.core.v1alpha1.EngineService/FeatureDescriptor',
+        return grpc.experimental.unary_unary(request, target, '/core.v1alpha1.EngineService/FeatureDescriptor',
             core_dot_v1alpha1_dot_api__pb2.FeatureDescriptorRequest.SerializeToString,
             core_dot_v1alpha1_dot_api__pb2.FeatureDescriptorResponse.FromString,
             options, channel_credentials,
@@ -160,7 +160,7 @@ class EngineService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/raptor.core.v1alpha1.EngineService/Get',
+        return grpc.experimental.unary_unary(request, target, '/core.v1alpha1.EngineService/Get',
             core_dot_v1alpha1_dot_api__pb2.GetRequest.SerializeToString,
             core_dot_v1alpha1_dot_api__pb2.GetResponse.FromString,
             options, channel_credentials,
@@ -177,7 +177,7 @@ class EngineService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/raptor.core.v1alpha1.EngineService/Set',
+        return grpc.experimental.unary_unary(request, target, '/core.v1alpha1.EngineService/Set',
             core_dot_v1alpha1_dot_api__pb2.SetRequest.SerializeToString,
             core_dot_v1alpha1_dot_api__pb2.SetResponse.FromString,
             options, channel_credentials,
@@ -194,7 +194,7 @@ class EngineService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/raptor.core.v1alpha1.EngineService/Append',
+        return grpc.experimental.unary_unary(request, target, '/core.v1alpha1.EngineService/Append',
             core_dot_v1alpha1_dot_api__pb2.AppendRequest.SerializeToString,
             core_dot_v1alpha1_dot_api__pb2.AppendResponse.FromString,
             options, channel_credentials,
@@ -211,7 +211,7 @@ class EngineService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/raptor.core.v1alpha1.EngineService/Incr',
+        return grpc.experimental.unary_unary(request, target, '/core.v1alpha1.EngineService/Incr',
             core_dot_v1alpha1_dot_api__pb2.IncrRequest.SerializeToString,
             core_dot_v1alpha1_dot_api__pb2.IncrResponse.FromString,
             options, channel_credentials,
@@ -228,7 +228,7 @@ class EngineService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/raptor.core.v1alpha1.EngineService/Update',
+        return grpc.experimental.unary_unary(request, target, '/core.v1alpha1.EngineService/Update',
             core_dot_v1alpha1_dot_api__pb2.UpdateRequest.SerializeToString,
             core_dot_v1alpha1_dot_api__pb2.UpdateResponse.FromString,
             options, channel_credentials,
