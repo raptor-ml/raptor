@@ -5,7 +5,7 @@ ARG VERSION
 ARG GRPC_HEALTH_PROBE_VERSION=v0.4.14
 
 ## Build protobuf files
-FROM bufbuild/buf:1.9.0 as buf
+FROM bufbuild/buf:1.14.0 as buf
 WORKDIR /workspace
 COPY ./api/proto /workspace
 RUN buf generate --include-imports .
