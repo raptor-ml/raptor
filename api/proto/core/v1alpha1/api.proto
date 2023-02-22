@@ -1,0 +1,118 @@
+syntax = "proto3";
+
+package raptor.core.v1alpha1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "core/v1alpha1/types.proto";
+import "validate/validate.proto";
+
+// +++ Read methods +++
+
+// GetRequest
+message GetRequest {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    string selector = 2 [(validate.rules).string.pattern = "(?si)^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\\[(?P<encoding>([a-z]+_*[a-z]+))])?$"];
+    map<string, string> keys = 3;
+}
+message GetResponse {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    FeatureValue value = 2;
+    FeatureDescriptor feature_descriptor = 3;
+}
+
+// +++ Write methods +++
+
+message SetRequest {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    string selector = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    map<string, string> keys = 3;
+    Value value = 4;
+    google.protobuf.Timestamp timestamp = 5;
+}
+message SetResponse {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    google.protobuf.Timestamp timestamp = 2;
+}
+
+message AppendRequest {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    map<string, string> keys = 3;
+    Scalar value = 4;
+    google.protobuf.Timestamp timestamp = 5;
+}
+message AppendResponse {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    google.protobuf.Timestamp timestamp = 2;
+}
+
+message IncrRequest {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    map<string, string> keys = 3;
+    Scalar value = 4;
+    google.protobuf.Timestamp timestamp = 5;
+}
+message IncrResponse {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    google.protobuf.Timestamp timestamp = 2;
+}
+
+message UpdateRequest {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    string selector = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    map<string, string> keys = 3;
+    Value value = 4;
+    google.protobuf.Timestamp timestamp = 5;
+}
+message UpdateResponse {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    google.protobuf.Timestamp timestamp = 2;
+}
+message FeatureDescriptorRequest {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    string selector = 2 [(validate.rules).string.pattern = "(?si)^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\\[(?P<encoding>([a-z]+_*[a-z]+))])?$"];
+}
+message FeatureDescriptorResponse {
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    FeatureDescriptor feature_descriptor = 2;
+}
+
+
+// +++ Service +++
+service EngineService {
+    rpc FeatureDescriptor (FeatureDescriptorRequest) returns (FeatureDescriptorResponse) {
+        option (google.api.http) = {
+            custom: {
+                kind: "HEAD",
+                path: "/{selector}"
+            }
+        };
+    }
+    rpc Get (GetRequest) returns (GetResponse) {
+        option (google.api.http) = {
+            get: "/{selector}"
+        };
+    }
+    rpc Set (SetRequest) returns (SetResponse) {
+        option (google.api.http) = {
+            put: "/{selector}"
+        };
+    }
+    rpc Append (AppendRequest) returns (AppendResponse) {
+        option (google.api.http) = {
+            post: "/{fqn}/append"
+        };
+    }
+    rpc Incr (IncrRequest) returns (IncrResponse) {
+        option (google.api.http) = {
+            post: "/{fqn}/incr"
+        };
+    }
+    rpc Update (UpdateRequest) returns (UpdateResponse) {
+        option (google.api.http) = {
+            post: "/{selector}"
+        };
+    }
+}
