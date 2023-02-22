@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             (unknown)
-// source: runtime/v1alpha1/api.proto
+// source: py-runtime/v1alpha1/api.proto
 
 package runtimev1alpha1
 
@@ -135,5 +135,5 @@ var RuntimeService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "runtime/v1alpha1/api.proto",
+	Metadata: "py-runtime/v1alpha1/api.proto",
 }
