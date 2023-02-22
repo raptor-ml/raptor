@@ -3,7 +3,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from runtime.v1alpha1 import api_pb2 as runtime_dot_v1alpha1_dot_api__pb2
+from py_runtime.v1alpha1 import api_pb2 as py__runtime_dot_v1alpha1_dot_api__pb2
 
 
 class RuntimeServiceStub(object):
@@ -18,13 +18,13 @@ class RuntimeServiceStub(object):
         """
         self.LoadProgram = channel.unary_unary(
                 '/runtime.v1alpha1.RuntimeService/LoadProgram',
-                request_serializer=runtime_dot_v1alpha1_dot_api__pb2.LoadProgramRequest.SerializeToString,
-                response_deserializer=runtime_dot_v1alpha1_dot_api__pb2.LoadProgramResponse.FromString,
+                request_serializer=py__runtime_dot_v1alpha1_dot_api__pb2.LoadProgramRequest.SerializeToString,
+                response_deserializer=py__runtime_dot_v1alpha1_dot_api__pb2.LoadProgramResponse.FromString,
                 )
         self.ExecuteProgram = channel.unary_unary(
                 '/runtime.v1alpha1.RuntimeService/ExecuteProgram',
-                request_serializer=runtime_dot_v1alpha1_dot_api__pb2.ExecuteProgramRequest.SerializeToString,
-                response_deserializer=runtime_dot_v1alpha1_dot_api__pb2.ExecuteProgramResponse.FromString,
+                request_serializer=py__runtime_dot_v1alpha1_dot_api__pb2.ExecuteProgramRequest.SerializeToString,
+                response_deserializer=py__runtime_dot_v1alpha1_dot_api__pb2.ExecuteProgramResponse.FromString,
                 )
 
 
@@ -49,13 +49,13 @@ def add_RuntimeServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'LoadProgram': grpc.unary_unary_rpc_method_handler(
                     servicer.LoadProgram,
-                    request_deserializer=runtime_dot_v1alpha1_dot_api__pb2.LoadProgramRequest.FromString,
-                    response_serializer=runtime_dot_v1alpha1_dot_api__pb2.LoadProgramResponse.SerializeToString,
+                    request_deserializer=py__runtime_dot_v1alpha1_dot_api__pb2.LoadProgramRequest.FromString,
+                    response_serializer=py__runtime_dot_v1alpha1_dot_api__pb2.LoadProgramResponse.SerializeToString,
             ),
             'ExecuteProgram': grpc.unary_unary_rpc_method_handler(
                     servicer.ExecuteProgram,
-                    request_deserializer=runtime_dot_v1alpha1_dot_api__pb2.ExecuteProgramRequest.FromString,
-                    response_serializer=runtime_dot_v1alpha1_dot_api__pb2.ExecuteProgramResponse.SerializeToString,
+                    request_deserializer=py__runtime_dot_v1alpha1_dot_api__pb2.ExecuteProgramRequest.FromString,
+                    response_serializer=py__runtime_dot_v1alpha1_dot_api__pb2.ExecuteProgramResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -80,8 +80,8 @@ class RuntimeService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/runtime.v1alpha1.RuntimeService/LoadProgram',
-            runtime_dot_v1alpha1_dot_api__pb2.LoadProgramRequest.SerializeToString,
-            runtime_dot_v1alpha1_dot_api__pb2.LoadProgramResponse.FromString,
+            py__runtime_dot_v1alpha1_dot_api__pb2.LoadProgramRequest.SerializeToString,
+            py__runtime_dot_v1alpha1_dot_api__pb2.LoadProgramResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -97,7 +97,7 @@ class RuntimeService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/runtime.v1alpha1.RuntimeService/ExecuteProgram',
-            runtime_dot_v1alpha1_dot_api__pb2.ExecuteProgramRequest.SerializeToString,
-            runtime_dot_v1alpha1_dot_api__pb2.ExecuteProgramResponse.FromString,
+            py__runtime_dot_v1alpha1_dot_api__pb2.ExecuteProgramRequest.SerializeToString,
+            py__runtime_dot_v1alpha1_dot_api__pb2.ExecuteProgramResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

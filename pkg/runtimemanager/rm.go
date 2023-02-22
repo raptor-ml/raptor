@@ -24,7 +24,7 @@ import (
 	grpcRetry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
 	"github.com/raptor-ml/raptor/api"
 	coreApi "github.com/raptor-ml/raptor/api/proto/gen/go/core/v1alpha1"
-	runtimeApi "github.com/raptor-ml/raptor/api/proto/gen/go/runtime/v1alpha1"
+	runtimeApi "github.com/raptor-ml/raptor/api/proto/gen/go/py-runtime/v1alpha1"
 	"github.com/raptor-ml/raptor/pkg/sdk"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/local"

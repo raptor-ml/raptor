@@ -32,8 +32,8 @@ sys.path.append('./proto')
 from proto.core.v1alpha1 import api_pb2 as core_pb2
 from proto.core.v1alpha1 import api_pb2_grpc as core_grpc
 from proto.core.v1alpha1 import types_pb2 as types_pb2
-from proto.runtime.v1alpha1 import api_pb2
-from proto.runtime.v1alpha1 import api_pb2_grpc
+from proto.py_runtime.v1alpha1 import api_pb2
+from proto.py_runtime.v1alpha1 import api_pb2_grpc
 
 
 class RuntimeServicer(api_pb2_grpc.RuntimeServiceServicer):
