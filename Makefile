@@ -52,7 +52,7 @@ CORE_IMG_BASE = $(IMAGE_BASE)-core
 RUNTIME_IMG_BASE = $(IMAGE_BASE)-runtime
 HISTORIAN_IMG_BASE = $(IMAGE_BASE)-historian
 
-CONTEXT ?= gke_raptor-test_europe-west3-a_raptor-test
+CONTEXT ?= kind-raptor
 KUBECTL = kubectl --context='${CONTEXT}'
 
 $(info $(shell tput setaf 3)Context: $(shell tput sgr0)$(CONTEXT))
@@ -120,7 +120,6 @@ buf-build: buf ## Build protobufs with buf
 	cd api/proto && $(BUF) build
 	cd api/proto && $(BUF) breaking --against .
 	cd api/proto && $(BUF) generate
-	-cd api/proto/gen/go && go mod init go.buf.build/raptor/api-go/raptor/core
 	cd api/proto/gen/go && go mod tidy
 
 .PHONY: fmt

@@ -28,8 +28,9 @@ import (
 	grpcPrometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/raptor-ml/raptor/api"
+	protoApi "github.com/raptor-ml/raptor/api/proto/gen/go"
+	coreApi "github.com/raptor-ml/raptor/api/proto/gen/go/core/v1alpha1"
 	"github.com/raptor-ml/raptor/pkg/sdk"
-	coreApi "go.buf.build/raptor/api-go/raptor/core/raptor/core/v1alpha1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"net"
@@ -144,6 +145,11 @@ func (a *accessor) HTTP(addr string, prefix string) NoLeaderRunnableFunc {
 		}
 		mux := http.NewServeMux()
 		mux.Handle(prefix[:len(prefix)-1], http.StripPrefix(fmt.Sprintf("%s/", prefix), gwMux))
+
+		mux.HandleFunc(fmt.Sprintf("%sapidocs.swagger.yaml", prefix), func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/x-yaml")
+			_, _ = w.Write(protoApi.ApiDocs)
+		})
 
 		a.logger.WithValues("kind", "http", "addr", addr).Info("Starting Accessor HTTP server")
 		srv := http.Server{Handler: mux, Addr: addr}

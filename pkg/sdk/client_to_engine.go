@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/raptor-ml/raptor/api"
-	coreApi "go.buf.build/raptor/api-go/raptor/core/raptor/core/v1alpha1"
+	coreApi "github.com/raptor-ml/raptor/api/proto/gen/go/core/v1alpha1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -78,7 +78,7 @@ func (e *grpcEngine) Get(ctx context.Context, selector string, keys api.Keys) (a
 func (e *grpcEngine) Set(ctx context.Context, fqn string, keys api.Keys, val any, ts time.Time) error {
 	req := coreApi.SetRequest{
 		Uuid:      uuid.NewString(),
-		Fqn:       fqn,
+		Selector:  fqn,
 		Keys:      keys,
 		Value:     ToAPIValue(val),
 		Timestamp: timestamppb.New(ts),
@@ -129,7 +129,7 @@ func (e *grpcEngine) Incr(ctx context.Context, fqn string, keys api.Keys, by any
 func (e *grpcEngine) Update(ctx context.Context, fqn string, keys api.Keys, val any, ts time.Time) error {
 	req := coreApi.UpdateRequest{
 		Uuid:      uuid.NewString(),
-		Fqn:       fqn,
+		Selector:  fqn,
 		Keys:      keys,
 		Value:     ToAPIValue(val),
 		Timestamp: timestamppb.New(ts),

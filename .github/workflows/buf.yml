@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.BOT_PAT }}
       - uses: bufbuild/buf-setup-action@v1
         with:
           github_token: ${{ github.token }}
@@ -23,12 +25,24 @@ jobs:
         with:
           input: api/proto
           against: https://github.com/raptor-ml/raptor.git#branch=master,subdir=api/proto
-      - name: Pushing to BSR
+      - name: Building buf
+        id: build
         if: success() && github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: bufbuild/buf-push-action@v1
-        with:
-          buf_token: ${{ secrets.BUF_BSR_TOKEN }}
-          input: api/proto
+        run: |
+          make buf-build BUF=`which buf`
+          if [[ `git status api/v1alpha1/gen --porcelain` ]]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Push changes
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/master' && steps.build.outputs.changed == 'true'
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add api/proto/gen/*
+          git commit -m "chore: update protobuf generated code"
+          git push
       - name: Report failure
         if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions-cool/issues-helper@v3

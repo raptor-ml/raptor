@@ -89,7 +89,7 @@ jobs:
 
           git add labsdk/CHANGELOG.md
           git commit -m "chore(LabSDK-release): ${{ needs.version.outputs.version }}" labsdk/CHANGELOG.md
-          git push -f
+          git push
       - name: Tag
         uses: actions/github-script@v6
         with:
