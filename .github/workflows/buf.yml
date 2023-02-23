@@ -47,6 +47,13 @@ jobs:
           git add api/proto/gen/*
           git commit -m "chore: update protobuf generated code"
           git push
+      - name: Pushing to BSR
+        id: build
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/master' && steps.build.outputs.changed == 'true'
+        uses: bufbuild/buf-push-action@v1
+        with:
+          buf_token: ${{ secrets.BUF_BSR_TOKEN }}
+          input: api/proto
       - name: Report failure
         if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions-cool/issues-helper@v3
