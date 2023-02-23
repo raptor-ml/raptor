@@ -6,6 +6,7 @@ managed:
     except:
       - "buf.build/googleapis/googleapis"
       - "buf.build/envoyproxy/protoc-gen-validate"
+      - "buf.build/grpc-ecosystem/grpc-gateway"
 plugins:
   - plugin: buf.build/protocolbuffers/go
     out: gen/go

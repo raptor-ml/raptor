@@ -1,10 +1,13 @@
 swagger: "2.0"
 info:
-  title: core/v1alpha1/types.proto
+  title: Core API
+  description: Provides access low-level operations over feature values and model predictions.
   version: version not set
 tags:
   - name: EngineService
-  - name: RuntimeService
+host: raptor-core-service.raptor-system:60001
+schemes:
+  - http
 consumes:
   - application/json
 produces:
@@ -12,6 +15,7 @@ produces:
 paths:
   /{fqn}/append:
     post:
+      summary: Append appends the given value to the feature value for the given selector.
       operationId: EngineService_Append
       responses:
         "200":
@@ -24,10 +28,12 @@ paths:
             $ref: '#/definitions/rpcStatus'
       parameters:
         - name: fqn
+          description: Selector of the feature
           in: path
           required: true
           type: string
         - name: uuid
+          description: UUID of the request
           in: query
           required: false
           type: string
@@ -55,6 +61,7 @@ paths:
           type: string
           format: date-time
         - name: timestamp
+          description: Timestamp of the update
           in: query
           required: false
           type: string
@@ -63,6 +70,7 @@ paths:
         - EngineService
   /{fqn}/incr:
     post:
+      summary: Incr increments the feature value for the given selector.
       operationId: EngineService_Incr
       responses:
         "200":
@@ -75,10 +83,12 @@ paths:
             $ref: '#/definitions/rpcStatus'
       parameters:
         - name: fqn
+          description: Selector of the feature
           in: path
           required: true
           type: string
         - name: uuid
+          description: UUID of the request
           in: query
           required: false
           type: string
@@ -106,6 +116,7 @@ paths:
           type: string
           format: date-time
         - name: timestamp
+          description: Timestamp of the update
           in: query
           required: false
           type: string
@@ -114,6 +125,7 @@ paths:
         - EngineService
   /{selector}:
     get:
+      summary: Get returns the feature value or model prediction for the given selector.
       operationId: EngineService_Get
       responses:
         "200":
@@ -126,16 +138,19 @@ paths:
             $ref: '#/definitions/rpcStatus'
       parameters:
         - name: selector
+          description: Selector of the feature
           in: path
           required: true
           type: string
         - name: uuid
+          description: UUID of the request
           in: query
           required: false
           type: string
       tags:
         - EngineService
     post:
+      summary: Update updates the feature value for the given selector.
       operationId: EngineService_Update
       responses:
         "200":
@@ -148,10 +163,12 @@ paths:
             $ref: '#/definitions/rpcStatus'
       parameters:
         - name: selector
+          description: Selector of the feature
           in: path
           required: true
           type: string
         - name: uuid
+          description: UUID of the request
           in: query
           required: false
           type: string
@@ -179,6 +196,7 @@ paths:
           type: string
           format: date-time
         - name: timestamp
+          description: Timestamp of the update
           in: query
           required: false
           type: string
@@ -186,6 +204,7 @@ paths:
       tags:
         - EngineService
     put:
+      summary: Set sets the feature value for the given selector.
       operationId: EngineService_Set
       responses:
         "200":
@@ -198,10 +217,12 @@ paths:
             $ref: '#/definitions/rpcStatus'
       parameters:
         - name: selector
+          description: Selector of the feature
           in: path
           required: true
           type: string
         - name: uuid
+          description: UUID of the request
           in: query
           required: false
           type: string
@@ -229,6 +250,7 @@ paths:
           type: string
           format: date-time
         - name: timestamp
+          description: Timestamp of the update
           in: query
           required: false
           type: string
@@ -236,6 +258,7 @@ paths:
       tags:
         - EngineService
     head:
+      summary: FeatureDescriptor returns the feature descriptor for the given selector.
       operationId: EngineService_FeatureDescriptor
       responses:
         "200":
@@ -248,76 +271,25 @@ paths:
             $ref: '#/definitions/rpcStatus'
       parameters:
         - name: selector
+          description: Selector of the feature
           in: path
           required: true
           type: string
         - name: uuid
+          description: UUID of the request
           in: query
           required: false
           type: string
       tags:
         - EngineService
-  /program:
-    post:
-      operationId: RuntimeService_LoadProgram
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1alpha1LoadProgramResponse'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/v1alpha1LoadProgramRequest'
-      tags:
-        - RuntimeService
-  /program/{fqn}:
-    post:
-      operationId: RuntimeService_ExecuteProgram
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1alpha1ExecuteProgramResponse'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: fqn
-          in: path
-          required: true
-          type: string
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              uuid:
-                type: string
-              keys:
-                type: object
-                additionalProperties:
-                  type: string
-              data:
-                type: object
-                additionalProperties:
-                  $ref: '#/definitions/v1alpha1Value'
-              timestamp:
-                type: string
-                format: date-time
-              dryRun:
-                type: boolean
-      tags:
-        - RuntimeService
 definitions:
+  corev1alpha1Value:
+    type: object
+    properties:
+      scalarValue:
+        $ref: '#/definitions/v1alpha1Scalar'
+      listValue:
+        $ref: '#/definitions/v1alpha1List'
   protobufAny:
     type: object
     properties:
@@ -351,23 +323,31 @@ definitions:
     properties:
       uuid:
         type: string
+        title: UUID corresponding to the request
       timestamp:
         type: string
         format: date-time
+        title: Timestamp of the update
+    description: AppendResponse is the response to append a value to a feature value.
   v1alpha1ExecuteProgramResponse:
     type: object
     properties:
       uuid:
         type: string
+        description: UUID corresponding to the request.
       result:
-        $ref: '#/definitions/v1alpha1Value'
+        $ref: '#/definitions/corev1alpha1Value'
+        description: Result of the program execution.
       keys:
         type: object
         additionalProperties:
           type: string
+        description: Keys for the feature. The keys are used to identify the feature instance.
       timestamp:
         type: string
         format: date-time
+        description: Timestamp of the response.
+    description: EntityReadResponse is a response to a read entity request.
   v1alpha1FeatureDescriptor:
     type: object
     properties:
@@ -402,8 +382,11 @@ definitions:
     properties:
       uuid:
         type: string
+        title: UUID corresponding to the request
       featureDescriptor:
         $ref: '#/definitions/v1alpha1FeatureDescriptor'
+        title: Feature descriptor
+    description: FeatureDescriptorResponse is the response to get a feature descriptor.
   v1alpha1FeatureValue:
     type: object
     properties:
@@ -414,7 +397,7 @@ definitions:
         additionalProperties:
           type: string
       value:
-        $ref: '#/definitions/v1alpha1Value'
+        $ref: '#/definitions/corev1alpha1Value'
       timestamp:
         type: string
         format: date-time
@@ -425,18 +408,25 @@ definitions:
     properties:
       uuid:
         type: string
+        title: UUID corresponding to the request
       value:
         $ref: '#/definitions/v1alpha1FeatureValue'
+        title: Feature value
       featureDescriptor:
         $ref: '#/definitions/v1alpha1FeatureDescriptor'
+        title: Feature descriptor
+    description: GetResponse is the response to get a feature value.
   v1alpha1IncrResponse:
     type: object
     properties:
       uuid:
         type: string
+        title: UUID corresponding to the request
       timestamp:
         type: string
         format: date-time
+        title: Timestamp of the update
+    description: IncrResponse is the response to atomic-increment a feature value.
   v1alpha1KeepPrevious:
     type: object
     properties:
@@ -452,30 +442,21 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/v1alpha1Scalar'
-  v1alpha1LoadProgramRequest:
-    type: object
-    properties:
-      uuid:
-        type: string
-      fqn:
-        type: string
-      program:
-        type: string
-      packages:
-        type: array
-        items:
-          type: string
   v1alpha1LoadProgramResponse:
     type: object
     properties:
       uuid:
         type: string
+        description: UUID corresponding to the request.
       primitive:
         $ref: '#/definitions/v1alpha1Primitive'
+        description: Primitive that the program will return.
       sideEffects:
         type: array
         items:
           $ref: '#/definitions/v1alpha1SideEffect'
+        description: Side effects that the program will produce.
+    description: LoadProgramResponse is a response to a load program request.
   v1alpha1Primitive:
     type: string
     enum:
@@ -513,9 +494,12 @@ definitions:
     properties:
       uuid:
         type: string
+        title: UUID corresponding to the request
       timestamp:
         type: string
         format: date-time
+        title: Timestamp of the update
+    description: SetResponse is the response to set a feature value.
   v1alpha1SideEffect:
     type: object
     properties:
@@ -527,19 +511,18 @@ definitions:
           type: string
       conditional:
         type: boolean
-    title: +++  Program SideEffects +++
+    description: SideEffect is a side effect of a program execution.
   v1alpha1UpdateResponse:
     type: object
     properties:
       uuid:
         type: string
+        title: UUID corresponding to the request
       timestamp:
         type: string
         format: date-time
-  v1alpha1Value:
-    type: object
-    properties:
-      scalarValue:
-        $ref: '#/definitions/v1alpha1Scalar'
-      listValue:
-        $ref: '#/definitions/v1alpha1List'
+        title: Timestamp of the update
+    description: UpdateResponse is the response to update a feature value.
+externalDocs:
+  description: Official documentation
+  url: https://raptor.ml

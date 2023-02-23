@@ -3,47 +3,80 @@ syntax = "proto3";
 package py_runtime.v1alpha1;
 
 import "google/api/annotations.proto";
+import "google/api/visibility.proto";
 import "google/protobuf/timestamp.proto";
 import "core/v1alpha1/types.proto";
 import "validate/validate.proto";
 
-// +++  Program SideEffects +++
+// SideEffect is a side effect of a program execution.
 message SideEffect {
+    option (google.api.message_visibility).restriction = "INTERNAL";
+
     string kind = 1;
     map<string, string> args = 2;
     bool conditional = 3;
 }
 
-// +++ Read methods +++
-
+// EntityReadRequest is a request to read an entity.
 message ExecuteProgramRequest {
+    option (google.api.message_visibility).restriction = "INTERNAL";
+
+    // UUID of the request.
     string uuid = 1 [(validate.rules).string.uuid = true];
+    // Fully qualified name of the feature owning the program to execute.
     string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    // Keys for the feature. The keys are used to identify the feature instance.
     map<string, string> keys = 3;
+    // Data to pass to the program.
     map<string, core.v1alpha1.Value> data = 4;
+    // Timestamp of the request.
     google.protobuf.Timestamp timestamp = 5;
+    // DryRun the program without side effects (e.g. don't save the result).
     bool dry_run = 6;
 }
+// EntityReadResponse is a response to a read entity request.
 message ExecuteProgramResponse {
+    option (google.api.message_visibility).restriction = "INTERNAL";
+
+    // UUID corresponding to the request.
     string uuid = 1 [(validate.rules).string.uuid = true];
+    // Result of the program execution.
     core.v1alpha1.Value result = 2;
+    // Keys for the feature. The keys are used to identify the feature instance.
     map<string, string> keys = 3;
+    // Timestamp of the response.
     google.protobuf.Timestamp timestamp = 4;
 }
+
+// LoadProgramRequest is a request to load a new program to the runtime.
 message LoadProgramRequest {
+    option (google.api.message_visibility).restriction = "INTERNAL";
+
+    // UUID of the request.
     string uuid = 1 [(validate.rules).string.uuid = true];
+    // Fully qualified name of the feature owning the program.
     string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    // Program python code to load.
     string program = 3;
+    // Packages to install before loading the program. Pip expressions are supported.
     repeated string packages = 4;
 }
+// LoadProgramResponse is a response to a load program request.
 message LoadProgramResponse {
+    option (google.api.message_visibility).restriction = "INTERNAL";
+
+    // UUID corresponding to the request.
     string uuid = 1 [(validate.rules).string.uuid = true];
+    // Primitive that the program will return.
     core.v1alpha1.Primitive primitive = 2;
+    // Side effects that the program will produce.
     repeated SideEffect side_effects = 3;
 }
 
-// +++ Service +++
+// RuntimeService is the service that exposes the runtime API. This is usually used by Raptor developers or advanced users.
 service RuntimeService {
+    option (google.api.api_visibility).restriction = "INTERNAL";
+
     rpc LoadProgram (LoadProgramRequest) returns (LoadProgramResponse) {
         option (google.api.http) = {
             post: "/program"

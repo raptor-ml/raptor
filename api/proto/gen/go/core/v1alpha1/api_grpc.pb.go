@@ -22,11 +22,17 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EngineServiceClient interface {
+	// FeatureDescriptor returns the feature descriptor for the given selector.
 	FeatureDescriptor(ctx context.Context, in *FeatureDescriptorRequest, opts ...grpc.CallOption) (*FeatureDescriptorResponse, error)
+	// Get returns the feature value or model prediction for the given selector.
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
+	// Set sets the feature value for the given selector.
 	Set(ctx context.Context, in *SetRequest, opts ...grpc.CallOption) (*SetResponse, error)
+	// Append appends the given value to the feature value for the given selector.
 	Append(ctx context.Context, in *AppendRequest, opts ...grpc.CallOption) (*AppendResponse, error)
+	// Incr increments the feature value for the given selector.
 	Incr(ctx context.Context, in *IncrRequest, opts ...grpc.CallOption) (*IncrResponse, error)
+	// Update updates the feature value for the given selector.
 	Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
 }
 
@@ -96,11 +102,17 @@ func (c *engineServiceClient) Update(ctx context.Context, in *UpdateRequest, opt
 // All implementations should embed UnimplementedEngineServiceServer
 // for forward compatibility
 type EngineServiceServer interface {
+	// FeatureDescriptor returns the feature descriptor for the given selector.
 	FeatureDescriptor(context.Context, *FeatureDescriptorRequest) (*FeatureDescriptorResponse, error)
+	// Get returns the feature value or model prediction for the given selector.
 	Get(context.Context, *GetRequest) (*GetResponse, error)
+	// Set sets the feature value for the given selector.
 	Set(context.Context, *SetRequest) (*SetResponse, error)
+	// Append appends the given value to the feature value for the given selector.
 	Append(context.Context, *AppendRequest) (*AppendResponse, error)
+	// Incr increments the feature value for the given selector.
 	Incr(context.Context, *IncrRequest) (*IncrResponse, error)
+	// Update updates the feature value for the given selector.
 	Update(context.Context, *UpdateRequest) (*UpdateResponse, error)
 }
 

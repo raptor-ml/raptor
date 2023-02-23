@@ -1,4 +1,5 @@
 from google.api import annotations_pb2 as _annotations_pb2
+from google.api import visibility_pb2 as _visibility_pb2
 from google.protobuf import timestamp_pb2 as _timestamp_pb2
 from core.v1alpha1 import types_pb2 as _types_pb2
 from validate import validate_pb2 as _validate_pb2

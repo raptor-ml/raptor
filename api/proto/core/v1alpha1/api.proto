@@ -6,82 +6,159 @@ import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "core/v1alpha1/types.proto";
 import "validate/validate.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
-// +++ Read methods +++
 
-// GetRequest
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+        title: "Core API";
+        description: "Provides access low-level operations over feature values and model predictions.";
+    };
+    // Overwriting host entry breaks tests, so this is not done here.
+    external_docs: {
+        url: "https://raptor.ml";
+        description: "Official documentation";
+    }
+    schemes: HTTP;
+    host: "raptor-core-service.raptor-system:60001";
+};
+
+/***
+ * Read methods
+ */
+
+// GetRequest is the request to get a feature value.
 message GetRequest {
+    // UUID of the request
     string uuid = 1 [(validate.rules).string.uuid = true];
+    // Selector of the feature
     string selector = 2 [(validate.rules).string.pattern = "(?si)^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\\[(?P<encoding>([a-z]+_*[a-z]+))])?$"];
+    // Keys of the feature
     map<string, string> keys = 3;
 }
+// GetResponse is the response to get a feature value.
 message GetResponse {
+    // UUID corresponding to the request
     string uuid = 1 [(validate.rules).string.uuid = true];
+    // Feature value
     FeatureValue value = 2;
+    // Feature descriptor
     FeatureDescriptor feature_descriptor = 3;
 }
 
-// +++ Write methods +++
-
-message SetRequest {
-    string uuid = 1 [(validate.rules).string.uuid = true];
-    string selector = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-    map<string, string> keys = 3;
-    Value value = 4;
-    google.protobuf.Timestamp timestamp = 5;
-}
-message SetResponse {
-    string uuid = 1 [(validate.rules).string.uuid = true];
-    google.protobuf.Timestamp timestamp = 2;
-}
-
-message AppendRequest {
-    string uuid = 1 [(validate.rules).string.uuid = true];
-    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-    map<string, string> keys = 3;
-    Scalar value = 4;
-    google.protobuf.Timestamp timestamp = 5;
-}
-message AppendResponse {
-    string uuid = 1 [(validate.rules).string.uuid = true];
-    google.protobuf.Timestamp timestamp = 2;
-}
-
-message IncrRequest {
-    string uuid = 1 [(validate.rules).string.uuid = true];
-    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-    map<string, string> keys = 3;
-    Scalar value = 4;
-    google.protobuf.Timestamp timestamp = 5;
-}
-message IncrResponse {
-    string uuid = 1 [(validate.rules).string.uuid = true];
-    google.protobuf.Timestamp timestamp = 2;
-}
-
-message UpdateRequest {
-    string uuid = 1 [(validate.rules).string.uuid = true];
-    string selector = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
-    map<string, string> keys = 3;
-    Value value = 4;
-    google.protobuf.Timestamp timestamp = 5;
-}
-message UpdateResponse {
-    string uuid = 1 [(validate.rules).string.uuid = true];
-    google.protobuf.Timestamp timestamp = 2;
-}
+// FeatureDescriptorRequest is the request to get a feature descriptor.
 message FeatureDescriptorRequest {
+    // UUID of the request
     string uuid = 1 [(validate.rules).string.uuid = true];
+    // Selector of the feature
     string selector = 2 [(validate.rules).string.pattern = "(?si)^((?P<namespace>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})\\.)?(?P<name>([a0-z9]+[a0-z9_]*[a0-z9]+){1,256})(\\+(?P<aggrFn>([a-z]+_*[a-z]+)))?(@-(?P<version>([0-9]+)))?(\\[(?P<encoding>([a-z]+_*[a-z]+))])?$"];
 }
+// FeatureDescriptorResponse is the response to get a feature descriptor.
 message FeatureDescriptorResponse {
+    // UUID corresponding to the request
     string uuid = 1 [(validate.rules).string.uuid = true];
+    // Feature descriptor
     FeatureDescriptor feature_descriptor = 2;
 }
 
+/***
+ * Write methods
+ */
 
-// +++ Service +++
+// SetRequest is the request to set a feature value.
+message SetRequest {
+    // UUID of the request
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    // Selector of the feature
+    string selector = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    // Keys of the feature
+    map<string, string> keys = 3;
+    // Value to set
+    Value value = 4;
+    // Timestamp of the update
+    google.protobuf.Timestamp timestamp = 5;
+}
+// SetResponse is the response to set a feature value.
+message SetResponse {
+    // UUID corresponding to the request
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    // Timestamp of the update
+    google.protobuf.Timestamp timestamp = 2;
+}
+
+// AppendRequest is the request to append a value to a feature value.
+message AppendRequest {
+    // UUID of the request
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    // Selector of the feature
+    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    // Keys of the feature
+    map<string, string> keys = 3;
+    // Value to append
+    Scalar value = 4;
+    // Timestamp of the update
+    google.protobuf.Timestamp timestamp = 5;
+}
+// AppendResponse is the response to append a value to a feature value.
+message AppendResponse {
+    // UUID corresponding to the request
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    // Timestamp of the update
+    google.protobuf.Timestamp timestamp = 2;
+}
+
+// IncrRequest is the request to atomic-increment a feature value.
+message IncrRequest {
+    // UUID of the request
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    // Selector of the feature
+    string fqn = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    // Keys of the feature
+    map<string, string> keys = 3;
+    // Value to increment by
+    Scalar value = 4;
+    // Timestamp of the update
+    google.protobuf.Timestamp timestamp = 5;
+}
+// IncrResponse is the response to atomic-increment a feature value.
+message IncrResponse {
+    // UUID corresponding to the request
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    // Timestamp of the update
+    google.protobuf.Timestamp timestamp = 2;
+}
+
+// UpdateRequest is the request to update a feature value.
+message UpdateRequest {
+    // UUID of the request
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    // Selector of the feature
+    string selector = 2 [(validate.rules).string.pattern = "(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$"];
+    // Keys of the feature
+    map<string, string> keys = 3;
+    // Value to update
+    Value value = 4;
+    // Timestamp of the update
+    google.protobuf.Timestamp timestamp = 5;
+}
+// UpdateResponse is the response to update a feature value.
+message UpdateResponse {
+    // UUID corresponding to the request
+    string uuid = 1 [(validate.rules).string.uuid = true];
+    // Timestamp of the update
+    google.protobuf.Timestamp timestamp = 2;
+}
+
+
+/***
+ * Service definition
+ */
+
+// EngineService is the service that provides the core functionality of the engine and to access low-level operations
+// over feature values.
 service EngineService {
+
+    // FeatureDescriptor returns the feature descriptor for the given selector.
     rpc FeatureDescriptor (FeatureDescriptorRequest) returns (FeatureDescriptorResponse) {
         option (google.api.http) = {
             custom: {
@@ -90,26 +167,31 @@ service EngineService {
             }
         };
     }
+    // Get returns the feature value or model prediction for the given selector.
     rpc Get (GetRequest) returns (GetResponse) {
         option (google.api.http) = {
             get: "/{selector}"
         };
     }
+    // Set sets the feature value for the given selector.
     rpc Set (SetRequest) returns (SetResponse) {
         option (google.api.http) = {
             put: "/{selector}"
         };
     }
+    // Append appends the given value to the feature value for the given selector.
     rpc Append (AppendRequest) returns (AppendResponse) {
         option (google.api.http) = {
             post: "/{fqn}/append"
         };
     }
+    // Incr increments the feature value for the given selector.
     rpc Incr (IncrRequest) returns (IncrResponse) {
         option (google.api.http) = {
             post: "/{fqn}/incr"
         };
     }
+    // Update updates the feature value for the given selector.
     rpc Update (UpdateRequest) returns (UpdateResponse) {
         option (google.api.http) = {
             post: "/{selector}"

@@ -3,7 +3,6 @@ module github.com/raptor-ml/raptor/api/proto/gen/go
 go 1.19
 
 require (
-	github.com/envoyproxy/protoc-gen-validate v0.9.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.0
 	google.golang.org/genproto v0.0.0-20230221151758-ace64dc21148
 	google.golang.org/grpc v1.53.0

@@ -2,6 +2,7 @@ from google.api import annotations_pb2 as _annotations_pb2
 from google.protobuf import timestamp_pb2 as _timestamp_pb2
 from core.v1alpha1 import types_pb2 as _types_pb2
 from validate import validate_pb2 as _validate_pb2
+from protoc_gen_openapiv2.options import annotations_pb2 as _annotations_pb2_1
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
@@ -35,6 +36,22 @@ class GetResponse(_message.Message):
     value: _types_pb2.FeatureValue
     feature_descriptor: _types_pb2.FeatureDescriptor
     def __init__(self, uuid: _Optional[str] = ..., value: _Optional[_Union[_types_pb2.FeatureValue, _Mapping]] = ..., feature_descriptor: _Optional[_Union[_types_pb2.FeatureDescriptor, _Mapping]] = ...) -> None: ...
+
+class FeatureDescriptorRequest(_message.Message):
+    __slots__ = ["uuid", "selector"]
+    UUID_FIELD_NUMBER: _ClassVar[int]
+    SELECTOR_FIELD_NUMBER: _ClassVar[int]
+    uuid: str
+    selector: str
+    def __init__(self, uuid: _Optional[str] = ..., selector: _Optional[str] = ...) -> None: ...
+
+class FeatureDescriptorResponse(_message.Message):
+    __slots__ = ["uuid", "feature_descriptor"]
+    UUID_FIELD_NUMBER: _ClassVar[int]
+    FEATURE_DESCRIPTOR_FIELD_NUMBER: _ClassVar[int]
+    uuid: str
+    feature_descriptor: _types_pb2.FeatureDescriptor
+    def __init__(self, uuid: _Optional[str] = ..., feature_descriptor: _Optional[_Union[_types_pb2.FeatureDescriptor, _Mapping]] = ...) -> None: ...
 
 class SetRequest(_message.Message):
     __slots__ = ["uuid", "selector", "keys", "value", "timestamp"]
@@ -151,19 +168,3 @@ class UpdateResponse(_message.Message):
     uuid: str
     timestamp: _timestamp_pb2.Timestamp
     def __init__(self, uuid: _Optional[str] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
-
-class FeatureDescriptorRequest(_message.Message):
-    __slots__ = ["uuid", "selector"]
-    UUID_FIELD_NUMBER: _ClassVar[int]
-    SELECTOR_FIELD_NUMBER: _ClassVar[int]
-    uuid: str
-    selector: str
-    def __init__(self, uuid: _Optional[str] = ..., selector: _Optional[str] = ...) -> None: ...
-
-class FeatureDescriptorResponse(_message.Message):
-    __slots__ = ["uuid", "feature_descriptor"]
-    UUID_FIELD_NUMBER: _ClassVar[int]
-    FEATURE_DESCRIPTOR_FIELD_NUMBER: _ClassVar[int]
-    uuid: str
-    feature_descriptor: _types_pb2.FeatureDescriptor
-    def __init__(self, uuid: _Optional[str] = ..., feature_descriptor: _Optional[_Union[_types_pb2.FeatureDescriptor, _Mapping]] = ...) -> None: ...
