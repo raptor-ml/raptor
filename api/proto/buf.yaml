@@ -7,6 +7,12 @@ lint:
   use:
     - DEFAULT
     - PACKAGE_NO_IMPORT_CYCLE
+  ignore:
+    - validate
+    - protoc-gen-openapiv2
 breaking:
   use:
     - FILE
+  ignore:
+    - validate
+    - protoc-gen-openapiv2
