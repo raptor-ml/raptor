@@ -7,7 +7,7 @@ from py_runtime.v1alpha1 import api_pb2 as py__runtime_dot_v1alpha1_dot_api__pb2
 
 
 class RuntimeServiceStub(object):
-    """+++ Service +++
+    """RuntimeService is the service that exposes the runtime API. This is usually used by Raptor developers or advanced users.
     """
 
     def __init__(self, channel):
@@ -29,7 +29,7 @@ class RuntimeServiceStub(object):
 
 
 class RuntimeServiceServicer(object):
-    """+++ Service +++
+    """RuntimeService is the service that exposes the runtime API. This is usually used by Raptor developers or advanced users.
     """
 
     def LoadProgram(self, request, context):
@@ -65,7 +65,7 @@ def add_RuntimeServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class RuntimeService(object):
-    """+++ Service +++
+    """RuntimeService is the service that exposes the runtime API. This is usually used by Raptor developers or advanced users.
     """
 
     @staticmethod

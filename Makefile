@@ -117,6 +117,9 @@ generate: pre-build controller-gen ## Generate code containing DeepCopy, DeepCop
 
 .PHONY: buf-build
 buf-build: buf ## Build protobufs with buf
+	$(BUF) export buf.build/grpc-ecosystem/grpc-gateway -o api/proto
+	$(BUF) export buf.build/envoyproxy/protoc-gen-validate  -o api/proto
+	cd api/proto && $(BUF) mod update
 	cd api/proto && $(BUF) build
 	cd api/proto && $(BUF) breaking --against .
 	cd api/proto && $(BUF) generate

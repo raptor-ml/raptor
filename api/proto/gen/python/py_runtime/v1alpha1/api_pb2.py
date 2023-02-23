@@ -12,12 +12,13 @@ _sym_db = _symbol_database.Default()
 
 
 from google.api import annotations_pb2 as google_dot_api_dot_annotations__pb2
+from google.api import visibility_pb2 as google_dot_api_dot_visibility__pb2
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 from core.v1alpha1 import types_pb2 as core_dot_v1alpha1_dot_types__pb2
 from validate import validate_pb2 as validate_dot_validate__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1dpy_runtime/v1alpha1/api.proto\x12\x13py_runtime.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19\x63ore/v1alpha1/types.proto\x1a\x17validate/validate.proto\"\xba\x01\n\nSideEffect\x12\x12\n\x04kind\x18\x01 \x01(\tR\x04kind\x12=\n\x04\x61rgs\x18\x02 \x03(\x0b\x32).py_runtime.v1alpha1.SideEffect.ArgsEntryR\x04\x61rgs\x12 \n\x0b\x63onditional\x18\x03 \x01(\x08R\x0b\x63onditional\x1a\x37\n\tArgsEntry\x12\x10\n\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n\x05value\x18\x02 \x01(\tR\x05value:\x02\x38\x01\"\xe4\x03\n\x15\x45xecuteProgramRequest\x12\x1c\n\x04uuid\x18\x01 \x01(\tB\x08\xfa\x42\x05r\x03\xb0\x01\x01R\x04uuid\x12>\n\x03\x66qn\x18\x02 \x01(\tB,\xfa\x42)r\'2%(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$R\x03\x66qn\x12H\n\x04keys\x18\x03 \x03(\x0b\x32\x34.py_runtime.v1alpha1.ExecuteProgramRequest.KeysEntryR\x04keys\x12H\n\x04\x64\x61ta\x18\x04 \x03(\x0b\x32\x34.py_runtime.v1alpha1.ExecuteProgramRequest.DataEntryR\x04\x64\x61ta\x12\x38\n\ttimestamp\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\ttimestamp\x12\x17\n\x07\x64ry_run\x18\x06 \x01(\x08R\x06\x64ryRun\x1a\x37\n\tKeysEntry\x12\x10\n\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n\x05value\x18\x02 \x01(\tR\x05value:\x02\x38\x01\x1aM\n\tDataEntry\x12\x10\n\x03key\x18\x01 \x01(\tR\x03key\x12*\n\x05value\x18\x02 \x01(\x0b\x32\x14.core.v1alpha1.ValueR\x05value:\x02\x38\x01\"\xa2\x02\n\x16\x45xecuteProgramResponse\x12\x1c\n\x04uuid\x18\x01 \x01(\tB\x08\xfa\x42\x05r\x03\xb0\x01\x01R\x04uuid\x12,\n\x06result\x18\x02 \x01(\x0b\x32\x14.core.v1alpha1.ValueR\x06result\x12I\n\x04keys\x18\x03 \x03(\x0b\x32\x35.py_runtime.v1alpha1.ExecuteProgramResponse.KeysEntryR\x04keys\x12\x38\n\ttimestamp\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\ttimestamp\x1a\x37\n\tKeysEntry\x12\x10\n\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n\x05value\x18\x02 \x01(\tR\x05value:\x02\x38\x01\"\xa8\x01\n\x12LoadProgramRequest\x12\x1c\n\x04uuid\x18\x01 \x01(\tB\x08\xfa\x42\x05r\x03\xb0\x01\x01R\x04uuid\x12>\n\x03\x66qn\x18\x02 \x01(\tB,\xfa\x42)r\'2%(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$R\x03\x66qn\x12\x18\n\x07program\x18\x03 \x01(\tR\x07program\x12\x1a\n\x08packages\x18\x04 \x03(\tR\x08packages\"\xaf\x01\n\x13LoadProgramResponse\x12\x1c\n\x04uuid\x18\x01 \x01(\tB\x08\xfa\x42\x05r\x03\xb0\x01\x01R\x04uuid\x12\x36\n\tprimitive\x18\x02 \x01(\x0e\x32\x18.core.v1alpha1.PrimitiveR\tprimitive\x12\x42\n\x0cside_effects\x18\x03 \x03(\x0b\x32\x1f.py_runtime.v1alpha1.SideEffectR\x0bsideEffects2\x8e\x02\n\x0eRuntimeService\x12u\n\x0bLoadProgram\x12\'.py_runtime.v1alpha1.LoadProgramRequest\x1a(.py_runtime.v1alpha1.LoadProgramResponse\"\x13\x82\xd3\xe4\x93\x02\r:\x01*\"\x08/program\x12\x84\x01\n\x0e\x45xecuteProgram\x12*.py_runtime.v1alpha1.ExecuteProgramRequest\x1a+.py_runtime.v1alpha1.ExecuteProgramResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/program/{fqn}B\xe1\x01\n\x17\x63om.py_runtime.v1alpha1B\x08\x41piProtoP\x01ZSgithub.com/raptor-ml/raptor/api/proto/gen/go/py_runtime/v1alpha1;py_runtimev1alpha1\xa2\x02\x03PXX\xaa\x02\x12PyRuntime.V1alpha1\xca\x02\x12PyRuntime\\V1alpha1\xe2\x02\x1ePyRuntime\\V1alpha1\\GPBMetadata\xea\x02\x13PyRuntime::V1alpha1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1dpy_runtime/v1alpha1/api.proto\x12\x13py_runtime.v1alpha1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/api/visibility.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19\x63ore/v1alpha1/types.proto\x1a\x17validate/validate.proto\"\xcc\x01\n\nSideEffect\x12\x12\n\x04kind\x18\x01 \x01(\tR\x04kind\x12=\n\x04\x61rgs\x18\x02 \x03(\x0b\x32).py_runtime.v1alpha1.SideEffect.ArgsEntryR\x04\x61rgs\x12 \n\x0b\x63onditional\x18\x03 \x01(\x08R\x0b\x63onditional\x1a\x37\n\tArgsEntry\x12\x10\n\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n\x05value\x18\x02 \x01(\tR\x05value:\x02\x38\x01:\x10\xfa\xd2\xe4\x93\x02\n\x12\x08INTERNAL\"\xf6\x03\n\x15\x45xecuteProgramRequest\x12\x1c\n\x04uuid\x18\x01 \x01(\tB\x08\xfa\x42\x05r\x03\xb0\x01\x01R\x04uuid\x12>\n\x03\x66qn\x18\x02 \x01(\tB,\xfa\x42)r\'2%(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$R\x03\x66qn\x12H\n\x04keys\x18\x03 \x03(\x0b\x32\x34.py_runtime.v1alpha1.ExecuteProgramRequest.KeysEntryR\x04keys\x12H\n\x04\x64\x61ta\x18\x04 \x03(\x0b\x32\x34.py_runtime.v1alpha1.ExecuteProgramRequest.DataEntryR\x04\x64\x61ta\x12\x38\n\ttimestamp\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\ttimestamp\x12\x17\n\x07\x64ry_run\x18\x06 \x01(\x08R\x06\x64ryRun\x1a\x37\n\tKeysEntry\x12\x10\n\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n\x05value\x18\x02 \x01(\tR\x05value:\x02\x38\x01\x1aM\n\tDataEntry\x12\x10\n\x03key\x18\x01 \x01(\tR\x03key\x12*\n\x05value\x18\x02 \x01(\x0b\x32\x14.core.v1alpha1.ValueR\x05value:\x02\x38\x01:\x10\xfa\xd2\xe4\x93\x02\n\x12\x08INTERNAL\"\xb4\x02\n\x16\x45xecuteProgramResponse\x12\x1c\n\x04uuid\x18\x01 \x01(\tB\x08\xfa\x42\x05r\x03\xb0\x01\x01R\x04uuid\x12,\n\x06result\x18\x02 \x01(\x0b\x32\x14.core.v1alpha1.ValueR\x06result\x12I\n\x04keys\x18\x03 \x03(\x0b\x32\x35.py_runtime.v1alpha1.ExecuteProgramResponse.KeysEntryR\x04keys\x12\x38\n\ttimestamp\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\ttimestamp\x1a\x37\n\tKeysEntry\x12\x10\n\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n\x05value\x18\x02 \x01(\tR\x05value:\x02\x38\x01:\x10\xfa\xd2\xe4\x93\x02\n\x12\x08INTERNAL\"\xba\x01\n\x12LoadProgramRequest\x12\x1c\n\x04uuid\x18\x01 \x01(\tB\x08\xfa\x42\x05r\x03\xb0\x01\x01R\x04uuid\x12>\n\x03\x66qn\x18\x02 \x01(\tB,\xfa\x42)r\'2%(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$R\x03\x66qn\x12\x18\n\x07program\x18\x03 \x01(\tR\x07program\x12\x1a\n\x08packages\x18\x04 \x03(\tR\x08packages:\x10\xfa\xd2\xe4\x93\x02\n\x12\x08INTERNAL\"\xc1\x01\n\x13LoadProgramResponse\x12\x1c\n\x04uuid\x18\x01 \x01(\tB\x08\xfa\x42\x05r\x03\xb0\x01\x01R\x04uuid\x12\x36\n\tprimitive\x18\x02 \x01(\x0e\x32\x18.core.v1alpha1.PrimitiveR\tprimitive\x12\x42\n\x0cside_effects\x18\x03 \x03(\x0b\x32\x1f.py_runtime.v1alpha1.SideEffectR\x0bsideEffects:\x10\xfa\xd2\xe4\x93\x02\n\x12\x08INTERNAL2\xa0\x02\n\x0eRuntimeService\x12u\n\x0bLoadProgram\x12\'.py_runtime.v1alpha1.LoadProgramRequest\x1a(.py_runtime.v1alpha1.LoadProgramResponse\"\x13\x82\xd3\xe4\x93\x02\r:\x01*\"\x08/program\x12\x84\x01\n\x0e\x45xecuteProgram\x12*.py_runtime.v1alpha1.ExecuteProgramRequest\x1a+.py_runtime.v1alpha1.ExecuteProgramResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/program/{fqn}\x1a\x10\xfa\xd2\xe4\x93\x02\n\x12\x08INTERNALB\xe1\x01\n\x17\x63om.py_runtime.v1alpha1B\x08\x41piProtoP\x01ZSgithub.com/raptor-ml/raptor/api/proto/gen/go/py_runtime/v1alpha1;py_runtimev1alpha1\xa2\x02\x03PXX\xaa\x02\x12PyRuntime.V1alpha1\xca\x02\x12PyRuntime\\V1alpha1\xe2\x02\x1ePyRuntime\\V1alpha1\\GPBMetadata\xea\x02\x13PyRuntime::V1alpha1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -28,6 +29,8 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._serialized_options = b'\n\027com.py_runtime.v1alpha1B\010ApiProtoP\001ZSgithub.com/raptor-ml/raptor/api/proto/gen/go/py_runtime/v1alpha1;py_runtimev1alpha1\242\002\003PXX\252\002\022PyRuntime.V1alpha1\312\002\022PyRuntime\\V1alpha1\342\002\036PyRuntime\\V1alpha1\\GPBMetadata\352\002\023PyRuntime::V1alpha1'
   _SIDEEFFECT_ARGSENTRY._options = None
   _SIDEEFFECT_ARGSENTRY._serialized_options = b'8\001'
+  _SIDEEFFECT._options = None
+  _SIDEEFFECT._serialized_options = b'\372\322\344\223\002\n\022\010INTERNAL'
   _EXECUTEPROGRAMREQUEST_KEYSENTRY._options = None
   _EXECUTEPROGRAMREQUEST_KEYSENTRY._serialized_options = b'8\001'
   _EXECUTEPROGRAMREQUEST_DATAENTRY._options = None
@@ -36,38 +39,48 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _EXECUTEPROGRAMREQUEST.fields_by_name['uuid']._serialized_options = b'\372B\005r\003\260\001\001'
   _EXECUTEPROGRAMREQUEST.fields_by_name['fqn']._options = None
   _EXECUTEPROGRAMREQUEST.fields_by_name['fqn']._serialized_options = b'\372B)r\'2%(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$'
+  _EXECUTEPROGRAMREQUEST._options = None
+  _EXECUTEPROGRAMREQUEST._serialized_options = b'\372\322\344\223\002\n\022\010INTERNAL'
   _EXECUTEPROGRAMRESPONSE_KEYSENTRY._options = None
   _EXECUTEPROGRAMRESPONSE_KEYSENTRY._serialized_options = b'8\001'
   _EXECUTEPROGRAMRESPONSE.fields_by_name['uuid']._options = None
   _EXECUTEPROGRAMRESPONSE.fields_by_name['uuid']._serialized_options = b'\372B\005r\003\260\001\001'
+  _EXECUTEPROGRAMRESPONSE._options = None
+  _EXECUTEPROGRAMRESPONSE._serialized_options = b'\372\322\344\223\002\n\022\010INTERNAL'
   _LOADPROGRAMREQUEST.fields_by_name['uuid']._options = None
   _LOADPROGRAMREQUEST.fields_by_name['uuid']._serialized_options = b'\372B\005r\003\260\001\001'
   _LOADPROGRAMREQUEST.fields_by_name['fqn']._options = None
   _LOADPROGRAMREQUEST.fields_by_name['fqn']._serialized_options = b'\372B)r\'2%(i?)^([a0-z9\\-\\.]*)(\\[([a0-z9])*\\])?$'
+  _LOADPROGRAMREQUEST._options = None
+  _LOADPROGRAMREQUEST._serialized_options = b'\372\322\344\223\002\n\022\010INTERNAL'
   _LOADPROGRAMRESPONSE.fields_by_name['uuid']._options = None
   _LOADPROGRAMRESPONSE.fields_by_name['uuid']._serialized_options = b'\372B\005r\003\260\001\001'
+  _LOADPROGRAMRESPONSE._options = None
+  _LOADPROGRAMRESPONSE._serialized_options = b'\372\322\344\223\002\n\022\010INTERNAL'
+  _RUNTIMESERVICE._options = None
+  _RUNTIMESERVICE._serialized_options = b'\372\322\344\223\002\n\022\010INTERNAL'
   _RUNTIMESERVICE.methods_by_name['LoadProgram']._options = None
   _RUNTIMESERVICE.methods_by_name['LoadProgram']._serialized_options = b'\202\323\344\223\002\r:\001*\"\010/program'
   _RUNTIMESERVICE.methods_by_name['ExecuteProgram']._options = None
   _RUNTIMESERVICE.methods_by_name['ExecuteProgram']._serialized_options = b'\202\323\344\223\002\023:\001*\"\016/program/{fqn}'
-  _globals['_SIDEEFFECT']._serialized_start=170
-  _globals['_SIDEEFFECT']._serialized_end=356
-  _globals['_SIDEEFFECT_ARGSENTRY']._serialized_start=301
-  _globals['_SIDEEFFECT_ARGSENTRY']._serialized_end=356
-  _globals['_EXECUTEPROGRAMREQUEST']._serialized_start=359
-  _globals['_EXECUTEPROGRAMREQUEST']._serialized_end=843
-  _globals['_EXECUTEPROGRAMREQUEST_KEYSENTRY']._serialized_start=709
-  _globals['_EXECUTEPROGRAMREQUEST_KEYSENTRY']._serialized_end=764
-  _globals['_EXECUTEPROGRAMREQUEST_DATAENTRY']._serialized_start=766
-  _globals['_EXECUTEPROGRAMREQUEST_DATAENTRY']._serialized_end=843
-  _globals['_EXECUTEPROGRAMRESPONSE']._serialized_start=846
-  _globals['_EXECUTEPROGRAMRESPONSE']._serialized_end=1136
-  _globals['_EXECUTEPROGRAMRESPONSE_KEYSENTRY']._serialized_start=709
-  _globals['_EXECUTEPROGRAMRESPONSE_KEYSENTRY']._serialized_end=764
-  _globals['_LOADPROGRAMREQUEST']._serialized_start=1139
-  _globals['_LOADPROGRAMREQUEST']._serialized_end=1307
-  _globals['_LOADPROGRAMRESPONSE']._serialized_start=1310
-  _globals['_LOADPROGRAMRESPONSE']._serialized_end=1485
-  _globals['_RUNTIMESERVICE']._serialized_start=1488
-  _globals['_RUNTIMESERVICE']._serialized_end=1758
+  _globals['_SIDEEFFECT']._serialized_start=199
+  _globals['_SIDEEFFECT']._serialized_end=403
+  _globals['_SIDEEFFECT_ARGSENTRY']._serialized_start=330
+  _globals['_SIDEEFFECT_ARGSENTRY']._serialized_end=385
+  _globals['_EXECUTEPROGRAMREQUEST']._serialized_start=406
+  _globals['_EXECUTEPROGRAMREQUEST']._serialized_end=908
+  _globals['_EXECUTEPROGRAMREQUEST_KEYSENTRY']._serialized_start=756
+  _globals['_EXECUTEPROGRAMREQUEST_KEYSENTRY']._serialized_end=811
+  _globals['_EXECUTEPROGRAMREQUEST_DATAENTRY']._serialized_start=813
+  _globals['_EXECUTEPROGRAMREQUEST_DATAENTRY']._serialized_end=890
+  _globals['_EXECUTEPROGRAMRESPONSE']._serialized_start=911
+  _globals['_EXECUTEPROGRAMRESPONSE']._serialized_end=1219
+  _globals['_EXECUTEPROGRAMRESPONSE_KEYSENTRY']._serialized_start=756
+  _globals['_EXECUTEPROGRAMRESPONSE_KEYSENTRY']._serialized_end=811
+  _globals['_LOADPROGRAMREQUEST']._serialized_start=1222
+  _globals['_LOADPROGRAMREQUEST']._serialized_end=1408
+  _globals['_LOADPROGRAMRESPONSE']._serialized_start=1411
+  _globals['_LOADPROGRAMRESPONSE']._serialized_end=1604
+  _globals['_RUNTIMESERVICE']._serialized_start=1607
+  _globals['_RUNTIMESERVICE']._serialized_end=1895
 # @@protoc_insertion_point(module_scope)

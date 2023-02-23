@@ -7,7 +7,11 @@ from core.v1alpha1 import api_pb2 as core_dot_v1alpha1_dot_api__pb2
 
 
 class EngineServiceStub(object):
-    """+++ Service +++
+    """*
+    Service definition
+
+    EngineService is the service that provides the core functionality of the engine and to access low-level operations
+    over feature values.
     """
 
     def __init__(self, channel):
@@ -49,41 +53,51 @@ class EngineServiceStub(object):
 
 
 class EngineServiceServicer(object):
-    """+++ Service +++
+    """*
+    Service definition
+
+    EngineService is the service that provides the core functionality of the engine and to access low-level operations
+    over feature values.
     """
 
     def FeatureDescriptor(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """FeatureDescriptor returns the feature descriptor for the given selector.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Get(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Get returns the feature value or model prediction for the given selector.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Set(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Set sets the feature value for the given selector.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Append(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Append appends the given value to the feature value for the given selector.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Incr(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Incr increments the feature value for the given selector.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Update(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """Update updates the feature value for the given selector.
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -129,7 +143,11 @@ def add_EngineServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class EngineService(object):
-    """+++ Service +++
+    """*
+    Service definition
+
+    EngineService is the service that provides the core functionality of the engine and to access low-level operations
+    over feature values.
     """
 
     @staticmethod
