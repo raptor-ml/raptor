@@ -48,7 +48,6 @@ jobs:
           git commit -m "chore: update protobuf generated code"
           git push
       - name: Pushing to BSR
-        id: build
         if: success() && github.event_name == 'push' && github.ref == 'refs/heads/master' && steps.build.outputs.changed == 'true'
         uses: bufbuild/buf-push-action@v1
         with:
