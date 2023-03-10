@@ -22,8 +22,6 @@ _year_size = 365 * _day_size
 units = {
     'ns': _nanosecond_size,
     'us': _microsecond_size,
-    'µs': _microsecond_size,
-    'μs': _microsecond_size,
     'ms': _millisecond_size,
     's': _second_size,
     'm': _minute_size,
