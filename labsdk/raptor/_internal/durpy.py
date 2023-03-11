@@ -86,14 +86,14 @@ def to_str(delta: datetime.timedelta, extended=False) -> Optional[str]:
     nanoseconds = abs(total_seconds * _second_size)
 
     if abs(total_seconds) < 1:
-        result_str = _to_str_small(nanoseconds, extended)
+        result_str = _to_str_small(nanoseconds)
     else:
         result_str = _to_str_large(nanoseconds, extended)
 
     return '{}{}'.format(sign, result_str)
 
 
-def _to_str_small(nanoseconds, extended):
+def _to_str_small(nanoseconds):
     result_str = ''
 
     if not nanoseconds:
