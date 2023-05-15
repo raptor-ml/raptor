@@ -53,7 +53,7 @@ def int_to_base(x, base):
 
     while x:
         digits.append(digs[int(x % base)])
-        x = x // base
+        x //= base
 
     if sign < 0:
         digits.append('-')
