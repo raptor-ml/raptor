@@ -2,10 +2,10 @@ ARG BASE_PYTHON_IMAGE=python:3.11-alpine
 ARG TARGETOS=linux
 ARG TARGETARCH=amd64
 ARG VERSION
-ARG GRPC_HEALTH_PROBE_VERSION=v0.4.14
+ARG GRPC_HEALTH_PROBE_VERSION=v0.4.18
 
 ## Build protobuf files
-FROM bufbuild/buf:1.14.0 as buf
+FROM bufbuild/buf:1.18.0 as buf
 WORKDIR /workspace
 COPY ./api/proto /workspace
 RUN buf generate --include-imports .
@@ -42,4 +42,4 @@ COPY ./labsdk/raptor/program.py .
 
 USER 65532:65532
 ENV PYTHONUNBUFFERED=1
-CMD [ "python", "./runtime.py" ]
+CMD [ "python", "./main.py" ]
