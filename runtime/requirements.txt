@@ -1,6 +1,6 @@
 appdirs==1.4.4
 baron==0.10.1
-grpcio==1.54.2
+grpcio==1.54.3
 grpcio-health-checking==1.54.2
 grpcio-reflection==1.54.2
 protobuf==4.23.0
