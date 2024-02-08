@@ -49,12 +49,12 @@ func SetupFeatureWebhook(mgr ctrl.Manager, updatesAllowed bool, rm api.RuntimeMa
 		logger:         mgr.GetLogger().WithName("feature-webhook"),
 		runtimeManager: rm,
 	}
-	wh := admission.WithCustomValidator(&manifests.Feature{}, impl)
+	wh := admission.WithCustomValidator(mgr.GetScheme(), &manifests.Feature{}, impl)
 	wh.Handler = &admissionWrapper{Handler: wh.Handler}
 
 	mgr.GetWebhookServer().Register(FeatureWebhookValidatePath, wh)
 
-	wh = admission.WithCustomDefaulter(&manifests.Feature{}, impl)
+	wh = admission.WithCustomDefaulter(mgr.GetScheme(), &manifests.Feature{}, impl)
 	wh.Handler = &admissionWrapper{Handler: wh.Handler}
 	mgr.GetWebhookServer().Register(FeatureWebhookMutatePath, wh)
 }
@@ -74,12 +74,6 @@ type admissionWrapper struct {
 	admission.Handler
 }
 
-func (h *admissionWrapper) InjectDecoder(d *admission.Decoder) error {
-	if di, ok := h.Handler.(admission.DecoderInjector); ok {
-		return di.InjectDecoder(d)
-	}
-	return nil
-}
 func (h *admissionWrapper) Handle(ctx context.Context, req admission.Request) admission.Response {
 	ctx = context.WithValue(ctx, admissionRequestContextKey, req)
 	return h.Handler.Handle(ctx, req)
@@ -128,7 +122,7 @@ func (wh *webhook) Default(ctx context.Context, obj runtime.Object) error {
 }
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (wh *webhook) ValidateCreate(ctx context.Context, obj runtime.Object) error {
+func (wh *webhook) ValidateCreate(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
 	f := obj.(*manifests.Feature)
 	wh.logger.Info("validate create", "name", f.Name)
 
@@ -138,7 +132,7 @@ func (wh *webhook) ValidateCreate(ctx context.Context, obj runtime.Object) error
 		objectKey := client.ObjectKey{Namespace: f.GetNamespace(), Name: f.GetName()}
 		err := wh.client.Get(ctx, objectKey, &model)
 		if err != nil && !apierrors.IsNotFound(err) {
-			return fmt.Errorf("model %s is already exists with the same name, please change the name "+
+			return nil, fmt.Errorf("model %s is already exists with the same name, please change the name "+
 				"(due to the fact that models are implemented as features internally)", f.FQN())
 		}
 	}
@@ -147,18 +141,18 @@ func (wh *webhook) ValidateCreate(ctx context.Context, obj runtime.Object) error
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (wh *webhook) ValidateUpdate(ctx context.Context, oldObject, newObj runtime.Object) error {
+func (wh *webhook) ValidateUpdate(ctx context.Context, oldObject, newObj runtime.Object) (admission.Warnings, error) {
 	f := newObj.(*manifests.Feature)
 	old := oldObject.(*manifests.Feature)
 	wh.logger.Info("validate update", "name", f.GetName())
 	if !equality.Semantic.DeepEqual(old.Spec, f.Spec) && !wh.updatesAllowed {
-		return fmt.Errorf("features are immutable in production")
+		return nil, fmt.Errorf("features are immutable in production")
 	}
 
 	return wh.Validate(ctx, f)
 }
 
-func (wh *webhook) Validate(ctx context.Context, f *manifests.Feature) error {
+func (wh *webhook) Validate(ctx context.Context, f *manifests.Feature) (admission.Warnings, error) {
 	dummyEngine := engine.Dummy{RuntimeManager: wh.runtimeManager}
 
 	if f.Spec.DataSource != nil {
@@ -166,29 +160,29 @@ func (wh *webhook) Validate(ctx context.Context, f *manifests.Feature) error {
 			src := manifests.DataSource{}
 			err := wh.client.Get(ctx, f.Spec.DataSource.ObjectKey(), &src)
 			if apierrors.IsNotFound(err) {
-				return fmt.Errorf("DataSource %s/%s not found", f.Spec.DataSource.Namespace, f.Spec.DataSource.Name)
+				return nil, fmt.Errorf("DataSource %s/%s not found", f.Spec.DataSource.Namespace, f.Spec.DataSource.Name)
 			}
 			if err != nil {
-				return fmt.Errorf("failed to get DataSource: %w", err)
+				return nil, fmt.Errorf("failed to get DataSource: %w", err)
 			}
 
 			dci, err := api.DataSourceFromManifest(ctx, &src, wh.client)
 			if err != nil {
-				return fmt.Errorf("failed to get DataSource instance: %w", err)
+				return nil, fmt.Errorf("failed to get DataSource instance: %w", err)
 			}
 			dummyEngine.DataSource = dci
 		}
 	}
 	_, err := engine.FeatureWithEngine(&dummyEngine, f)
-	return err
+	return nil, err
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (wh *webhook) ValidateDelete(_ context.Context, obj runtime.Object) error {
+func (wh *webhook) ValidateDelete(_ context.Context, obj runtime.Object) (admission.Warnings, error) {
 	f := obj.(*manifests.Feature)
 	wh.logger.Info("validate delete", "name", f.GetName())
 
 	// DISABLED. To enable deletion validation, change the above annotation's verbs to "verbs=create;update;delete"
 
-	return nil
+	return nil, nil
 }

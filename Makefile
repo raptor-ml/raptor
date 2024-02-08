@@ -176,6 +176,12 @@ docker-build: generate docker-build-runtimes ## Build docker images.
 .PHONY: docker-build-runtimes
 docker-build-runtimes: ## Build docker images for runtimes.
 	DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
+		--build-arg BASE_PYTHON_IMAGE="python:3.12-alpine"\
+		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.12 -t ${RUNTIME_IMG_BASE}:latest-python3.12 \
+		-t ${RUNTIME_IMG_BASE}:${VERSION} -t ${RUNTIME_IMG_BASE}:latest \
+		--target runtime -f ./runtime/Dockerfile .
+
+	DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
 		--build-arg BASE_PYTHON_IMAGE="python:3.11-alpine"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.11 -t ${RUNTIME_IMG_BASE}:latest-python3.11 \
 		-t ${RUNTIME_IMG_BASE}:${VERSION} -t ${RUNTIME_IMG_BASE}:latest \
@@ -218,14 +224,14 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 .PHONY: update_images_pre
 update_images_pre: ## Update images in the manifests.
 	cd config/core && $(KUSTOMIZE) edit set image raptor-core=${CORE_IMG_BASE}:${VERSION}
-	cd config/core && $(KUSTOMIZE) edit set image raptor-runtime=${RUNTIME_IMG_BASE}:${VERSION}-python3.11
+	cd config/core && $(KUSTOMIZE) edit set image raptor-runtime=${RUNTIME_IMG_BASE}:${VERSION}-python3.12
 	cd config/historian && $(KUSTOMIZE) edit set image raptor-historian=${HISTORIAN_IMG_BASE}:${VERSION}
 
 .PHONY: update_images_post
 .PHONY: update_images_post
 update_images_post: ## Update images in the manifests.
 	cd config/core && $(KUSTOMIZE) edit set image raptor-core=raptor-core:latest
-	cd config/core && $(KUSTOMIZE) edit set image raptor-runtime=raptor-runtime:latest-python3.11
+	cd config/core && $(KUSTOMIZE) edit set image raptor-runtime=raptor-runtime:latest-python3.12
 	cd config/historian && $(KUSTOMIZE) edit set image raptor-historian=raptor-historian:latest
 
 .PHONY: deploy
@@ -248,6 +254,7 @@ installer: manifests kustomize update_images_pre ## Create a kustomization file 
 kind-load: ## Load docker images into kind.
 	kind load docker-image --name raptor ${CORE_IMG_BASE}:${VERSION}
 	kind load docker-image --name raptor ${HISTORIAN_IMG_BASE}:${VERSION}
+	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.12
 	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.11
 	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.10
 	kind load docker-image --name raptor ${RUNTIME_IMG_BASE}:${VERSION}-python3.9
@@ -267,12 +274,12 @@ CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 
 ## Tool Versions
-CONTROLLER_TOOLS_VERSION ?= v0.9.2
+CONTROLLER_TOOLS_VERSION ?= v0.14.0
 
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE):
-	GOBIN=$(LOCALBIN) go install sigs.k8s.io/kustomize/kustomize/v4@latest
+	GOBIN=$(LOCALBIN) go install sigs.k8s.io/kustomize/kustomize/v5.3@latest
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
@@ -285,7 +292,7 @@ $(ENVTEST):
 	GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
 OSDK ?= $(LOCALBIN)/operator-sdk
-OPERATOR_SDK_VERSION=v1.25.1
+OPERATOR_SDK_VERSION=v1.33.0
 
 .PHONY: operator-sdk
 operator-sdk: $(OSDK) ## Download controller-gen locally if necessary.
@@ -314,7 +321,7 @@ ifeq (,$(shell which opm 2>/dev/null))
 	set -e ;\
 	mkdir -p $(dir $(OPM)) ;\
 	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) && \
-	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.19.1/$${OS}-$${ARCH}-opm ;\
+	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.36.0/$${OS}-$${ARCH}-opm ;\
 	chmod +x $(OPM) ;\
 	}
 else
@@ -354,7 +361,7 @@ lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 	$(GOLANGCI_LINT) run --fix
 
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
-GOLANGCI_LINT_VERSION  = v1.50.1
+GOLANGCI_LINT_VERSION  = v1.56.0
 .PHONY: golangci-lint
 golangci-lint:
 	@[ -f $(GOLANGCI_LINT) ] || { \

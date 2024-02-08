@@ -3,8 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.9.2
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: v0.14.0
   name: features.k8s.raptor.ml
 spec:
   group: k8s.raptor.ml
@@ -25,14 +24,19 @@ spec:
         description: Feature is the Schema for the features API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
             type: string
           metadata:
             type: object
@@ -44,8 +48,8 @@ spec:
                   feature-value
                 properties:
                   aggr:
-                    description: Aggr defines an aggregation on top of the underlying
-                      feature-value. Aggregations will be calculated on time-of-request.
+                    description: |-
+                      Aggr defines an aggregation on top of the underlying feature-value. Aggregations will be calculated on time-of-request.
                       Users can specify here multiple functions to calculate the aggregation.
                     items:
                       description: AggrFn defines the type of aggregation
@@ -68,9 +72,9 @@ spec:
                       the feature-value.
                     type: string
                   kind:
-                    description: Kind defines the type of Builder to use to build
-                      the feature-value. The kind is usually auto-detected from the
-                      data-source, but can be overridden.
+                    description: |-
+                      Kind defines the type of Builder to use to build the feature-value.
+                      The kind is usually auto-detected from the data-source, but can be overridden.
                     nullable: true
                     type: string
                   packages:
@@ -105,18 +109,18 @@ spec:
                 type: object
                 x-kubernetes-map-type: atomic
               freshness:
-                description: Freshness defines the age of a feature-value(time since
-                  the value has set) to consider as *fresh*. Fresh values doesn't
-                  require re-ingestion
+                description: |-
+                  Freshness defines the age of a feature-value(time since the value has set) to consider as *fresh*.
+                  Fresh values doesn't require re-ingestion
                 type: string
               keepPrevious:
                 description: KeepPrevious defines the number of previous values to
                   keep in the history.
                 properties:
                   over:
-                    description: Over defines the maximum time period to keep a previous
-                      values in the history since the last update. You can specify
-                      `0` to keep the value until the next update.
+                    description: |-
+                      Over defines the maximum time period to keep a previous values in the history since the last update.
+                      You can specify `0` to keep the value until the next update.
                     type: string
                   versions:
                     description: Versions defines the number of previous values to
@@ -148,9 +152,9 @@ spec:
                 - '[]timestamp'
                 type: string
               staleness:
-                description: Staleness defines the age of a feature-value(time since
-                  the value has set) to consider as *stale*. Stale values are not
-                  fit for usage, therefore will not be returned and will REQUIRE re-ingestion.
+                description: |-
+                  Staleness defines the age of a feature-value(time since the value has set) to consider as *stale*.
+                  Stale values are not fit for usage, therefore will not be returned and will REQUIRE re-ingestion.
                 type: string
               timeout:
                 description: Timeout defines the maximum ingestion time allowed to
