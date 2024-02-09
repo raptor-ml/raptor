@@ -46,7 +46,7 @@ jobs:
           git-push: 'false'
           git-path: ". '!:labsdk'"
           tag-prefix: 'v'
-          fallback-version: '0.3.0'
+          fallback-version: '0.3.1'
       - name: Setup Go environment
         uses: actions/setup-go@v5
         with:
