@@ -42,7 +42,7 @@ jobs:
       - name: Clone the code
         uses: actions/checkout@v4
       - name: Cache go dependencies
-        uses: actions/cache@4
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/go-build
