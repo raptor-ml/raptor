@@ -11,9 +11,9 @@ from typing import ClassVar as _ClassVar, Mapping as _Mapping, Optional as _Opti
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class GetRequest(_message.Message):
-    __slots__ = ["uuid", "selector", "keys"]
+    __slots__ = ("uuid", "selector", "keys")
     class KeysEntry(_message.Message):
-        __slots__ = ["key", "value"]
+        __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
@@ -28,7 +28,7 @@ class GetRequest(_message.Message):
     def __init__(self, uuid: _Optional[str] = ..., selector: _Optional[str] = ..., keys: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
 class GetResponse(_message.Message):
-    __slots__ = ["uuid", "value", "feature_descriptor"]
+    __slots__ = ("uuid", "value", "feature_descriptor")
     UUID_FIELD_NUMBER: _ClassVar[int]
     VALUE_FIELD_NUMBER: _ClassVar[int]
     FEATURE_DESCRIPTOR_FIELD_NUMBER: _ClassVar[int]
@@ -38,7 +38,7 @@ class GetResponse(_message.Message):
     def __init__(self, uuid: _Optional[str] = ..., value: _Optional[_Union[_types_pb2.FeatureValue, _Mapping]] = ..., feature_descriptor: _Optional[_Union[_types_pb2.FeatureDescriptor, _Mapping]] = ...) -> None: ...
 
 class FeatureDescriptorRequest(_message.Message):
-    __slots__ = ["uuid", "selector"]
+    __slots__ = ("uuid", "selector")
     UUID_FIELD_NUMBER: _ClassVar[int]
     SELECTOR_FIELD_NUMBER: _ClassVar[int]
     uuid: str
@@ -46,7 +46,7 @@ class FeatureDescriptorRequest(_message.Message):
     def __init__(self, uuid: _Optional[str] = ..., selector: _Optional[str] = ...) -> None: ...
 
 class FeatureDescriptorResponse(_message.Message):
-    __slots__ = ["uuid", "feature_descriptor"]
+    __slots__ = ("uuid", "feature_descriptor")
     UUID_FIELD_NUMBER: _ClassVar[int]
     FEATURE_DESCRIPTOR_FIELD_NUMBER: _ClassVar[int]
     uuid: str
@@ -54,9 +54,9 @@ class FeatureDescriptorResponse(_message.Message):
     def __init__(self, uuid: _Optional[str] = ..., feature_descriptor: _Optional[_Union[_types_pb2.FeatureDescriptor, _Mapping]] = ...) -> None: ...
 
 class SetRequest(_message.Message):
-    __slots__ = ["uuid", "selector", "keys", "value", "timestamp"]
+    __slots__ = ("uuid", "selector", "keys", "value", "timestamp")
     class KeysEntry(_message.Message):
-        __slots__ = ["key", "value"]
+        __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
@@ -75,7 +75,7 @@ class SetRequest(_message.Message):
     def __init__(self, uuid: _Optional[str] = ..., selector: _Optional[str] = ..., keys: _Optional[_Mapping[str, str]] = ..., value: _Optional[_Union[_types_pb2.Value, _Mapping]] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class SetResponse(_message.Message):
-    __slots__ = ["uuid", "timestamp"]
+    __slots__ = ("uuid", "timestamp")
     UUID_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     uuid: str
@@ -83,9 +83,9 @@ class SetResponse(_message.Message):
     def __init__(self, uuid: _Optional[str] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class AppendRequest(_message.Message):
-    __slots__ = ["uuid", "fqn", "keys", "value", "timestamp"]
+    __slots__ = ("uuid", "fqn", "keys", "value", "timestamp")
     class KeysEntry(_message.Message):
-        __slots__ = ["key", "value"]
+        __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
@@ -104,7 +104,7 @@ class AppendRequest(_message.Message):
     def __init__(self, uuid: _Optional[str] = ..., fqn: _Optional[str] = ..., keys: _Optional[_Mapping[str, str]] = ..., value: _Optional[_Union[_types_pb2.Scalar, _Mapping]] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class AppendResponse(_message.Message):
-    __slots__ = ["uuid", "timestamp"]
+    __slots__ = ("uuid", "timestamp")
     UUID_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     uuid: str
@@ -112,9 +112,9 @@ class AppendResponse(_message.Message):
     def __init__(self, uuid: _Optional[str] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class IncrRequest(_message.Message):
-    __slots__ = ["uuid", "fqn", "keys", "value", "timestamp"]
+    __slots__ = ("uuid", "fqn", "keys", "value", "timestamp")
     class KeysEntry(_message.Message):
-        __slots__ = ["key", "value"]
+        __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
@@ -133,7 +133,7 @@ class IncrRequest(_message.Message):
     def __init__(self, uuid: _Optional[str] = ..., fqn: _Optional[str] = ..., keys: _Optional[_Mapping[str, str]] = ..., value: _Optional[_Union[_types_pb2.Scalar, _Mapping]] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class IncrResponse(_message.Message):
-    __slots__ = ["uuid", "timestamp"]
+    __slots__ = ("uuid", "timestamp")
     UUID_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     uuid: str
@@ -141,9 +141,9 @@ class IncrResponse(_message.Message):
     def __init__(self, uuid: _Optional[str] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class UpdateRequest(_message.Message):
-    __slots__ = ["uuid", "selector", "keys", "value", "timestamp"]
+    __slots__ = ("uuid", "selector", "keys", "value", "timestamp")
     class KeysEntry(_message.Message):
-        __slots__ = ["key", "value"]
+        __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
@@ -162,7 +162,7 @@ class UpdateRequest(_message.Message):
     def __init__(self, uuid: _Optional[str] = ..., selector: _Optional[str] = ..., keys: _Optional[_Mapping[str, str]] = ..., value: _Optional[_Union[_types_pb2.Value, _Mapping]] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class UpdateResponse(_message.Message):
-    __slots__ = ["uuid", "timestamp"]
+    __slots__ = ("uuid", "timestamp")
     UUID_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     uuid: str

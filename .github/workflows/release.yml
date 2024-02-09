@@ -21,7 +21,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.BOT_PAT }}
@@ -47,28 +47,29 @@ jobs:
           tag-prefix: 'v'
           fallback-version: '0.2.0'
       - name: Setup Go environment
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
-          go-version: '^1.20'
-      - name: Build project
+          go-version: '^1.21'
+      - # Add support for more platforms with QEMU (optional)
+        # https://github.com/docker/setup-qemu-action
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push the containers
         run: |
           make generate docker-build bundle installer \
             VERSION=${{ steps.version.outputs.version }} \
             BUNDLE_VERSION=${{ steps.version.outputs.tag }} \
             CHANNELS=${{ steps.bundle_channel.outputs.channel }} \
+            DOCKER_BUILD_FLAGS="--platform linux/amd64,linux/arm64 --push"
             ENV=prod
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Push images
-        run: |
-          docker push --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-core
-          docker push --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-historian
-          docker push --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-runtime
-          docker push --all-tags ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-bundle
       - name: Update changelog
         shell: bash
         run: |
@@ -82,7 +83,7 @@ jobs:
           git commit -m "chore(release): ${{ steps.version.outputs.version }}" CHANGELOG.md
           git push
       - name: Tag
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             github.rest.git.createRef({
@@ -95,8 +96,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.version.outputs.tag }}
-          files: |
-            installer.sh
           body: |
             ${{ steps.version.outputs.clean_changelog }}
           prerelease: ${{ inputs.prerelease }}

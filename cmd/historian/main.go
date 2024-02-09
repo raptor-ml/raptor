@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -90,9 +91,11 @@ func main() {
 
 	// Set up a Manager
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                        scheme,
-		MetricsBindAddress:            viper.GetString("metrics-bind-address"),
-		Port:                          9443,
+		Scheme: scheme,
+		Metrics: metricsserver.Options{
+			BindAddress:   viper.GetString("metrics-bind-address"),
+			SecureServing: viper.GetBool("metrics-secure-serving"),
+		},
 		HealthProbeBindAddress:        viper.GetString("health-probe-bind-address"),
 		LeaderElection:                viper.GetBool("leader-elect"),
 		LeaderElectionResourceLock:    resourcelock.LeasesResourceLock,

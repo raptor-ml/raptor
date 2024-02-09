@@ -32,7 +32,7 @@ var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
 var (
-	filter_EngineService_FeatureDescriptor_0 = &utilities.DoubleArray{Encoding: map[string]int{"selector": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
+	filter_EngineService_FeatureDescriptor_0 = &utilities.DoubleArray{Encoding: map[string]int{"selector": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_EngineService_FeatureDescriptor_0(ctx context.Context, marshaler runtime.Marshaler, client EngineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -102,7 +102,7 @@ func local_request_EngineService_FeatureDescriptor_0(ctx context.Context, marsha
 }
 
 var (
-	filter_EngineService_Get_0 = &utilities.DoubleArray{Encoding: map[string]int{"selector": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
+	filter_EngineService_Get_0 = &utilities.DoubleArray{Encoding: map[string]int{"selector": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_EngineService_Get_0(ctx context.Context, marshaler runtime.Marshaler, client EngineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -172,7 +172,7 @@ func local_request_EngineService_Get_0(ctx context.Context, marshaler runtime.Ma
 }
 
 var (
-	filter_EngineService_Set_0 = &utilities.DoubleArray{Encoding: map[string]int{"selector": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
+	filter_EngineService_Set_0 = &utilities.DoubleArray{Encoding: map[string]int{"selector": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_EngineService_Set_0(ctx context.Context, marshaler runtime.Marshaler, client EngineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -242,7 +242,7 @@ func local_request_EngineService_Set_0(ctx context.Context, marshaler runtime.Ma
 }
 
 var (
-	filter_EngineService_Append_0 = &utilities.DoubleArray{Encoding: map[string]int{"fqn": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
+	filter_EngineService_Append_0 = &utilities.DoubleArray{Encoding: map[string]int{"fqn": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_EngineService_Append_0(ctx context.Context, marshaler runtime.Marshaler, client EngineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -312,7 +312,7 @@ func local_request_EngineService_Append_0(ctx context.Context, marshaler runtime
 }
 
 var (
-	filter_EngineService_Incr_0 = &utilities.DoubleArray{Encoding: map[string]int{"fqn": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
+	filter_EngineService_Incr_0 = &utilities.DoubleArray{Encoding: map[string]int{"fqn": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_EngineService_Incr_0(ctx context.Context, marshaler runtime.Marshaler, client EngineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -382,7 +382,7 @@ func local_request_EngineService_Incr_0(ctx context.Context, marshaler runtime.M
 }
 
 var (
-	filter_EngineService_Update_0 = &utilities.DoubleArray{Encoding: map[string]int{"selector": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
+	filter_EngineService_Update_0 = &utilities.DoubleArray{Encoding: map[string]int{"selector": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_EngineService_Update_0(ctx context.Context, marshaler runtime.Marshaler, client EngineServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -613,7 +613,7 @@ func RegisterEngineServiceHandlerServer(ctx context.Context, mux *runtime.ServeM
 // RegisterEngineServiceHandlerFromEndpoint is same as RegisterEngineServiceHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
 func RegisterEngineServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
-	conn, err := grpc.Dial(endpoint, opts...)
+	conn, err := grpc.DialContext(ctx, endpoint, opts...)
 	if err != nil {
 		return err
 	}

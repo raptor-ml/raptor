@@ -36,13 +36,13 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - name: Setup Go environment
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
-          go-version: '^1.20'
+          go-version: '^1.21'
       - name: Clone the code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache go dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/go-build
@@ -51,11 +51,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
       - name: Install KiND
-        uses: helm/kind-action@v1.5.0
+        uses: helm/kind-action@v1.8.0
         with:
           install_only: true
       - name: Install Kustomize
-        uses: imranismail/setup-kustomize@v1
+        uses: imranismail/setup-kustomize@v2
       - name: Set up gotestfmt
         uses: GoTestTools/gotestfmt-action@v2
         with:
@@ -70,7 +70,7 @@ jobs:
           set -euo pipefail
           go test -v -timeout 1h -json -tags e2e github.com/raptor-ml/raptor/internal/e2e --args -v 5 -build-tag=$(git rev-parse --short HEAD) 2>&1 | tee /tmp/gotest.log | gotestfmt
       - name: Upload test log
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-log
