@@ -36,7 +36,7 @@ jobs:
         shell: bash
       - name: Conventional Changelog Action
         id: version
-        uses: TriPSs/conventional-changelog-action@v3
+        uses: TriPSs/conventional-changelog-action@v5
         with:
           release-count: '1'
           skip-version-file: 'true'
