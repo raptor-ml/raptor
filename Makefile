@@ -168,42 +168,45 @@ build: generate ## Build core binary.
 run: manifests generate fmt lint ## Run a controller from your host.
 	go run ./cmd/raptor/*
 
+
+DOCKER_BUILD_FLAGS ?= --load
+
 .PHONY: docker-build
 docker-build: generate docker-build-runtimes ## Build docker images.
-	DOCKER_BUILDKIT=1 docker build --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${CORE_IMG_BASE}:${VERSION} -t ${CORE_IMG_BASE}:latest --target core .
-	DOCKER_BUILDKIT=1 docker build --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${HISTORIAN_IMG_BASE}:${VERSION} -t ${HISTORIAN_IMG_BASE}:latest --target historian .
+	docker buildx build ${DOCKER_BUILD_FLAGS} --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${CORE_IMG_BASE}:${VERSION} -t ${CORE_IMG_BASE}:latest --target core .
+	docker buildx build ${DOCKER_BUILD_FLAGS} --build-arg LDFLAGS="${LDFLAGS}" --build-arg VERSION="${VERSION}" -t ${HISTORIAN_IMG_BASE}:${VERSION} -t ${HISTORIAN_IMG_BASE}:latest --target historian .
 
 .PHONY: docker-build-runtimes
 docker-build-runtimes: ## Build docker images for runtimes.
-	DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
-		--build-arg BASE_PYTHON_IMAGE="python:3.12-alpine"\
+	docker buildx build ${DOCKER_BUILD_FLAGS} --build-arg VERSION="${VERSION}" \
+		--build-arg BASE_PYTHON_IMAGE="python:3.12-slim-bookworm"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.12 -t ${RUNTIME_IMG_BASE}:latest-python3.12 \
 		-t ${RUNTIME_IMG_BASE}:${VERSION} -t ${RUNTIME_IMG_BASE}:latest \
 		--target runtime -f ./runtime/Dockerfile .
 
-	DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
-		--build-arg BASE_PYTHON_IMAGE="python:3.11-alpine"\
+	docker buildx build ${DOCKER_BUILD_FLAGS} --build-arg VERSION="${VERSION}" \
+		--build-arg BASE_PYTHON_IMAGE="python:3.11-slim-bookworm"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.11 -t ${RUNTIME_IMG_BASE}:latest-python3.11 \
 		-t ${RUNTIME_IMG_BASE}:${VERSION} -t ${RUNTIME_IMG_BASE}:latest \
 		--target runtime -f ./runtime/Dockerfile .
 
-	DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
-		--build-arg BASE_PYTHON_IMAGE="python:3.10-alpine"\
+	docker buildx build ${DOCKER_BUILD_FLAGS} --build-arg VERSION="${VERSION}" \
+		--build-arg BASE_PYTHON_IMAGE="python:3.10-slim-bookworm"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.10 -t ${RUNTIME_IMG_BASE}:latest-python3.10 \
 		--target runtime -f ./runtime/Dockerfile .
 
-	DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
-		--build-arg BASE_PYTHON_IMAGE="python:3.9-alpine"\
+	docker buildx build ${DOCKER_BUILD_FLAGS} --build-arg VERSION="${VERSION}" \
+		--build-arg BASE_PYTHON_IMAGE="python:3.9-slim-bookworm"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.9 -t ${RUNTIME_IMG_BASE}:latest-python3.9 \
 		--target runtime -f ./runtime/Dockerfile .
 
-	DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
-		--build-arg BASE_PYTHON_IMAGE="python:3.8-alpine"\
+	docker buildx build ${DOCKER_BUILD_FLAGS} --build-arg VERSION="${VERSION}" \
+		--build-arg BASE_PYTHON_IMAGE="python:3.8-slim-bookworm"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.8 -t ${RUNTIME_IMG_BASE}:latest-python3.8 \
 		--target runtime -f ./runtime/Dockerfile .
 
-	DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 docker build --build-arg VERSION="${VERSION}" \
-		--build-arg BASE_PYTHON_IMAGE="python:3.7-alpine"\
+	docker buildx build ${DOCKER_BUILD_FLAGS} --build-arg VERSION="${VERSION}" \
+		--build-arg BASE_PYTHON_IMAGE="python:3.7-slim-bookworm"\
 		-t ${RUNTIME_IMG_BASE}:${VERSION}-python3.7 -t ${RUNTIME_IMG_BASE}:latest-python3.7 \
 		--target runtime -f ./runtime/Dockerfile .
 

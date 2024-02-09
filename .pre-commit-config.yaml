@@ -20,7 +20,9 @@ repos:
       - id: detect-aws-credentials
       - id: detect-private-key
       - id: end-of-file-fixer
+        exclude: ^api/proto/gen/
       - id: fix-byte-order-marker
+        exclude: ^api/proto/gen/
       - id: no-commit-to-branch
       - id: pretty-format-json
         args:
@@ -31,6 +33,7 @@ repos:
       - id: debug-statements
       - id: double-quote-string-fixer
       - id: fix-encoding-pragma
+        exclude: ^api/proto/gen/
   - repo: https://github.com/golangci/golangci-lint
     rev: v1.50.1
     hooks:
@@ -44,6 +47,7 @@ repos:
       - id: pretty-format-golang
         args:
           - --autofix
+        exclude: ^api/proto/gen/
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.4.0
     hooks:
