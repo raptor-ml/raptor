@@ -42,6 +42,7 @@ jobs:
           skip-version-file: 'true'
           skip-commit: 'true'
           skip-git-pull: 'true'
+          skip-on-empty: false
           git-push: 'false'
           git-path: ". '!:labsdk'"
           tag-prefix: 'v'
