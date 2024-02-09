@@ -282,7 +282,7 @@ CONTROLLER_TOOLS_VERSION ?= v0.14.0
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE):
-	GOBIN=$(LOCALBIN) go install sigs.k8s.io/kustomize/kustomize/v5.3@latest
+	GOBIN=$(LOCALBIN) go install sigs.k8s.io/kustomize/kustomize/v5@latest
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
