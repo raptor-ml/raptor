@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"k8s.io/klog/v2"
 	"os"
+	clog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/e2e-framework/pkg/env"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/envfuncs"
@@ -36,6 +37,8 @@ var (
 )
 
 func TestMain(m *testing.M) {
+	clog.SetLogger(klog.NewKlogr())
+
 	buildTag := flag.String("build-tag", "", "The docker image tag that used when testing")
 	imgBasename := flag.String("image-basename", "ghcr.io/raptor-ml/raptor", "The base name for docker images")
 	cfg, _ := envconf.NewFromFlags()

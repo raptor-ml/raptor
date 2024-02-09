@@ -11,9 +11,9 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class SideEffect(_message.Message):
-    __slots__ = ["kind", "args", "conditional"]
+    __slots__ = ("kind", "args", "conditional")
     class ArgsEntry(_message.Message):
-        __slots__ = ["key", "value"]
+        __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
@@ -28,16 +28,16 @@ class SideEffect(_message.Message):
     def __init__(self, kind: _Optional[str] = ..., args: _Optional[_Mapping[str, str]] = ..., conditional: bool = ...) -> None: ...
 
 class ExecuteProgramRequest(_message.Message):
-    __slots__ = ["uuid", "fqn", "keys", "data", "timestamp", "dry_run"]
+    __slots__ = ("uuid", "fqn", "keys", "data", "timestamp", "dry_run")
     class KeysEntry(_message.Message):
-        __slots__ = ["key", "value"]
+        __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
         value: str
         def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     class DataEntry(_message.Message):
-        __slots__ = ["key", "value"]
+        __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
@@ -58,9 +58,9 @@ class ExecuteProgramRequest(_message.Message):
     def __init__(self, uuid: _Optional[str] = ..., fqn: _Optional[str] = ..., keys: _Optional[_Mapping[str, str]] = ..., data: _Optional[_Mapping[str, _types_pb2.Value]] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., dry_run: bool = ...) -> None: ...
 
 class ExecuteProgramResponse(_message.Message):
-    __slots__ = ["uuid", "result", "keys", "timestamp"]
+    __slots__ = ("uuid", "result", "keys", "timestamp")
     class KeysEntry(_message.Message):
-        __slots__ = ["key", "value"]
+        __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
@@ -77,7 +77,7 @@ class ExecuteProgramResponse(_message.Message):
     def __init__(self, uuid: _Optional[str] = ..., result: _Optional[_Union[_types_pb2.Value, _Mapping]] = ..., keys: _Optional[_Mapping[str, str]] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...) -> None: ...
 
 class LoadProgramRequest(_message.Message):
-    __slots__ = ["uuid", "fqn", "program", "packages"]
+    __slots__ = ("uuid", "fqn", "program", "packages")
     UUID_FIELD_NUMBER: _ClassVar[int]
     FQN_FIELD_NUMBER: _ClassVar[int]
     PROGRAM_FIELD_NUMBER: _ClassVar[int]
@@ -89,7 +89,7 @@ class LoadProgramRequest(_message.Message):
     def __init__(self, uuid: _Optional[str] = ..., fqn: _Optional[str] = ..., program: _Optional[str] = ..., packages: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class LoadProgramResponse(_message.Message):
-    __slots__ = ["uuid", "primitive", "side_effects"]
+    __slots__ = ("uuid", "primitive", "side_effects")
     UUID_FIELD_NUMBER: _ClassVar[int]
     PRIMITIVE_FIELD_NUMBER: _ClassVar[int]
     SIDE_EFFECTS_FIELD_NUMBER: _ClassVar[int]

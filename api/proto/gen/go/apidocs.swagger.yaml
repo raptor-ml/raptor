@@ -37,6 +37,14 @@ paths:
           in: query
           required: false
           type: string
+        - name: keys
+          description: |-
+            Keys of the feature
+
+            This is a request variable of the map type. The query format is "map_name[key]=value", e.g. If the map name is Age, the key type is string, and the value type is integer, the query parameter is expressed as Age["bob"]=18
+          in: query
+          required: false
+          type: string
         - name: value.stringValue
           in: query
           required: false
@@ -89,6 +97,14 @@ paths:
           type: string
         - name: uuid
           description: UUID of the request
+          in: query
+          required: false
+          type: string
+        - name: keys
+          description: |-
+            Keys of the feature
+
+            This is a request variable of the map type. The query format is "map_name[key]=value", e.g. If the map name is Age, the key type is string, and the value type is integer, the query parameter is expressed as Age["bob"]=18
           in: query
           required: false
           type: string
@@ -147,6 +163,14 @@ paths:
           in: query
           required: false
           type: string
+        - name: keys
+          description: |-
+            Keys of the feature
+
+            This is a request variable of the map type. The query format is "map_name[key]=value", e.g. If the map name is Age, the key type is string, and the value type is integer, the query parameter is expressed as Age["bob"]=18
+          in: query
+          required: false
+          type: string
       tags:
         - EngineService
     post:
@@ -169,6 +193,14 @@ paths:
           type: string
         - name: uuid
           description: UUID of the request
+          in: query
+          required: false
+          type: string
+        - name: keys
+          description: |-
+            Keys of the feature
+
+            This is a request variable of the map type. The query format is "map_name[key]=value", e.g. If the map name is Age, the key type is string, and the value type is integer, the query parameter is expressed as Age["bob"]=18
           in: query
           required: false
           type: string
@@ -223,6 +255,14 @@ paths:
           type: string
         - name: uuid
           description: UUID of the request
+          in: query
+          required: false
+          type: string
+        - name: keys
+          description: |-
+            Keys of the feature
+
+            This is a request variable of the map type. The query format is "map_name[key]=value", e.g. If the map name is Age, the key type is string, and the value type is integer, the query parameter is expressed as Age["bob"]=18
           in: query
           required: false
           type: string
@@ -283,6 +323,35 @@ paths:
       tags:
         - EngineService
 definitions:
+  corev1alpha1FeatureDescriptor:
+    type: object
+    properties:
+      fqn:
+        type: string
+      primitive:
+        $ref: '#/definitions/v1alpha1Primitive'
+      aggr:
+        type: array
+        items:
+          $ref: '#/definitions/v1alpha1AggrFn'
+      freshness:
+        type: string
+      staleness:
+        type: string
+      timeout:
+        type: string
+      keepPrevious:
+        $ref: '#/definitions/v1alpha1KeepPrevious'
+      keys:
+        type: array
+        items:
+          type: string
+      builder:
+        type: string
+      dataSource:
+        type: string
+      runtimeEnv:
+        type: string
   corev1alpha1Value:
     type: object
     properties:
@@ -307,6 +376,7 @@ definitions:
       details:
         type: array
         items:
+          type: object
           $ref: '#/definitions/protobufAny'
   v1alpha1AggrFn:
     type: string
@@ -348,35 +418,6 @@ definitions:
         format: date-time
         description: Timestamp of the response.
     description: EntityReadResponse is a response to a read entity request.
-  v1alpha1FeatureDescriptor:
-    type: object
-    properties:
-      fqn:
-        type: string
-      primitive:
-        $ref: '#/definitions/v1alpha1Primitive'
-      aggr:
-        type: array
-        items:
-          $ref: '#/definitions/v1alpha1AggrFn'
-      freshness:
-        type: string
-      staleness:
-        type: string
-      timeout:
-        type: string
-      keepPrevious:
-        $ref: '#/definitions/v1alpha1KeepPrevious'
-      keys:
-        type: array
-        items:
-          type: string
-      builder:
-        type: string
-      dataSource:
-        type: string
-      runtimeEnv:
-        type: string
   v1alpha1FeatureDescriptorResponse:
     type: object
     properties:
@@ -384,7 +425,7 @@ definitions:
         type: string
         title: UUID corresponding to the request
       featureDescriptor:
-        $ref: '#/definitions/v1alpha1FeatureDescriptor'
+        $ref: '#/definitions/corev1alpha1FeatureDescriptor'
         title: Feature descriptor
     description: FeatureDescriptorResponse is the response to get a feature descriptor.
   v1alpha1FeatureValue:
@@ -413,7 +454,7 @@ definitions:
         $ref: '#/definitions/v1alpha1FeatureValue'
         title: Feature value
       featureDescriptor:
-        $ref: '#/definitions/v1alpha1FeatureDescriptor'
+        $ref: '#/definitions/corev1alpha1FeatureDescriptor'
         title: Feature descriptor
     description: GetResponse is the response to get a feature value.
   v1alpha1IncrResponse:
@@ -441,6 +482,7 @@ definitions:
       values:
         type: array
         items:
+          type: object
           $ref: '#/definitions/v1alpha1Scalar'
   v1alpha1LoadProgramResponse:
     type: object
@@ -454,6 +496,7 @@ definitions:
       sideEffects:
         type: array
         items:
+          type: object
           $ref: '#/definitions/v1alpha1SideEffect'
         description: Side effects that the program will produce.
     description: LoadProgramResponse is a response to a load program request.

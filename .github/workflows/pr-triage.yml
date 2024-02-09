@@ -17,7 +17,7 @@ jobs:
     name: "Triage Pull Request"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/labeler@v4
+      - uses: actions/labeler@v5
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
       - uses: codelytv/pr-size-labeler@v1
