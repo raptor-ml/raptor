@@ -313,7 +313,7 @@ bundle: operator-sdk manifests kustomize update_images_pre ## Generate bundle ma
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
-	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+	docker buildx build ${DOCKER_BUILD_FLAGS} -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
 .PHONY: opm
 OPM = ./bin/opm
