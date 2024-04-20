@@ -26,8 +26,8 @@ from typing import Union, List, Dict, Optional, Callable
 from warnings import warn
 
 from pandas import DataFrame
-from pydantic import create_model_from_typeddict
-from typing_extensions import TypedDict
+from pydantic import TypeAdapter
+from typing_extensions import TypedDict, _TypedDictMeta
 
 from . import local_state, config, replay
 from ._internal import durpy
@@ -39,9 +39,9 @@ from .types.dsrc_config_stubs.protocol import SourceProductionConfig
 from .types.dsrc_config_stubs.rest import RestConfig
 
 if sys.version_info >= (3, 8):
-    from typing import TypedDict as typing_TypedDict
+    from typing import _TypedDictMeta as typing_TypedDictMeta
 else:
-    typing_TypedDict = type(None)
+    typing_TypedDictMeta = type(None)
 
 
 def _wrap_decorator_err(f):
@@ -245,9 +245,9 @@ def data_source(
 
     @_wrap_decorator_err
     def decorator(cls: TypedDict):
-        if type(cls) == type(typing_TypedDict):
+        if isinstance(cls, typing_TypedDictMeta):
             raise Exception('You should use typing_extensions.TypedDict instead of typing.TypedDict')
-        elif type(cls) != type(TypedDict):
+        elif not isinstance(cls, _TypedDictMeta):
             raise Exception('data_source decorator must be used on a class that extends typing_extensions.TypedDict')
 
         nonlocal name
@@ -269,7 +269,7 @@ def data_source(
             spec.namespace = options['namespace']
 
         # convert cls to json schema
-        spec.schema = create_model_from_typeddict(cls).schema()
+        spec.schema = TypeAdapter(cls).json_schema()
 
         # register
         cls.raptor_spec = spec

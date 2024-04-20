@@ -14,8 +14,8 @@
 #  limitations under the License.
 
 import inspect
-from datetime import timedelta
-from typing import Optional, Callable
+from datetime import timedelta, datetime
+from typing import Optional, Callable, Union
 
 from . import SecretKeyRef
 from .common import _k8s_name
@@ -40,8 +40,8 @@ class ModelImpl(ModelSpec):
         self.exporter = ModelExporter(self)
         self._features_and_labels = replay.new_historical_get(self)
 
-    def features_and_labels(self):
-        return self._features_and_labels()
+    def features_and_labels(self, since: Optional[Union[datetime, str]] = None, until: Optional[Union[datetime, str]] = None):
+        return self._features_and_labels(since, until)
 
     def train(self):
         for f in (self.features + self.label_features + ([self.key_feature] if self.key_feature is not None else [])):
