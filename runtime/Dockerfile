@@ -9,7 +9,7 @@ COPY ./api/proto /workspace
 RUN buf generate --include-imports .
 
 # GRPC Health Probe
-FROM golang:1.21 AS grpc_health_probe
+FROM golang:1.22 AS grpc_health_probe
 ARG GRPC_HEALTH_PROBE_VERSION
 RUN GOBIN=/out/ CGO_ENABLED=0 go install github.com/grpc-ecosystem/grpc-health-probe@${GRPC_HEALTH_PROBE_VERSION}
 
