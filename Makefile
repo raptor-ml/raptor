@@ -162,7 +162,6 @@ LDFLAGS += -X github.com/raptor-ml/raptor/internal/plugins/builders/streaming.ru
 build: generate ## Build core binary.
 	go build -ldflags="${LDFLAGS}" -a -o bin/core cmd/core/*.go
 	go build -ldflags="${LDFLAGS}" -a -o bin/historian cmd/historian/*.go
-	go build -ldflags="${LDFLAGS}" -a -o bin/runtime cmd/runtime/*.go
 
 .PHONY: run
 run: manifests generate fmt lint ## Run a controller from your host.
