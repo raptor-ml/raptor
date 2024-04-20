@@ -20,7 +20,7 @@ from warnings import warn
 import pandas as pd
 import yaml
 from pandas.core.window import RollingGroupby
-from typing_extensions import TypedDict
+from typing_extensions import _TypedDictMeta
 
 from .common import RaptorSpec, ResourceReference, _k8s_name, EnumSpec, RuntimeSpec
 from .dsrc import DataSourceSpec
@@ -183,8 +183,8 @@ class FeatureSpec(RaptorSpec):
             elif isinstance(value, str):
                 value = ResourceReference(value)
                 self.data_source_spec = local_state.spec_by_selector(value.fqn())
-            elif type(value) == type(TypedDict) or isinstance(value, DataSourceSpec):
-                if type(value) == type(TypedDict):
+            elif isinstance(value, _TypedDictMeta) or isinstance(value, DataSourceSpec):
+                if isinstance(value, _TypedDictMeta):
                     if hasattr(value, 'raptor_spec'):
                         value = value.raptor_spec
                     else:

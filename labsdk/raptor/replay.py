@@ -141,12 +141,9 @@ def new_replay(spec: FeatureSpec):
 
         for aggr in spec.aggr.funcs:
             f = f'{spec.fqn()}+{aggr.value}'
-            result = aggr.apply(fvg).reset_index(0).rename(columns={'value': f})
+            result = aggr.apply(fvg).reset_index(0).rename(columns={val_field: f})
             feature_values = feature_values.merge(result, on=['timestamp', 'keys'], how='left')
             fields.append(f)
-
-        if 'f_value' in feature_values.columns:
-            feature_values = feature_values.drop('f_value', axis=1)
 
         feature_values = feature_values.reset_index().drop(columns=['value']). \
             melt(id_vars=['timestamp', 'keys'], value_vars=fields, var_name='fqn', value_name='value')
