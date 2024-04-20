@@ -3,8 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.9.2
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: v0.14.0
   name: models.k8s.raptor.ml
 spec:
   group: k8s.raptor.ml
@@ -25,14 +24,19 @@ spec:
         description: Model is the Schema for the models API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
             type: string
           metadata:
             type: object
@@ -48,9 +52,9 @@ spec:
                 minItems: 2
                 type: array
               freshness:
-                description: Freshness defines the age of a prediction-result(time
-                  since the value has set) to consider as *fresh*. Fresh values doesn't
-                  require re-ingestion
+                description: |-
+                  Freshness defines the age of a prediction-result(time since the value has set) to consider as *fresh*.
+                  Fresh values doesn't require re-ingestion
                 type: string
               inferenceConfig:
                 description: InferenceConfig is the additional configuration used
@@ -70,8 +74,10 @@ spec:
                             be a valid secret key.
                           type: string
                         name:
-                          description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                            TODO: Add other useful fields. apiVersion, kind, uid?'
+                          description: |-
+                            Name of the referent.
+                            More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                            TODO: Add other useful fields. apiVersion, kind, uid?
                           type: string
                         optional:
                           description: Specify whether the Secret or its key must
@@ -90,9 +96,9 @@ spec:
                   type: object
                 type: array
               keyFeature:
-                description: KeyFeature is the feature FQN that is used to align the
-                  rest of the features with their timestamp. If this is unset, the
-                  first feature in the list will be used.
+                description: |-
+                  KeyFeature is the feature FQN that is used to align the rest of the features with their timestamp.
+                  If this is unset, the first feature in the list will be used.
                 nullable: true
                 type: string
               keys:
@@ -124,10 +130,9 @@ spec:
                 - sagemaker-ack
                 type: string
               staleness:
-                description: Staleness defines the age of a prediction-result(time
-                  since the value has set) to consider as *stale*. Stale values are
-                  not fit for usage, therefore will not be returned and will REQUIRE
-                  re-ingestion.
+                description: |-
+                  Staleness defines the age of a prediction-result(time since the value has set) to consider as *stale*.
+                  Stale values are not fit for usage, therefore will not be returned and will REQUIRE re-ingestion.
                 type: string
               storageURI:
                 description: StorageURI is the URI of the model storage.

@@ -20,12 +20,12 @@ jobs:
       skipped: ${{ steps.changelog.outputs.skipped }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Conventional Changelog Action
         id: changelog
-        uses: TriPSs/conventional-changelog-action@v3
+        uses: TriPSs/conventional-changelog-action@v5
         with:
           release-count: '1'
           skip-version-file: 'true'
@@ -34,13 +34,13 @@ jobs:
           git-push: 'false'
           git-path: 'labsdk'
           tag-prefix: 'LabSDK-v'
-          fallback-version: '0.2.6'
+          fallback-version: '0.3.1'
   build_dist:
     needs: [ version ]
     name: Build distributions - source and wheel
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Override the version for the dist code
         working-directory: ./labsdk/
         run: |
@@ -54,7 +54,7 @@ jobs:
         env:
           BUILD_VERSION: "${{ needs.version.outputs.version }}"
         run: pipx run build --sdist --wheel
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: |
             ./labsdk/dist/*.tar.gz
@@ -65,12 +65,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Fetch the artifacts"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: artifact
           path: dist
       - name: "Publish to PyPi"
-        uses: pypa/gh-action-pypi-publish@v1.5.0
+        uses: pypa/gh-action-pypi-publish@v1
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
@@ -91,7 +91,7 @@ jobs:
           git commit -m "chore(LabSDK-release): ${{ needs.version.outputs.version }}" labsdk/CHANGELOG.md
           git push
       - name: Tag
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             github.rest.git.createRef({

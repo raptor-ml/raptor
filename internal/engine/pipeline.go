@@ -72,9 +72,7 @@ func (p Pipeline) applyWithTimeout(ctx context.Context, keys api.Keys, first api
 	var err error
 	go func(first api.Value) {
 		_, e := next(ctx, p.FeatureDescriptor, keys, first)
-		if err != nil {
-			err = e
-		}
+		err = e
 		close(c)
 	}(first)
 

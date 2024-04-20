@@ -59,7 +59,7 @@ func newCoreController(rcl reconcile.Reconciler, obj client.Object, updatesAllow
 			},
 		})
 	}
-	src := &source.Kind{Type: obj}
+	src := source.Kind(mgr.GetCache(), obj)
 	err = c.Watch(src, &handler.EnqueueRequestForObject{}, prct...)
 	if err != nil {
 		return nil, err

@@ -1,6 +1,6 @@
 module github.com/raptor-ml/raptor/api/proto/gen/go
 
-go 1.19
+go 1.20
 
 require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.0

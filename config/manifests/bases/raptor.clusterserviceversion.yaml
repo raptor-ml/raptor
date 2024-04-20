@@ -112,9 +112,22 @@ spec:
           has set) to consider as *fresh*. Fresh values doesn't require re-ingestion
         displayName: Freshness
         path: freshness
+      - description: KeepPrevious defines the number of previous values to keep in
+          the history.
+        displayName: Keep Previous
+        path: keepPrevious
+      - description: Over defines the maximum time period to keep a previous values
+          in the history since the last update. You can specify `0` to keep the value
+          until the next update.
+        displayName: Over
+        path: keepPrevious.over
+      - description: Versions defines the number of previous values to keep in the
+          history.
+        displayName: Versions
+        path: keepPrevious.versions
       - description: Keys defines the list of keys that are required to calculate
           the feature value.
-        displayName: EncodedKeys
+        displayName: Keys
         path: keys
       - description: Primitive defines the type of the underlying feature-value that
           a Feature should respond with.
@@ -151,11 +164,24 @@ spec:
           value has set) to consider as *fresh*. Fresh values doesn't require re-ingestion
         displayName: Freshness
         path: freshness
+      - description: InferenceConfig is the additional configuration used for the
+          model server.
+        displayName: Config
+        path: inferenceConfig
+      - description: Configuration value from secret
+        displayName: Secret Key Ref
+        path: inferenceConfig[0].secretKeyRef
+        x-descriptors:
+        - urn:alm:descriptor:io.kubernetes:Secret
       - description: KeyFeature is the feature FQN that is used to align the rest
           of the features with their timestamp. If this is unset, the first feature
           in the list will be used.
         displayName: Key Feature FQN
         path: keyFeature
+      - description: Keys defines the list of keys that are required to calculate
+          the feature values.
+        displayName: Keys
+        path: keys
       - description: Labels is a list of feature FQNs that are used to label the prediction
           result.
         displayName: Labels
@@ -167,6 +193,9 @@ spec:
           train the model.
         displayName: Model Framework Version
         path: modelFrameworkVersion
+      - description: ModelImage is the image used to serve the model.
+        displayName: Model Image
+        path: modelImage
       - description: ModelServer is the server used to serve the model.
         displayName: Model Server
         path: modelServer

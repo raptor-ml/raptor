@@ -12,7 +12,7 @@ images:
   newTag: latest
 - name: raptor-runtime
   newName: raptor-runtime
-  newTag: latest-python3.11
+  newTag: latest-python3.12
 
 replicas:
 - count: 3

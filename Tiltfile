@@ -122,7 +122,7 @@ docker_build_with_restart(
 
 #### Controllers
 base_dockerfile = '''
-FROM golang:1.19 AS build
+FROM golang:1.20 AS build
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
 WORKDIR /workspace
