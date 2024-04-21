@@ -1,3 +1,14 @@
+## [0.3.1](https://github.com/raptor-ml/raptor/compare/LabSDK-v0.3.0...LabSDK-v0.3.1) (2024-04-21)
+
+
+### Bug Fixes
+
+* fix labsdk bugs ([e311349](https://github.com/raptor-ml/raptor/commit/e311349d44c00f97860a64f750fa7bdbd8b950b7))
+
+
+
+
+
 # [0.3.0](https://github.com/raptor-ml/raptor/compare/LabSDK-v0.2.7...LabSDK-v0.3.0) (2023-02-15)
 
 
