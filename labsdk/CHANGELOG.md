@@ -1,3 +1,14 @@
+## [0.3.2](https://github.com/raptor-ml/raptor/compare/LabSDK-v0.3.1...LabSDK-v0.3.2) (2024-04-21)
+
+
+### Bug Fixes
+
+* **labsdk:** change bml version ([85721bd](https://github.com/raptor-ml/raptor/commit/85721bdcaf48530d80a1cca8a4cc98c7a6096dae))
+
+
+
+
+
 ## [0.3.1](https://github.com/raptor-ml/raptor/compare/LabSDK-v0.3.0...LabSDK-v0.3.1) (2024-04-21)
 
 
